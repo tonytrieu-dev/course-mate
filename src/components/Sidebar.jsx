@@ -697,15 +697,6 @@ const Sidebar = () => {
                         📄
                       </span>
                     )}
-                    
-                    {cls.syllabusAnalysis && (
-                      <span
-                        className="ml-1 text-base text-green-600"
-                        title="Syllabus analyzed"
-                      >
-                        ✓
-                      </span>
-                    )}
                   </div>
                   {hoveredClassId === cls.id && (
                     <button
