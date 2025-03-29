@@ -55,6 +55,25 @@ const SimpleCalendar = ({ view }) => {
     loadData();
   }, [isAuthenticated]);
 
+  // Refreshes calendar data / view when tasks are added to the app
+  useEffect(() => {
+    const refreshCalendarData = async () => {
+      console.log("Calendar: Refreshing task data...");
+      const fetchedTasks = await getTasks(isAuthenticated);
+      console.log(`Calendar: Loaded ${fetchedTasks.length} tasks`);
+      setTasks(fetchedTasks);
+    };
+    
+    // Listen for custom event
+    window.addEventListener('calendar-update', refreshCalendarData);
+    
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('calendar-update', refreshCalendarData);
+    };
+  }, [isAuthenticated]);
+
+  
   // Navigation functions
   const previousPeriod = () => {
     const newDate = new Date(currentDate);

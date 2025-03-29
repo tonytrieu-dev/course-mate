@@ -32,7 +32,11 @@ export const getTasks = async (useSupabase = false) => {
   return getLocalData(TASKS_KEY);
 };
 
-
+export const refreshCalendar = () => {
+  // Dispatch a custom event that the Calendar component can listen for
+  window.dispatchEvent(new CustomEvent('calendar-update'));
+  console.log("Calendar refresh event dispatched");
+};
 
 export const addTask = async (task, useSupabase = false) => {
   // Add debugging
@@ -442,12 +446,4 @@ export const updateSettings = (settings) => {
     if (!localStorage.getItem(SETTINGS_KEY)) {
       saveLocalData(SETTINGS_KEY, { title: 'UCR' });
     }
-};
-
-
-
-export const refreshCalendar = () => {
-  // Dispatch a custom event that the Calendar component can listen for
-  window.dispatchEvent(new CustomEvent('calendar-update'));
-  console.log("Calendar refresh event dispatched");
 };
