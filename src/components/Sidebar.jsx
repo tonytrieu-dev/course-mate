@@ -9,6 +9,7 @@ import {
   addTask,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../services/supabaseClient";
 
 const Sidebar = () => {
   const { isAuthenticated } = useAuth();
@@ -25,6 +26,7 @@ const Sidebar = () => {
   const [analysisError, setAnalysisError] = useState(null);
   const [showAnalysisDetails, setShowAnalysisDetails] = useState(false);
   const [tasksAdded, setTasksAdded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Load data
   useEffect(() => {
@@ -136,225 +138,56 @@ const Sidebar = () => {
   const handleSyllabusUpload = async (e) => {
     const file = e.target.files[0];
     if (file && selectedClass) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
+      try {
+        // Show loading state
+        setIsUploading(true);
+
+        // 1. Upload the file to Supabase Storage
+        const fileName = `syllabi/${selectedClass.id}/${Date.now()}_${
+          file.name
+        }`;
+        const { data, error } = await supabase.storage
+          .from("class-materials") // Your bucket name
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (error) throw error;
+
+        // 2. Get the public URL for the file
+        const { data: publicUrlData } = supabase.storage
+          .from("class-materials")
+          .getPublicUrl(fileName);
+
+        // 3. Update the class with the file info
         const updatedClass = {
           ...selectedClass,
           syllabus: {
             name: file.name,
             type: file.type,
             size: file.size,
-            data: event.target.result,
+            path: fileName,
+            url: publicUrlData.publicUrl, // Store the permanent URL
           },
         };
 
-        // Update class in database/local storage
+        // 4. Update class in database
         await updateClass(selectedClass.id, updatedClass, isAuthenticated);
 
+        // 5. Update local state
         const updatedClasses = classes.map((c) =>
           c.id === selectedClass.id ? updatedClass : c
         );
         setClasses(updatedClasses);
-
-        // Update the selected class to show the uploaded syllabus
         setSelectedClass(updatedClass);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDeleteSyllabus = async () => {
-    if (selectedClass) {
-      const updatedClass = {
-        ...selectedClass,
-        syllabus: null,
-        syllabusAnalysis: null,
-      };
-
-      // Update class in database/local storage
-      await updateClass(selectedClass.id, updatedClass, isAuthenticated);
-
-      const updatedClasses = classes.map((c) =>
-        c.id === selectedClass.id ? updatedClass : c
-      );
-      setClasses(updatedClasses);
-      setSelectedClass(updatedClass);
-      setShowAnalysisDetails(false);
-    }
-  };
-
-  const parseDate = (dateStr) => {
-    if (!dateStr) return null;
-
-    console.log(`Trying to parse date: "${dateStr}"`);
-    const currentYear = new Date().getFullYear();
-    let dueDate = null;
-
-    try {
-      // Try multiple formats
-
-      // Format: MM/DD or M/D
-      if (/^\d{1,2}\/\d{1,2}$/.test(dateStr)) {
-        const [month, day] = dateStr.split("/").map((num) => parseInt(num, 10));
-        dueDate = new Date(currentYear, month - 1, day);
-        console.log(`Parsed MM/DD format: ${dueDate.toISOString()}`);
-      }
-      // Format: Month DD or Month D
-      else if (/^[A-Za-z]+\s+\d{1,2}$/.test(dateStr)) {
-        dueDate = new Date(`${dateStr}, ${currentYear}`);
-        console.log(`Parsed Month DD format: ${dueDate.toISOString()}`);
-      }
-      // Format: DD-MM or D-M
-      else if (/^\d{1,2}-\d{1,2}$/.test(dateStr)) {
-        const [day, month] = dateStr.split("-").map((num) => parseInt(num, 10));
-        dueDate = new Date(currentYear, month - 1, day);
-        console.log(`Parsed DD-MM format: ${dueDate.toISOString()}`);
-      }
-      // Try direct ISO parsing as last resort
-      else {
-        dueDate = new Date(dateStr);
-        console.log(`Tried direct parsing: ${dueDate.toISOString()}`);
-      }
-
-      // Validate the date
-      if (!dueDate || isNaN(dueDate.getTime())) {
-        console.error(`Invalid date parsed from "${dateStr}"`);
-        return null;
-      }
-
-      // If the date is in the past, assume it's for next year
-      if (dueDate < new Date() && dueDate.getMonth() < 6) {
-        // If before July
-        dueDate.setFullYear(currentYear + 1);
-        console.log(`Adjusted to next year: ${dueDate.toISOString()}`);
-      }
-
-      return dueDate;
-    } catch (e) {
-      console.error(`Error parsing date "${dateStr}":`, e);
-      return null;
-    }
-  };
-
-  // Function to add syllabus data as tasks to the calendar
-  const addSyllabusDataToCalendar = async (classObj, analysisData) => {
-    const tasks = [];
-    const className = classObj.name;
-
-    // Add assessments (exams, quizzes, midterms) as tasks
-    if (analysisData.assessments && analysisData.assessments.length > 0) {
-      for (const assessment of analysisData.assessments) {
-        // Parse the date using our new function
-        const dueDate = assessment.date ? parseDate(assessment.date) : null;
-
-        if (dueDate) {
-          const taskType =
-            assessment.type === "final"
-              ? "final"
-              : assessment.type === "midterm"
-              ? "exam"
-              : assessment.type === "quiz"
-              ? "quiz"
-              : "exam";
-
-          const task = {
-            id: `${classObj.id}_${assessment.type}_${Date.now()}`,
-            title: `${
-              assessment.type.charAt(0).toUpperCase() + assessment.type.slice(1)
-            } - ${className}`,
-            description: `${
-              assessment.type.charAt(0).toUpperCase() + assessment.type.slice(1)
-            } for ${className}`,
-            // Store both formats for compatibility
-            date: dueDate.toISOString(), // For backward compatibility
-            dueDate: dueDate.toISOString(), // For newer code
-            dueTime: assessment.time || "23:59", // Add time if available
-            classId: classObj.id,
-            className: className,
-            class: classObj.id, // Add this for compatibility with class field
-            type: taskType, // Add this for compatibility with type field
-            taskType: taskType,
-            completed: false,
-            priority:
-              assessment.type === "final" || assessment.type === "midterm"
-                ? "high"
-                : "medium",
-            // Add source info to help with debugging
-            source: "syllabus",
-            syllabusInfo: {
-              originalDateText: assessment.date,
-              assessmentType: assessment.type,
-            },
-          };
-
-          tasks.push(task);
-        }
+      } catch (error) {
+        console.error("Error uploading syllabus:", error);
+        alert("Error uploading syllabus: " + error.message);
+      } finally {
+        setIsUploading(false);
       }
     }
-
-    // Add assignments (homework) as tasks
-    if (analysisData.assignments && analysisData.assignments.length > 0) {
-      for (const assignment of analysisData.assignments) {
-        // Parse the date using our new function
-        const dueDate = assignment.dueDate
-          ? parseDate(assignment.dueDate)
-          : null;
-
-        if (dueDate) {
-          // Determine task type based on assignment type
-          let taskType = "homework";
-          if (assignment.type === "project") taskType = "project";
-          else if (assignment.type === "lab") taskType = "lab";
-
-          const task = {
-            id: `${classObj.id}_${assignment.type}_${
-              assignment.number
-            }_${Date.now()}`,
-            title: `${
-              assignment.type.charAt(0).toUpperCase() + assignment.type.slice(1)
-            } ${assignment.number} - ${className}`,
-            description: `${
-              assignment.type.charAt(0).toUpperCase() + assignment.type.slice(1)
-            } ${assignment.number} for ${className}`,
-            // Store both formats for compatibility
-            date: dueDate.toISOString(), // For backward compatibility
-            dueDate: dueDate.toISOString(), // For newer code
-            dueTime: "23:59", // Default time
-            classId: classObj.id,
-            className: className,
-            class: classObj.id, // Add this for compatibility with class field
-            type: taskType, // Add this for compatibility with type field
-            taskType: taskType,
-            completed: false,
-            priority: "medium",
-            // Add source info to help with debugging
-            source: "syllabus",
-            syllabusInfo: {
-              originalDateText: assignment.dueDate,
-              assignmentType: assignment.type,
-              assignmentNumber: assignment.number,
-            },
-          };
-
-          tasks.push(task);
-        }
-      }
-    }
-
-    // Add weekly schedule items as recurring tasks if they exist
-    if (analysisData.weeklySchedule && analysisData.weeklySchedule.length > 0) {
-      // This would require more complex scheduling logic to implement recurring tasks
-      // For now, we'll skip this feature until we have a better system for recurring tasks
-    }
-
-    // Add all tasks to the calendar
-    for (const task of tasks) {
-      await addTask(task, isAuthenticated);
-    }
-
-    window.dispatchEvent(new CustomEvent("calendar-update"));
-
-    return tasks.length;
   };
 
   // Syllabus Modal
@@ -381,6 +214,12 @@ const Sidebar = () => {
                   onChange={handleSyllabusUpload}
                   className="block mx-auto my-2.5"
                 />
+                {isUploading && (
+                  <div className="text-center my-2">
+                    <p className="text-blue-600">Uploading syllabus...</p>
+                    <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="mb-5">
@@ -416,55 +255,12 @@ const Sidebar = () => {
                         />
                       </svg>
                       <a
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-
-                          // Log that the button was clicked
-                          console.log("Download syllabus clicked");
-
-                          try {
-                            // Create a blob from the data URL
-                            const dataUrl = selectedClass.syllabus.data;
-                            const byteString = atob(dataUrl.split(",")[1]);
-                            const mimeString = dataUrl
-                              .split(",")[0]
-                              .split(":")[1]
-                              .split(";")[0];
-
-                            const ab = new ArrayBuffer(byteString.length);
-                            const ia = new Uint8Array(ab);
-                            for (let i = 0; i < byteString.length; i++) {
-                              ia[i] = byteString.charCodeAt(i);
-                            }
-                            const blob = new Blob([ab], { type: mimeString });
-
-                            // Create a download link and trigger it
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement("a");
-                            link.href = url;
-                            link.download = selectedClass.syllabus.name;
-                            document.body.appendChild(link);
-                            link.click();
-
-                            // Clean up
-                            setTimeout(() => {
-                              document.body.removeChild(link);
-                              URL.revokeObjectURL(url);
-                            }, 100);
-                          } catch (error) {
-                            console.error("Error downloading syllabus:", error);
-                            alert(
-                              "Error downloading syllabus: " + error.message
-                            );
-
-                            // Fallback to opening in new tab
-                            window.open(selectedClass.syllabus.data, "_blank");
-                          }
-                        }}
+                        href={selectedClass.syllabus.url} // Use the permanent URL from Supabase
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800 underline"
                       >
-                        Download Syllabus: {selectedClass.syllabus.name}
+                        View Syllabus: {selectedClass.syllabus.name}
                       </a>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
@@ -482,6 +278,12 @@ const Sidebar = () => {
                   onChange={handleSyllabusUpload}
                   className="block my-2.5"
                 />
+                {isUploading && (
+                  <div className="text-center my-2">
+                    <p className="text-blue-600">Uploading syllabus...</p>
+                    <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
+                  </div>
+                )}
               </div>
             )}
           </div>
