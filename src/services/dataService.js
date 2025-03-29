@@ -146,8 +146,8 @@ export const deleteTask = async (taskId, useSupabase = false) => {
 
       if (error) throw error;
 
-      const localTasks = getLocalData(TASKS_KEY);
-      const updatedTasks = localTasks.filter((task) => task.id !== taskId);
+      const tasks = getLocalData(TASKS_KEY);
+      const updatedTasks = tasks.filter((task) => task.id !== taskId);
       saveLocalData(TASKS_KEY, updatedTasks);
 
       return true;
