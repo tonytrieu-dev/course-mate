@@ -10,6 +10,16 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./config.js":
+/*!*******************!*\
+  !*** ./config.js ***!
+  \*******************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   supabaseConfig: () => (/* binding */ supabaseConfig)\n/* harmony export */ });\nconst supabaseConfig = {\n  url: 'https://adkrfpcmfvqhctlvizxw.supabase.co',\n  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFka3JmcGNtZnZxaGN0bHZpenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNDU0MjIsImV4cCI6MjA1ODYyMTQyMn0.FJTM_m9TIi1bp85A6W9THSil5gS561PsNyCe9gaGkGc'\n};\n\n//# sourceURL=webpack://notion-clone/./config.js?");
+
+/***/ }),
+
 /***/ "./node_modules/@supabase/auth-js/dist/module/AuthAdminApi.js":
 /*!********************************************************************!*\
   !*** ./node_modules/@supabase/auth-js/dist/module/AuthAdminApi.js ***!
@@ -696,7 +706,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
   \****************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   supabase: () => (/* binding */ supabase)\n/* harmony export */ });\n/* harmony import */ var _supabase_supabase_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @supabase/supabase-js */ \"./node_modules/@supabase/supabase-js/dist/module/index.js\");\nObject(function webpackMissingModule() { var e = new Error(\"Cannot find module '../../config'\"); e.code = 'MODULE_NOT_FOUND'; throw e; }());\n\n\nconst supabase = (0,_supabase_supabase_js__WEBPACK_IMPORTED_MODULE_1__.createClient)(Object(function webpackMissingModule() { var e = new Error(\"Cannot find module '../../config'\"); e.code = 'MODULE_NOT_FOUND'; throw e; }()).url, Object(function webpackMissingModule() { var e = new Error(\"Cannot find module '../../config'\"); e.code = 'MODULE_NOT_FOUND'; throw e; }()).key);\n\n//# sourceURL=webpack://notion-clone/./src/services/supabaseClient.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   supabase: () => (/* binding */ supabase)\n/* harmony export */ });\n/* harmony import */ var _supabase_supabase_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @supabase/supabase-js */ \"./node_modules/@supabase/supabase-js/dist/module/index.js\");\n/* harmony import */ var _config_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../config.js */ \"./config.js\");\n\n\nconst supabase = (0,_supabase_supabase_js__WEBPACK_IMPORTED_MODULE_1__.createClient)(_config_js__WEBPACK_IMPORTED_MODULE_0__.supabaseConfig.url, _config_js__WEBPACK_IMPORTED_MODULE_0__.supabaseConfig.key);\n\n//# sourceURL=webpack://notion-clone/./src/services/supabaseClient.js?");
 
 /***/ }),
 
