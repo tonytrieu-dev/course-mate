@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { 
-  getTasks, addTask, updateTask, deleteTask,
-  getClasses, getTaskTypes
+import {
+  getTasks,
+  addTask,
+  updateTask,
+  deleteTask,
+  getClasses,
+  getTaskTypes,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -13,7 +17,7 @@ const SimpleCalendar = ({ view }) => {
   const [tasks, setTasks] = useState([]);
   const [classes, setClasses] = useState([]);
   const [taskTypes, setTaskTypes] = useState([]);
-  
+
   // Enhanced task model with time features
   const [newTask, setNewTask] = useState({
     title: "",
@@ -42,16 +46,16 @@ const SimpleCalendar = ({ view }) => {
       // Load tasks
       const fetchedTasks = await getTasks(isAuthenticated);
       setTasks(fetchedTasks);
-      
+
       // Load classes
       const fetchedClasses = await getClasses(isAuthenticated);
       setClasses(fetchedClasses);
-      
+
       // Load task types
       const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
       setTaskTypes(fetchedTaskTypes);
     };
-    
+
     loadData();
   }, [isAuthenticated]);
 
@@ -63,17 +67,16 @@ const SimpleCalendar = ({ view }) => {
       console.log(`Calendar: Loaded ${fetchedTasks.length} tasks`);
       setTasks(fetchedTasks);
     };
-    
+
     // Listen for custom event
-    window.addEventListener('calendar-update', refreshCalendarData);
-    
+    window.addEventListener("calendar-update", refreshCalendarData);
+
     // Clean up event listener
     return () => {
-      window.removeEventListener('calendar-update', refreshCalendarData);
+      window.removeEventListener("calendar-update", refreshCalendarData);
     };
   }, [isAuthenticated]);
 
-  
   // Navigation functions
   const previousPeriod = () => {
     const newDate = new Date(currentDate);
@@ -173,11 +176,13 @@ const SimpleCalendar = ({ view }) => {
 
     if (editingTask) {
       // Update existing task
-      const updatedTask = await updateTask(editingTask.id, taskData, isAuthenticated);
+      const updatedTask = await updateTask(
+        editingTask.id,
+        taskData,
+        isAuthenticated
+      );
       setTasks(
-        tasks.map((task) =>
-          task.id === editingTask.id ? updatedTask : task
-        )
+        tasks.map((task) => (task.id === editingTask.id ? updatedTask : task))
       );
     } else {
       // Add new task
@@ -211,41 +216,107 @@ const SimpleCalendar = ({ view }) => {
     }
   };
 
+  // Replace the getTasksForDay function in SimpleCalendar.jsx with this improved version
+
   const getTasksForDay = (day) => {
+    console.log(
+      `Checking tasks for day ${day}, month ${currentDate.getMonth()}, year ${currentDate.getFullYear()}`
+    );
+
     return tasks.filter((task) => {
+      // Create the target date for comparison
+      const targetDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        day
+      );
+
+      // For debugging
+      console.log(
+        `Task: ${task.title}, taskDate: ${task.date}, dueDate: ${task.dueDate}`
+      );
+
       // For simple deadline tasks (backward compatibility)
-      if (!task.isDuration && !task.startDate && !task.endDate) {
-        const taskDate = new Date(task.date);
-        return (
-          taskDate.getDate() === day &&
-          taskDate.getMonth() === currentDate.getMonth() &&
-          taskDate.getFullYear() === currentDate.getFullYear()
-        );
+      if (!task.isDuration && task.date) {
+        try {
+          const taskDate = new Date(task.date);
+          console.log(`Checking task date: ${taskDate.toLocaleDateString()}`);
+          if (
+            taskDate.getDate() === day &&
+            taskDate.getMonth() === currentDate.getMonth() &&
+            taskDate.getFullYear() === currentDate.getFullYear()
+          ) {
+            console.log(`Match found with task.date for ${task.title}`);
+            return true;
+          }
+        } catch (e) {
+          console.error("Error parsing task.date:", e);
+        }
       }
 
       // For deadline tasks with dueDate
-      if (!task.isDuration && task.dueDate) {
-        const dueDate = new Date(task.dueDate);
-        return (
-          dueDate.getDate() === day &&
-          dueDate.getMonth() === currentDate.getMonth() &&
-          dueDate.getFullYear() === currentDate.getFullYear()
-        );
+      if (task.dueDate) {
+        try {
+          const dueDate = new Date(task.dueDate);
+          console.log(`Checking due date: ${dueDate.toLocaleDateString()}`);
+
+          // If it's just a date string like "2023-03-19"
+          if (
+            dueDate.getDate() === day &&
+            dueDate.getMonth() === currentDate.getMonth() &&
+            dueDate.getFullYear() === currentDate.getFullYear()
+          ) {
+            console.log(`Match found with task.dueDate for ${task.title}`);
+            return true;
+          }
+        } catch (e) {
+          console.error("Error parsing task.dueDate:", e);
+        }
       }
 
       // For duration tasks
       if (task.isDuration && task.startDate && task.endDate) {
-        const startDate = new Date(task.startDate);
-        const endDate = new Date(task.endDate);
+        try {
+          const startDate = new Date(task.startDate);
+          const endDate = new Date(task.endDate);
+          console.log(
+            `Checking duration from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`
+          );
 
-        // Check if this day falls within the start and end dates
-        const checkDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          day
-        );
+          // Check if this day falls within the start and end dates
+          if (targetDate >= startDate && targetDate <= endDate) {
+            console.log(`Match found within date range for ${task.title}`);
+            return true;
+          }
+        } catch (e) {
+          console.error("Error parsing duration dates:", e);
+        }
+      }
 
-        return checkDate >= startDate && checkDate <= endDate;
+      // Special handling for the syllabus data which might be in a different format
+      if (task.classId && task.className && task.dueDate) {
+        try {
+          // Try different date formats
+          let dueDate;
+
+          // Direct string might be ISO format
+          dueDate = new Date(task.dueDate);
+
+          console.log(
+            `Checking special format due date: ${dueDate.toLocaleDateString()}`
+          );
+
+          if (
+            dueDate.getDate() === day &&
+            dueDate.getMonth() === currentDate.getMonth() &&
+            dueDate.getFullYear() === currentDate.getFullYear()
+          ) {
+            console.log(`Match found with special format for ${task.title}`);
+            return true;
+          }
+        } catch (e) {
+          console.error("Error parsing special format date:", e);
+        }
       }
 
       return false;
@@ -295,8 +366,8 @@ const SimpleCalendar = ({ view }) => {
             let borderColor = "border-l-blue-500";
 
             // Find the class
-            const taskClass = classes.find(c => c.id === task.class);
-            
+            const taskClass = classes.find((c) => c.id === task.class);
+
             if (taskClass) {
               if (task.class === "cs179g") {
                 bgColor = "bg-blue-50";
@@ -432,11 +503,11 @@ const SimpleCalendar = ({ view }) => {
                               id: autoId,
                               name: newClassName.trim(),
                             };
-                            
+
                             // Add class via data service
                             const classesToAdd = [...classes, newClass];
                             setClasses(classesToAdd);
-                            
+
                             setNewTask({ ...newTask, class: newClass.id });
                             setNewClassName("");
                             setShowClassInput(false);
@@ -515,11 +586,11 @@ const SimpleCalendar = ({ view }) => {
                               id: autoId,
                               name: newTypeName.trim(),
                             };
-                            
+
                             // Add type via data service
                             const typesToAdd = [...taskTypes, newType];
                             setTaskTypes(typesToAdd);
-                            
+
                             setNewTask({ ...newTask, type: newType.id });
                             setNewTypeName("");
                             setShowTypeInput(false);
@@ -738,9 +809,7 @@ const SimpleCalendar = ({ view }) => {
 
     hours.push(
       <div key={0} className="border border-gray-300 p-2.5 flex">
-        <div className="w-16 font-bold">
-          12 AM
-        </div>
+        <div className="w-16 font-bold">12 AM</div>
         <div className="flex-1 min-h-10"></div>
       </div>
     );
