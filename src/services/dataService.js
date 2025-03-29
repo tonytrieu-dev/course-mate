@@ -35,34 +35,67 @@ export const getTasks = async (useSupabase = false) => {
 
 
 export const addTask = async (task, useSupabase = false) => {
-  const taskToSave = {
-    ...task,
-    id: task.id || Date.now(),
-    created_at: new Date().toISOString(),
-  };
-
-  if (useSupabase) {
-    try {
-      const { data, error } = await supabase
-        .from("tasks")
-        .insert([taskToSave])
-        .select("*");
-
-      if (error) throw error;
-
-      const localTasks = getLocalData(TASKS_KEY);
-      saveLocalData(TASKS_KEY, [...localTasks, taskToSave]);
-
-      return data[0];
-    } catch (error) {
-      console.error("Error adding task to Supabase:", error.message);
+  // Add debugging
+  console.log("Adding task:", task);
+  
+  try {
+    // Validate the task has required fields
+    if (!task.title || !task.dueDate) {
+      console.error("Task missing required fields:", task);
+      return null;
     }
-  }
+    
+    // Ensure dueDate is a valid date
+    const dueDate = new Date(task.dueDate);
+    if (isNaN(dueDate.getTime())) {
+      console.error("Invalid due date:", task.dueDate);
+      return null;
+    }
+    
+    console.log("Task due date:", dueDate.toLocaleDateString());
+    
+    const taskToSave = {
+      ...task,
+      id: task.id || `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      created_at: new Date().toISOString(),
+    };
 
-  const tasks = getLocalData(TASKS_KEY);
-  const updatedTasks = [...tasks, taskToSave];
-  saveLocalData(TASKS_KEY, updatedTasks);
-  return taskToSave;
+    if (useSupabase) {
+      try {
+        const { data, error } = await supabase
+          .from("tasks")
+          .insert([taskToSave])
+          .select("*");
+
+        if (error) throw error;
+
+        const localTasks = getLocalData(TASKS_KEY);
+        const updatedTasks = [...localTasks, taskToSave];
+        saveLocalData(TASKS_KEY, updatedTasks);
+        console.log("Task saved to Supabase:", data[0]);
+        
+        // Refresh calendar view
+        refreshCalendar();
+        
+        return data[0];
+      } catch (error) {
+        console.error("Error adding task to Supabase:", error.message);
+        throw error;
+      }
+    } else {
+      const tasks = getLocalData(TASKS_KEY);
+      const updatedTasks = [...tasks, taskToSave];
+      saveLocalData(TASKS_KEY, updatedTasks);
+      console.log("Task saved locally. Total tasks:", updatedTasks.length);
+      
+      // Refresh calendar view
+      refreshCalendar();
+      return taskToSave;
+    }
+  } catch (error) {
+    console.error("Error in addTask:", error);
+    return null;
+  }
 };
 
 export const updateTask = async (taskId, updatedTask, useSupabase = false) => {
@@ -110,7 +143,7 @@ export const deleteTask = async (taskId, useSupabase = false) => {
       if (error) throw error;
 
       const localTasks = getLocalData(TASKS_KEY);
-      const updatedTasks = tasks.filter((task) => task.id !== taskId);
+      const updatedTasks = localTasks.filter((task) => task.id !== taskId);
       saveLocalData(TASKS_KEY, updatedTasks);
 
       return true;
@@ -119,7 +152,7 @@ export const deleteTask = async (taskId, useSupabase = false) => {
     }
   } else {
     const tasks = getLocalData(TASKS_KEY);
-    const updatedTasks = localTasks.filter((task) => task.id !== taskId);
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
     saveLocalData(TASKS_KEY, updatedTasks);
   }
 
@@ -409,4 +442,12 @@ export const updateSettings = (settings) => {
     if (!localStorage.getItem(SETTINGS_KEY)) {
       saveLocalData(SETTINGS_KEY, { title: 'UCR' });
     }
+};
+
+
+
+export const refreshCalendar = () => {
+  // Dispatch a custom event that the Calendar component can listen for
+  window.dispatchEvent(new CustomEvent('calendar-update'));
+  console.log("Calendar refresh event dispatched");
 };
