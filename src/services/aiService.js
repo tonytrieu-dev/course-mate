@@ -1,5 +1,7 @@
-// src/services/aiService.js
-import { supabaseClient } from '../../config.js'; // Adjust based on your Supabase setup
+import { createClient } from '@supabase/supabase-js';
+import { supabaseConfig } from '../../config.js'; // Import the config instead of client
+
+const supabaseClient = createClient(supabaseConfig.url, supabaseConfig.key);
 
 /**
  * Enhance syllabus extraction with Supabase.ai - free AI built into Supabase!
