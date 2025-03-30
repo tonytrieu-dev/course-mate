@@ -22,9 +22,6 @@ const Sidebar = () => {
   const [showSyllabusModal, setShowSyllabusModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [isHoveringClassArea, setIsHoveringClassArea] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisError, setAnalysisError] = useState(null);
-  const [showAnalysisDetails, setShowAnalysisDetails] = useState(false);
   const [tasksAdded, setTasksAdded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -269,12 +266,9 @@ const Sidebar = () => {
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800 underline"
                       >
-                        View Syllabus: {selectedClass.syllabus.name}
+                      {selectedClass.syllabus.name}
                       </a>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Click the link above to open the syllabus in a new tab
-                    </p>
                   </div>
                 )}
 

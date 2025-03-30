@@ -219,10 +219,6 @@ const SimpleCalendar = ({ view }) => {
   // Replace the getTasksForDay function in SimpleCalendar.jsx with this improved version
 
   const getTasksForDay = (day) => {
-    console.log(
-      `Checking tasks for day ${day}, month ${currentDate.getMonth()}, year ${currentDate.getFullYear()}`
-    );
-
     return tasks.filter((task) => {
       // Create the target date for comparison
       const targetDate = new Date(
