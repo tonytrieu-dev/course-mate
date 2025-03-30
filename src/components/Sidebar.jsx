@@ -142,18 +142,32 @@ const Sidebar = () => {
         // Show loading state
         setIsUploading(true);
 
+        // Get current user ID
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) throw new Error("User not authenticated");
+
         // 1. Upload the file to Supabase Storage
         const fileName = `syllabi/${selectedClass.id}/${Date.now()}_${
           file.name
         }`;
         const { data, error } = await supabase.storage
-          .from("class-materials") // Your bucket name
+          .from("class-materials")
           .upload(fileName, file, {
             cacheControl: "3600",
             upsert: true,
+            // Make sure owner is set correctly to the authenticated user
+            fileMetadata: {
+              owner: user.id,
+            },
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Storage upload error:", error);
+          throw error;
+        }
 
         // 2. Get the public URL for the file
         const { data: publicUrlData } = supabase.storage
@@ -168,7 +182,8 @@ const Sidebar = () => {
             type: file.type,
             size: file.size,
             path: fileName,
-            url: publicUrlData.publicUrl, // Store the permanent URL
+            url: publicUrlData.publicUrl,
+            owner: user.id, // Store the owner for reference
           },
         };
 
@@ -231,12 +246,6 @@ const Sidebar = () => {
                       ({Math.round(selectedClass.syllabus.size / 1024)} KB)
                     </span>
                   </div>
-                  <button
-                    onClick={handleDeleteSyllabus}
-                    className="bg-red-500 text-white border-none py-1 px-2.5 rounded cursor-pointer"
-                  >
-                    Remove
-                  </button>
                 </div>
 
                 {selectedClass.syllabus && (

@@ -84,7 +84,7 @@ const LoginComponent = ({onClose}) => {
             />
             {isRegistering && (
               <p className="text-gray-500 text-sm mt-1">
-                Password must be at least 6 characters
+                Your password must be at least 6 characters
               </p>
             )}
           </div>
@@ -96,7 +96,7 @@ const LoginComponent = ({onClose}) => {
               className="text-blue-600 hover:text-blue-800"
             >
               {isRegistering
-                ? "Already have an account? Sign In"
+                ? "Already have an account? Sign in"
                 : "Need an account? Register"}
             </button>
 
@@ -123,8 +123,7 @@ const LoginComponent = ({onClose}) => {
               : "Sign in to sync your data across your devices"}
           </p>
           <p className="text-center text-gray-500 mt-2">
-            You can continue using the app without an account, but your data
-            will only be saved on this device
+            You can continue using the app without an account, but your data will only be saved on this device
           </p>
         </div>
       </div>
