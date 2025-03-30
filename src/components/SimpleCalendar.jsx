@@ -43,15 +43,41 @@ const SimpleCalendar = ({ view }) => {
   // Load data from service
   useEffect(() => {
     const loadData = async () => {
-      // Load tasks
-      const fetchedTasks = await getTasks(isAuthenticated);
-      setTasks(fetchedTasks);
+      // Load tasks - ensure no duplicates
+      let fetchedTasks = [];
 
-      // Load classes
+      if (isAuthenticated) {
+        // When authenticated, only load from Supabase
+        try {
+          const { data, error } = await supabase
+            .from("tasks")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+          fetchedTasks = data;
+        } catch (error) {
+          console.error("Error loading tasks from Supabase:", error);
+          // Fall back to local storage
+          fetchedTasks = getLocalData(TASKS_KEY);
+        }
+      } else {
+        // When not authenticated, load from local storage
+        fetchedTasks = getLocalData(TASKS_KEY);
+      }
+
+      // Create a Map to deduplicate by ID
+      const uniqueTasks = new Map();
+      fetchedTasks.forEach((task) => {
+        uniqueTasks.set(task.id, task);
+      });
+
+      setTasks([...uniqueTasks.values()]);
+
+      // Load other data...
       const fetchedClasses = await getClasses(isAuthenticated);
       setClasses(fetchedClasses);
 
-      // Load task types
       const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
       setTaskTypes(fetchedTaskTypes);
     };
@@ -216,10 +242,16 @@ const SimpleCalendar = ({ view }) => {
     }
   };
 
-  // Replace the getTasksForDay function in SimpleCalendar.jsx with this improved version
-
   const getTasksForDay = (day) => {
+    // Create a Set to track task IDs we've already counted
+    const countedTaskIds = new Set();
+
     return tasks.filter((task) => {
+      // Skip tasks we've already counted to avoid duplicates
+      if (countedTaskIds.has(task.id)) {
+        return false;
+      }
+
       // Create the target date for comparison
       const targetDate = new Date(
         currentDate.getFullYear(),
@@ -227,95 +259,59 @@ const SimpleCalendar = ({ view }) => {
         day
       );
 
-      // For debugging
-      console.log(
-        `Task: ${task.title}, taskDate: ${task.date}, dueDate: ${task.dueDate}`
-      );
+      let shouldDisplay = false;
 
-      // For simple deadline tasks (backward compatibility)
-      if (!task.isDuration && task.date) {
+      // For deadline tasks with dueDate (preferred method)
+      if (task.dueDate) {
+        try {
+          const dueDate = new Date(task.dueDate);
+          if (
+            dueDate.getDate() === day &&
+            dueDate.getMonth() === currentDate.getMonth() &&
+            dueDate.getFullYear() === currentDate.getFullYear()
+          ) {
+            shouldDisplay = true;
+          }
+        } catch (e) {
+          console.error("Error parsing task.dueDate:", e);
+        }
+      }
+      // For backward compatibility - only check if not already found
+      else if (!shouldDisplay && task.date) {
         try {
           const taskDate = new Date(task.date);
-          console.log(`Checking task date: ${taskDate.toLocaleDateString()}`);
           if (
             taskDate.getDate() === day &&
             taskDate.getMonth() === currentDate.getMonth() &&
             taskDate.getFullYear() === currentDate.getFullYear()
           ) {
-            console.log(`Match found with task.date for ${task.title}`);
-            return true;
+            shouldDisplay = true;
           }
         } catch (e) {
           console.error("Error parsing task.date:", e);
         }
       }
 
-      // For deadline tasks with dueDate
-      if (task.dueDate) {
-        try {
-          const dueDate = new Date(task.dueDate);
-          console.log(`Checking due date: ${dueDate.toLocaleDateString()}`);
-
-          // If it's just a date string like "2023-03-19"
-          if (
-            dueDate.getDate() === day &&
-            dueDate.getMonth() === currentDate.getMonth() &&
-            dueDate.getFullYear() === currentDate.getFullYear()
-          ) {
-            console.log(`Match found with task.dueDate for ${task.title}`);
-            return true;
-          }
-        } catch (e) {
-          console.error("Error parsing task.dueDate:", e);
-        }
-      }
-
-      // For duration tasks
-      if (task.isDuration && task.startDate && task.endDate) {
+      // For duration tasks - only check if not already found
+      if (!shouldDisplay && task.isDuration && task.startDate && task.endDate) {
         try {
           const startDate = new Date(task.startDate);
           const endDate = new Date(task.endDate);
-          console.log(
-            `Checking duration from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`
-          );
 
-          // Check if this day falls within the start and end dates
           if (targetDate >= startDate && targetDate <= endDate) {
-            console.log(`Match found within date range for ${task.title}`);
-            return true;
+            shouldDisplay = true;
           }
         } catch (e) {
           console.error("Error parsing duration dates:", e);
         }
       }
 
-      // Special handling for the syllabus data which might be in a different format
-      if (task.classId && task.className && task.dueDate) {
-        try {
-          // Try different date formats
-          let dueDate;
-
-          // Direct string might be ISO format
-          dueDate = new Date(task.dueDate);
-
-          console.log(
-            `Checking special format due date: ${dueDate.toLocaleDateString()}`
-          );
-
-          if (
-            dueDate.getDate() === day &&
-            dueDate.getMonth() === currentDate.getMonth() &&
-            dueDate.getFullYear() === currentDate.getFullYear()
-          ) {
-            console.log(`Match found with special format for ${task.title}`);
-            return true;
-          }
-        } catch (e) {
-          console.error("Error parsing special format date:", e);
-        }
+      // If we found this task, add it to our set so we don't count it again
+      if (shouldDisplay) {
+        countedTaskIds.add(task.id);
       }
 
-      return false;
+      return shouldDisplay;
     });
   };
 
