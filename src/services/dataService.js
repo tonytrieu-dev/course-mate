@@ -70,7 +70,7 @@ export const addTask = async (task, useSupabase = false) => {
 
         if (error) throw error;
 
-        // Don't also save to local storage - this prevents duplicates
+        // Don't also save to local storage to prevent duplicates
         // Just return the Supabase data
         refreshCalendar();
         return data[0];

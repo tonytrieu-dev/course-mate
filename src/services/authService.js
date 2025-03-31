@@ -37,18 +37,24 @@ export const signIn = async (email, password) => {
 };
 
 export const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        throw error;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error signing out:', error.message);
+  try {
+    //console.log("Auth service: signOut called");
+    //console.log("Clearing localStorage...");
+    //localStorage.clear();
+    //console.log("localStorage cleared");
+    
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error("Auth service: signOut error", error);
       throw error;
     }
+    console.log("Auth service: signOut successful");
+    return true;
+  } catch (error) {
+    console.error('Error signing out:', error.message);
+    throw error;
+  }
 };
 
 export const getCurrentUser = async () => {

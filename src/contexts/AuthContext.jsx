@@ -123,6 +123,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await signOut();
       setUser(null);
+      window.location.reload();
       return true;
     } catch (error) {
       setAuthError(error.message);

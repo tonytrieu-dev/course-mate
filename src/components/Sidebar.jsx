@@ -6,7 +6,7 @@ import {
   deleteClass,
   getSettings,
   updateSettings,
-  addTask,
+  //addTask,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
@@ -22,7 +22,7 @@ const Sidebar = () => {
   const [showSyllabusModal, setShowSyllabusModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [isHoveringClassArea, setIsHoveringClassArea] = useState(false);
-  const [tasksAdded, setTasksAdded] = useState(false);
+  //const [tasksAdded, setTasksAdded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   // Load data

@@ -27,9 +27,9 @@ const SimpleCalendar = ({ view }) => {
     dueDate: null,
     dueTime: "23:59", // Default to 11:59 PM
     startDate: null,
-    startTime: "08:00", // Default to 8:00 AM
+    startTime: "08:00", 
     endDate: null,
-    endTime: "11:00", // Default to 11:00 AM
+    endTime: "11:00", 
   });
 
   const [editingTask, setEditingTask] = useState(null);
