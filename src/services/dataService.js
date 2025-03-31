@@ -32,12 +32,6 @@ export const getTasks = async (useSupabase = false) => {
   return getLocalData(TASKS_KEY);
 };
 
-export const refreshCalendar = () => {
-  // Dispatch a custom event that the Calendar component can listen for
-  window.dispatchEvent(new CustomEvent("calendar-update"));
-  console.log("Calendar refresh event dispatched");
-};
-
 export const addTask = async (task, useSupabase = false) => {
   try {
     if (!task.title || !task.dueDate) {
@@ -72,7 +66,6 @@ export const addTask = async (task, useSupabase = false) => {
 
         // Don't also save to local storage to prevent duplicates
         // Just return the Supabase data
-        refreshCalendar();
         return data[0];
       } catch (error) {
         console.error("Error adding task to Supabase:", error.message);
@@ -83,7 +76,6 @@ export const addTask = async (task, useSupabase = false) => {
       const tasks = getLocalData(TASKS_KEY);
       const updatedTasks = [...tasks, taskToSave];
       saveLocalData(TASKS_KEY, updatedTasks);
-      refreshCalendar();
       return taskToSave;
     }
   } catch (error) {

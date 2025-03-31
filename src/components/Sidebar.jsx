@@ -147,9 +147,7 @@ const Sidebar = () => {
         if (!user) throw new Error("User not authenticated");
 
         // 1. Upload the file to Supabase Storage
-        const fileName = `syllabi/${selectedClass.id}/${Date.now()}_${
-          file.name
-        }`;
+        const fileName = `${selectedClass.id}/${Date.now()}_${file.name}`;
         const { data, error } = await supabase.storage
           .from("class-materials")
           .upload(fileName, file, {
@@ -166,12 +164,16 @@ const Sidebar = () => {
           throw error;
         }
 
-        // 2. Get the public URL for the file
-        const { data: publicUrlData } = supabase.storage
-          .from("class-materials")
-          .getPublicUrl(fileName);
+        // 2. Get a signed URL for the file (valid for 1 year)
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from("class-materials")
+            .createSignedUrl(fileName, 31536000); // 31536000 seconds = 1 year
 
-        // 3. Update the class with the file info
+        if (signedUrlError) {
+          console.error("Error creating signed URL:", error);
+        }
+
+        // 3. Update the class with the file info - update this part too
         const updatedClass = {
           ...selectedClass,
           syllabus: {
@@ -179,7 +181,7 @@ const Sidebar = () => {
             type: file.type,
             size: file.size,
             path: fileName,
-            url: publicUrlData.publicUrl,
+            url: signedUrlData.signedUrl, // Use signedUrl instead of publicUrl
             owner: user.id, // Store the owner for reference
           },
         };
@@ -266,7 +268,7 @@ const Sidebar = () => {
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800 underline"
                       >
-                      {selectedClass.syllabus.name}
+                        {selectedClass.syllabus.name}
                       </a>
                     </div>
                   </div>
