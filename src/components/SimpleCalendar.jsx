@@ -298,7 +298,20 @@ const SimpleCalendar = ({ view }) => {
           console.error("Error with date comparison:", e);
         }
       }
+      /*
+          Added new condition: !task.dueDate
+            to ensure that:
+              Modern tasks (with dueDate): Use string comparison only
+              "2025-03-31" === "2025-03-31" ✓
 
+              Skip the Date object comparison entirely
+              Legacy tasks (with only date property): Fall back to Date object comparison only
+              This handles older tasks that were saved before you implemented the dueDate field
+
+              Duration tasks: Use string comparison for date ranges
+              This ensures that each task is evaluated by only 1 method of date comparison, preventing it from appearing in 2 different days.
+              The solution works because string comparisons of dates in YYYY-MM-DD format are immune to the timezone issues that plague JavaScript Date objects.
+      */
       // CASE 3: Duration tasks
       if (!shouldDisplay && task.isDuration && task.startDate && task.endDate) {
         if (
@@ -314,7 +327,6 @@ const SimpleCalendar = ({ view }) => {
     });
   };
 
-  // Format time for display (e.g., "8:00 AM")
   const formatTimeForDisplay = (timeString) => {
     if (!timeString) return "";
 
@@ -326,7 +338,6 @@ const SimpleCalendar = ({ view }) => {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  // Month view rendering
   const renderMonthView = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -375,7 +386,7 @@ const SimpleCalendar = ({ view }) => {
               }
             }
 
-            // Add visual indicator for tasks with specific times
+            // Add emojis for tasks with specific times
             let timeDisplay = "";
             if (task.isDuration) {
               timeDisplay = ` (${formatTimeForDisplay(
