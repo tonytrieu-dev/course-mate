@@ -18,10 +18,8 @@ const saveLocalData = (key, data) => {
 export const getTasks = async (useSupabase = false) => {
   if (useSupabase) {
     try {
-      // Get current user ID
-      const {
-        data: { user },
-      } = await getCurrentUser();
+      // Get current user ID - FIXED: correctly get user object
+      const user = await getCurrentUser();
 
       if (!user) {
         console.error("No authenticated user found for getTasks");
@@ -42,6 +40,9 @@ export const getTasks = async (useSupabase = false) => {
 
       // Update local storage with the fetched tasks
       saveLocalData(TASKS_KEY, data || []);
+
+      // Add debugging to see what's happening
+      console.log(`Retrieved ${data?.length || 0} tasks from Supabase`);
 
       return data;
     } catch (error) {
@@ -69,15 +70,28 @@ export const addTask = async (task, useSupabase = false) => {
       created_at: new Date().toISOString(),
     };
 
+    console.log(`Adding task with useSupabase=${useSupabase}`, taskToSave);
+
     if (useSupabase) {
       try {
-        // Get current user ID
-        const {
-          data: { user },
-        } = await getCurrentUser();
+        // Get current user ID - FIXED: correctly get user object
+        const user = await getCurrentUser();
+        console.log("Current user from getCurrentUser:", user);
+
         if (!user) {
           console.error("No authenticated user found");
           throw new Error("Not authenticated");
+        }
+
+        // Let's also check the Supabase auth state directly
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        console.log("Supabase session:", session);
+
+        if (!session) {
+          console.error("No active Supabase session found");
+          throw new Error("Not authenticated via Supabase session");
         }
 
         // Add user_id to the task data - THIS IS CRUCIAL
@@ -89,10 +103,14 @@ export const addTask = async (task, useSupabase = false) => {
         console.log("Adding task to Supabase:", taskWithUserId);
 
         // First, add to Supabase
-        const { data, error } = await supabase
+        const result = await supabase
           .from("tasks")
           .insert([taskWithUserId])
           .select("*");
+
+        console.log("Full Supabase insert result:", result);
+
+        const { data, error } = result;
 
         if (error) {
           console.error("Supabase task insertion error:", error);
@@ -101,16 +119,25 @@ export const addTask = async (task, useSupabase = false) => {
           const updatedTasks = [...tasks, taskToSave];
           saveLocalData(TASKS_KEY, updatedTasks);
 
-          // Dispatch an event to refresh the calendar
-          window.dispatchEvent(new CustomEvent("calendar-update"));
+          // Add task to local state and delay the calendar refresh
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("calendar-update"));
+          }, 500);
 
           return taskToSave;
         }
 
         console.log("Task added successfully to Supabase:", data);
 
-        // Dispatch an event to refresh the calendar
-        window.dispatchEvent(new CustomEvent("calendar-update"));
+        // Save to local storage for immediate use
+        const tasks = getLocalData(TASKS_KEY);
+        const updatedTasks = [...tasks, data[0]];
+        saveLocalData(TASKS_KEY, updatedTasks);
+
+        // Delay the calendar refresh to ensure everything is saved
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("calendar-update"));
+        }, 500);
 
         return data[0];
       } catch (error) {
@@ -120,8 +147,10 @@ export const addTask = async (task, useSupabase = false) => {
         const updatedTasks = [...tasks, taskToSave];
         saveLocalData(TASKS_KEY, updatedTasks);
 
-        // Dispatch an event to refresh the calendar
-        window.dispatchEvent(new CustomEvent("calendar-update"));
+        // Delay the calendar refresh
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("calendar-update"));
+        }, 500);
 
         return taskToSave;
       }
@@ -131,8 +160,10 @@ export const addTask = async (task, useSupabase = false) => {
       const updatedTasks = [...tasks, taskToSave];
       saveLocalData(TASKS_KEY, updatedTasks);
 
-      // Dispatch an event to refresh the calendar
-      window.dispatchEvent(new CustomEvent("calendar-update"));
+      // Delay the calendar refresh
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("calendar-update"));
+      }, 500);
 
       return taskToSave;
     }
@@ -189,7 +220,6 @@ export const deleteTask = async (taskId, useSupabase = false) => {
       const tasks = getLocalData(TASKS_KEY);
       const updatedTasks = tasks.filter((task) => task.id !== taskId);
       saveLocalData(TASKS_KEY, updatedTasks);
-
       return true;
     } catch (error) {
       console.error("Error deleting task from Supabase:", error.message);

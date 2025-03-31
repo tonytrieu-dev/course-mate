@@ -50,45 +50,26 @@ const SimpleCalendar = ({ view }) => {
   // Load data from service
   useEffect(() => {
     const loadData = async () => {
-      // Load tasks - ensure no duplicates
-      let fetchedTasks = [];
-
-      if (isAuthenticated) {
-        // When authenticated, only load from Supabase
-        try {
-          const { data, error } = await supabase
-            .from("tasks")
-            .select("*")
-            .order("created_at", { ascending: false });
-
-          if (error) throw error;
-          fetchedTasks = data;
-        } catch (error) {
-          console.error("Error loading tasks from Supabase:", error);
-          // Fall back to local storage
-          fetchedTasks = getLocalData(TASKS_KEY);
-        }
-      } else {
-        // When not authenticated, load from local storage
-        fetchedTasks = getLocalData(TASKS_KEY);
-      }
-
-      // Create a Map to deduplicate by ID
+      // Load tasks using the fixed getTasks function
+      const fetchedTasks = await getTasks(isAuthenticated);
+      console.log(`Initial load: ${fetchedTasks.length} tasks from getTasks()`);
+      
+      // Create a Map to deduplicate by ID (if needed)
       const uniqueTasks = new Map();
       fetchedTasks.forEach((task) => {
         uniqueTasks.set(task.id, task);
       });
-
+  
       setTasks([...uniqueTasks.values()]);
-
+  
       // Load other data...
       const fetchedClasses = await getClasses(isAuthenticated);
       setClasses(fetchedClasses);
-
+  
       const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
       setTaskTypes(fetchedTaskTypes);
     };
-
+  
     loadData();
   }, [isAuthenticated]);
 
@@ -96,14 +77,27 @@ const SimpleCalendar = ({ view }) => {
   useEffect(() => {
     const refreshCalendarData = async () => {
       console.log("Calendar: Refreshing task data...");
-      const fetchedTasks = await getTasks(isAuthenticated);
-      console.log(`Calendar: Loaded ${fetchedTasks.length} tasks`);
-      setTasks(fetchedTasks);
+      try {
+        const fetchedTasks = await getTasks(isAuthenticated);
+        console.log(`Calendar: Loaded ${fetchedTasks?.length || 0} tasks`);
+        
+        // Only update the tasks state if we actually got tasks back
+        if (fetchedTasks && fetchedTasks.length > 0) {
+          setTasks(fetchedTasks);
+        } else {
+          console.log("No tasks returned from getTasks, keeping current tasks");
+          // If no tasks were returned, we'll keep the current tasks
+          // This prevents tasks from disappearing when there's an error
+        }
+      } catch (error) {
+        console.error("Error refreshing calendar data:", error);
+        // Don't update the tasks state on error
+      }
     };
-
+  
     // Listen for custom event
     window.addEventListener("calendar-update", refreshCalendarData);
-
+  
     // Clean up event listener
     return () => {
       window.removeEventListener("calendar-update", refreshCalendarData);
@@ -199,14 +193,14 @@ const SimpleCalendar = ({ view }) => {
 
   const handleTaskSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       // Create a full date object for the task
       let taskData = {
         ...newTask,
         date: formatDateForInput(selectedDate),
       };
-
+  
       if (editingTask) {
         // Update existing task
         const updatedTask = await updateTask(
@@ -215,6 +209,7 @@ const SimpleCalendar = ({ view }) => {
           isAuthenticated
         );
         if (updatedTask) {
+          // Update the task in the local state to keep it visible
           setTasks(
             tasks.map((task) =>
               task.id === editingTask.id ? updatedTask : task
@@ -225,10 +220,14 @@ const SimpleCalendar = ({ view }) => {
         // Add new task
         const newTaskObj = await addTask(taskData, isAuthenticated);
         if (newTaskObj) {
-          setTasks([...tasks, newTaskObj]);
+          // Important: Keep the task in local state
+          // This ensures it stays visible even if the calendar-update event 
+          // hasn't refreshed the tasks from the database yet
+          console.log("Adding new task to local state:", newTaskObj);
+          setTasks((currentTasks) => [...currentTasks, newTaskObj]);
         }
       }
-
+  
       // Reset form and close modal
       setNewTask({
         title: "",
@@ -257,6 +256,7 @@ const SimpleCalendar = ({ view }) => {
       setTasks(tasks.filter((task) => task.id !== editingTask.id));
       setShowTaskModal(false);
       setEditingTask(null);
+      //window.location.reload();
     }
   };
 
