@@ -8,6 +8,13 @@ import {
   getTaskTypes,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../services/supabaseClient";
+
+const TASKS_KEY = "calendar_tasks";
+const getLocalData = (key, defaultValue = []) => {
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : defaultValue;
+};
 
 const SimpleCalendar = ({ view }) => {
   const { isAuthenticated } = useAuth();
@@ -27,9 +34,9 @@ const SimpleCalendar = ({ view }) => {
     dueDate: null,
     dueTime: "23:59", // Default to 11:59 PM
     startDate: null,
-    startTime: "08:00", 
+    startTime: "08:00",
     endDate: null,
-    endTime: "11:00", 
+    endTime: "11:00",
   });
 
   const [editingTask, setEditingTask] = useState(null);
@@ -169,7 +176,6 @@ const SimpleCalendar = ({ view }) => {
     const taskDate = new Date(task.date);
     setSelectedDate(taskDate);
 
-    // Format dates for editing existing task
     const formattedTaskDate = formatDateForInput(taskDate);
 
     // Prepare task data based on whether it's a duration-based task
@@ -194,43 +200,55 @@ const SimpleCalendar = ({ view }) => {
   const handleTaskSubmit = async (e) => {
     e.preventDefault();
 
-    // Create a full date object for the task
-    let taskData = {
-      ...newTask,
-      date: selectedDate, // Keep the original date for backward compatibility
-    };
+    try {
+      // Create a full date object for the task
+      let taskData = {
+        ...newTask,
+        date: formatDateForInput(selectedDate),
+      };
 
-    if (editingTask) {
-      // Update existing task
-      const updatedTask = await updateTask(
-        editingTask.id,
-        taskData,
-        isAuthenticated
-      );
-      setTasks(
-        tasks.map((task) => (task.id === editingTask.id ? updatedTask : task))
-      );
-    } else {
-      // Add new task
-      const newTaskObj = await addTask(taskData, isAuthenticated);
-      setTasks([...tasks, newTaskObj]);
+      if (editingTask) {
+        // Update existing task
+        const updatedTask = await updateTask(
+          editingTask.id,
+          taskData,
+          isAuthenticated
+        );
+        if (updatedTask) {
+          setTasks(
+            tasks.map((task) =>
+              task.id === editingTask.id ? updatedTask : task
+            )
+          );
+        }
+      } else {
+        // Add new task
+        const newTaskObj = await addTask(taskData, isAuthenticated);
+        if (newTaskObj) {
+          setTasks([...tasks, newTaskObj]);
+        }
+      }
+
+      // Reset form and close modal
+      setNewTask({
+        title: "",
+        class: classes.length > 0 ? classes[0].id : "",
+        type: taskTypes.length > 0 ? taskTypes[0].id : "",
+        isDuration: false,
+        dueDate: null,
+        dueTime: "23:59",
+        startDate: null,
+        startTime: "08:00",
+        endDate: null,
+        endTime: "11:00",
+      });
+      setShowTaskModal(false);
+      setEditingTask(null);
+    } catch (error) {
+      console.error("Error submitting task:", error);
+      alert("There was an error adding your task. Please try again.");
+      // Don't close the modal so the user can try again
     }
-
-    // Reset form and close modal
-    setNewTask({
-      title: "",
-      class: classes.length > 0 ? classes[0].id : "",
-      type: taskTypes.length > 0 ? taskTypes[0].id : "",
-      isDuration: false,
-      dueDate: null,
-      dueTime: "23:59",
-      startDate: null,
-      startTime: "08:00",
-      endDate: null,
-      endTime: "11:00",
-    });
-    setShowTaskModal(false);
-    setEditingTask(null);
   };
 
   const handleDeleteTask = async () => {
@@ -243,74 +261,55 @@ const SimpleCalendar = ({ view }) => {
   };
 
   const getTasksForDay = (day) => {
-    // Create a Set to track task IDs we've already counted
     const countedTaskIds = new Set();
 
-    return tasks.filter((task) => {
-      // Skip tasks we've already counted to avoid duplicates
-      if (countedTaskIds.has(task.id)) {
-        return false;
-      }
+    // Format target date string
+    const targetMonth = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const targetDay = String(day).padStart(2, "0");
+    const targetYear = currentDate.getFullYear();
+    const targetDateString = `${targetYear}-${targetMonth}-${targetDay}`;
 
-      // Create the target date for comparison
-      const targetDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
-        day
-      );
+    return tasks.filter((task) => {
+      // Skip duplicates
+      if (countedTaskIds.has(task.id)) return false;
 
       let shouldDisplay = false;
 
-      // For deadline tasks with dueDate (preferred method)
-      if (task.dueDate) {
-        try {
-          const dueDate = new Date(task.dueDate);
-          if (
-            dueDate.getDate() === day &&
-            dueDate.getMonth() === currentDate.getMonth() &&
-            dueDate.getFullYear() === currentDate.getFullYear()
-          ) {
-            shouldDisplay = true;
-          }
-        } catch (e) {
-          console.error("Error parsing task.dueDate:", e);
-        }
+      // CASE 1: Modern tasks with dueDate string
+      if (task.dueDate && task.dueDate === targetDateString) {
+        shouldDisplay = true;
       }
-      // For backward compatibility - only check if not already found
-      else if (!shouldDisplay && task.date) {
+      // CASE 2: Legacy tasks with date object (ONLY if no dueDate exists)
+      else if (!shouldDisplay && !task.dueDate && task.date) {
         try {
           const taskDate = new Date(task.date);
+          const taskDay = taskDate.getDate();
+          const taskMonth = taskDate.getMonth();
+          const taskYear = taskDate.getFullYear();
+
           if (
-            taskDate.getDate() === day &&
-            taskDate.getMonth() === currentDate.getMonth() &&
-            taskDate.getFullYear() === currentDate.getFullYear()
+            taskDay === day &&
+            taskMonth === currentDate.getMonth() &&
+            taskYear === currentDate.getFullYear()
           ) {
             shouldDisplay = true;
           }
         } catch (e) {
-          console.error("Error parsing task.date:", e);
+          console.error("Error with date comparison:", e);
         }
       }
 
-      // For duration tasks - only check if not already found
+      // CASE 3: Duration tasks
       if (!shouldDisplay && task.isDuration && task.startDate && task.endDate) {
-        try {
-          const startDate = new Date(task.startDate);
-          const endDate = new Date(task.endDate);
-
-          if (targetDate >= startDate && targetDate <= endDate) {
-            shouldDisplay = true;
-          }
-        } catch (e) {
-          console.error("Error parsing duration dates:", e);
+        if (
+          task.startDate <= targetDateString &&
+          task.endDate >= targetDateString
+        ) {
+          shouldDisplay = true;
         }
       }
 
-      // If we found this task, add it to our set so we don't count it again
-      if (shouldDisplay) {
-        countedTaskIds.add(task.id);
-      }
-
+      if (shouldDisplay) countedTaskIds.add(task.id);
       return shouldDisplay;
     });
   };

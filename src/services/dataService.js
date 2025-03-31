@@ -1,3 +1,4 @@
+import { getCurrentUser } from "./authService";
 import { supabase } from "./supabaseClient";
 
 const TASKS_KEY = "calendar_tasks";
@@ -17,14 +18,34 @@ const saveLocalData = (key, data) => {
 export const getTasks = async (useSupabase = false) => {
   if (useSupabase) {
     try {
+      // Get current user ID
+      const {
+        data: { user },
+      } = await getCurrentUser();
+
+      if (!user) {
+        console.error("No authenticated user found for getTasks");
+        return getLocalData(TASKS_KEY);
+      }
+
+      // Get tasks filtered by user_id
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+
+      if (error) {
+        console.error("Error fetching tasks from Supabase:", error);
+        return getLocalData(TASKS_KEY);
+      }
+
+      // Update local storage with the fetched tasks
+      saveLocalData(TASKS_KEY, data || []);
+
       return data;
     } catch (error) {
-      console.error("Error fetching tasks from Supabase:", error.message);
+      console.error("Error in getTasks:", error);
       return getLocalData(TASKS_KEY);
     }
   }
@@ -39,43 +60,80 @@ export const addTask = async (task, useSupabase = false) => {
       return null;
     }
 
-    const dueDate = new Date(task.dueDate);
-    if (isNaN(dueDate.getTime())) {
-      console.error("Invalid due date:", task.dueDate);
-      return null;
-    }
-
     // Create a consistent task ID
     const taskToSave = {
       ...task,
       id:
         task.id ||
-        `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        `task_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
       created_at: new Date().toISOString(),
     };
 
     if (useSupabase) {
       try {
+        // Get current user ID
+        const {
+          data: { user },
+        } = await getCurrentUser();
+        if (!user) {
+          console.error("No authenticated user found");
+          throw new Error("Not authenticated");
+        }
+
+        // Add user_id to the task data - THIS IS CRUCIAL
+        const taskWithUserId = {
+          ...taskToSave,
+          user_id: user.id,
+        };
+
+        console.log("Adding task to Supabase:", taskWithUserId);
+
         // First, add to Supabase
         const { data, error } = await supabase
           .from("tasks")
-          .insert([taskToSave])
+          .insert([taskWithUserId])
           .select("*");
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase task insertion error:", error);
+          // Fall back to local storage
+          const tasks = getLocalData(TASKS_KEY);
+          const updatedTasks = [...tasks, taskToSave];
+          saveLocalData(TASKS_KEY, updatedTasks);
 
-        // Don't also save to local storage to prevent duplicates
-        // Just return the Supabase data
+          // Dispatch an event to refresh the calendar
+          window.dispatchEvent(new CustomEvent("calendar-update"));
+
+          return taskToSave;
+        }
+
+        console.log("Task added successfully to Supabase:", data);
+
+        // Dispatch an event to refresh the calendar
+        window.dispatchEvent(new CustomEvent("calendar-update"));
+
         return data[0];
       } catch (error) {
-        console.error("Error adding task to Supabase:", error.message);
-        throw error;
+        console.error("Error adding task to Supabase:", error);
+        // Fall back to local storage
+        const tasks = getLocalData(TASKS_KEY);
+        const updatedTasks = [...tasks, taskToSave];
+        saveLocalData(TASKS_KEY, updatedTasks);
+
+        // Dispatch an event to refresh the calendar
+        window.dispatchEvent(new CustomEvent("calendar-update"));
+
+        return taskToSave;
       }
     } else {
       // Only for non-Supabase storage
       const tasks = getLocalData(TASKS_KEY);
       const updatedTasks = [...tasks, taskToSave];
       saveLocalData(TASKS_KEY, updatedTasks);
+
+      // Dispatch an event to refresh the calendar
+      window.dispatchEvent(new CustomEvent("calendar-update"));
+
       return taskToSave;
     }
   } catch (error) {
