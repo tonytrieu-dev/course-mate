@@ -10,9 +10,10 @@ import {
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
+import LoginComponent from "./LoginComponent";
 
 const Sidebar = () => {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [title, setTitle] = useState("UCR");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [classes, setClasses] = useState([]);
@@ -24,6 +25,18 @@ const Sidebar = () => {
   const [isHoveringClassArea, setIsHoveringClassArea] = useState(false);
   //const [tasksAdded, setTasksAdded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+
+  // Extract user name from email (before the @ symbol)
+  const getUserName = () => {
+    if (!user?.email) return "";
+    
+    // If user has a name property, use that
+    if (user.user_metadata?.name) return user.user_metadata.name;
+    
+    // Otherwise extract name from email
+    return user.email.split('@')[0].replace(/[.+_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   // Load data
   useEffect(() => {
@@ -62,7 +75,6 @@ const Sidebar = () => {
     const classObj = classes.find((c) => c.id === classId);
     setSelectedClass(classObj);
     setShowSyllabusModal(true);
-    setShowAnalysisDetails(false);
   };
 
   const handleClassNameClick = (e, classId) => {
@@ -314,26 +326,31 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 border-r border-gray-300 py-5 px-2.5 bg-white h-full box-border font-sans">
-      {isEditingTitle ? (
-        <input
-          value={title}
-          onChange={handleTitleChange}
-          onBlur={handleTitleBlur}
-          autoFocus
-          className="text-4xl font-bold w-[90%] p-0.5 text-blue-700 border border-gray-300 mt-0 mb-6 font-inherit"
-        />
-      ) : (
-        <h1
-          className="text-blue-700 cursor-pointer text-5xl mb-6 leading-tight font-inherit font-semibold text-center"
-          onClick={handleTitleClick}
-        >
-          {title}
-        </h1>
-      )}
+    <div className="w-64 border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col">
+      <div className="pt-16">
+        {isEditingTitle ? (
+          <input
+            value={title}
+            onChange={handleTitleChange}
+            onBlur={handleTitleBlur}
+            autoFocus
+            className="text-4xl font-bold w-[90%] p-0.5 text-blue-700 border border-gray-300 mt-0 mb-3 font-inherit"
+          />
+        ) : (
+          <h1
+            className="text-blue-700 cursor-pointer text-5xl mb-3 leading-tight font-inherit font-semibold text-center"
+            onClick={handleTitleClick}
+          >
+            {title}
+          </h1>
+        )}
+      </div>
 
+      {/* Empty space to push content down */}
+      <div className="mt-6"></div>
+      
       <div
-        className="relative"
+        className="relative flex-1"
         onMouseEnter={() => setIsHoveringClassArea(true)}
         onMouseLeave={() => setIsHoveringClassArea(false)}
       >
@@ -409,7 +426,37 @@ const Sidebar = () => {
         )}
       </div>
 
+      {/* Auth Controls - moved to bottom with margin-top */}
+      <div className="px-2 mt-auto mb-8 text-center">
+        {isAuthenticated ? (
+          <div className="flex flex-col items-center">
+            <span className="text-gray-600 mb-2">{user?.email}</span>
+            <button
+              onClick={logout}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded w-full"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            {user?.email && (
+              <span className="text-gray-600 mb-2">{user.email}</span>
+            )}
+            <button
+              onClick={() => setShowLogin(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded w-full"
+            >
+              Login / Register
+            </button>
+          </div>
+        )}
+      </div>
+
       {renderSyllabusModal()}
+      {showLogin && !isAuthenticated && (
+        <LoginComponent onClose={() => setShowLogin(false)} />
+      )}
     </div>
   );
 };
