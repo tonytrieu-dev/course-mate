@@ -26,6 +26,7 @@ const Sidebar = () => {
   //const [tasksAdded, setTasksAdded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   // Extract user name from email (before the @ symbol)
   const getUserName = () => {
@@ -113,6 +114,7 @@ const Sidebar = () => {
         id: newId,
         name: newClassName.trim(),
         syllabus: null,
+        files: [],
       };
 
       // Add class to database/local storage
@@ -126,6 +128,7 @@ const Sidebar = () => {
         id: newId,
         name: "New Class",
         syllabus: null,
+        files: [],
       };
 
       // Add class to database/local storage
@@ -198,21 +201,168 @@ const Sidebar = () => {
           },
         };
 
-        // 4. Update class in database
-        await updateClass(selectedClass.id, updatedClass, isAuthenticated);
+        // Update class in database and get updated class with user_id
+        const updatedClassWithUserId = await updateClass(selectedClass.id, updatedClass, isAuthenticated);
 
-        // 5. Update local state
-        const updatedClasses = classes.map((c) =>
-          c.id === selectedClass.id ? updatedClass : c
-        );
-        setClasses(updatedClasses);
-        setSelectedClass(updatedClass);
+        // Use the returned class data from Supabase which includes user_id
+        if (updatedClassWithUserId) {
+          // Update local state with the class returned from the server
+          const updatedClasses = classes.map((c) =>
+            c.id === selectedClass.id ? updatedClassWithUserId : c
+          );
+          setClasses(updatedClasses);
+          setSelectedClass(updatedClassWithUserId);
+        } else {
+          // Fallback in case updateClass didn't return the updated class
+          const updatedClasses = classes.map((c) =>
+            c.id === selectedClass.id ? updatedClass : c
+          );
+          setClasses(updatedClasses);
+          setSelectedClass(updatedClass);
+        }
       } catch (error) {
         console.error("Error uploading syllabus:", error);
         alert("Error uploading syllabus: " + error.message);
       } finally {
         setIsUploading(false);
       }
+    }
+  };
+
+  // Handle general file upload
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file && selectedClass) {
+      try {
+        // Show loading state
+        setIsUploadingFile(true);
+
+        // Get current user ID
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) throw new Error("User not authenticated");
+
+        // Upload the file to Supabase Storage
+        const fileName = `${selectedClass.id}/${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+          .from("class-materials")
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: true,
+            // Make sure owner is set correctly to the authenticated user
+            fileMetadata: {
+              owner: user.id,
+            },
+          });
+
+        if (error) {
+          console.error("Storage upload error:", error);
+          throw error;
+        }
+
+        // Get a signed URL for the file (valid for 1 year)
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from("class-materials")
+            .createSignedUrl(fileName, 31536000); 
+
+        if (signedUrlError) {
+          console.error("Error creating signed URL:", signedUrlError);
+        }
+
+        // Create file metadata
+        const fileData = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          path: fileName,
+          url: signedUrlData.signedUrl, 
+          owner: user.id,
+          uploadedAt: new Date().toISOString(),
+        };
+
+        // Update the class with the file info
+        const updatedClass = {
+          ...selectedClass,
+          files: [...(selectedClass.files || []), fileData],
+        };
+
+        // Update class in database and get updated class with user_id
+        const updatedClassWithUserId = await updateClass(selectedClass.id, updatedClass, isAuthenticated);
+
+        // Use the returned class data from Supabase which includes user_id
+        if (updatedClassWithUserId) {
+          // Update local state with the class returned from the server
+          const updatedClasses = classes.map((c) =>
+            c.id === selectedClass.id ? updatedClassWithUserId : c
+          );
+          setClasses(updatedClasses);
+          setSelectedClass(updatedClassWithUserId);
+        } else {
+          // Fallback in case updateClass didn't return the updated class
+          const updatedClasses = classes.map((c) =>
+            c.id === selectedClass.id ? updatedClass : c
+          );
+          setClasses(updatedClasses);
+          setSelectedClass(updatedClass);
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        alert("Error uploading file: " + error.message);
+      } finally {
+        setIsUploadingFile(false);
+      }
+    }
+  };
+
+  // Delete a file
+  const handleDeleteFile = async (filePath, fileIndex) => {
+    if (!selectedClass) return;
+    
+    try {
+      // Delete from storage
+      const { error } = await supabase.storage
+        .from("class-materials")
+        .remove([filePath]);
+
+      if (error) {
+        console.error("Error deleting file from storage:", error);
+        throw error;
+      }
+
+      // Update class object by removing file at index
+      const updatedFiles = [...(selectedClass.files || [])];
+      updatedFiles.splice(fileIndex, 1);
+      
+      const updatedClass = {
+        ...selectedClass,
+        files: updatedFiles,
+      };
+
+      // Update in database and get updated class with user_id
+      const updatedClassWithUserId = await updateClass(selectedClass.id, updatedClass, isAuthenticated);
+
+      // Use the returned class data from Supabase which includes user_id
+      if (updatedClassWithUserId) {
+        // Update local state with the class returned from the server
+        const updatedClasses = classes.map((c) =>
+          c.id === selectedClass.id ? updatedClassWithUserId : c
+        );
+        setClasses(updatedClasses);
+        setSelectedClass(updatedClassWithUserId);
+      } else {
+        // Fallback in case updateClass didn't return the updated class
+        const updatedClasses = classes.map((c) =>
+          c.id === selectedClass.id ? updatedClass : c
+        );
+        setClasses(updatedClasses);
+        setSelectedClass(updatedClass);
+      }
+      
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      alert("Error deleting file: " + error.message);
     }
   };
 
@@ -305,6 +455,75 @@ const Sidebar = () => {
             )}
           </div>
 
+          {/* New section for class files */}
+          <div className="mb-5">
+            <h3 className="font-bold text-lg mb-2">Class files</h3>
+            
+            <div className="border-2 border-dashed border-gray-300 p-5 text-center mb-5">
+              <p>
+                Upload lecture notes, assignments, and other course materials
+              </p>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip"
+                onChange={handleFileUpload}
+                className="block mx-auto my-2.5"
+              />
+              {isUploadingFile && (
+                <div className="text-center my-2">
+                  <p className="text-blue-600">Uploading file...</p>
+                  <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
+                </div>
+              )}
+            </div>
+
+            {/* Display uploaded files */}
+            {selectedClass.files && selectedClass.files.length > 0 ? (
+              <div>
+                <h4 className="font-semibold mb-2">Uploaded Files</h4>
+                <ul className="divide-y divide-gray-200">
+                  {selectedClass.files.map((file, index) => (
+                    <li key={index} className="py-3 flex justify-between items-center">
+                      <div className="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-blue-500 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {file.name}
+                        </a>
+                        <span className="ml-2 text-gray-500 text-sm">
+                          ({Math.round(file.size / 1024)} KB)
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteFile(file.path, index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center">No files uploaded yet</p>
+            )}
+          </div>
+
           <div className="flex justify-between mt-5">
             <button
               onClick={() => setShowSyllabusModal(false)}
@@ -394,11 +613,14 @@ const Sidebar = () => {
                       {cls.name}
                     </span>
 
-                    {cls.syllabus && (
+                    {(cls.syllabus || (cls.files && cls.files.length > 0)) && (
                       <span
                         className="ml-1 text-base text-blue-600"
-                        title="Syllabus uploaded"
-                      ></span>
+                        title={cls.files && cls.files.length > 0 
+                          ? `Syllabus and ${cls.files.length} file(s) uploaded` 
+                          : "Syllabus uploaded"}
+                      >
+                      </span>
                     )}
                   </div>
                   {hoveredClassId === cls.id && (

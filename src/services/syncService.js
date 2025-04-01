@@ -50,6 +50,7 @@ export const uploadLocalDataToSupabase = async (userId) => {
             ...cls,
             user_id: userId,
             created_at: cls.created_at || new Date().toISOString(),
+            files: cls.files || [], // Ensure files array exists
         }));
 
         const taskTypesWithUserId = taskTypes.map(type => ({
@@ -115,6 +116,42 @@ export const downloadDataFromSupabase = async (userId) => {
             .eq('user_id', userId);
 
         if (typesError) throw typesError;
+
+        // Refresh signed URLs for all files in classes
+        if (classes) {
+            for (let cls of classes) {
+                // Initialize files array if not exists
+                if (!cls.files) {
+                    cls.files = [];
+                }
+                
+                // Refresh syllabus URL if exists
+                if (cls.syllabus && cls.syllabus.path) {
+                    const { data: syllabusUrlData, error: syllabusUrlError } = await supabase.storage
+                        .from("class-materials")
+                        .createSignedUrl(cls.syllabus.path, 31536000);
+                    
+                    if (!syllabusUrlError && syllabusUrlData) {
+                        cls.syllabus.url = syllabusUrlData.signedUrl;
+                    }
+                }
+
+                // Refresh URLs for all class files if they exist
+                if (cls.files && cls.files.length > 0) {
+                    for (let file of cls.files) {
+                        if (file.path) {
+                            const { data: fileUrlData, error: fileUrlError } = await supabase.storage
+                                .from("class-materials")
+                                .createSignedUrl(file.path, 31536000);
+                            
+                            if (!fileUrlError && fileUrlData) {
+                                file.url = fileUrlData.signedUrl;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         localStorage.setItem('calendar_tasks', JSON.stringify(tasks || []));
         localStorage.setItem('calendar_classes', JSON.stringify(classes || []));

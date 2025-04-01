@@ -236,12 +236,60 @@ export const deleteTask = async (taskId, useSupabase = false) => {
 export const getClasses = async (useSupabase = false) => {
   if (useSupabase) {
     try {
+      // Get current user ID
+      const user = await getCurrentUser();
+
+      if (!user) {
+        console.error("No authenticated user found for getClasses");
+        return getLocalData(CLASSES_KEY);
+      }
+
       const { data, error } = await supabase
         .from("classes")
         .select("*")
+        .eq("user_id", user.id)
         .order("name");
 
       if (error) throw error;
+
+      // Refresh signed URLs for all files
+      if (data) {
+        for (let cls of data) {
+          // Make sure files array is initialized
+          if (!cls.files) {
+            cls.files = [];
+          }
+          
+          // Refresh syllabus URL if exists
+          if (cls.syllabus && cls.syllabus.path) {
+            const { data: syllabusUrlData, error: syllabusUrlError } = await supabase.storage
+              .from("class-materials")
+              .createSignedUrl(cls.syllabus.path, 31536000);
+            
+            if (!syllabusUrlError && syllabusUrlData) {
+              cls.syllabus.url = syllabusUrlData.signedUrl;
+            }
+          }
+
+          // Refresh URLs for all class files if they exist
+          if (cls.files && cls.files.length > 0) {
+            for (let file of cls.files) {
+              if (file.path) {
+                const { data: fileUrlData, error: fileUrlError } = await supabase.storage
+                  .from("class-materials")
+                  .createSignedUrl(file.path, 31536000);
+                
+                if (!fileUrlError && fileUrlData) {
+                  file.url = fileUrlData.signedUrl;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Save updated classes with refreshed URLs to local storage
+      saveLocalData(CLASSES_KEY, data || []);
 
       return data;
     } catch (error) {
@@ -258,20 +306,35 @@ export const addClass = async (classObj, useSupabase = false) => {
     ...classObj,
     id: classObj.id || Date.now().toString(),
     created_at: new Date().toISOString(),
+    files: classObj.files || [],
   };
 
   if (useSupabase) {
     try {
+      // Get current user ID
+      const user = await getCurrentUser();
+      
+      if (!user) {
+        console.error("No authenticated user found for addClass");
+        throw new Error("Not authenticated");
+      }
+      
+      // Add user_id to the class data
+      const classWithUserId = {
+        ...classToSave,
+        user_id: user.id,
+      };
+      
       const { data, error } = await supabase
         .from("classes")
-        .insert([classToSave])
+        .insert([classWithUserId])
         .select();
 
       if (error) throw error;
 
-      // Also update local cache
+      // Also update local cache with the data returned from Supabase
       const localClasses = getLocalData(CLASSES_KEY);
-      saveLocalData(CLASSES_KEY, [...localClasses, classToSave]);
+      saveLocalData(CLASSES_KEY, [...localClasses, data[0]]);
 
       return data[0];
     } catch (error) {
@@ -298,18 +361,32 @@ export const updateClass = async (
 
   if (useSupabase) {
     try {
+      // Get current user ID
+      const user = await getCurrentUser();
+      
+      if (!user) {
+        console.error("No authenticated user found for updateClass");
+        throw new Error("Not authenticated");
+      }
+      
+      // Ensure user_id is included in the update
+      const classWithUserId = {
+        ...classToUpdate,
+        user_id: user.id,
+      };
+      
       const { data, error } = await supabase
         .from("classes")
-        .update(classToUpdate)
+        .update(classWithUserId)
         .eq("id", classId)
         .select();
 
       if (error) throw error;
 
-      // Also update local cache
+      // Also update local cache with the data returned from Supabase
       const localClasses = getLocalData(CLASSES_KEY);
       const updatedClasses = localClasses.map((cls) =>
-        cls.id === classId ? { ...cls, ...classToUpdate } : cls
+        cls.id === classId ? { ...cls, ...data[0] } : cls
       );
       saveLocalData(CLASSES_KEY, updatedClasses);
 
@@ -489,10 +566,10 @@ export const updateSettings = (settings) => {
 export const initializeDefaultData = () => {
   if (!localStorage.getItem(CLASSES_KEY)) {
     const defaultClasses = [
-      { id: "cs179g", name: "CS 179G", syllabus: null },
-      { id: "cs147", name: "CS 147", syllabus: null },
-      { id: "ee100a", name: "EE 100A", syllabus: null },
-      { id: "soc151", name: "SOC 151", syllabus: null },
+      { id: "cs179g", name: "CS 179G", syllabus: null, files: [] },
+      { id: "cs147", name: "CS 147", syllabus: null, files: [] },
+      { id: "ee100a", name: "EE 100A", syllabus: null, files: [] },
+      { id: "soc151", name: "SOC 151", syllabus: null, files: [] },
     ];
     saveLocalData(CLASSES_KEY, defaultClasses);
   }
