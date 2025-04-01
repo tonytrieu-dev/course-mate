@@ -8,7 +8,7 @@ import { initializeDefaultData } from "../services/dataService";
 const CalendarApp = () => {
   const [view, setView] = useState("month");
   const [showLogin, setShowLogin] = useState(false);
-  const { user, isAuthenticated, logout, syncing, triggerSync } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   //const clearAllStorage = () => {
     //console.log("Clearing all localStorage...");
@@ -70,18 +70,6 @@ const CalendarApp = () => {
             <div>
               {isAuthenticated ? (
                 <div className="flex items-center">
-                  {syncing && (
-                    <span className="text-blue-600 mr-2 animate-pulse">
-                      Syncing...
-                    </span>
-                  )}
-                  <button
-                    onClick={triggerSync}
-                    disabled={syncing}
-                    className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded mr-2"
-                  >
-                    Sync
-                  </button>
                   <span className="text-gray-600 mr-2">{user?.email}</span>
                   <button
                     onClick={logout}
