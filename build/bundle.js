@@ -16,7 +16,7 @@
   \*******************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   supabaseConfig: () => (/* binding */ supabaseConfig)\n/* harmony export */ });\nconst supabaseConfig = {\n  url: 'https://adkrfpcmfvqhctlvizxw.supabase.co',\n  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFka3JmcGNtZnZxaGN0bHZpenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwNDU0MjIsImV4cCI6MjA1ODYyMTQyMn0.FJTM_m9TIi1bp85A6W9THSil5gS561PsNyCe9gaGkGc'\n};\n\n//# sourceURL=webpack://notion-clone/./config.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   supabaseConfig: () => (/* binding */ supabaseConfig)\n/* harmony export */ });\nconst supabaseConfig = {\n  url: 'https://adkrfpcmfvqhctlvizxw.supabase.co',\n  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFka3JmcGNtZnZxaGN0bHZpenh3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MzA0NTQyMiwiZXhwIjoyMDU4NjIxNDIyfQ.plbbLnPXHYD1YGQCwDcQLveGgh-W7YkV_0HgthY9igQ'\n};\n\n//# sourceURL=webpack://notion-clone/./config.js?");
 
 /***/ }),
 
