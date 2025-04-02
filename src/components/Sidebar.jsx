@@ -185,41 +185,58 @@ const Sidebar = () => {
             .createSignedUrl(fileName, 31536000); 
 
         if (signedUrlError) {
-          console.error("Error creating signed URL:", error);
+          console.error("Error creating signed URL:", signedUrlError);
+          throw signedUrlError;
         }
 
-        // Update the class with the file info 
-        const updatedClass = {
-          ...selectedClass,
-          syllabus: {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            path: fileName,
-            url: signedUrlData.signedUrl, 
-            owner: user.id, // Store the owner for reference
-          },
+        // First, delete any existing syllabus records
+        if (selectedClass.syllabus && selectedClass.syllabus.path) {
+          // Delete old syllabus from class_syllabi table
+          await supabase
+            .from("class_syllabi")
+            .delete()
+            .eq("class_id", selectedClass.id);
+        }
+
+        // Create syllabus metadata
+        const syllabusData = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          path: fileName,
+          url: signedUrlData.signedUrl, 
+          owner: user.id,
+          class_id: selectedClass.id,
+          uploaded_at: new Date().toISOString(),
         };
 
-        // Update class in database and get updated class with user_id
-        const updatedClassWithUserId = await updateClass(selectedClass.id, updatedClass, isAuthenticated);
+        // Store in class_syllabi table
+        const { data: syllabusDbData, error: syllabusDbError } = await supabase
+          .from("class_syllabi")
+          .insert([syllabusData])
+          .select();
 
-        // Use the returned class data from Supabase which includes user_id
-        if (updatedClassWithUserId) {
-          // Update local state with the class returned from the server
-          const updatedClasses = classes.map((c) =>
-            c.id === selectedClass.id ? updatedClassWithUserId : c
-          );
-          setClasses(updatedClasses);
-          setSelectedClass(updatedClassWithUserId);
-        } else {
-          // Fallback in case updateClass didn't return the updated class
-          const updatedClasses = classes.map((c) =>
-            c.id === selectedClass.id ? updatedClass : c
-          );
-          setClasses(updatedClasses);
-          setSelectedClass(updatedClass);
+        if (syllabusDbError) {
+          console.error("Error storing syllabus metadata:", syllabusDbError);
+          throw syllabusDbError;
         }
+
+        // Update the local class object with syllabus
+        const updatedClass = {
+          ...selectedClass,
+          syllabus: syllabusDbData[0],
+        };
+
+        // Update local state
+        const updatedClasses = classes.map((c) =>
+          c.id === selectedClass.id ? updatedClass : c
+        );
+        
+        setClasses(updatedClasses);
+        setSelectedClass(updatedClass);
+        
+        // Also update local storage
+        localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
       } catch (error) {
         console.error("Error uploading syllabus:", error);
         alert("Error uploading syllabus: " + error.message);
@@ -269,6 +286,7 @@ const Sidebar = () => {
 
         if (signedUrlError) {
           console.error("Error creating signed URL:", signedUrlError);
+          throw signedUrlError;
         }
 
         // Create file metadata
@@ -279,34 +297,49 @@ const Sidebar = () => {
           path: fileName,
           url: signedUrlData.signedUrl, 
           owner: user.id,
-          uploadedAt: new Date().toISOString(),
+          class_id: selectedClass.id,
+          uploaded_at: new Date().toISOString(),
         };
 
-        // Update the class with the file info
+        // Store in class_files table
+        const { data: fileDbData, error: fileDbError } = await supabase
+          .from("class_files")
+          .insert([fileData])
+          .select();
+
+        if (fileDbError) {
+          console.error("Error storing file metadata:", fileDbError);
+          throw fileDbError;
+        }
+
+        // Get all files for this class
+        const { data: classFiles, error: classFilesError } = await supabase
+          .from("class_files")
+          .select("*")
+          .eq("class_id", selectedClass.id)
+          .order("uploaded_at", { ascending: false });
+
+        if (classFilesError) {
+          console.error("Error fetching class files:", classFilesError);
+          throw classFilesError;
+        }
+
+        // Update the local class object with files
         const updatedClass = {
           ...selectedClass,
-          files: [...(selectedClass.files || []), fileData],
+          files: classFiles || [],
         };
 
-        // Update class in database and get updated class with user_id
-        const updatedClassWithUserId = await updateClass(selectedClass.id, updatedClass, isAuthenticated);
-
-        // Use the returned class data from Supabase which includes user_id
-        if (updatedClassWithUserId) {
-          // Update local state with the class returned from the server
-          const updatedClasses = classes.map((c) =>
-            c.id === selectedClass.id ? updatedClassWithUserId : c
-          );
-          setClasses(updatedClasses);
-          setSelectedClass(updatedClassWithUserId);
-        } else {
-          // Fallback in case updateClass didn't return the updated class
-          const updatedClasses = classes.map((c) =>
-            c.id === selectedClass.id ? updatedClass : c
-          );
-          setClasses(updatedClasses);
-          setSelectedClass(updatedClass);
-        }
+        // Update in local state only
+        const updatedClasses = classes.map((c) =>
+          c.id === selectedClass.id ? updatedClass : c
+        );
+        
+        setClasses(updatedClasses);
+        setSelectedClass(updatedClass);
+        
+        // Also update local storage
+        localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
       } catch (error) {
         console.error("Error uploading file:", error);
         alert("Error uploading file: " + error.message);
@@ -338,45 +371,42 @@ const Sidebar = () => {
         throw storageError;
       }
 
-      // Update class object by removing file at index
-      const updatedFiles = [...(selectedClass.files || [])];
-      updatedFiles.splice(fileIndex, 1);
-      
-      // Update ONLY the files field and required metadata
-      const updateFields = {
-        files: updatedFiles,
-        updated_at: new Date().toISOString()
-      };
+      // Delete from class_files table
+      const { error: fileDbError } = await supabase
+        .from("class_files")
+        .delete()
+        .eq("path", filePath);
 
-      // Update directly in Supabase with only necessary fields
-      const { data: updatedData, error: updateError } = await supabase
-        .from("classes")
-        .update(updateFields)
-        .eq("id", selectedClass.id)
-        .select();
-
-      if (updateError) {
-        console.error("Error updating class in database:", updateError);
-        throw updateError;
+      if (fileDbError) {
+        console.error("Error deleting file metadata:", fileDbError);
+        throw fileDbError;
       }
 
-      if (!updatedData || updatedData.length === 0) {
-        throw new Error("Failed to update class in database");
+      // Get all remaining files for this class
+      const { data: classFiles, error: classFilesError } = await supabase
+        .from("class_files")
+        .select("*")
+        .eq("class_id", selectedClass.id)
+        .order("uploaded_at", { ascending: false });
+
+      if (classFilesError) {
+        console.error("Error fetching class files:", classFilesError);
+        throw classFilesError;
       }
 
-      // Update selected class locally
-      const updatedSelectedClass = {
+      // Update the local class object with remaining files
+      const updatedClass = {
         ...selectedClass,
-        files: updatedFiles
+        files: classFiles || [],
       };
       
       // Update local state
       const updatedClasses = classes.map((c) =>
-        c.id === selectedClass.id ? updatedSelectedClass : c
+        c.id === selectedClass.id ? updatedClass : c
       );
       
       setClasses(updatedClasses);
-      setSelectedClass(updatedSelectedClass);
+      setSelectedClass(updatedClass);
       
       // Also update local storage
       localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
@@ -409,41 +439,30 @@ const Sidebar = () => {
         throw storageError;
       }
 
-      // Update ONLY the syllabus field and required metadata
-      const updateFields = {
-        syllabus: null,
-        updated_at: new Date().toISOString()
-      };
+      // Delete from class_syllabi table
+      const { error: syllabusDbError } = await supabase
+        .from("class_syllabi")
+        .delete()
+        .eq("class_id", selectedClass.id);
 
-      // Update directly in Supabase with only necessary fields
-      const { data: updatedData, error: updateError } = await supabase
-        .from("classes")
-        .update(updateFields)
-        .eq("id", selectedClass.id)
-        .select();
-
-      if (updateError) {
-        console.error("Error updating class in database:", updateError);
-        throw updateError;
+      if (syllabusDbError) {
+        console.error("Error deleting syllabus metadata:", syllabusDbError);
+        throw syllabusDbError;
       }
 
-      if (!updatedData || updatedData.length === 0) {
-        throw new Error("Failed to update class in database");
-      }
-
-      // Update selected class locally
-      const updatedSelectedClass = {
+      // Update the local class object with syllabus set to null
+      const updatedClass = {
         ...selectedClass,
-        syllabus: null
+        syllabus: null,
       };
       
       // Update local state
       const updatedClasses = classes.map((c) =>
-        c.id === selectedClass.id ? updatedSelectedClass : c
+        c.id === selectedClass.id ? updatedClass : c
       );
       
       setClasses(updatedClasses);
-      setSelectedClass(updatedSelectedClass);
+      setSelectedClass(updatedClass);
       
       // Also update local storage
       localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));

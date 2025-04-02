@@ -117,7 +117,28 @@ export const downloadDataFromSupabase = async (userId) => {
 
         if (typesError) throw typesError;
 
-        // Refresh signed URLs for all files in classes
+        // Get all files from class_files table
+        const { data: classFiles, error: filesError } = await supabase
+            .from('class_files')
+            .select('*')
+            .order('uploaded_at', { ascending: false });
+            
+        if (filesError) {
+            console.error("Error fetching class files:", filesError);
+            // Continue anyway, as this might be a new table
+        }
+            
+        // Get all syllabi from class_syllabi table
+        const { data: classSyllabi, error: syllabiError } = await supabase
+            .from('class_syllabi')
+            .select('*');
+            
+        if (syllabiError) {
+            console.error("Error fetching class syllabi:", syllabiError);
+            // Continue anyway, as this might be a new table
+        }
+
+        // Assign files and syllabi to their respective classes
         if (classes) {
             for (let cls of classes) {
                 // Initialize files array if not exists
@@ -125,6 +146,18 @@ export const downloadDataFromSupabase = async (userId) => {
                     cls.files = [];
                 }
                 
+                // Assign class files
+                if (classFiles) {
+                    cls.files = classFiles.filter(file => file.class_id === cls.id);
+                }
+                
+                // Assign class syllabus
+                if (classSyllabi) {
+                    const syllabus = classSyllabi.find(s => s.class_id === cls.id);
+                    cls.syllabus = syllabus || null;
+                }
+                
+                // Refresh signed URLs for files and syllabus
                 // Refresh syllabus URL if exists
                 if (cls.syllabus && cls.syllabus.path) {
                     const { data: syllabusUrlData, error: syllabusUrlError } = await supabase.storage
