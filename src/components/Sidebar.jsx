@@ -321,48 +321,136 @@ const Sidebar = () => {
     if (!selectedClass) return;
     
     try {
+      // First get the current user to ensure we have valid auth
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user) {
+        throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
+      }
+      
       // Delete from storage
-      const { error } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from("class-materials")
         .remove([filePath]);
 
-      if (error) {
-        console.error("Error deleting file from storage:", error);
-        throw error;
+      if (storageError) {
+        console.error("Error deleting file from storage:", storageError);
+        throw storageError;
       }
 
       // Update class object by removing file at index
       const updatedFiles = [...(selectedClass.files || [])];
       updatedFiles.splice(fileIndex, 1);
       
-      const updatedClass = {
-        ...selectedClass,
+      // Update ONLY the files field and required metadata
+      const updateFields = {
         files: updatedFiles,
+        updated_at: new Date().toISOString()
       };
 
-      // Update in database and get updated class with user_id
-      const updatedClassWithUserId = await updateClass(selectedClass.id, updatedClass, isAuthenticated);
+      // Update directly in Supabase with only necessary fields
+      const { data: updatedData, error: updateError } = await supabase
+        .from("classes")
+        .update(updateFields)
+        .eq("id", selectedClass.id)
+        .select();
 
-      // Use the returned class data from Supabase which includes user_id
-      if (updatedClassWithUserId) {
-        // Update local state with the class returned from the server
-        const updatedClasses = classes.map((c) =>
-          c.id === selectedClass.id ? updatedClassWithUserId : c
-        );
-        setClasses(updatedClasses);
-        setSelectedClass(updatedClassWithUserId);
-      } else {
-        // Fallback in case updateClass didn't return the updated class
-        const updatedClasses = classes.map((c) =>
-          c.id === selectedClass.id ? updatedClass : c
-        );
-        setClasses(updatedClasses);
-        setSelectedClass(updatedClass);
+      if (updateError) {
+        console.error("Error updating class in database:", updateError);
+        throw updateError;
       }
+
+      if (!updatedData || updatedData.length === 0) {
+        throw new Error("Failed to update class in database");
+      }
+
+      // Update selected class locally
+      const updatedSelectedClass = {
+        ...selectedClass,
+        files: updatedFiles
+      };
+      
+      // Update local state
+      const updatedClasses = classes.map((c) =>
+        c.id === selectedClass.id ? updatedSelectedClass : c
+      );
+      
+      setClasses(updatedClasses);
+      setSelectedClass(updatedSelectedClass);
+      
+      // Also update local storage
+      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
       
     } catch (error) {
       console.error("Error deleting file:", error);
       alert("Error deleting file: " + error.message);
+    }
+  };
+
+  // Delete syllabus
+  const handleDeleteSyllabus = async () => {
+    if (!selectedClass || !selectedClass.syllabus) return;
+    
+    try {
+      // First get the current user to ensure we have valid auth
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user) {
+        throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
+      }
+      
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("class-materials")
+        .remove([selectedClass.syllabus.path]);
+
+      if (storageError) {
+        console.error("Error deleting syllabus from storage:", storageError);
+        throw storageError;
+      }
+
+      // Update ONLY the syllabus field and required metadata
+      const updateFields = {
+        syllabus: null,
+        updated_at: new Date().toISOString()
+      };
+
+      // Update directly in Supabase with only necessary fields
+      const { data: updatedData, error: updateError } = await supabase
+        .from("classes")
+        .update(updateFields)
+        .eq("id", selectedClass.id)
+        .select();
+
+      if (updateError) {
+        console.error("Error updating class in database:", updateError);
+        throw updateError;
+      }
+
+      if (!updatedData || updatedData.length === 0) {
+        throw new Error("Failed to update class in database");
+      }
+
+      // Update selected class locally
+      const updatedSelectedClass = {
+        ...selectedClass,
+        syllabus: null
+      };
+      
+      // Update local state
+      const updatedClasses = classes.map((c) =>
+        c.id === selectedClass.id ? updatedSelectedClass : c
+      );
+      
+      setClasses(updatedClasses);
+      setSelectedClass(updatedSelectedClass);
+      
+      // Also update local storage
+      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
+      
+    } catch (error) {
+      console.error("Error deleting syllabus:", error);
+      alert("Error deleting syllabus: " + error.message);
     }
   };
 
@@ -411,27 +499,35 @@ const Sidebar = () => {
 
                 {selectedClass.syllabus && (
                   <div className="mt-3 mb-3 p-4 bg-gray-50 rounded">
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-red-500 mr-2"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-red-500 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <a
+                          href={selectedClass.syllabus.url} 
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {selectedClass.syllabus.name}
+                        </a>
+                      </div>
+                      <button
+                        onClick={handleDeleteSyllabus}
+                        className="text-red-500 hover:text-red-700"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <a
-                        href={selectedClass.syllabus.url} 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        {selectedClass.syllabus.name}
-                      </a>
+                        Delete
+                      </button>
                     </div>
                   </div>
                 )}
