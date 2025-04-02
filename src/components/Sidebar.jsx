@@ -595,7 +595,7 @@ const Sidebar = () => {
             {/* Display uploaded files */}
             {selectedClass.files && selectedClass.files.length > 0 ? (
               <div>
-                <h4 className="font-semibold mb-2">Uploaded Files</h4>
+                <h4 className="font-semibold mb-2">Uploaded files</h4>
                 <ul className="divide-y divide-gray-200">
                   {selectedClass.files.map((file, index) => (
                     <li key={index} className="py-3 flex justify-between items-center">
@@ -698,29 +698,37 @@ const Sidebar = () => {
           {classes.map((cls) => (
             <li
               key={cls.id}
-              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded ${
-                hoveredClassId === cls.id ? "bg-gray-100" : "bg-transparent"
+              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 ${
+                hoveredClassId === cls.id ? "bg-gray-100" : ""
               }`}
               onMouseEnter={() => setHoveredClassId(cls.id)}
               onMouseLeave={() => setHoveredClassId(null)}
-              onClick={() => handleClassClick(cls.id)}
             >
               {editingClassId === cls.id ? (
-                <input
-                  value={cls.name}
-                  onChange={(e) => handleClassChange(e, cls.id)}
-                  onKeyDown={(e) => handleClassKeyDown(e, cls.id)}
-                  onBlur={handleClassBlur}
-                  autoFocus
-                  className="w-4/5 p-0.5"
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <div className="flex items-center w-full">
+                  <span className="mr-2 ml-0 text-blue-600 text-lg select-none">•</span>
+                  <input
+                    value={cls.name}
+                    onChange={(e) => handleClassChange(e, cls.id)}
+                    onKeyDown={(e) => handleClassKeyDown(e, cls.id)}
+                    onBlur={handleClassBlur}
+                    autoFocus
+                    className="flex-1 p-0.5 bg-transparent"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
               ) : (
                 <>
-                  <div className="flex items-center pl-0 flex-1 relative">
-                    <span className="mr-2 ml-0 text-blue-600 text-lg">•</span>
+                  <div 
+                    className="flex items-center pl-0 flex-1 relative"
+                    onClick={() => handleClassClick(cls.id)}
+                  >
+                    <span className="mr-2 ml-0 text-blue-600 text-lg select-none" aria-hidden="true">•</span>
                     <span
-                      onClick={(e) => handleClassNameClick(e, cls.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClassNameClick(e, cls.id);
+                      }}
                       className={`cursor-pointer ${
                         hoveredClassId === cls.id ? "font-bold" : "font-normal"
                       } transition-all duration-100`}
@@ -740,8 +748,11 @@ const Sidebar = () => {
                   </div>
                   {hoveredClassId === cls.id && (
                     <button
-                      onClick={(e) => handleDeleteClass(e, cls.id)}
-                      className="bg-transparent border-none text-red-500 cursor-pointer text-base"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClass(e, cls.id);
+                      }}
+                      className="bg-transparent border-none text-red-500 cursor-pointer text-base hover:text-red-700"
                     >
                       ×
                     </button>
