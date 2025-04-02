@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 const LoginComponent = ({onClose}) => {
-  const { login, register, authError, loading, syncing } = useAuth();
+  const { login, register, authError, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -102,13 +102,13 @@ const LoginComponent = ({onClose}) => {
 
             <button
               type="submit"
-              disabled={loading || syncing}
+              disabled={loading}
               className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition ${
-                loading || syncing ? "opacity-70 cursor-not-allowed" : ""
+                loading ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
-              {loading || syncing ? (
-                <span>{syncing ? "Syncing..." : "Loading..."}</span>
+              {loading ? (
+                <span>Loading...</span>
               ) : (
                 <span>{isRegistering ? "Register" : "Sign In"}</span>
               )}

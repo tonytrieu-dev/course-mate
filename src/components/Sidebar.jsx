@@ -10,9 +10,10 @@ import {
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
+import LoginComponent from "./LoginComponent";
 
 const Sidebar = () => {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [title, setTitle] = useState("UCR");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [classes, setClasses] = useState([]);
@@ -24,6 +25,19 @@ const Sidebar = () => {
   const [isHoveringClassArea, setIsHoveringClassArea] = useState(false);
   //const [tasksAdded, setTasksAdded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+  // Extract user name from email (before the @ symbol)
+  const getUserName = () => {
+    if (!user?.email) return "";
+    
+    // If user has a name property, use that
+    if (user.user_metadata?.name) return user.user_metadata.name;
+    
+    // Otherwise extract name from email
+    return user.email.split('@')[0].replace(/[.+_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   // Load data
   useEffect(() => {
@@ -62,7 +76,6 @@ const Sidebar = () => {
     const classObj = classes.find((c) => c.id === classId);
     setSelectedClass(classObj);
     setShowSyllabusModal(true);
-    setShowAnalysisDetails(false);
   };
 
   const handleClassNameClick = (e, classId) => {
@@ -101,6 +114,7 @@ const Sidebar = () => {
         id: newId,
         name: newClassName.trim(),
         syllabus: null,
+        files: [],
       };
 
       // Add class to database/local storage
@@ -114,6 +128,7 @@ const Sidebar = () => {
         id: newId,
         name: "New Class",
         syllabus: null,
+        files: [],
       };
 
       // Add class to database/local storage
@@ -170,37 +185,291 @@ const Sidebar = () => {
             .createSignedUrl(fileName, 31536000); 
 
         if (signedUrlError) {
-          console.error("Error creating signed URL:", error);
+          console.error("Error creating signed URL:", signedUrlError);
+          throw signedUrlError;
         }
 
-        // Update the class with the file info 
-        const updatedClass = {
-          ...selectedClass,
-          syllabus: {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            path: fileName,
-            url: signedUrlData.signedUrl, 
-            owner: user.id, // Store the owner for reference
-          },
+        // First, delete any existing syllabus records
+        if (selectedClass.syllabus && selectedClass.syllabus.path) {
+          // Delete old syllabus from class_syllabi table
+          await supabase
+            .from("class_syllabi")
+            .delete()
+            .eq("class_id", selectedClass.id);
+        }
+
+        // Create syllabus metadata
+        const syllabusData = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          path: fileName,
+          url: signedUrlData.signedUrl, 
+          owner: user.id,
+          class_id: selectedClass.id,
+          uploaded_at: new Date().toISOString(),
         };
 
-        // 4. Update class in database
-        await updateClass(selectedClass.id, updatedClass, isAuthenticated);
+        // Store in class_syllabi table
+        const { data: syllabusDbData, error: syllabusDbError } = await supabase
+          .from("class_syllabi")
+          .insert([syllabusData])
+          .select();
 
-        // 5. Update local state
+        if (syllabusDbError) {
+          console.error("Error storing syllabus metadata:", syllabusDbError);
+          throw syllabusDbError;
+        }
+
+        // Update the local class object with syllabus
+        const updatedClass = {
+          ...selectedClass,
+          syllabus: syllabusDbData[0],
+        };
+
+        // Update local state
         const updatedClasses = classes.map((c) =>
           c.id === selectedClass.id ? updatedClass : c
         );
+        
         setClasses(updatedClasses);
         setSelectedClass(updatedClass);
+        
+        // Also update local storage
+        localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
       } catch (error) {
         console.error("Error uploading syllabus:", error);
         alert("Error uploading syllabus: " + error.message);
       } finally {
         setIsUploading(false);
       }
+    }
+  };
+
+  // Handle general file upload
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file && selectedClass) {
+      try {
+        // Show loading state
+        setIsUploadingFile(true);
+
+        // Get current user ID
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) throw new Error("User not authenticated");
+
+        // Upload the file to Supabase Storage
+        const fileName = `${selectedClass.id}/${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+          .from("class-materials")
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: true,
+            // Make sure owner is set correctly to the authenticated user
+            fileMetadata: {
+              owner: user.id,
+            },
+          });
+
+        if (error) {
+          console.error("Storage upload error:", error);
+          throw error;
+        }
+
+        // Get a signed URL for the file (valid for 1 year)
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+            .from("class-materials")
+            .createSignedUrl(fileName, 31536000); 
+
+        if (signedUrlError) {
+          console.error("Error creating signed URL:", signedUrlError);
+          throw signedUrlError;
+        }
+
+        // Create file metadata
+        const fileData = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          path: fileName,
+          url: signedUrlData.signedUrl, 
+          owner: user.id,
+          class_id: selectedClass.id,
+          uploaded_at: new Date().toISOString(),
+        };
+
+        // Store in class_files table
+        const { data: fileDbData, error: fileDbError } = await supabase
+          .from("class_files")
+          .insert([fileData])
+          .select();
+
+        if (fileDbError) {
+          console.error("Error storing file metadata:", fileDbError);
+          throw fileDbError;
+        }
+
+        // Get all files for this class
+        const { data: classFiles, error: classFilesError } = await supabase
+          .from("class_files")
+          .select("*")
+          .eq("class_id", selectedClass.id)
+          .order("uploaded_at", { ascending: false });
+
+        if (classFilesError) {
+          console.error("Error fetching class files:", classFilesError);
+          throw classFilesError;
+        }
+
+        // Update the local class object with files
+        const updatedClass = {
+          ...selectedClass,
+          files: classFiles || [],
+        };
+
+        // Update in local state only
+        const updatedClasses = classes.map((c) =>
+          c.id === selectedClass.id ? updatedClass : c
+        );
+        
+        setClasses(updatedClasses);
+        setSelectedClass(updatedClass);
+        
+        // Also update local storage
+        localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        alert("Error uploading file: " + error.message);
+      } finally {
+        setIsUploadingFile(false);
+      }
+    }
+  };
+
+  // Delete a file
+  const handleDeleteFile = async (filePath, fileIndex) => {
+    if (!selectedClass) return;
+    
+    try {
+      // First get the current user to ensure we have valid auth
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user) {
+        throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
+      }
+      
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("class-materials")
+        .remove([filePath]);
+
+      if (storageError) {
+        console.error("Error deleting file from storage:", storageError);
+        throw storageError;
+      }
+
+      // Delete from class_files table
+      const { error: fileDbError } = await supabase
+        .from("class_files")
+        .delete()
+        .eq("path", filePath);
+
+      if (fileDbError) {
+        console.error("Error deleting file metadata:", fileDbError);
+        throw fileDbError;
+      }
+
+      // Get all remaining files for this class
+      const { data: classFiles, error: classFilesError } = await supabase
+        .from("class_files")
+        .select("*")
+        .eq("class_id", selectedClass.id)
+        .order("uploaded_at", { ascending: false });
+
+      if (classFilesError) {
+        console.error("Error fetching class files:", classFilesError);
+        throw classFilesError;
+      }
+
+      // Update the local class object with remaining files
+      const updatedClass = {
+        ...selectedClass,
+        files: classFiles || [],
+      };
+      
+      // Update local state
+      const updatedClasses = classes.map((c) =>
+        c.id === selectedClass.id ? updatedClass : c
+      );
+      
+      setClasses(updatedClasses);
+      setSelectedClass(updatedClass);
+      
+      // Also update local storage
+      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
+      
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      alert("Error deleting file: " + error.message);
+    }
+  };
+
+  // Delete syllabus
+  const handleDeleteSyllabus = async () => {
+    if (!selectedClass || !selectedClass.syllabus) return;
+    
+    try {
+      // First get the current user to ensure we have valid auth
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user) {
+        throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
+      }
+      
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("class-materials")
+        .remove([selectedClass.syllabus.path]);
+
+      if (storageError) {
+        console.error("Error deleting syllabus from storage:", storageError);
+        throw storageError;
+      }
+
+      // Delete from class_syllabi table
+      const { error: syllabusDbError } = await supabase
+        .from("class_syllabi")
+        .delete()
+        .eq("class_id", selectedClass.id);
+
+      if (syllabusDbError) {
+        console.error("Error deleting syllabus metadata:", syllabusDbError);
+        throw syllabusDbError;
+      }
+
+      // Update the local class object with syllabus set to null
+      const updatedClass = {
+        ...selectedClass,
+        syllabus: null,
+      };
+      
+      // Update local state
+      const updatedClasses = classes.map((c) =>
+        c.id === selectedClass.id ? updatedClass : c
+      );
+      
+      setClasses(updatedClasses);
+      setSelectedClass(updatedClass);
+      
+      // Also update local storage
+      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
+      
+    } catch (error) {
+      console.error("Error deleting syllabus:", error);
+      alert("Error deleting syllabus: " + error.message);
     }
   };
 
@@ -249,27 +518,35 @@ const Sidebar = () => {
 
                 {selectedClass.syllabus && (
                   <div className="mt-3 mb-3 p-4 bg-gray-50 rounded">
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-red-500 mr-2"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-red-500 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <a
+                          href={selectedClass.syllabus.url} 
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {selectedClass.syllabus.name}
+                        </a>
+                      </div>
+                      <button
+                        onClick={handleDeleteSyllabus}
+                        className="text-red-500 hover:text-red-700"
                       >
-                        <path
-                          fillRule="evenodd"
-                          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <a
-                        href={selectedClass.syllabus.url} 
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        {selectedClass.syllabus.name}
-                      </a>
+                        Delete
+                      </button>
                     </div>
                   </div>
                 )}
@@ -290,6 +567,75 @@ const Sidebar = () => {
                   </div>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* New section for class files */}
+          <div className="mb-5">
+            <h3 className="font-bold text-lg mb-2">Class files</h3>
+            
+            <div className="border-2 border-dashed border-gray-300 p-5 text-center mb-5">
+              <p>
+                Upload lecture notes, assignments, and other course materials
+              </p>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip"
+                onChange={handleFileUpload}
+                className="block mx-auto my-2.5"
+              />
+              {isUploadingFile && (
+                <div className="text-center my-2">
+                  <p className="text-blue-600">Uploading file...</p>
+                  <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
+                </div>
+              )}
+            </div>
+
+            {/* Display uploaded files */}
+            {selectedClass.files && selectedClass.files.length > 0 ? (
+              <div>
+                <h4 className="font-semibold mb-2">Uploaded Files</h4>
+                <ul className="divide-y divide-gray-200">
+                  {selectedClass.files.map((file, index) => (
+                    <li key={index} className="py-3 flex justify-between items-center">
+                      <div className="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-blue-500 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          {file.name}
+                        </a>
+                        <span className="ml-2 text-gray-500 text-sm">
+                          ({Math.round(file.size / 1024)} KB)
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteFile(file.path, index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center">No files uploaded yet</p>
             )}
           </div>
 
@@ -314,26 +660,31 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 border-r border-gray-300 py-5 px-2.5 bg-white h-full box-border font-sans">
-      {isEditingTitle ? (
-        <input
-          value={title}
-          onChange={handleTitleChange}
-          onBlur={handleTitleBlur}
-          autoFocus
-          className="text-4xl font-bold w-[90%] p-0.5 text-blue-700 border border-gray-300 mt-0 mb-6 font-inherit"
-        />
-      ) : (
-        <h1
-          className="text-blue-700 cursor-pointer text-5xl mb-6 leading-tight font-inherit font-semibold text-center"
-          onClick={handleTitleClick}
-        >
-          {title}
-        </h1>
-      )}
+    <div className="w-64 border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col">
+      <div className="pt-16">
+        {isEditingTitle ? (
+          <input
+            value={title}
+            onChange={handleTitleChange}
+            onBlur={handleTitleBlur}
+            autoFocus
+            className="text-4xl font-bold w-[90%] p-0.5 text-blue-700 border border-gray-300 mt-0 mb-3 font-inherit"
+          />
+        ) : (
+          <h1
+            className="text-blue-700 cursor-pointer text-5xl mb-3 leading-tight font-inherit font-semibold text-center"
+            onClick={handleTitleClick}
+          >
+            {title}
+          </h1>
+        )}
+      </div>
 
+      {/* Empty space to push content down */}
+      <div className="mt-6"></div>
+      
       <div
-        className="relative"
+        className="relative flex-1"
         onMouseEnter={() => setIsHoveringClassArea(true)}
         onMouseLeave={() => setIsHoveringClassArea(false)}
       >
@@ -377,11 +728,14 @@ const Sidebar = () => {
                       {cls.name}
                     </span>
 
-                    {cls.syllabus && (
+                    {(cls.syllabus || (cls.files && cls.files.length > 0)) && (
                       <span
                         className="ml-1 text-base text-blue-600"
-                        title="Syllabus uploaded"
-                      ></span>
+                        title={cls.files && cls.files.length > 0 
+                          ? `Syllabus and ${cls.files.length} file(s) uploaded` 
+                          : "Syllabus uploaded"}
+                      >
+                      </span>
                     )}
                   </div>
                   {hoveredClassId === cls.id && (
@@ -409,7 +763,37 @@ const Sidebar = () => {
         )}
       </div>
 
+      {/* Auth Controls - moved to bottom with margin-top */}
+      <div className="px-2 mt-auto mb-8 text-center">
+        {isAuthenticated ? (
+          <div className="flex flex-col items-center">
+            <span className="text-gray-600 mb-2">{user?.email}</span>
+            <button
+              onClick={logout}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded w-full"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            {user?.email && (
+              <span className="text-gray-600 mb-2">{user.email}</span>
+            )}
+            <button
+              onClick={() => setShowLogin(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded w-full"
+            >
+              Login / Register
+            </button>
+          </div>
+        )}
+      </div>
+
       {renderSyllabusModal()}
+      {showLogin && !isAuthenticated && (
+        <LoginComponent onClose={() => setShowLogin(false)} />
+      )}
     </div>
   );
 };
