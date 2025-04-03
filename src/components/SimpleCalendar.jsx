@@ -6,6 +6,7 @@ import {
   deleteTask,
   getClasses,
   getTaskTypes,
+  addTaskType,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
@@ -545,6 +546,7 @@ const SimpleCalendar = ({ view }) => {
                   onChange={(e) => {
                     if (e.target.value === "add-new") {
                       setShowTypeInput(true);
+                      setNewTask({ ...newTask, type: "" });
                     } else {
                       setNewTask({ ...newTask, type: e.target.value });
                     }
@@ -589,11 +591,19 @@ const SimpleCalendar = ({ view }) => {
                               name: newTypeName.trim(),
                             };
 
-                            // Add type via data service
-                            const typesToAdd = [...taskTypes, newType];
-                            setTaskTypes(typesToAdd);
+                            try {
+                              // Import addTaskType at the top of the file
+                              const savedType = await addTaskType(newType, isAuthenticated);
+                              if (savedType) {
+                                // Update local state with the saved type
+                                setTaskTypes(prevTypes => [...prevTypes, savedType]);
+                                setNewTask({ ...newTask, type: savedType.id });
+                              }
+                            } catch (error) {
+                              console.error("Error saving task type:", error);
+                              alert("Failed to save task type. Please try again.");
+                            }
 
-                            setNewTask({ ...newTask, type: newType.id });
                             setNewTypeName("");
                             setShowTypeInput(false);
                           }

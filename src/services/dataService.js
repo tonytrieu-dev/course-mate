@@ -56,75 +56,36 @@ export const getTasks = async (useSupabase = false) => {
 
 export const addTask = async (task, useSupabase = false) => {
   try {
-    if (!task.title || !task.dueDate) {
-      console.error("Task missing required fields:", task);
-      return null;
-    }
-
-    // Create a consistent task ID
     const taskToSave = {
       ...task,
-      id:
-        task.id ||
-        `task_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
+      id: task.id || Date.now().toString(),
       created_at: new Date().toISOString(),
     };
 
-    console.log(`Adding task with useSupabase=${useSupabase}`, taskToSave);
-
     if (useSupabase) {
       try {
-        // Get current user ID - FIXED: correctly get user object
+        // Get current user ID
         const user = await getCurrentUser();
-        console.log("Current user from getCurrentUser:", user);
-
+        
         if (!user) {
-          console.error("No authenticated user found");
+          console.error("No authenticated user found for addTask");
           throw new Error("Not authenticated");
         }
-
-        // Let's also check the Supabase auth state directly
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        console.log("Supabase session:", session);
-
-        if (!session) {
-          console.error("No active Supabase session found");
-          throw new Error("Not authenticated via Supabase session");
-        }
-
-        // Add user_id to the task data - THIS IS CRUCIAL
+        
+        // Add user_id to the task data
         const taskWithUserId = {
           ...taskToSave,
           user_id: user.id,
         };
 
-        console.log("Adding task to Supabase:", taskWithUserId);
-
-        // First, add to Supabase
-        const result = await supabase
+        const { data, error } = await supabase
           .from("tasks")
           .insert([taskWithUserId])
-          .select("*");
-
-        console.log("Full Supabase insert result:", result);
-
-        const { data, error } = result;
+          .select();
 
         if (error) {
           console.error("Supabase task insertion error:", error);
-          // Fall back to local storage
-          const tasks = getLocalData(TASKS_KEY);
-          const updatedTasks = [...tasks, taskToSave];
-          saveLocalData(TASKS_KEY, updatedTasks);
-
-          // Add task to local state and delay the calendar refresh
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("calendar-update"));
-          }, 500);
-
-          return taskToSave;
+          throw error;
         }
 
         console.log("Task added successfully to Supabase:", data);
@@ -134,37 +95,16 @@ export const addTask = async (task, useSupabase = false) => {
         const updatedTasks = [...tasks, data[0]];
         saveLocalData(TASKS_KEY, updatedTasks);
 
-        // Delay the calendar refresh to ensure everything is saved
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent("calendar-update"));
-        }, 500);
-
         return data[0];
       } catch (error) {
         console.error("Error adding task to Supabase:", error);
-        // Fall back to local storage
-        const tasks = getLocalData(TASKS_KEY);
-        const updatedTasks = [...tasks, taskToSave];
-        saveLocalData(TASKS_KEY, updatedTasks);
-
-        // Delay the calendar refresh
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent("calendar-update"));
-        }, 500);
-
-        return taskToSave;
+        throw error;
       }
     } else {
       // Only for non-Supabase storage
       const tasks = getLocalData(TASKS_KEY);
       const updatedTasks = [...tasks, taskToSave];
       saveLocalData(TASKS_KEY, updatedTasks);
-
-      // Delay the calendar refresh
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("calendar-update"));
-      }, 500);
-
       return taskToSave;
     }
   } catch (error) {
@@ -748,36 +688,58 @@ export const getTaskTypes = async (useSupabase = false) => {
 };
 
 export const addTaskType = async (taskType, useSupabase = false) => {
-  const typeToSave = {
-    ...taskType,
-    id: taskType.id || Date.now().toString(),
-    created_at: new Date().toISOString(),
-  };
+  try {
+    const typeToSave = {
+      ...taskType,
+      id: taskType.id || Date.now().toString(),
+      created_at: new Date().toISOString(),
+    };
 
-  if (useSupabase) {
-    try {
-      const { data, error } = await supabase
-        .from("task_types")
-        .insert([typeToSave])
-        .select();
+    if (useSupabase) {
+      try {
+        // Get current user ID
+        const user = await getCurrentUser();
+        
+        if (!user) {
+          console.error("No authenticated user found for addTaskType");
+          throw new Error("Not authenticated");
+        }
+        
+        // Add user_id to the task type data
+        const typeWithUserId = {
+          ...typeToSave,
+          user_id: user.id,
+        };
 
-      if (error) throw error;
+        const { data, error } = await supabase
+          .from("task_types")
+          .insert([typeWithUserId])
+          .select();
 
-      // Also update local cache
-      const localTypes = getLocalData(TASK_TYPES_KEY);
-      saveLocalData(TASK_TYPES_KEY, [...localTypes, typeToSave]);
+        if (error) {
+          console.error("Error adding task type to Supabase:", error);
+          throw error;
+        }
 
-      return data[0];
-    } catch (error) {
-      console.error("Error adding task type to Supabase:", error.message);
+        // Also update local cache
+        const localTypes = getLocalData(TASK_TYPES_KEY);
+        saveLocalData(TASK_TYPES_KEY, [...localTypes, data[0]]);
+
+        return data[0];
+      } catch (error) {
+        console.error("Error adding task type to Supabase:", error.message);
+        throw error;
+      }
+    } else {
+      const types = getLocalData(TASK_TYPES_KEY);
+      const updatedTypes = [...types, typeToSave];
+      saveLocalData(TASK_TYPES_KEY, updatedTypes);
+      return typeToSave;
     }
-  } else {
-    const types = getLocalData(TASK_TYPES_KEY);
-    const updatedTypes = [...types, typeToSave];
-    saveLocalData(TASK_TYPES_KEY, updatedTypes);
+  } catch (error) {
+    console.error("Error in addTaskType:", error);
+    return null;
   }
-
-  return typeToSave;
 };
 
 export const updateTaskType = async (
