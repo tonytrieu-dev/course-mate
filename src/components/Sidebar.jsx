@@ -714,7 +714,6 @@ const Sidebar = () => {
                     onBlur={handleClassBlur}
                     autoFocus
                     className="flex-1 p-0.5 bg-transparent"
-                    onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               ) : (
