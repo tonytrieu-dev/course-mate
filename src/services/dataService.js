@@ -38,9 +38,6 @@ export const getTasks = async (useSupabase = false) => {
         return getLocalData(TASKS_KEY);
       }
 
-      // Update local storage with the fetched tasks
-      saveLocalData(TASKS_KEY, data || []);
-
       // Add debugging to see what's happening
       console.log(`Retrieved ${data?.length || 0} tasks from Supabase`);
 
