@@ -9,7 +9,6 @@ import {
   addTaskType,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
-import { supabase } from "../services/supabaseClient";
 
 const TASKS_KEY = "calendar_tasks";
 const getLocalData = (key, defaultValue = []) => {
@@ -54,23 +53,23 @@ const SimpleCalendar = ({ view }) => {
       // Load tasks using the fixed getTasks function
       const fetchedTasks = await getTasks(isAuthenticated);
       console.log(`Initial load: ${fetchedTasks.length} tasks from getTasks()`);
-      
+
       // Create a Map to deduplicate by ID (if needed)
       const uniqueTasks = new Map();
       fetchedTasks.forEach((task) => {
         uniqueTasks.set(task.id, task);
       });
-  
+
       setTasks([...uniqueTasks.values()]);
-  
+
       // Load other data...
       const fetchedClasses = await getClasses(isAuthenticated);
       setClasses(fetchedClasses);
-  
+
       const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
       setTaskTypes(fetchedTaskTypes);
     };
-  
+
     loadData();
   }, [isAuthenticated]);
 
@@ -81,7 +80,7 @@ const SimpleCalendar = ({ view }) => {
       try {
         const fetchedTasks = await getTasks(isAuthenticated);
         console.log(`Calendar: Loaded ${fetchedTasks?.length || 0} tasks`);
-        
+
         // Only update the tasks state if we actually got tasks back
         if (fetchedTasks && fetchedTasks.length > 0) {
           setTasks(fetchedTasks);
@@ -95,10 +94,10 @@ const SimpleCalendar = ({ view }) => {
         // Don't update the tasks state on error
       }
     };
-  
+
     // Listen for custom event
     window.addEventListener("calendar-update", refreshCalendarData);
-  
+
     // Clean up event listener
     return () => {
       window.removeEventListener("calendar-update", refreshCalendarData);
@@ -138,12 +137,8 @@ const SimpleCalendar = ({ view }) => {
     return `${year}-${month}-${day}`;
   };
 
-  const handleDateClick = (day) => {
-    const clickedDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      day
-    );
+  const handleDateClick = (day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
+    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     setSelectedDate(clickedDate);
     setEditingTask(null);
 
@@ -194,14 +189,14 @@ const SimpleCalendar = ({ view }) => {
 
   const handleTaskSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       // Create a full date object for the task
       let taskData = {
         ...newTask,
         date: formatDateForInput(selectedDate),
       };
-  
+
       if (editingTask) {
         // Update existing task
         const updatedTask = await updateTask(
@@ -228,7 +223,7 @@ const SimpleCalendar = ({ view }) => {
           setTasks((currentTasks) => [...currentTasks, newTaskObj]);
         }
       }
-  
+
       // Reset form and close modal
       setNewTask({
         title: "",
@@ -261,7 +256,7 @@ const SimpleCalendar = ({ view }) => {
     }
   };
 
-  const getTasksForDay = (day) => {
+  const getTasksForDay = (day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
     const countedTaskIds = new Set();
 
     // Format target date string
@@ -313,6 +308,7 @@ const SimpleCalendar = ({ view }) => {
               This ensures that each task is evaluated by only 1 method of date comparison, preventing it from appearing in 2 different days.
               The solution works because string comparisons of dates in YYYY-MM-DD format are immune to the timezone issues that plague JavaScript Date objects.
       */
+
       // CASE 3: Duration tasks
       if (!shouldDisplay && task.isDuration && task.startDate && task.endDate) {
         if (
@@ -635,11 +631,10 @@ const SimpleCalendar = ({ view }) => {
                 <div className="flex border border-gray-300 rounded overflow-hidden">
                   <button
                     type="button"
-                    className={`px-3 py-1 ${
-                      !newTask.isDuration
-                        ? "bg-blue-500 text-white"
-                        : "bg-white text-gray-700"
-                    }`}
+                    className={`px-3 py-1 ${!newTask.isDuration
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700"
+                      }`}
                     onClick={() =>
                       setNewTask({ ...newTask, isDuration: false })
                     }
@@ -648,11 +643,10 @@ const SimpleCalendar = ({ view }) => {
                   </button>
                   <button
                     type="button"
-                    className={`px-3 py-1 ${
-                      newTask.isDuration
-                        ? "bg-blue-500 text-white"
-                        : "bg-white text-gray-700"
-                    }`}
+                    className={`px-3 py-1 ${newTask.isDuration
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-700"
+                      }`}
                     onClick={() => setNewTask({ ...newTask, isDuration: true })}
                   >
                     Duration
@@ -788,12 +782,64 @@ const SimpleCalendar = ({ view }) => {
     for (let i = 0; i < 7; i++) {
       const day = new Date(startOfWeek);
       day.setDate(startOfWeek.getDate() + i);
+
+      // Get tasks for this specific day
+      const dayTasks = getTasksForDay(day.getDate(), day.getMonth(), day.getFullYear());
+
       days.push(
-        <div key={i} className="border border-gray-300 p-2.5 min-h-64">
+        <div
+          key={i}
+          className="border border-gray-300 p-2 h-64 cursor-pointer overflow-auto"
+          onClick={() => handleDateClick(day.getDate(), day.getMonth(), day.getFullYear())}
+        >
           <div className="font-bold">{day.getDate()}</div>
-          <div>
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day.getDay()]}
+          <div className="text-sm text-gray-600 mb-1">
+            {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][day.getDay()]}
           </div>
+
+          {dayTasks.map((task) => {
+            // Get the appropriate bg color based on class
+            let bgColor = "bg-blue-50";
+            let borderColor = "border-l-blue-500";
+
+            // Find the class
+            const taskClass = classes.find((c) => c.id === task.class);
+
+            if (taskClass) {
+              if (task.class === "cs179g") {
+                bgColor = "bg-blue-50";
+                borderColor = "border-l-blue-500";
+              } else if (task.class === "cs147") {
+                bgColor = "bg-green-50";
+                borderColor = "border-l-green-500";
+              } else if (task.class === "ee100a") {
+                bgColor = "bg-orange-50";
+                borderColor = "border-l-orange-500";
+              } else {
+                bgColor = "bg-purple-50";
+                borderColor = "border-l-purple-500";
+              }
+            }
+
+            let timeDisplay = "";
+            if (task.isDuration) {
+              timeDisplay = ` (${formatTimeForDisplay(
+                task.startTime
+              )}-${formatTimeForDisplay(task.endTime)})`;
+            } else if (task.dueTime) {
+              timeDisplay = ` (Due: ${formatTimeForDisplay(task.dueTime)})`;
+            }
+
+            return (
+              <div
+                key={task.id}
+                className={`${bgColor} ${borderColor} border-l-3 py-0.5 px-1 my-0.5 text-xs rounded whitespace-nowrap overflow-hidden text-ellipsis`}
+                onClick={(e) => handleTaskClick(e, task)}
+              >
+                {task.title}
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -803,30 +849,159 @@ const SimpleCalendar = ({ view }) => {
 
   // Day view rendering
   const renderDayView = () => {
+    const dayTasks = getTasksForDay(currentDate.getDate(), currentDate.getMonth(), currentDate.getFullYear());
+    const tasksByHour = {};
+    // Initialize hours with empty arrays
+    for (let i = 0; i <= 24; i++) {
+      tasksByHour[i] = [];
+    }
+
+    // Sort tasks into hourly buckets
+    dayTasks.forEach(task => {
+      if (task.isDuration && task.startTime) {
+        // For duration tasks, place at start time
+        const hour = parseInt(task.startTime.split(':')[0], 10);
+        if (tasksByHour[hour]) {
+          tasksByHour[hour].push(task);
+        }
+      } else if (task.dueTime) {
+        // For deadline tasks, place at due time
+        const hour = parseInt(task.dueTime.split(':')[0], 10);
+        if (tasksByHour[hour]) {
+          tasksByHour[hour].push(task);
+        }
+      } else {
+        tasksByHour[9].push(task);
+      }
+    });
+
+    // Render hours from 7 AM to 11 PM
     const hours = [];
     for (let i = 7; i <= 23; i++) {
-      const hour12Format = i % 12 || 12;
+      const format12Hours = i % 12 || 12;
       const beforeOrAfterNoon = i < 12 ? " AM" : " PM";
+      const tasksForHour = tasksByHour[i] || [];
 
       hours.push(
-        <div key={i} className="border border-gray-300 p-2.5 flex">
+        <div key={i} className="border border-gray-300 p-2 flex min-h-20">
           <div className="w-16 font-bold">
-            {hour12Format}
+            {format12Hours}
             {beforeOrAfterNoon}
           </div>
-          <div className="flex-1 min-h-10"></div>
+          <div className="flex-1">
+            {tasksForHour.map((task) => {
+              // Get the appropriate bg color based on class
+              let bgColor = "bg-blue-50";
+              let borderColor = "border-l-blue-500";
+
+              // Find the class
+              const taskClass = classes.find((c) => c.id === task.class);
+
+              if (taskClass) {
+                if (task.class === "cs179g") {
+                  bgColor = "bg-blue-50";
+                  borderColor = "border-l-blue-500";
+                } else if (task.class === "cs147") {
+                  bgColor = "bg-green-50";
+                  borderColor = "border-l-green-500";
+                } else if (task.class === "ee100a") {
+                  bgColor = "bg-orange-50";
+                  borderColor = "border-l-orange-500";
+                } else {
+                  bgColor = "bg-purple-50";
+                  borderColor = "border-l-purple-500";
+                }
+              }
+
+              // Add time info for the tasks
+              let timeInfo = "";
+              if (task.isDuration) {
+                timeInfo = `${formatTimeForDisplay(task.startTime)} - ${formatTimeForDisplay(task.endTime)}`;
+              } else if (task.dueTime) {
+                timeInfo = `Due: ${formatTimeForDisplay(task.dueTime)}`;
+              }
+
+              return (
+                <div
+                  key={task.id}
+                  className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 mb-1 text-sm rounded cursor-pointer`}
+                  onClick={(e) => handleTaskClick(e, task)}
+                >
+                  <div className="font-medium">{task.title}</div>
+                  <div className="text-xs text-gray-600">
+                    {timeInfo}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       );
     }
 
+    // Code to add 12 AM 
     hours.push(
-      <div key={0} className="border border-gray-300 p-2.5 flex">
+      <div key={0} className="border border-gray-300 p-2 flex min-h-20">
         <div className="w-16 font-bold">12 AM</div>
-        <div className="flex-1 min-h-10"></div>
+        <div className="flex-1">
+          {(tasksByHour[0] || []).map((task) => {
+            let bgColor = "bg-blue-50";
+            let borderColor = "border-l-blue-500";
+            const taskClass = classes.find((c) => c.id === task.class);
+
+            if (taskClass) {
+              if (task.class === "cs179g") {
+                bgColor = "bg-blue-50";
+                borderColor = "border-l-blue-500";
+              } else if (task.class === "cs147") {
+                bgColor = "bg-green-50";
+                borderColor = "border-l-green-500";
+              } else if (task.class === "ee100a") {
+                bgColor = "bg-orange-50";
+                borderColor = "border-l-orange-500";
+              } else {
+                bgColor = "bg-purple-50";
+                borderColor = "border-l-purple-500";
+              }
+            }
+
+            let timeInfo = "";
+            if (task.isDuration) {
+              timeInfo = `${formatTimeForDisplay(task.startTime)} - ${formatTimeForDisplay(task.endTime)}`;
+            } else if (task.dueTime) {
+              timeInfo = `Due: ${formatTimeForDisplay(task.dueTime)}`;
+            }
+
+            return (
+              <div
+                key={task.id}
+                className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 mb-1 text-sm rounded cursor-pointer`}
+                onClick={(e) => handleTaskClick(e, task)}
+              >
+                <div className="font-medium">{task.title}</div>
+                <div className="text-xs text-gray-600">
+                  {timeInfo}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
 
-    return <div className="grid grid-cols-1 gap-0">{hours}</div>;
+    return (
+      <div className="grid grid-cols-1 gap-0.5">
+        <div className="p-2 mb-2 text-lg font-bold">
+          {currentDate.toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </div>
+        {hours}
+      </div>
+    );
   };
 
   // Calendar title based on view
