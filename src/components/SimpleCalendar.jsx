@@ -204,23 +204,16 @@ const SimpleCalendar = ({ view }) => {
           taskData,
           isAuthenticated
         );
-        if (updatedTask) {
-          // Update the task in the local state to keep it visible
-          setTasks(
-            tasks.map((task) =>
-              task.id === editingTask.id ? updatedTask : task
-            )
-          );
+        // Dispatch event to trigger refresh
+        if (updatedTask) { 
+          window.dispatchEvent(new CustomEvent("calendar-update"));
         }
       } else {
         // Add new task
         const newTaskObj = await addTask(taskData, isAuthenticated);
+        // Dispatch event to trigger refresh
         if (newTaskObj) {
-          // Important: Keep the task in local state
-          // This ensures it stays visible even if the calendar-update event 
-          // hasn't refreshed the tasks from the database yet
-          console.log("Adding new task to local state:", newTaskObj);
-          setTasks((currentTasks) => [...currentTasks, newTaskObj]);
+          window.dispatchEvent(new CustomEvent("calendar-update"));
         }
       }
 
@@ -248,8 +241,11 @@ const SimpleCalendar = ({ view }) => {
 
   const handleDeleteTask = async () => {
     if (editingTask) {
-      await deleteTask(editingTask.id, isAuthenticated);
-      setTasks(tasks.filter((task) => task.id !== editingTask.id));
+      const success = await deleteTask(editingTask.id, isAuthenticated);
+      // Dispatch event to trigger refresh
+      if (success) {
+        window.dispatchEvent(new CustomEvent("calendar-update"));
+      }
       setShowTaskModal(false);
       setEditingTask(null);
       //window.location.reload();
@@ -345,7 +341,8 @@ const SimpleCalendar = ({ view }) => {
 
     // Empty cells for days before first of month
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="h-20"></div>);
+      // Add min-height to empty cells as well
+      days.push(<div key={`empty-${i}`} className="min-h-[8rem]"></div>);
     }
 
     // Days of month
@@ -355,56 +352,60 @@ const SimpleCalendar = ({ view }) => {
       days.push(
         <div
           key={day}
-          className="border border-gray-300 p-1 h-20 cursor-pointer overflow-hidden"
+          // Add min-height and flex properties for dynamic sizing
+          className="border border-gray-300 p-1 cursor-pointer overflow-hidden flex flex-col min-h-[8rem]"
           onClick={() => handleDateClick(day)}
         >
           <div className="font-bold">{day}</div>
-          {dayTasks.map((task) => {
-            // Get the appropriate bg color based on class
-            let bgColor = "bg-blue-50";
-            let borderColor = "border-l-blue-500";
+          {/* Ensure this container grows and scrolls if needed */}
+          <div className="flex-grow overflow-y-auto">
+            {dayTasks.map((task) => {
+              // Get the appropriate bg color based on class
+              let bgColor = "bg-blue-50";
+              let borderColor = "border-l-blue-500";
 
-            // Find the class
-            const taskClass = classes.find((c) => c.id === task.class);
+              // Find the class
+              const taskClass = classes.find((c) => c.id === task.class);
 
-            if (taskClass) {
-              if (task.class === "cs179g") {
-                bgColor = "bg-blue-50";
-                borderColor = "border-l-blue-500";
-              } else if (task.class === "cs147") {
-                bgColor = "bg-green-50";
-                borderColor = "border-l-green-500";
-              } else if (task.class === "ee100a") {
-                bgColor = "bg-orange-50";
-                borderColor = "border-l-orange-500";
-              } else {
-                bgColor = "bg-purple-50";
-                borderColor = "border-l-purple-500";
+              if (taskClass) {
+                if (task.class === "cs179g") {
+                  bgColor = "bg-blue-50";
+                  borderColor = "border-l-blue-500";
+                } else if (task.class === "cs147") {
+                  bgColor = "bg-green-50";
+                  borderColor = "border-l-green-500";
+                } else if (task.class === "ee100a") {
+                  bgColor = "bg-orange-50";
+                  borderColor = "border-l-orange-500";
+                } else {
+                  bgColor = "bg-purple-50";
+                  borderColor = "border-l-purple-500";
+                }
               }
-            }
 
-            // Add emojis for tasks with specific times
-            let timeDisplay = "";
-            if (task.isDuration) {
-              timeDisplay = ` (${formatTimeForDisplay(
-                task.startTime
-              )}-${formatTimeForDisplay(task.endTime)})`;
-            } else if (task.dueTime) {
-              timeDisplay = ` (Due: ${formatTimeForDisplay(task.dueTime)})`;
-            }
+              // Add emojis for tasks with specific times
+              let timeDisplay = "";
+              if (task.isDuration) {
+                timeDisplay = ` (${formatTimeForDisplay(
+                  task.startTime
+                )}-${formatTimeForDisplay(task.endTime)})`;
+              } else if (task.dueTime) {
+                timeDisplay = ` (Due: ${formatTimeForDisplay(task.dueTime)})`;
+              }
 
-            return (
-              <div
-                key={task.id}
-                className={`${bgColor} ${borderColor} border-l-3 py-0.5 px-1 my-0.5 text-xs rounded whitespace-nowrap overflow-hidden text-ellipsis`}
-                onClick={(e) => handleTaskClick(e, task)}
-              >
-                {task.title}
-                {task.isDuration && <span className="ml-1">⏱️</span>}
-                {!task.isDuration && <span className="ml-1">📅</span>}
-              </div>
-            );
-          })}
+              return (
+                <div
+                  key={task.id}
+                  className={`${bgColor} ${borderColor} border-l-3 py-0.5 px-1 my-0.5 text-xs rounded whitespace-nowrap overflow-hidden text-ellipsis`}
+                  onClick={(e) => handleTaskClick(e, task)}
+                >
+                  {task.title}
+                  {task.isDuration && <span className="ml-1">⏱️</span>}
+                  {!task.isDuration && <span className="ml-1">📅</span>}
+                </div>
+              );
+            })}
+          </div>
         </div>
       );
     }
