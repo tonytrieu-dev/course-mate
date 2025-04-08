@@ -396,12 +396,20 @@ const SimpleCalendar = ({ view }) => {
               return (
                 <div
                   key={task.id}
-                  className={`${bgColor} ${borderColor} border-l-3 py-0.5 px-1 my-0.5 text-xs rounded whitespace-nowrap overflow-hidden text-ellipsis`}
+                  className={`bg-blue-100 rounded-md p-2 my-1 text-sm`}
                   onClick={(e) => handleTaskClick(e, task)}
                 >
-                  {task.title}
-                  {task.isDuration && <span className="ml-1">⏱️</span>}
-                  {!task.isDuration && <span className="ml-1">📅</span>}
+                  <div className="font-medium text-gray-900">{task.title}</div>
+                  <div className="text-gray-600 text-xs">
+                    {classes.find(c => c.id === task.class)?.name || 'No Class'}
+                  </div>
+                  <div className="text-gray-500 text-xs">
+                    {taskTypes.find(t => t.id === task.type)?.name || 'No Type'}
+                    {task.isDuration ? 
+                      ` • ${formatTimeForDisplay(task.startTime)}` :
+                      task.dueTime ? ` • ${formatTimeForDisplay(task.dueTime)}` : ''
+                    }
+                  </div>
                 </div>
               );
             })}
@@ -834,10 +842,20 @@ const SimpleCalendar = ({ view }) => {
             return (
               <div
                 key={task.id}
-                className={`${bgColor} ${borderColor} border-l-3 py-0.5 px-1 my-0.5 text-xs rounded whitespace-nowrap overflow-hidden text-ellipsis`}
+                className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 my-1 text-xs rounded`}
                 onClick={(e) => handleTaskClick(e, task)}
               >
-                {task.title}
+                <div className="font-medium">{task.title}</div>
+                <div className="text-gray-600">
+                  {classes.find(c => c.id === task.class)?.name || 'No Class'}
+                </div>
+                <div className="text-gray-500">
+                  {taskTypes.find(t => t.id === task.type)?.name || 'No Type'}
+                  {task.isDuration ? 
+                    ` • ${formatTimeForDisplay(task.startTime)}-${formatTimeForDisplay(task.endTime)}` :
+                    task.dueTime ? ` • Due ${formatTimeForDisplay(task.dueTime)}` : ''
+                  }
+                </div>
               </div>
             );
           })}
@@ -925,12 +943,19 @@ const SimpleCalendar = ({ view }) => {
               return (
                 <div
                   key={task.id}
-                  className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 mb-1 text-sm rounded cursor-pointer`}
+                  className={`bg-blue-100 rounded-md p-2 mb-1 text-sm cursor-pointer`}
                   onClick={(e) => handleTaskClick(e, task)}
                 >
-                  <div className="font-medium">{task.title}</div>
-                  <div className="text-xs text-gray-600">
-                    {timeInfo}
+                  <div className="font-medium text-gray-900">{task.title}</div>
+                  <div className="text-gray-600 text-xs">
+                    {classes.find(c => c.id === task.class)?.name || 'No Class'}
+                  </div>
+                  <div className="text-gray-500 text-xs">
+                    {taskTypes.find(t => t.id === task.type)?.name || 'No Type'}
+                    {task.isDuration ? 
+                      ` • ${formatTimeForDisplay(task.startTime)}` :
+                      task.dueTime ? ` • ${formatTimeForDisplay(task.dueTime)}` : ''
+                    }
                   </div>
                 </div>
               );
@@ -981,7 +1006,14 @@ const SimpleCalendar = ({ view }) => {
               >
                 <div className="font-medium">{task.title}</div>
                 <div className="text-xs text-gray-600">
-                  {timeInfo}
+                  {classes.find(c => c.id === task.class)?.name || 'No Class'}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {taskTypes.find(t => t.id === task.type)?.name || 'No Type'}
+                  {task.isDuration ? 
+                    ` • ${formatTimeForDisplay(task.startTime)}-${formatTimeForDisplay(task.endTime)}` :
+                    task.dueTime ? ` • Due ${formatTimeForDisplay(task.dueTime)}` : ''
+                  }
                 </div>
               </div>
             );
