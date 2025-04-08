@@ -700,7 +700,7 @@ const Sidebar = () => {
         onMouseLeave={() => setIsHoveringClassArea(false)}
       >
         <div className="flex">
-          <h4 className="m-1 ml-8 text-amber-500 font-medium text-xl normal-case">
+          <h4 className="m-1 ml-8 text-yellow-500 font-medium text-xl normal-case">
             Current Classes
           </h4>
         </div>
