@@ -824,6 +824,7 @@ export const initializeDefaultData = () => {
       { id: "cs147", name: "CS 147", syllabus: null, files: [] },
       { id: "ee100a", name: "EE 100A", syllabus: null, files: [] },
       { id: "soc151", name: "SOC 151", syllabus: null, files: [] },
+      { id: "canvas", name: "Canvas Imports", syllabus: null, files: [] },
     ];
     saveLocalData(CLASSES_KEY, defaultClasses);
   }
@@ -836,6 +837,8 @@ export const initializeDefaultData = () => {
       { id: "quiz", name: "Quiz" },
       { id: "lab", name: "Lab Report" },
       { id: "project", name: "Project" },
+      { id: "exam", name: "Exam" },
+      { id: "assignment", name: "Assignment" },
     ];
     saveLocalData(TASK_TYPES_KEY, defaultTaskTypes);
   }

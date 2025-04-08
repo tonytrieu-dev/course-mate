@@ -10,7 +10,9 @@ import {
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
+import { fetchCanvasCalendar } from "../services/canvasService";
 import LoginComponent from "./LoginComponent";
+import CanvasSettings from "./CanvasSettings";
 
 const Sidebar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -27,17 +29,26 @@ const Sidebar = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [showCanvasSettings, setShowCanvasSettings] = useState(false);
 
-  // Extract user name from email (before the @ symbol)
-  const getUserName = () => {
-    if (!user?.email) return "";
-    
-    // If user has a name property, use that
-    if (user.user_metadata?.name) return user.user_metadata.name;
-    
-    // Otherwise extract name from email
-    return user.email.split('@')[0].replace(/[.+_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
+
+  useEffect(() => {
+    const autoSyncCanvas = async () => {
+      const canvasUrl = localStorage.getItem("canvas_calendar_url");
+      const autoSync = localStorage.getItem("canvas_auto_sync") === "true";
+
+      if (canvasUrl && autoSync) {
+        try {
+          console.log("Auto-syncing Canvas calendar...");
+          await fetchCanvasCalendar(canvasUrl, isAuthenticated);
+        } catch (error) {
+          console.error("Error auto-syncing Canvas calendar:", error);
+        }
+      }
+    };
+
+    autoSyncCanvas();
+  }, [isAuthenticated]);
 
   // Load data
   useEffect(() => {
@@ -181,8 +192,8 @@ const Sidebar = () => {
 
         // Get a signed URL for the file (valid for 1 year)
         const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-            .from("class-materials")
-            .createSignedUrl(fileName, 31536000); 
+          .from("class-materials")
+          .createSignedUrl(fileName, 31536000);
 
         if (signedUrlError) {
           console.error("Error creating signed URL:", signedUrlError);
@@ -204,7 +215,7 @@ const Sidebar = () => {
           type: file.type,
           size: file.size,
           path: fileName,
-          url: signedUrlData.signedUrl, 
+          url: signedUrlData.signedUrl,
           owner: user.id,
           class_id: selectedClass.id,
           uploaded_at: new Date().toISOString(),
@@ -231,10 +242,10 @@ const Sidebar = () => {
         const updatedClasses = classes.map((c) =>
           c.id === selectedClass.id ? updatedClass : c
         );
-        
+
         setClasses(updatedClasses);
         setSelectedClass(updatedClass);
-        
+
         // Also update local storage
         localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
       } catch (error) {
@@ -281,8 +292,8 @@ const Sidebar = () => {
 
         // Get a signed URL for the file (valid for 1 year)
         const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-            .from("class-materials")
-            .createSignedUrl(fileName, 31536000); 
+          .from("class-materials")
+          .createSignedUrl(fileName, 31536000);
 
         if (signedUrlError) {
           console.error("Error creating signed URL:", signedUrlError);
@@ -295,7 +306,7 @@ const Sidebar = () => {
           type: file.type,
           size: file.size,
           path: fileName,
-          url: signedUrlData.signedUrl, 
+          url: signedUrlData.signedUrl,
           owner: user.id,
           class_id: selectedClass.id,
           uploaded_at: new Date().toISOString(),
@@ -334,10 +345,10 @@ const Sidebar = () => {
         const updatedClasses = classes.map((c) =>
           c.id === selectedClass.id ? updatedClass : c
         );
-        
+
         setClasses(updatedClasses);
         setSelectedClass(updatedClass);
-        
+
         // Also update local storage
         localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
       } catch (error) {
@@ -352,15 +363,15 @@ const Sidebar = () => {
   // Delete a file
   const handleDeleteFile = async (filePath, fileIndex) => {
     if (!selectedClass) return;
-    
+
     try {
       // First get the current user to ensure we have valid auth
       const { data: userData, error: userError } = await supabase.auth.getUser();
-      
+
       if (userError || !userData.user) {
         throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
       }
-      
+
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from("class-materials")
@@ -399,18 +410,18 @@ const Sidebar = () => {
         ...selectedClass,
         files: classFiles || [],
       };
-      
+
       // Update local state
       const updatedClasses = classes.map((c) =>
         c.id === selectedClass.id ? updatedClass : c
       );
-      
+
       setClasses(updatedClasses);
       setSelectedClass(updatedClass);
-      
+
       // Also update local storage
       localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
-      
+
     } catch (error) {
       console.error("Error deleting file:", error);
       alert("Error deleting file: " + error.message);
@@ -420,15 +431,15 @@ const Sidebar = () => {
   // Delete syllabus
   const handleDeleteSyllabus = async () => {
     if (!selectedClass || !selectedClass.syllabus) return;
-    
+
     try {
       // First get the current user to ensure we have valid auth
       const { data: userData, error: userError } = await supabase.auth.getUser();
-      
+
       if (userError || !userData.user) {
         throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
       }
-      
+
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from("class-materials")
@@ -455,18 +466,18 @@ const Sidebar = () => {
         ...selectedClass,
         syllabus: null,
       };
-      
+
       // Update local state
       const updatedClasses = classes.map((c) =>
         c.id === selectedClass.id ? updatedClass : c
       );
-      
+
       setClasses(updatedClasses);
       setSelectedClass(updatedClass);
-      
+
       // Also update local storage
       localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
-      
+
     } catch (error) {
       console.error("Error deleting syllabus:", error);
       alert("Error deleting syllabus: " + error.message);
@@ -533,7 +544,7 @@ const Sidebar = () => {
                           />
                         </svg>
                         <a
-                          href={selectedClass.syllabus.url} 
+                          href={selectedClass.syllabus.url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 underline"
@@ -573,7 +584,7 @@ const Sidebar = () => {
           {/* New section for class files */}
           <div className="mb-5">
             <h3 className="font-bold text-lg mb-2">Class files</h3>
-            
+
             <div className="border-2 border-dashed border-gray-300 p-5 text-center mb-5">
               <p>
                 Upload lecture notes, assignments, and other course materials
@@ -682,7 +693,7 @@ const Sidebar = () => {
 
       {/* Empty space to push content down */}
       <div className="mt-6"></div>
-      
+
       <div
         className="relative flex-1"
         onMouseEnter={() => setIsHoveringClassArea(true)}
@@ -698,9 +709,8 @@ const Sidebar = () => {
           {classes.map((cls) => (
             <li
               key={cls.id}
-              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 ${
-                hoveredClassId === cls.id ? "bg-gray-100" : ""
-              }`}
+              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 ${hoveredClassId === cls.id ? "bg-gray-100" : ""
+                }`}
               onMouseEnter={() => setHoveredClassId(cls.id)}
               onMouseLeave={() => setHoveredClassId(null)}
             >
@@ -718,7 +728,7 @@ const Sidebar = () => {
                 </div>
               ) : (
                 <>
-                  <div 
+                  <div
                     className="flex items-center pl-0 flex-1 relative"
                     onClick={() => handleClassClick(cls.id)}
                   >
@@ -728,9 +738,8 @@ const Sidebar = () => {
                         e.stopPropagation();
                         handleClassNameClick(e, cls.id);
                       }}
-                      className={`cursor-pointer ${
-                        hoveredClassId === cls.id ? "font-bold" : "font-normal"
-                      } transition-all duration-100`}
+                      className={`cursor-pointer ${hoveredClassId === cls.id ? "font-bold" : "font-normal"
+                        } transition-all duration-100`}
                     >
                       {cls.name}
                     </span>
@@ -738,8 +747,8 @@ const Sidebar = () => {
                     {(cls.syllabus || (cls.files && cls.files.length > 0)) && (
                       <span
                         className="ml-1 text-base text-blue-600"
-                        title={cls.files && cls.files.length > 0 
-                          ? `Syllabus and ${cls.files.length} file(s) uploaded` 
+                        title={cls.files && cls.files.length > 0
+                          ? `Syllabus and ${cls.files.length} file(s) uploaded`
                           : "Syllabus uploaded"}
                       >
                       </span>
@@ -773,6 +782,17 @@ const Sidebar = () => {
         )}
       </div>
 
+      {/* Canvas Integration Button */}
+      <div className="px-2 mt-4 mb-2">
+        <button
+          onClick={() => setShowCanvasSettings(true)}
+          className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-1 px-3 rounded w-full flex items-center justify-center"
+        >
+          <span className="mr-2">🎓</span>
+          Canvas Integration
+        </button>
+      </div>
+
       {/* Auth Controls - moved to bottom with margin-top */}
       <div className="px-2 mt-auto mb-8 text-center">
         {isAuthenticated ? (
@@ -803,6 +823,9 @@ const Sidebar = () => {
       {renderSyllabusModal()}
       {showLogin && !isAuthenticated && (
         <LoginComponent onClose={() => setShowLogin(false)} />
+      )}
+      {showCanvasSettings && (
+        <CanvasSettings onClose={() => setShowCanvasSettings(false)} />
       )}
     </div>
   );
