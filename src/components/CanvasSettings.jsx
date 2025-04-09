@@ -1,25 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { fetchCanvasCalendar } from "../services/canvasService";
 import { useAuth } from "../contexts/AuthContext";
 
 const CanvasSettings = ({ onClose }) => {
     const { isAuthenticated } = useAuth();
-    const [canvasUrl, setCanvasUrl] = useState("");
+    const [canvasUrl, setCanvasUrl] = useState(() => localStorage.getItem("canvas_calendar_url") || "");
     const [syncStatus, setSyncStatus] = useState(null);
     const [isSyncing, setIsSyncing] = useState(false);
-    const [autoSync, setAutoSync] = useState(false);
+    const [autoSync, setAutoSync] = useState(() => localStorage.getItem("canvas_auto_sync") === "true");
 
-    useState(() => {
+    useEffect(() => {
         const savedUrl = localStorage.getItem("canvas_calendar_url");
-        if (savedUrl) {
+        if (savedUrl && !canvasUrl) {
             setCanvasUrl(savedUrl);
         }
-
-        const savedAutoSync = localStorage.getItem("canvas_auto_sync");
-        if (savedAutoSync) {
-            setAutoSync(true);
-        }
     }, []);
+
+    const handleAutoSyncChange = (e) => {
+        const isChecked = e.target.checked;
+        setAutoSync(isChecked);
+        localStorage.setItem("canvas_auto_sync", isChecked.toString());
+    };
 
     const handleSyncNow = async () => {
         if (!canvasUrl) {
@@ -40,6 +41,10 @@ const CanvasSettings = ({ onClose }) => {
         try {
             const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated);
             setSyncStatus(result);
+            // Dispatch event to update calendar view after successful sync
+            if (result.success) {
+                window.dispatchEvent(new CustomEvent("calendar-update"));
+            }
         } catch (error) {
             setSyncStatus({
                 success: false,
@@ -99,7 +104,7 @@ const CanvasSettings = ({ onClose }) => {
                             type="checkbox"
                             id="autoSync"
                             checked={autoSync}
-                            onChange={(e) => setAutoSync(e.target.checked)}
+                            onChange={handleAutoSyncChange}
                             className="mr-2"
                         />
                         <label htmlFor="autoSync" className="text-gray-700">

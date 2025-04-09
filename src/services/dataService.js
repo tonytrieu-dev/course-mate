@@ -53,60 +53,71 @@ export const getTasks = async (useSupabase = false) => {
 
 export const addTask = async (task, useSupabase = false) => {
   try {
-    const taskToSave = {
+    // Ensure created_at is set, Supabase default might handle this but good practice
+    const taskWithTimestamp = {
       ...task,
-      id: task.id || Date.now().toString(),
-      created_at: new Date().toISOString(),
+      created_at: task.created_at || new Date().toISOString(),
     };
 
     if (useSupabase) {
-      try {
-        // Get current user ID
-        const user = await getCurrentUser();
-        
-        if (!user) {
-          console.error("No authenticated user found for addTask");
-          throw new Error("Not authenticated");
-        }
-        
-        // Add user_id to the task data
-        const taskWithUserId = {
-          ...taskToSave,
-          user_id: user.id,
-        };
+      // Get current user for Supabase operations
+      const user = await getCurrentUser();
+      if (!user) {
+        console.error("No authenticated user found for addTask");
+        throw new Error("User not authenticated");
+      }
 
+      // Prepare task for Supabase: add user_id, ensure no client-side ID
+      const { id, ...taskData } = taskWithTimestamp; // Remove client-generated ID if any
+      const taskToSave = {
+        ...taskData,
+        user_id: user.id,
+      };
+
+      console.log("Attempting to insert task into Supabase:", taskToSave);
+
+      try {
         const { data, error } = await supabase
           .from("tasks")
-          .insert([taskWithUserId])
-          .select();
+          .insert(taskToSave)
+          .select("*"); // Select the inserted row to get the generated ID
 
         if (error) {
           console.error("Supabase task insertion error:", error);
+          // Log the task data that failed
+          console.error("Task data causing error:", taskToSave);
           throw error;
         }
 
         console.log("Task added successfully to Supabase:", data);
 
-        // Save to local storage for immediate use
+        // Save the successfully inserted task (with Supabase ID) to local storage
         const tasks = getLocalData(TASKS_KEY);
         const updatedTasks = [...tasks, data[0]];
         saveLocalData(TASKS_KEY, updatedTasks);
 
-        return data[0];
+        return data[0]; // Return the task with the Supabase-generated ID
       } catch (error) {
         console.error("Error adding task to Supabase:", error);
-        throw error;
+        throw error; // Re-throw the specific Supabase error
       }
     } else {
-      // Only for non-Supabase storage
+      // Local storage fallback (consider adding user_id if needed locally too)
+      const taskToSaveLocally = {
+        id: `local_${Date.now()}_${Math.random()}`,
+         ...taskWithTimestamp,
+         // user_id: user ? user.id : 'local_user', // Optional: Add user id for local consistency
+       };
+      console.log("Saving task to local storage:", taskToSaveLocally);
       const tasks = getLocalData(TASKS_KEY);
-      const updatedTasks = [...tasks, taskToSave];
+      const updatedTasks = [...tasks, taskToSaveLocally];
       saveLocalData(TASKS_KEY, updatedTasks);
-      return taskToSave;
+      return taskToSaveLocally;
     }
   } catch (error) {
+    // Catch errors from getCurrentUser or the Supabase block
     console.error("Error in addTask:", error);
-    return null;
+    return null; // Return null to indicate failure
   }
 };
 

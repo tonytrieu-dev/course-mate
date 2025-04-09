@@ -252,72 +252,36 @@ const SimpleCalendar = ({ view }) => {
     }
   };
 
+  // Helper to format a Date object to YYYY-MM-DD string
+  const getYYYYMMDD = (date) => {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const getTasksForDay = (day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
-    const countedTaskIds = new Set();
+    const targetDateStr = getYYYYMMDD(new Date(year, month, day));
 
-    // Format target date string
-    const targetMonth = String(currentDate.getMonth() + 1).padStart(2, "0");
-    const targetDay = String(day).padStart(2, "0");
-    const targetYear = currentDate.getFullYear();
-    const targetDateString = `${targetYear}-${targetMonth}-${targetDay}`;
-
-    return tasks.filter((task) => {
-      // Skip duplicates
-      if (countedTaskIds.has(task.id)) return false;
-
-      let shouldDisplay = false;
-
-      // CASE 1: Modern tasks with dueDate string
-      if (task.dueDate && task.dueDate === targetDateString) {
-        shouldDisplay = true;
-      }
-      // CASE 2: Legacy tasks with date object (ONLY if no dueDate exists)
-      else if (!shouldDisplay && !task.dueDate && task.date) {
-        try {
-          const taskDate = new Date(task.date);
-          const taskDay = taskDate.getDate();
-          const taskMonth = taskDate.getMonth();
-          const taskYear = taskDate.getFullYear();
-
-          if (
-            taskDay === day &&
-            taskMonth === currentDate.getMonth() &&
-            taskYear === currentDate.getFullYear()
-          ) {
-            shouldDisplay = true;
-          }
-        } catch (e) {
-          console.error("Error with date comparison:", e);
+    return tasks
+      .filter((task) => {
+        // Prioritize dueDate for comparison if available
+        if (task.dueDate) {
+          return task.dueDate === targetDateStr;
         }
-      }
-      /*
-          Added new condition: !task.dueDate
-            to ensure that:
-              Modern tasks (with dueDate): Use string comparison only
-              "2025-03-31" === "2025-03-31" ✓
-
-              Skip the Date object comparison entirely
-              Legacy tasks (with only date property): Fall back to Date object comparison only
-              This handles older tasks that were saved before you implemented the dueDate field
-
-              Duration tasks: Use string comparison for date ranges
-              This ensures that each task is evaluated by only 1 method of date comparison, preventing it from appearing in 2 different days.
-              The solution works because string comparisons of dates in YYYY-MM-DD format are immune to the timezone issues that plague JavaScript Date objects.
-      */
-
-      // CASE 3: Duration tasks
-      if (!shouldDisplay && task.isDuration && task.startDate && task.endDate) {
-        if (
-          task.startDate <= targetDateString &&
-          task.endDate >= targetDateString
-        ) {
-          shouldDisplay = true;
-        }
-      }
-
-      if (shouldDisplay) countedTaskIds.add(task.id);
-      return shouldDisplay;
-    });
+        // Fallback to comparing the date part of the main 'date' field
+        // This handles tasks created before dueDate was reliably used
+        const taskDate = task.date ? new Date(task.date) : null;
+        const taskDateStr = getYYYYMMDD(taskDate);
+        return taskDateStr === targetDateStr;
+      })
+      .sort((a, b) => {
+        // Sort by dueTime if available, otherwise by creation or main date
+        const timeA = a.dueTime || (a.date ? new Date(a.date).toLocaleTimeString() : '00:00');
+        const timeB = b.dueTime || (b.date ? new Date(b.date).toLocaleTimeString() : '00:00');
+        return timeA.localeCompare(timeB);
+      });
   };
 
   const formatTimeForDisplay = (timeString) => {

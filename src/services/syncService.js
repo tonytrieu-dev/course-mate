@@ -96,6 +96,10 @@ export const uploadLocalDataToSupabase = async (userId) => {
 
 export const downloadDataFromSupabase = async (userId) => {
     try {
+        // Preserve existing canvas settings before overwriting other data
+        const existingCanvasUrl = localStorage.getItem('canvas_calendar_url');
+        const existingAutoSync = localStorage.getItem('canvas_auto_sync');
+
         // Fetch all data from Supabase
         const { data: tasks, error: tasksError } = await supabase
             .from('tasks')
@@ -116,10 +120,18 @@ export const downloadDataFromSupabase = async (userId) => {
         if (classesError) throw classesError;
         if (taskTypesError) throw taskTypesError;
 
-        // Save to local storage
+        // Save fetched data to local storage
         localStorage.setItem('calendar_tasks', JSON.stringify(tasks || []));
         localStorage.setItem('calendar_classes', JSON.stringify(classes || []));
         localStorage.setItem('calendar_task_types', JSON.stringify(taskTypes || []));
+
+        // Restore canvas settings if they existed
+        if (existingCanvasUrl !== null) {
+            localStorage.setItem('canvas_calendar_url', existingCanvasUrl);
+        }
+        if (existingAutoSync !== null) {
+            localStorage.setItem('canvas_auto_sync', existingAutoSync);
+        }
 
         // Update the sync timestamp
         setLastSyncTimestamp();

@@ -40,7 +40,11 @@ const Sidebar = () => {
       if (canvasUrl && autoSync) {
         try {
           console.log("Auto-syncing Canvas calendar...");
-          await fetchCanvasCalendar(canvasUrl, isAuthenticated);
+          const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated);
+          // Dispatch event to update calendar view after successful auto-sync
+          if (result.success) {
+             window.dispatchEvent(new CustomEvent("calendar-update"));
+          }
         } catch (error) {
           console.error("Error auto-syncing Canvas calendar:", error);
         }

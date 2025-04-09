@@ -56,32 +56,35 @@ function parseICS(icsData) {
             currentEvent = null;
         } else if (currentEvent) {
             let fullLine = line;
-            while (i + 1 < lines.length && lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t')) {
+            // Handle potential multi-line values (folded lines)
+            while (i + 1 < lines.length && (lines[i + 1].startsWith(' ') || lines[i + 1].startsWith('\t'))) {
                 i++;
-                fullLine += lines[i].trim();
+                fullLine += lines[i].trim(); // Append unfolded part
             }
 
             const colonPosition = fullLine.indexOf(':');
             if (colonPosition > 0) {
-                const key = fullLine.substring(0, colonPosition);
-                const value = fullLine.substring(colonPosition + 1);
+                let keyPart = fullLine.substring(0, colonPosition);
+                const valuePart = fullLine.substring(colonPosition + 1);
+                let mainKey = keyPart.split(';')[0]; // Get main key like DTSTART, SUMMARY
 
-                if (key === 'SUMMARY') {
-                    currentEvent.summary = value;
-                } else if (key === 'DESCRIPTION') {
-                    currentEvent.description = value;
-                } else if (key === 'DTSTART') {
-                    currentEvent.start = parseDate(value);
-                } else if (key === 'DTEND') {
-                    currentEvent.end = parseDate(value);
-                } else if (key === 'LOCATION') {
-                    currentEvent.location = value;
-                } else if (key === 'UID') {
-                    currentEvent.uid = value;
-                } else if (key.startsWith('DTSART;')) {
-                    currentEvent.start = parseICSDate(value);
-                } else if (key.startsWith('DTEND;')) {
-                    currentEvent.end = parseICSDate(value);
+                // Process common keys
+                if (mainKey === 'SUMMARY') {
+                    currentEvent.summary = valuePart;
+                } else if (mainKey === 'DESCRIPTION') {
+                    // Basic unescaping for common ICS characters
+                    currentEvent.description = valuePart.replace(/\\n/g, '\n').replace(/\\,/g, ',');
+                } else if (mainKey === 'LOCATION') {
+                    currentEvent.location = valuePart;
+                } else if (mainKey === 'UID') {
+                    currentEvent.uid = valuePart;
+                } else if (mainKey === 'DTSTART') {
+                    // Pass the raw value (like YYYYMMDD or YYYYMMDDTHHMMSSZ) to parseICSDate
+                    // parseICSDate is designed to handle both formats
+                    currentEvent.start = valuePart;
+                } else if (mainKey === 'DTEND') {
+                    // Pass the raw value
+                    currentEvent.end = valuePart;
                 }
             }
         }
@@ -92,72 +95,68 @@ function parseICS(icsData) {
 
 
 function parseICSDate(dateString) {
-    if (dateString.indexOf('T') > 0) {
+    // Check if the date string includes time information
+    if (dateString.includes('T')) {
         const year = parseInt(dateString.substring(0, 4), 10);
-        const month = parseInt(dateString.substring(4, 2), 10) - 1;
-        const day = parseInt(dateString.substring(6, 2), 10);
-        const hour = parseInt(dateString.substring(9, 2), 10);
-        const minute = parseInt(dateString.substring(11, 2), 10);
-        const second = parseInt(dateString.substring(13, 2), 10);
+        const month = parseInt(dateString.substring(4, 6), 10) - 1; // Corrected index
+        const day = parseInt(dateString.substring(6, 8), 10); // Corrected index
+        const hour = parseInt(dateString.substring(9, 11), 10); // Corrected index (after 'T')
+        const minute = parseInt(dateString.substring(11, 13), 10); // Corrected index
+        const second = parseInt(dateString.substring(13, 15), 10); // Corrected index
 
-        return new Date(Date.UTC(year, month, day, hour, minute, second));
+        // Check if the date is UTC (ends with 'Z')
+        if (dateString.endsWith('Z')) {
+            return new Date(Date.UTC(year, month, day, hour, minute, second));
+        } else {
+            // Assume local time if 'Z' is not present
+            return new Date(year, month, day, hour, minute, second);
+        }
     } else {
+        // Handle date-only strings (YYYYMMDD)
         const year = parseInt(dateString.substring(0, 4), 10);
-        const month = parseInt(dateString.substring(4, 2), 10) - 1;
-        const day = parseInt(dateString.substring(6, 2), 10);
-
+        const month = parseInt(dateString.substring(4, 6), 10) - 1; // Corrected index
+        const day = parseInt(dateString.substring(6, 8), 10); // Corrected index
+        // Return as Date object (time will be midnight local time)
         return new Date(year, month, day);
     }
 }
 
 
 function convertEventToTask(event) {
-    const isDuration = event.start && event.end;
-    const startDate = event.start ? new Date(event.start) : new Date();
-    const endDate = event.end ? new Date(event.end) : new Date(startDate);
-
-    let className = 'Unknown Class';
-    let taskClass = '';
-
-    if (event.summmary) {
-        const classMatch = event.summary.match(/^([A-Z]{2,4}\s*\d{1,3}[A-Z]?)/i);
-        if (classMatch) {
-            className = classMatch[1].trim();
-            taskClass = className.toLowerCase().replace(/\s+/g, '');
-        }
-    }
+    // DTSTART;VALUE=DATE typically means the due DATE for Canvas assignments
+    // The ICS file doesn't provide a specific time.
+    const dueDate = event.start ? parseICSDate(event.start) : new Date();
+    const isDuration = false; // Canvas assignments from ICS are usually just due dates
 
     const formatDate = (date) => {
         return date.toISOString().split('T')[0];
     };
 
-    const formatTime = (date) => {
-        return date.toTimeString().substring(0, 5);
-    };
+    // Default due time to end of day as Canvas often does
+    const defaultDueTime = "23:59";
+
+    let taskClass = 'canvas'; // Default class for canvas items
+    if (event.summary) {
+        const classMatch = event.summary.match(/^([A-Z]{2,4}\s*\d{1,3}[A-Z]?)/i);
+        if (classMatch) {
+            const className = classMatch[1].trim();
+            taskClass = className.toLowerCase().replace(/\s+/g, '');
+        }
+    }
 
     const task = {
-        id: `canvas_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
         title: event.summary || 'Canvas Event',
-        class: taskClass || 'canvas',
+        class: taskClass,
         type: getTaskTypeFromEvent(event),
         isDuration: isDuration,
-        date: formatDate(startDate),
+        date: dueDate.toISOString(), // Primary date field based on due date
 
-        dueDate: formatDate(endDate),
-        dueTime: formatTime(endDate),
-
-        startDate: formatDate(startDate),
-        startTime: formatTime(startDate),
-        endDate: formatDate(endDate),
-        endTime: formatTime(endDate),
-
-        source: 'canvas',
-        sourceId: event.uid || '',
-        description: event.description || '',
-        location: event.location || '',
+        // Use the parsed date for dueDate, default time to 23:59
+        dueDate: formatDate(dueDate),
+        dueTime: defaultDueTime,
     };
 
-    return taskl
+    return task;
 }
 
 
