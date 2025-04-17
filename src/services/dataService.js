@@ -74,6 +74,8 @@ export const addTask = async (task, useSupabase = false) => {
         user_id: user.id,
       };
 
+      //delete taskToSave.id;
+
       console.log("Attempting to insert task into Supabase:", taskToSave);
 
       try {

@@ -1,5 +1,4 @@
 import { addTask } from './dataService';
-import { getCurrentUser } from './authService';
 
 export const fetchCanvasCalendar = async (icsUrl, useSupabase = false) => {
     try {
@@ -43,7 +42,7 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false) => {
 
 function parseICS(icsData) {
     const events = [];
-    const lines = icsData.split('\n');
+    const lines = icsData.replace(/\r\n/g, '\n').split('\n');
     let currentEvent = null;
 
     for (let i = 0; i < lines.length; i++) {
