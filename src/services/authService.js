@@ -40,12 +40,12 @@ export const signOut = async () => {
   try {
     //console.log("Auth service: signOut called");
     //console.log("Clearing localStorage...");
-    localStorage.clear();
-    window.location.reload();
+    // localStorage.clear(); // REMOVE THIS LINE - It deletes all settings
+    window.location.reload(); // Keep reload to reset app state
     //console.log("localStorage cleared");
-    
+
     const { error } = await supabase.auth.signOut();
-    
+
     if (error) {
       console.error("Auth service: signOut error", error);
       throw error;
