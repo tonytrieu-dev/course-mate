@@ -37,6 +37,7 @@ const SimpleCalendar = ({ view }) => {
     startTime: "08:00",
     endDate: null,
     endTime: "11:00",
+    completed: false,
   });
 
   const [editingTask, setEditingTask] = useState(null);
@@ -156,6 +157,7 @@ const SimpleCalendar = ({ view }) => {
       startTime: "08:00",
       endDate: formattedClickedDate,
       endTime: "11:00",
+      completed: false,
     });
 
     setShowTaskModal(true);
@@ -180,6 +182,7 @@ const SimpleCalendar = ({ view }) => {
       startTime: task.startTime || "08:00",
       endDate: task.endDate || formattedTaskDate,
       endTime: task.endTime || "11:00",
+      completed: task.completed || false,
     };
 
     setEditingTask(task);
@@ -195,6 +198,7 @@ const SimpleCalendar = ({ view }) => {
       let taskData = {
         ...newTask,
         date: formatDateForInput(selectedDate),
+        completed: newTask.completed || false,
       };
 
       if (editingTask) {
@@ -229,6 +233,7 @@ const SimpleCalendar = ({ view }) => {
         startTime: "08:00",
         endDate: null,
         endTime: "11:00",
+        completed: false,
       });
       setShowTaskModal(false);
       setEditingTask(null);
@@ -324,54 +329,39 @@ const SimpleCalendar = ({ view }) => {
           {/* Ensure this container grows and scrolls if needed */}
           <div className="flex-grow overflow-y-auto">
             {dayTasks.map((task) => {
-              // Get the appropriate bg color based on class
-              let bgColor = "bg-blue-50";
-              let borderColor = "border-l-blue-500";
-
-              // Find the class
-              const taskClass = classes.find((c) => c.id === task.class);
-
-              if (taskClass) {
-                if (task.class === "cs179g") {
-                  bgColor = "bg-blue-50";
-                  borderColor = "border-l-blue-500";
-                } else if (task.class === "cs147") {
-                  bgColor = "bg-green-50";
-                  borderColor = "border-l-green-500";
-                } else if (task.class === "ee100a") {
-                  bgColor = "bg-orange-50";
-                  borderColor = "border-l-orange-500";
-                } else {
-                  bgColor = "bg-purple-50";
-                  borderColor = "border-l-purple-500";
-                }
-              }
-
-              // Add emojis for tasks with specific times
-              let timeDisplay = "";
-              if (task.isDuration) {
-                timeDisplay = ` (${formatTimeForDisplay(
-                  task.startTime
-                )}-${formatTimeForDisplay(task.endTime)})`;
-              } else if (task.dueTime) {
-                timeDisplay = ` (Due: ${formatTimeForDisplay(task.dueTime)})`;
-              }
-
+              let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
+              let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
               return (
                 <div
                   key={task.id}
-                  className={`bg-blue-100 rounded-md p-2 my-1 text-sm`}
-                  onClick={(e) => handleTaskClick(e, task)}
+                  className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 my-1 text-xs rounded cursor-pointer group relative`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTaskCompletion(task);
+                  }}
                 >
-                  <div className="font-medium text-gray-900">{task.title}</div>
-                  <div className="text-gray-600 text-xs">
+                  {/* Pencil icon for editing */}
+                  <button
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-200"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTaskClick(e, task);
+                    }}
+                    aria-label="Edit task"
+                  >
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z" />
+                    </svg>
+                  </button>
+                  <div className="font-medium">{task.title}</div>
+                  <div className="text-gray-600">
                     {classes.find(c => c.id === task.class)?.name || 'No Class'}
                   </div>
-                  <div className="text-gray-500 text-xs">
+                  <div className="text-gray-500">
                     {taskTypes.find(t => t.id === task.type)?.name || 'No Type'}
                     {task.isDuration ? 
-                      ` • ${formatTimeForDisplay(task.startTime)}` :
-                      task.dueTime ? ` • ${formatTimeForDisplay(task.dueTime)}` : ''
+                      ` • ${formatTimeForDisplay(task.startTime)}-${formatTimeForDisplay(task.endTime)}` :
+                      task.dueTime ? ` • Due ${formatTimeForDisplay(task.dueTime)}` : ''
                     }
                   </div>
                 </div>
@@ -394,6 +384,26 @@ const SimpleCalendar = ({ view }) => {
         </div>
       </div>
     );
+  };
+
+  // Add a function to toggle task completion
+  const toggleTaskCompletion = async (task) => {
+    // Optimistically update local state for instant UI feedback
+    setTasks((prevTasks) =>
+      prevTasks.map((t) =>
+        t.id === task.id ? { ...t, completed: !t.completed } : t
+      )
+    );
+    try {
+      const updatedTask = {
+        ...task,
+        completed: !task.completed
+      };
+      await updateTask(task.id, updatedTask, isAuthenticated);
+      window.dispatchEvent(new CustomEvent("calendar-update"));
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+    }
   };
 
   // Task Modal with Inline Management
@@ -771,44 +781,30 @@ const SimpleCalendar = ({ view }) => {
           </div>
 
           {dayTasks.map((task) => {
-            // Get the appropriate bg color based on class
-            let bgColor = "bg-blue-50";
-            let borderColor = "border-l-blue-500";
-
-            // Find the class
-            const taskClass = classes.find((c) => c.id === task.class);
-
-            if (taskClass) {
-              if (task.class === "cs179g") {
-                bgColor = "bg-blue-50";
-                borderColor = "border-l-blue-500";
-              } else if (task.class === "cs147") {
-                bgColor = "bg-green-50";
-                borderColor = "border-l-green-500";
-              } else if (task.class === "ee100a") {
-                bgColor = "bg-orange-50";
-                borderColor = "border-l-orange-500";
-              } else {
-                bgColor = "bg-purple-50";
-                borderColor = "border-l-purple-500";
-              }
-            }
-
-            let timeDisplay = "";
-            if (task.isDuration) {
-              timeDisplay = ` (${formatTimeForDisplay(
-                task.startTime
-              )}-${formatTimeForDisplay(task.endTime)})`;
-            } else if (task.dueTime) {
-              timeDisplay = ` (Due: ${formatTimeForDisplay(task.dueTime)})`;
-            }
-
+            let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
+            let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
             return (
               <div
                 key={task.id}
-                className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 my-1 text-xs rounded`}
-                onClick={(e) => handleTaskClick(e, task)}
+                className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 my-1 text-xs rounded cursor-pointer group relative`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTaskCompletion(task);
+                }}
               >
+                {/* Pencil icon for editing */}
+                <button
+                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTaskClick(e, task);
+                  }}
+                  aria-label="Edit task"
+                >
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z" />
+                  </svg>
+                </button>
                 <div className="font-medium">{task.title}</div>
                 <div className="text-gray-600">
                   {classes.find(c => c.id === task.class)?.name || 'No Class'}
@@ -873,52 +869,39 @@ const SimpleCalendar = ({ view }) => {
           </div>
           <div className="flex-1">
             {tasksForHour.map((task) => {
-              // Get the appropriate bg color based on class
-              let bgColor = "bg-blue-50";
-              let borderColor = "border-l-blue-500";
-
-              // Find the class
-              const taskClass = classes.find((c) => c.id === task.class);
-
-              if (taskClass) {
-                if (task.class === "cs179g") {
-                  bgColor = "bg-blue-50";
-                  borderColor = "border-l-blue-500";
-                } else if (task.class === "cs147") {
-                  bgColor = "bg-green-50";
-                  borderColor = "border-l-green-500";
-                } else if (task.class === "ee100a") {
-                  bgColor = "bg-orange-50";
-                  borderColor = "border-l-orange-500";
-                } else {
-                  bgColor = "bg-purple-50";
-                  borderColor = "border-l-purple-500";
-                }
-              }
-
-              // Add time info for the tasks
-              let timeInfo = "";
-              if (task.isDuration) {
-                timeInfo = `${formatTimeForDisplay(task.startTime)} - ${formatTimeForDisplay(task.endTime)}`;
-              } else if (task.dueTime) {
-                timeInfo = `Due: ${formatTimeForDisplay(task.dueTime)}`;
-              }
-
+              let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
+              let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
               return (
                 <div
                   key={task.id}
-                  className={`bg-blue-100 rounded-md p-2 mb-1 text-sm cursor-pointer`}
-                  onClick={(e) => handleTaskClick(e, task)}
+                  className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 mb-1 text-sm rounded cursor-pointer group relative`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTaskCompletion(task);
+                  }}
                 >
-                  <div className="font-medium text-gray-900">{task.title}</div>
-                  <div className="text-gray-600 text-xs">
+                  {/* Pencil icon for editing */}
+                  <button
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-200"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTaskClick(e, task);
+                    }}
+                    aria-label="Edit task"
+                  >
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z" />
+                    </svg>
+                  </button>
+                  <div className="font-medium">{task.title}</div>
+                  <div className="text-xs text-gray-600">
                     {classes.find(c => c.id === task.class)?.name || 'No Class'}
                   </div>
-                  <div className="text-gray-500 text-xs">
+                  <div className="text-xs text-gray-500">
                     {taskTypes.find(t => t.id === task.type)?.name || 'No Type'}
                     {task.isDuration ? 
-                      ` • ${formatTimeForDisplay(task.startTime)}` :
-                      task.dueTime ? ` • ${formatTimeForDisplay(task.dueTime)}` : ''
+                      ` • ${formatTimeForDisplay(task.startTime)}-${formatTimeForDisplay(task.endTime)}` :
+                      task.dueTime ? ` • Due ${formatTimeForDisplay(task.dueTime)}` : ''
                     }
                   </div>
                 </div>
@@ -935,39 +918,30 @@ const SimpleCalendar = ({ view }) => {
         <div className="w-16 font-bold">12 AM</div>
         <div className="flex-1">
           {(tasksByHour[0] || []).map((task) => {
-            let bgColor = "bg-blue-50";
-            let borderColor = "border-l-blue-500";
-            const taskClass = classes.find((c) => c.id === task.class);
-
-            if (taskClass) {
-              if (task.class === "cs179g") {
-                bgColor = "bg-blue-50";
-                borderColor = "border-l-blue-500";
-              } else if (task.class === "cs147") {
-                bgColor = "bg-green-50";
-                borderColor = "border-l-green-500";
-              } else if (task.class === "ee100a") {
-                bgColor = "bg-orange-50";
-                borderColor = "border-l-orange-500";
-              } else {
-                bgColor = "bg-purple-50";
-                borderColor = "border-l-purple-500";
-              }
-            }
-
-            let timeInfo = "";
-            if (task.isDuration) {
-              timeInfo = `${formatTimeForDisplay(task.startTime)} - ${formatTimeForDisplay(task.endTime)}`;
-            } else if (task.dueTime) {
-              timeInfo = `Due: ${formatTimeForDisplay(task.dueTime)}`;
-            }
-
+            let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
+            let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
             return (
               <div
                 key={task.id}
-                className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 mb-1 text-sm rounded cursor-pointer`}
-                onClick={(e) => handleTaskClick(e, task)}
+                className={`${bgColor} ${borderColor} border-l-3 py-1 px-2 mb-1 text-sm rounded cursor-pointer group relative`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTaskCompletion(task);
+                }}
               >
+                {/* Pencil icon for editing */}
+                <button
+                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTaskClick(e, task);
+                  }}
+                  aria-label="Edit task"
+                >
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z" />
+                  </svg>
+                </button>
                 <div className="font-medium">{task.title}</div>
                 <div className="text-xs text-gray-600">
                   {classes.find(c => c.id === task.class)?.name || 'No Class'}
