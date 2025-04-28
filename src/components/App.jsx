@@ -3,10 +3,11 @@ import Sidebar from "./Sidebar";
 import SimpleCalendar from "./SimpleCalendar";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { initializeDefaultData } from "../services/dataService";
+import LoginComponent from "./LoginComponent";
 
 const CalendarApp = () => {
   const [view, setView] = useState("month");
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, loading } = useAuth();
 
   //const clearAllStorage = () => {
     //console.log("Clearing all localStorage...");
@@ -20,6 +21,9 @@ const CalendarApp = () => {
   useEffect(() => {
     initializeDefaultData();
   }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (!isAuthenticated) return <LoginComponent />;
 
   return (
     <div className="flex h-screen overflow-hidden">

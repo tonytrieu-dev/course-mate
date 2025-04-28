@@ -119,10 +119,10 @@ export const AuthProvider = ({ children }) => {
   // Handle logout
   const logout = async () => {
     setAuthError(null);
-
     try {
       await signOut();
       setUser(null);
+      // No reload or redirect here!
       return true;
     } catch (error) {
       setAuthError(error.message);
