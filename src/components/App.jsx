@@ -10,12 +10,12 @@ const CalendarApp = () => {
   const { user, isAuthenticated, logout, loading } = useAuth();
 
   //const clearAllStorage = () => {
-    //console.log("Clearing all localStorage...");
-    //localStorage.clear();
-    //console.log("localStorage cleared");
+  //console.log("Clearing all localStorage...");
+  //localStorage.clear();
+  //console.log("localStorage cleared");
 
-    // Optionally reload the app
-    //window.location.reload();
+  // Optionally reload the app
+  //window.location.reload();
   //};
 
   useEffect(() => {

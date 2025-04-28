@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize - check current user and set up auth state listener
   useEffect(() => {
+    console.log("AuthProvider useEffect started");
     // Initialize default data in local storage if needed
     initializeDefaultData();
 
@@ -28,12 +29,15 @@ export const AuthProvider = ({ children }) => {
     const checkUser = async () => {
       setLoading(true);
       try {
+        console.log("Calling getCurrentUser...");
         const currentUser = await getCurrentUser();
+        console.log("getCurrentUser result:", currentUser);
         setUser(currentUser);
 
         // If user is logged in, sync data
         if (currentUser) {
           setSyncing(true);
+          console.log("Syncing data for user", currentUser.id);
           await syncData(currentUser.id);
           setSyncing(false);
         }
@@ -41,6 +45,7 @@ export const AuthProvider = ({ children }) => {
         console.error("Auth initialization error:", error);
       } finally {
         setLoading(false);
+        console.log("Set loading to false");
       }
     };
 
