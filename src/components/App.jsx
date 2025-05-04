@@ -2,27 +2,23 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import SimpleCalendar from "./SimpleCalendar";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
-import { initializeDefaultData } from "../services/dataService";
 import LoginComponent from "./LoginComponent";
 
 const CalendarApp = () => {
   const [view, setView] = useState("month");
   const { user, isAuthenticated, logout, loading } = useAuth();
 
-  //const clearAllStorage = () => {
-  //console.log("Clearing all localStorage...");
-  //localStorage.clear();
-  //console.log("localStorage cleared");
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your calendar...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Optionally reload the app
-  //window.location.reload();
-  //};
-
-  useEffect(() => {
-    initializeDefaultData();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
   if (!isAuthenticated) return <LoginComponent />;
 
   return (

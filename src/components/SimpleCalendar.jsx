@@ -17,7 +17,7 @@ const getLocalData = (key, defaultValue = []) => {
 };
 
 const SimpleCalendar = ({ view }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -48,62 +48,51 @@ const SimpleCalendar = ({ view }) => {
   const [newClassName, setNewClassName] = useState("");
   const [newTypeName, setNewTypeName] = useState("");
 
-  // Load data from service
+  // Only load data when not loading and authenticated
   useEffect(() => {
-    const loadData = async () => {
-      // Load tasks using the fixed getTasks function
-      const fetchedTasks = await getTasks(isAuthenticated);
-      console.log(`Initial load: ${fetchedTasks.length} tasks from getTasks()`);
-
-      // Create a Map to deduplicate by ID (if needed)
-      const uniqueTasks = new Map();
-      fetchedTasks.forEach((task) => {
-        uniqueTasks.set(task.id, task);
-      });
-
-      setTasks([...uniqueTasks.values()]);
-
-      // Load other data...
-      const fetchedClasses = await getClasses(isAuthenticated);
-      setClasses(fetchedClasses);
-
-      const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
-      setTaskTypes(fetchedTaskTypes);
-    };
-
-    loadData();
-  }, [isAuthenticated]);
+    if (!loading && isAuthenticated) {
+      const loadData = async () => {
+        const fetchedTasks = await getTasks(isAuthenticated);
+        setTasks(fetchedTasks || []);
+        const fetchedClasses = await getClasses(isAuthenticated);
+        setClasses(fetchedClasses);
+        const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
+        setTaskTypes(fetchedTaskTypes);
+      };
+      loadData();
+    }
+  }, [isAuthenticated, loading]);
 
   // Refreshes calendar data / view when tasks are added to the app
   useEffect(() => {
     const refreshCalendarData = async () => {
-      console.log("Calendar: Refreshing task data...");
+      console.log("calendar-update event received, refreshing task data...");
       try {
         const fetchedTasks = await getTasks(isAuthenticated);
-        console.log(`Calendar: Loaded ${fetchedTasks?.length || 0} tasks`);
-
-        // Only update the tasks state if we actually got tasks back
-        if (fetchedTasks && fetchedTasks.length > 0) {
-          setTasks(fetchedTasks);
-        } else {
-          console.log("No tasks returned from getTasks, keeping current tasks");
-          // If no tasks were returned, we'll keep the current tasks
-          // This prevents tasks from disappearing when there's an error
-        }
+        setTasks(fetchedTasks || []); // Always update, even if empty
       } catch (error) {
         console.error("Error refreshing calendar data:", error);
-        // Don't update the tasks state on error
       }
     };
 
-    // Listen for custom event
     window.addEventListener("calendar-update", refreshCalendarData);
 
-    // Clean up event listener
     return () => {
       window.removeEventListener("calendar-update", refreshCalendarData);
     };
   }, [isAuthenticated]);
+
+  // Show a spinner if still loading
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your calendar...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Navigation functions
   const previousPeriod = () => {

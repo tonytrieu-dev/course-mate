@@ -21,59 +21,90 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize - check current user and set up auth state listener
   useEffect(() => {
+    let mounted = true;
     console.log("AuthProvider useEffect started");
-    // Initialize default data in local storage if needed
-    initializeDefaultData();
 
-    // Check for current user
-    const checkUser = async () => {
-      setLoading(true);
+    const initializeApp = async () => {
       try {
-        console.log("Calling getCurrentUser...");
-        const currentUser = await getCurrentUser();
-        console.log("getCurrentUser result:", currentUser);
-        setUser(currentUser);
+        console.log("Starting initialization...");
+        // Initialize default data in local storage if needed
+        await initializeDefaultData();
+        console.log("Default data initialized");
 
-        // If user is logged in, sync data
-        if (currentUser) {
-          setSyncing(true);
-          console.log("Syncing data for user", currentUser.id);
-          await syncData(currentUser.id);
-          setSyncing(false);
+        // Check for current user
+        console.log("Checking for current user...");
+        const currentUser = await getCurrentUser();
+        console.log("Current user check result:", currentUser);
+        
+        if (mounted) {
+          setUser(currentUser);
+
+          // If user is logged in, sync data
+          if (currentUser) {
+            console.log("User found, starting sync...");
+            setSyncing(true);
+            try {
+              await syncData(currentUser.id);
+              console.log("Sync completed successfully");
+              window.dispatchEvent(new CustomEvent("calendar-update"));
+            } catch (syncError) {
+              console.error("Sync failed:", syncError);
+              // Don't throw here, we want to continue even if sync fails
+            } finally {
+              setSyncing(false);
+            }
+          } else {
+            console.log("No user found, proceeding without sync");
+          }
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
+        if (mounted) {
+          setAuthError("Failed to initialize application: " + error.message);
+        }
       } finally {
-        setLoading(false);
-        console.log("Set loading to false");
+        if (mounted) {
+          console.log("Setting loading to false");
+          setLoading(false);
+        }
       }
     };
 
-    checkUser();
+    initializeApp();
 
     // Set up listener for auth state changes
+    console.log("Setting up auth state listener...");
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === "SIGNED_IN" && session) {
-          setUser(session.user);
-
-          // Sync data when user signs in
-          setSyncing(true);
-          await syncData(session.user.id);
-          setSyncing(false);
-        } else if (event === "SIGNED_OUT") {
-          setUser(null);
+        console.log("Auth state changed:", event, session);
+        if (mounted) {
+          if (event === "SIGNED_IN" && session) {
+            setUser(session.user);
+            setSyncing(true);
+            try {
+              await syncData(session.user.id);
+              window.dispatchEvent(new CustomEvent("calendar-update"));
+            } catch (syncError) {
+              console.error("Sync after sign in failed:", syncError);
+            } finally {
+              setSyncing(false);
+            }
+          } else if (event === "SIGNED_OUT") {
+            setUser(null);
+          }
         }
       }
     );
 
     // Clean up listener when component unmounts
     return () => {
+      console.log("Cleaning up auth listener");
+      mounted = false;
       if (authListener && authListener.subscription) {
         authListener.subscription.unsubscribe();
       }
     };
-  }, []);
+  }, []); // Only run once on mount
 
   // Handle login
   const login = async (email, password) => {
@@ -87,6 +118,7 @@ export const AuthProvider = ({ children }) => {
       // Download data from Supabase
       if (authUser) {
         await downloadDataFromSupabase(authUser.id);
+        window.dispatchEvent(new CustomEvent("calendar-update"));
       }
 
       return true;
@@ -110,6 +142,7 @@ export const AuthProvider = ({ children }) => {
       // Upload local data to Supabase
       if (authUser) {
         await syncData(authUser.id);
+        window.dispatchEvent(new CustomEvent("calendar-update"));
       }
 
       return true;
@@ -127,7 +160,6 @@ export const AuthProvider = ({ children }) => {
     try {
       await signOut();
       setUser(null);
-      // No reload or redirect here!
       return true;
     } catch (error) {
       setAuthError(error.message);
@@ -155,6 +187,7 @@ export const AuthProvider = ({ children }) => {
       if (user) {
         setSyncing(true);
         await syncData(user.id);
+        window.dispatchEvent(new CustomEvent("calendar-update"));
         setSyncing(false);
       }
     },

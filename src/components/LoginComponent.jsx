@@ -119,11 +119,10 @@ const LoginComponent = ({onClose}) => {
         <div className="mt-6 pt-6 border-t border-gray-300">
           <p className="text-center text-gray-500">
             {isRegistering
-              ? "Creating an account will sync your data to the cloud"
-              : "Sign in to sync your data across your devices"}
+              ? "Creating an account will sync your data to the cloud."
+              : "Sign in to sync your data across your devices."}
           </p>
           <p className="text-center text-gray-500 mt-2">
-            You can continue using the app without an account, but your data will only be saved on this device
           </p>
         </div>
       </div>
