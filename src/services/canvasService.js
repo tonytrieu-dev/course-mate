@@ -1,39 +1,53 @@
 import { addTask } from './dataService';
 
 export const fetchCanvasCalendar = async (icsUrl, useSupabase = false) => {
+    console.log(`[fetchCanvasCalendar] Starting. URL: ${icsUrl ? 'Provided' : 'Not Provided'}, useSupabase: ${useSupabase}`);
     try {
+        if (!icsUrl) {
+            console.warn("[fetchCanvasCalendar] No ICS URL provided.");
+            return {
+                success: false,
+                message: "No ICS URL provided",
+                tasks: []
+            };
+        }
+        console.log(`[fetchCanvasCalendar] Attempting to fetch: ${icsUrl}`);
         const response = await fetch(icsUrl);
+        console.log("[fetchCanvasCalendar] fetch(icsUrl) completed. Response status:", response.status);
         if (!response.ok) {
+            console.error(`[fetchCanvasCalendar] Fetch failed. Status: ${response.status}, StatusText: ${response.statusText}`);
             throw new Error(`Failed to fetch calendar: ${response.statusText}`);
         }
         const icsText = await response.text();
+        console.log("[fetchCanvasCalendar] response.text() completed.");
         const events = parseICS(icsText);
+        console.log(`[fetchCanvasCalendar] parseICS completed. Found ${events.length} events.`);
         const addedTasks = [];
         for (const event of events) {
+            console.log(`[fetchCanvasCalendar] Processing event UID: "${event.uid || 'N/A'}", Summary: "${event.summary || 'N/A'}"`); // More specific log
             try {
-                // Convert event to task format
                 const task = convertEventToTask(event);
-
-                // Add task to the datastore
+                console.log(`[fetchCanvasCalendar] Event "${event.summary || 'N/A'}" converted to task:`, task);
                 const addedTask = await addTask(task, useSupabase);
+                console.log(`[fetchCanvasCalendar] addTask for "${event.summary || 'N/A'}" completed. Result:`, addedTask !== null && addedTask !== undefined ? (addedTask.id ? `Task (ID: ${addedTask.id})` : 'Task object without ID') : 'No task returned (null/undefined)');
                 if (addedTask) {
                     addedTasks.push(addedTask);
                 }
             } catch (error) {
-                console.error(`Error adding task for event "${event.summary}":`, error);
+                console.error(`[fetchCanvasCalendar] Error processing and adding task for event UID "${event.uid || 'N/A'}" (Summary: "${event.summary || 'N/A'}"):`, error);
             }
         }
-
+        console.log(`[fetchCanvasCalendar] Finished processing all events. ${addedTasks.length} tasks were prepared.`);
         return {
             success: true,
             message: `Imported ${addedTasks.length} tasks from Canvas`,
             tasks: addedTasks
         };
     } catch (error) {
-        console.error('Error fetching Canvas calendar:', error);
+        console.error('[fetchCanvasCalendar] Error in fetchCanvasCalendar:', error);
         return {
             success: false,
-            message: error.message,
+            message: error.message || "Unknown error during fetchCanvasCalendar",
             tasks: []
         };
     }
@@ -147,6 +161,7 @@ function convertEventToTask(event) {
         title: event.summary || 'Canvas Event',
         class: taskClass,
         type: getTaskTypeFromEvent(event),
+        canvas_uid: event.uid,
         isDuration: isDuration,
         date: dueDate.toISOString(), // Primary date field based on due date
 

@@ -63,8 +63,49 @@ export const addTask = async (task, useSupabase = false) => {
       // Get current user for Supabase operations
       const user = await getCurrentUser();
       if (!user) {
-        console.error("No authenticated user found for addTask");
+        console.error("[addTask] No authenticated user found for addTask");
         throw new Error("User not authenticated");
+      }
+
+      // De-duplication logic for canvas_uid (only if canvas_uid is truthy)
+      if (task.canvas_uid && String(task.canvas_uid).trim() !== "") {
+        const canvasUIDString = String(task.canvas_uid).trim();
+        console.log(`[addTask] Checking for existing task. User ID: ${user.id}, Canvas UID: '${canvasUIDString}'`);
+
+        const { data: existingTasks, error: existingTaskError } = await supabase
+          .from("tasks")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("canvas_uid", canvasUIDString)
+          .limit(1); // Expect at most one match
+
+        if (existingTaskError) {
+          console.error(`[addTask] Error checking for existing task with canvas_uid ${canvasUIDString}:`, existingTaskError);
+          throw existingTaskError; // Critical: stop if check fails
+        }
+
+        if (existingTasks && existingTasks.length > 0) {
+          const existingSupabaseTask = existingTasks[0];
+          console.log(`[addTask] Task with canvas_uid ${canvasUIDString} already exists in Supabase. DB record:`, existingSupabaseTask);
+          
+          // Update local storage with the task from Supabase to ensure consistency
+          const currentLocalTasks = getLocalData(TASKS_KEY);
+          const taskIndex = currentLocalTasks.findIndex(t => t.id === existingSupabaseTask.id || (t.canvas_uid && String(t.canvas_uid) === canvasUIDString));
+          
+          if (taskIndex !== -1) {
+            currentLocalTasks[taskIndex] = existingSupabaseTask; // Update existing local task
+          } else {
+            currentLocalTasks.push(existingSupabaseTask); // Add if missing locally (e.g., first sync)
+          }
+          saveLocalData(TASKS_KEY, currentLocalTasks);
+          console.log(`[addTask] Local storage synced for existing task with canvas_uid ${canvasUIDString}.`);
+          
+          return existingSupabaseTask; // Return the existing task from Supabase
+        } else {
+          console.log(`[addTask] No existing task found for canvas_uid: ${canvasUIDString}. Proceeding to insert new task.`);
+        }
+      } else {
+        console.log(`[addTask] canvas_uid is not present or is empty (value: '${task.canvas_uid}', type: ${typeof task.canvas_uid}). Skipping de-duplication check and proceeding to insert.`);
       }
 
       // Prepare task for Supabase: add user_id, ensure no client-side ID
@@ -72,54 +113,79 @@ export const addTask = async (task, useSupabase = false) => {
       const taskToSave = {
         ...taskData,
         user_id: user.id,
+        canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : null, // Store as string or null
       };
 
-      //delete taskToSave.id;
-
-      console.log("Attempting to insert task into Supabase:", taskToSave);
+      console.log("[addTask] Attempting to insert new task into Supabase:", taskToSave);
 
       try {
-        const { data, error } = await supabase
+        const { data: insertedData, error: insertError } = await supabase
           .from("tasks")
           .insert(taskToSave)
-          .select("*"); // Select the inserted row to get the generated ID
+          .select("*"); 
 
-        if (error) {
-          console.error("Supabase task insertion error:", error);
-          // Log the task data that failed
-          console.error("Task data causing error:", taskToSave);
-          throw error;
+        if (insertError) {
+          console.error("[addTask] Supabase task insertion error:", insertError);
+          console.error("[addTask] Task data causing error:", taskToSave);
+          throw insertError;
         }
 
-        console.log("Task added successfully to Supabase:", data);
+        const newSupabaseTask = insertedData[0];
+        console.log("[addTask] Task added successfully to Supabase:", newSupabaseTask);
 
-        // Save the successfully inserted task (with Supabase ID) to local storage
-        const tasks = getLocalData(TASKS_KEY);
-        const updatedTasks = [...tasks, data[0]];
-        saveLocalData(TASKS_KEY, updatedTasks);
+        // Update local storage with the newly inserted task
+        const localTasksAfterInsert = getLocalData(TASKS_KEY);
+        // Avoid adding duplicates to local storage if it somehow got there already
+        const existingLocalTaskIndex = localTasksAfterInsert.findIndex(t => t.id === newSupabaseTask.id);
+        let tasksToSaveLocally;
 
-        return data[0]; // Return the task with the Supabase-generated ID
+        if (existingLocalTaskIndex !== -1) {
+            localTasksAfterInsert[existingLocalTaskIndex] = newSupabaseTask; // Update if present by id
+            tasksToSaveLocally = [...localTasksAfterInsert];
+        } else {
+            tasksToSaveLocally = [...localTasksAfterInsert, newSupabaseTask]; // Add if new
+        }
+        saveLocalData(TASKS_KEY, tasksToSaveLocally);
+        console.log("[addTask] Local storage updated after new task insertion.");
+
+        return newSupabaseTask;
       } catch (error) {
-        console.error("Error adding task to Supabase:", error);
-        throw error; // Re-throw the specific Supabase error
+        console.error("[addTask] Error during Supabase insert operation:", error);
+        throw error; 
       }
     } else {
-      // Local storage fallback (consider adding user_id if needed locally too)
+      // Local storage fallback
       const taskToSaveLocally = {
-        id: `local_${Date.now()}_${Math.random()}`,
+        id: task.id || `local_${Date.now()}_${Math.random()}`,
          ...taskWithTimestamp,
-         // user_id: user ? user.id : 'local_user', // Optional: Add user id for local consistency
+         canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : null,
        };
-      console.log("Saving task to local storage:", taskToSaveLocally);
+      console.log("[addTask] Saving task to local storage:", taskToSaveLocally);
       const tasks = getLocalData(TASKS_KEY);
-      const updatedTasks = [...tasks, taskToSaveLocally];
+      
+      let updatedTasks;
+      // Local de-duplication for canvas_uid (if present) or ID
+      const existingLocalIndexById = tasks.findIndex(t => t.id === taskToSaveLocally.id);
+      let existingLocalIndexByCanvasUid = -1;
+      if (taskToSaveLocally.canvas_uid) {
+          existingLocalIndexByCanvasUid = tasks.findIndex(t => t.canvas_uid && String(t.canvas_uid) === String(taskToSaveLocally.canvas_uid));
+      }
+
+      if (taskToSaveLocally.canvas_uid && existingLocalIndexByCanvasUid !== -1) {
+          tasks[existingLocalIndexByCanvasUid] = taskToSaveLocally; // Update by canvas_uid
+          updatedTasks = [...tasks];
+      } else if (existingLocalIndexById !== -1) {
+          tasks[existingLocalIndexById] = taskToSaveLocally; // Update by ID
+          updatedTasks = [...tasks];
+      } else {
+          updatedTasks = [...tasks, taskToSaveLocally]; // Add if new
+      }
       saveLocalData(TASKS_KEY, updatedTasks);
       return taskToSaveLocally;
     }
   } catch (error) {
-    // Catch errors from getCurrentUser or the Supabase block
-    console.error("Error in addTask:", error);
-    return null; // Return null to indicate failure
+    console.error("Error in addTask (overall):", error);
+    throw error; // Propagate error
   }
 };
 

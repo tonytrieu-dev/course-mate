@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }) => {
         if (mounted) {
           if (event === "SIGNED_IN" && session) {
             setUser(session.user);
+            setLoading(false);
             setSyncing(true);
             try {
               await syncData(session.user.id);

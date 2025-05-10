@@ -41,9 +41,14 @@ const Sidebar = () => {
         try {
           console.log("Auto-syncing Canvas calendar...");
           const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated);
+          console.log("fetchCanvasCalendar result:", result);
+
           // Dispatch event to update calendar view after successful auto-sync
-          if (result.success) {
+          if (result && result.success) {
+             console.log("Canvas auto-sync successful, dispatching calendar-update.");
              window.dispatchEvent(new CustomEvent("calendar-update"));
+          } else {
+            console.log("Canvas auto-sync did not report success or result was invalid. Result:", result);
           }
         } catch (error) {
           console.error("Error auto-syncing Canvas calendar:", error);
@@ -51,7 +56,13 @@ const Sidebar = () => {
       }
     };
 
-    autoSyncCanvas();
+    // autoSyncCanvas(); // Call directly
+    const timerId = setTimeout(() => {
+      autoSyncCanvas();
+    }, 1500); // Delay of 1.5 seconds
+
+    return () => clearTimeout(timerId); // Cleanup timer if component unmounts
+
   }, [isAuthenticated]);
 
   // Load data
