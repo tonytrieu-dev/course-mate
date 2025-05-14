@@ -52,12 +52,14 @@ const SimpleCalendar = ({ view }) => {
   useEffect(() => {
     if (!loading && isAuthenticated) {
       const loadData = async () => {
+        console.log('[SimpleCalendar] loadData: Fetching initial tasks, classes, types...');
         const fetchedTasks = await getTasks(isAuthenticated);
         setTasks(fetchedTasks || []);
+        console.log('[SimpleCalendar] loadData: setTasks called with', fetchedTasks ? fetchedTasks.length : 0, 'tasks.');
         const fetchedClasses = await getClasses(isAuthenticated);
-        setClasses(fetchedClasses);
+        setClasses(fetchedClasses || []); // Ensure classes are also handled if null
         const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
-        setTaskTypes(fetchedTaskTypes);
+        setTaskTypes(fetchedTaskTypes || []); // Ensure task types are also handled if null
       };
       loadData();
     }
@@ -66,12 +68,13 @@ const SimpleCalendar = ({ view }) => {
   // Refreshes calendar data / view when tasks are added to the app
   useEffect(() => {
     const refreshCalendarData = async () => {
-      console.log("calendar-update event received, refreshing task data...");
+      console.log("[SimpleCalendar] calendar-update event received, refreshing task data...");
       try {
         const fetchedTasks = await getTasks(isAuthenticated);
-        setTasks(fetchedTasks || []); // Always update, even if empty
+        setTasks(fetchedTasks || []);
+        console.log('[SimpleCalendar] refreshCalendarData: setTasks called with', fetchedTasks ? fetchedTasks.length : 0, 'tasks.');
       } catch (error) {
-        console.error("Error refreshing calendar data:", error);
+        console.error("[SimpleCalendar] Error refreshing calendar data:", error);
       }
     };
 
@@ -83,7 +86,7 @@ const SimpleCalendar = ({ view }) => {
   }, [isAuthenticated]);
 
   // Show a spinner if still loading
-  if (loading) {
+  if (loading) { // This loading is from useAuth()
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -92,6 +95,12 @@ const SimpleCalendar = ({ view }) => {
         </div>
       </div>
     );
+  }
+
+  // Log current tasks state before rendering the actual calendar
+  console.log(`[SimpleCalendar] Rendering. isAuthenticated: ${isAuthenticated}, Auth loading: ${loading}, Tasks in state: ${tasks.length}`);
+  if (tasks.length > 0) {
+    // console.log('[SimpleCalendar] First task for render:', tasks[0]); // Log first task to check structure
   }
 
   // Navigation functions
@@ -256,26 +265,35 @@ const SimpleCalendar = ({ view }) => {
   };
 
   const getTasksForDay = (day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
-    const targetDateStr = getYYYYMMDD(new Date(year, month, day));
+    const targetDate = new Date(year, month, day);
+    const targetDateStr = getYYYYMMDD(targetDate);
+    console.log(`[getTasksForDay] TargetDate: ${targetDate.toDateString()}, TargetDateStr: ${targetDateStr}, Tasks available: ${tasks.length}`);
 
-    return tasks
+    if (tasks.length > 0) {
+      // console.log("[getTasksForDay] Sample task for date check:", JSON.stringify(tasks[0]));
+    }
+
+    const filtered = tasks
       .filter((task) => {
-        // Prioritize dueDate for comparison if available
+        let match = false;
         if (task.dueDate) {
-          return task.dueDate === targetDateStr;
+          match = task.dueDate === targetDateStr;
+        } else {
+          const taskDate = task.date ? new Date(task.date) : null;
+          const taskDateStr = getYYYYMMDD(taskDate);
+          match = taskDateStr === targetDateStr;
         }
-        // Fallback to comparing the date part of the main 'date' field
-        // This handles tasks created before dueDate was reliably used
-        const taskDate = task.date ? new Date(task.date) : null;
-        const taskDateStr = getYYYYMMDD(taskDate);
-        return taskDateStr === targetDateStr;
+        // if (match) console.log(`[getTasksForDay] Matched task ID ${task.id} for ${targetDateStr}`);
+        return match;
       })
       .sort((a, b) => {
-        // Sort by dueTime if available, otherwise by creation or main date
         const timeA = a.dueTime || (a.date ? new Date(a.date).toLocaleTimeString() : '00:00');
         const timeB = b.dueTime || (b.date ? new Date(b.date).toLocaleTimeString() : '00:00');
         return timeA.localeCompare(timeB);
       });
+    
+    console.log(`[getTasksForDay] For ${targetDateStr}, found ${filtered.length} tasks.`);
+    return filtered;
   };
 
   const formatTimeForDisplay = (timeString) => {
