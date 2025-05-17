@@ -136,9 +136,6 @@ export const downloadDataFromSupabase = async (userId) => {
         // Update the sync timestamp
         setLastSyncTimestamp();
 
-        // Dispatch a calendar update event to refresh the UI
-        window.dispatchEvent(new CustomEvent("calendar-update"));
-
         return true;
     } catch (error) {
         console.error('Error downloading data from Supabase: ', error.message);

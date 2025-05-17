@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [lastCalendarSyncTimestamp, setLastCalendarSyncTimestamp] = useState(null);
+  const [initialUserLoadProcessed, setInitialUserLoadProcessed] = useState(false);
 
   // Initialize - check current user and set up auth state listener
   useEffect(() => {
@@ -46,7 +48,6 @@ export const AuthProvider = ({ children }) => {
             try {
               await syncData(currentUser.id);
               console.log("Sync completed successfully");
-              window.dispatchEvent(new CustomEvent("calendar-update"));
             } catch (syncError) {
               console.error("Sync failed:", syncError);
               // Don't throw here, we want to continue even if sync fails
@@ -64,7 +65,8 @@ export const AuthProvider = ({ children }) => {
         }
       } finally {
         if (mounted) {
-          console.log("Setting loading to false");
+          console.log("AuthContext initializeApp finished. Setting timestamp and loading state.");
+          setLastCalendarSyncTimestamp(Date.now());
           setLoading(false);
         }
       }
@@ -76,22 +78,17 @@ export const AuthProvider = ({ children }) => {
     console.log("Setting up auth state listener...");
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event, session);
+        console.log("Auth state changed:", event, session ? session.user?.id || 'session exists but no user id' : "no session");
         if (mounted) {
-          if (event === "SIGNED_IN" && session) {
-            setUser(session.user);
-            setLoading(false);
-            setSyncing(true);
-            try {
-              await syncData(session.user.id);
-              window.dispatchEvent(new CustomEvent("calendar-update"));
-            } catch (syncError) {
-              console.error("Sync after sign in failed:", syncError);
-            } finally {
-              setSyncing(false);
-            }
-          } else if (event === "SIGNED_OUT") {
-            setUser(null);
+          const authUser = session?.user || null;
+          setUser(authUser);
+
+          if (event === "SIGNED_OUT") {
+            console.log("[AuthContext] onAuthStateChange SIGNED_OUT: Clearing timestamp.");
+            setLastCalendarSyncTimestamp(null);
+          } else if (event === "SIGNED_IN" && authUser) {
+            console.log("[AuthContext] onAuthStateChange SIGNED_IN: User session active, setting timestamp to reflect potential new data state.");
+            setLastCalendarSyncTimestamp(Date.now());
           }
         }
       }
@@ -119,7 +116,7 @@ export const AuthProvider = ({ children }) => {
       // Download data from Supabase
       if (authUser) {
         await downloadDataFromSupabase(authUser.id);
-        window.dispatchEvent(new CustomEvent("calendar-update"));
+        setLastCalendarSyncTimestamp(Date.now());
       }
 
       return true;
@@ -143,7 +140,7 @@ export const AuthProvider = ({ children }) => {
       // Upload local data to Supabase
       if (authUser) {
         await syncData(authUser.id);
-        window.dispatchEvent(new CustomEvent("calendar-update"));
+        setLastCalendarSyncTimestamp(Date.now());
       }
 
       return true;
@@ -184,11 +181,13 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     clearAuthError,
+    lastCalendarSyncTimestamp,
+    setLastCalendarSyncTimestamp,
     triggerSync: async () => {
       if (user) {
         setSyncing(true);
         await syncData(user.id);
-        window.dispatchEvent(new CustomEvent("calendar-update"));
+        setLastCalendarSyncTimestamp(Date.now());
         setSyncing(false);
       }
     },

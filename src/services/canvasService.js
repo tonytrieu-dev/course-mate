@@ -1,7 +1,7 @@
 import { addTask } from './dataService';
 
-export const fetchCanvasCalendar = async (icsUrl, useSupabase = false) => {
-    console.log(`[fetchCanvasCalendar] Starting. URL: ${icsUrl ? 'Provided' : 'Not Provided'}, useSupabase: ${useSupabase}`);
+export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = null) => {
+    console.log(`[fetchCanvasCalendar] Starting. URL: ${icsUrl ? 'Provided' : 'Not Provided'}, useSupabase: ${useSupabase}, User provided: ${!!user}`);
     try {
         if (!icsUrl) {
             console.warn("[fetchCanvasCalendar] No ICS URL provided.");
@@ -28,7 +28,7 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false) => {
             try {
                 const task = convertEventToTask(event);
                 console.log(`[fetchCanvasCalendar] Event "${event.summary || 'N/A'}" converted to task:`, task);
-                const addedTask = await addTask(task, useSupabase);
+                const addedTask = await addTask(task, useSupabase, user);
                 console.log(`[fetchCanvasCalendar] addTask for "${event.summary || 'N/A'}" completed. Result:`, addedTask !== null && addedTask !== undefined ? (addedTask.id ? `Task (ID: ${addedTask.id})` : 'Task object without ID') : 'No task returned (null/undefined)');
                 if (addedTask) {
                     addedTasks.push(addedTask);

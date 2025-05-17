@@ -17,7 +17,7 @@ const getLocalData = (key, defaultValue = []) => {
 };
 
 const SimpleCalendar = ({ view }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading, lastCalendarSyncTimestamp, setLastCalendarSyncTimestamp } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -48,42 +48,40 @@ const SimpleCalendar = ({ view }) => {
   const [newClassName, setNewClassName] = useState("");
   const [newTypeName, setNewTypeName] = useState("");
 
-  // Only load data when not loading and authenticated
+  // Load data when auth state is ready or a sync has occurred
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      const loadData = async () => {
-        console.log('[SimpleCalendar] loadData: Fetching initial tasks, classes, types...');
-        const fetchedTasks = await getTasks(isAuthenticated);
+    const loadData = async () => {
+      // Make sure user and user.id are available for Supabase fetches
+      // Also ensure lastCalendarSyncTimestamp is present to react to explicit sync triggers
+      console.log('[SimpleCalendar] useEffect loadData triggered. Dependencies: loading:', loading, 'isAuthenticated:', isAuthenticated, 'user present:', !!user, 'user.id present:', user ? !!user.id : false, 'lastCalendarSyncTimestamp:', lastCalendarSyncTimestamp);
+
+      if (!loading && isAuthenticated && user && user.id && lastCalendarSyncTimestamp) { // Added lastCalendarSyncTimestamp to the condition
+        console.log('[SimpleCalendar] loadData: Criteria FULLY met. User ID:', user.id, 'Sync Timestamp:', lastCalendarSyncTimestamp, '. Fetching tasks, classes, types...');
+        
+        const fetchedTasks = await getTasks(user.id, isAuthenticated);
         setTasks(fetchedTasks || []);
         console.log('[SimpleCalendar] loadData: setTasks called with', fetchedTasks ? fetchedTasks.length : 0, 'tasks.');
-        const fetchedClasses = await getClasses(isAuthenticated);
-        setClasses(fetchedClasses || []); // Ensure classes are also handled if null
-        const fetchedTaskTypes = await getTaskTypes(isAuthenticated);
-        setTaskTypes(fetchedTaskTypes || []); // Ensure task types are also handled if null
-      };
-      loadData();
-    }
-  }, [isAuthenticated, loading]);
+        
+        const fetchedClasses = await getClasses(user.id, isAuthenticated);
+        setClasses(fetchedClasses || []);
+        console.log('[SimpleCalendar] loadData: setClasses called with', fetchedClasses ? fetchedClasses.length : 0, 'classes.');
 
-  // Refreshes calendar data / view when tasks are added to the app
-  useEffect(() => {
-    const refreshCalendarData = async () => {
-      console.log("[SimpleCalendar] calendar-update event received, refreshing task data...");
-      try {
-        const fetchedTasks = await getTasks(isAuthenticated);
-        setTasks(fetchedTasks || []);
-        console.log('[SimpleCalendar] refreshCalendarData: setTasks called with', fetchedTasks ? fetchedTasks.length : 0, 'tasks.');
-      } catch (error) {
-        console.error("[SimpleCalendar] Error refreshing calendar data:", error);
+        const fetchedTaskTypes = await getTaskTypes(user.id, isAuthenticated);
+        setTaskTypes(fetchedTaskTypes || []);
+        console.log('[SimpleCalendar] loadData: setTaskTypes called with', fetchedTaskTypes ? fetchedTaskTypes.length : 0, 'types.');
+
+      } else {
+        console.log(
+          '[SimpleCalendar] loadData: Criteria NOT met for fetching. loading:', loading,
+          'isAuthenticated:', isAuthenticated,
+          'User object present:', !!user,
+          'User ID present:', user ? !!user.id : false,
+          'lastCalendarSyncTimestamp value:', lastCalendarSyncTimestamp
+        );
       }
     };
-
-    window.addEventListener("calendar-update", refreshCalendarData);
-
-    return () => {
-      window.removeEventListener("calendar-update", refreshCalendarData);
-    };
-  }, [isAuthenticated]);
+    loadData();
+  }, [loading, isAuthenticated, user, user?.id, lastCalendarSyncTimestamp]); // Added user?.id to dependency array for more direct reactivity
 
   // Show a spinner if still loading
   if (loading) { // This loading is from useAuth()
@@ -98,7 +96,7 @@ const SimpleCalendar = ({ view }) => {
   }
 
   // Log current tasks state before rendering the actual calendar
-  console.log(`[SimpleCalendar] Rendering. isAuthenticated: ${isAuthenticated}, Auth loading: ${loading}, Tasks in state: ${tasks.length}`);
+  console.log(`[SimpleCalendar] Rendering. isAuthenticated: ${isAuthenticated}, Auth loading: ${loading}, Tasks in state (at render start): ${tasks.length}`);
   if (tasks.length > 0) {
     // console.log('[SimpleCalendar] First task for render:', tasks[0]); // Log first task to check structure
   }
@@ -192,7 +190,6 @@ const SimpleCalendar = ({ view }) => {
     e.preventDefault();
 
     try {
-      // Create a full date object for the task
       let taskData = {
         ...newTask,
         date: formatDateForInput(selectedDate),
@@ -200,26 +197,21 @@ const SimpleCalendar = ({ view }) => {
       };
 
       if (editingTask) {
-        // Update existing task
         const updatedTask = await updateTask(
           editingTask.id,
           taskData,
           isAuthenticated
         );
-        // Dispatch event to trigger refresh
         if (updatedTask) { 
-          window.dispatchEvent(new CustomEvent("calendar-update"));
+          setLastCalendarSyncTimestamp(Date.now());
         }
       } else {
-        // Add new task
         const newTaskObj = await addTask(taskData, isAuthenticated);
-        // Dispatch event to trigger refresh
         if (newTaskObj) {
-          window.dispatchEvent(new CustomEvent("calendar-update"));
+          setLastCalendarSyncTimestamp(Date.now());
         }
       }
 
-      // Reset form and close modal
       setNewTask({
         title: "",
         class: classes.length > 0 ? classes[0].id : "",
@@ -245,13 +237,11 @@ const SimpleCalendar = ({ view }) => {
   const handleDeleteTask = async () => {
     if (editingTask) {
       const success = await deleteTask(editingTask.id, isAuthenticated);
-      // Dispatch event to trigger refresh
       if (success) {
-        window.dispatchEvent(new CustomEvent("calendar-update"));
+        setLastCalendarSyncTimestamp(Date.now());
       }
       setShowTaskModal(false);
       setEditingTask(null);
-      //window.location.reload();
     }
   };
 
@@ -267,33 +257,31 @@ const SimpleCalendar = ({ view }) => {
   const getTasksForDay = (day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
     const targetDate = new Date(year, month, day);
     const targetDateStr = getYYYYMMDD(targetDate);
-    console.log(`[getTasksForDay] TargetDate: ${targetDate.toDateString()}, TargetDateStr: ${targetDateStr}, Tasks available: ${tasks.length}`);
+    console.log(`[SimpleCalendar] getTasksForDay called for ${targetDateStr}. Tasks available when called: ${tasks.length}`);
 
-    if (tasks.length > 0) {
-      // console.log("[getTasksForDay] Sample task for date check:", JSON.stringify(tasks[0]));
+    if (!tasks || tasks.length === 0) {
+      console.log(`[SimpleCalendar] getTasksForDay: No tasks available in state for ${targetDateStr}.`);
+      return [];
     }
 
-    const filtered = tasks
-      .filter((task) => {
-        let match = false;
-        if (task.dueDate) {
-          match = task.dueDate === targetDateStr;
-        } else {
-          const taskDate = task.date ? new Date(task.date) : null;
-          const taskDateStr = getYYYYMMDD(taskDate);
-          match = taskDateStr === targetDateStr;
-        }
-        // if (match) console.log(`[getTasksForDay] Matched task ID ${task.id} for ${targetDateStr}`);
-        return match;
-      })
-      .sort((a, b) => {
-        const timeA = a.dueTime || (a.date ? new Date(a.date).toLocaleTimeString() : '00:00');
-        const timeB = b.dueTime || (b.date ? new Date(b.date).toLocaleTimeString() : '00:00');
-        return timeA.localeCompare(timeB);
-      });
+    const dayTasks = tasks.filter(task => {
+      let match = false;
+      if (task.dueDate) {
+        match = task.dueDate === targetDateStr;
+      } else {
+        const taskDate = task.date ? new Date(task.date) : null;
+        const taskDateStr = getYYYYMMDD(taskDate);
+        match = taskDateStr === targetDateStr;
+      }
+      return match;
+    });
     
-    console.log(`[getTasksForDay] For ${targetDateStr}, found ${filtered.length} tasks.`);
-    return filtered;
+    console.log(`[getTasksForDay] For ${targetDateStr}, found ${dayTasks.length} tasks.`);
+    return dayTasks.sort((a, b) => {
+      const timeA = a.dueTime || (a.date ? new Date(a.date).toLocaleTimeString() : '00:00');
+      const timeB = b.dueTime || (b.date ? new Date(b.date).toLocaleTimeString() : '00:00');
+      return timeA.localeCompare(timeB);
+    });
   };
 
   const formatTimeForDisplay = (timeString) => {
@@ -407,7 +395,7 @@ const SimpleCalendar = ({ view }) => {
         completed: !task.completed
       };
       await updateTask(task.id, updatedTask, isAuthenticated);
-      window.dispatchEvent(new CustomEvent("calendar-update"));
+      setLastCalendarSyncTimestamp(Date.now());
     } catch (error) {
       console.error("Error toggling task completion:", error);
     }

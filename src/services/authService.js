@@ -57,11 +57,23 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
+    console.log('[getCurrentUser] Entered function.');
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[getCurrentUser] About to call supabase.auth.getUser().');
+      const { data: { user }, error } = await supabase.auth.getUser(); // Also capture error here for logging
+      
+      if (error) {
+        // This error object might be different from a thrown error caught by the catch block
+        console.error('[getCurrentUser] supabase.auth.getUser() returned an error property:', error);
+        // We still want to fall through to the return user (which might be null if error is present)
+        // or let the catch block handle it if it throws.
+      }
+      
+      console.log('[getCurrentUser] supabase.auth.getUser() call completed. User from data:', user ? user.id : 'No user in data');
       return user;
     } catch (error) {
-      console.error('Error fetching user:', error.message);
+      console.error('[getCurrentUser] Error caught during supabase.auth.getUser():', error.message);
+      console.error('[getCurrentUser] Full error object:', error);
       return null;
     }
 };

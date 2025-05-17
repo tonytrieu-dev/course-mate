@@ -15,22 +15,19 @@ const saveLocalData = (key, data) => {
   localStorage.setItem(key, JSON.stringify(data));
 };
 
-export const getTasks = async (useSupabase = false) => {
+export const getTasks = async (userId, useSupabase = false) => {
+  console.log('[getTasks] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
   if (useSupabase) {
+    if (!userId) {
+      console.error("[getTasks] Supabase fetch requested but no userId provided. Falling back to local data.");
+      return getLocalData(TASKS_KEY);
+    }
     try {
-      // Get current user ID - FIXED: correctly get user object
-      const user = await getCurrentUser();
-
-      if (!user) {
-        console.error("No authenticated user found for getTasks");
-        return getLocalData(TASKS_KEY);
-      }
-
       // Get tasks filtered by user_id
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -38,20 +35,18 @@ export const getTasks = async (useSupabase = false) => {
         return getLocalData(TASKS_KEY);
       }
 
-      // Add debugging to see what's happening
-      console.log(`Retrieved ${data?.length || 0} tasks from Supabase`);
-
+      console.log(`Retrieved ${data?.length || 0} tasks from Supabase for user ${userId}`);
       return data;
     } catch (error) {
-      console.error("Error in getTasks:", error);
+      console.error("Error in getTasks (Supabase path):", error);
       return getLocalData(TASKS_KEY);
     }
   }
-
   return getLocalData(TASKS_KEY);
 };
 
-export const addTask = async (task, useSupabase = false) => {
+export const addTask = async (task, useSupabase = false, providedUser = null) => {
+  console.log('[addTask] Entered function. Task summary for identification:', task ? task.title : 'Task undefined', 'useSupabase:', useSupabase, 'User provided:', !!providedUser);
   try {
     // Ensure created_at is set, Supabase default might handle this but good practice
     const taskWithTimestamp = {
@@ -60,22 +55,32 @@ export const addTask = async (task, useSupabase = false) => {
     };
 
     if (useSupabase) {
-      // Get current user for Supabase operations
-      const user = await getCurrentUser();
-      if (!user) {
-        console.error("[addTask] No authenticated user found for addTask");
+      console.log('[addTask] Inside useSupabase block.');
+      
+      let userToUse = providedUser;
+      if (!userToUse) {
+        console.log('[addTask] No user provided directly, calling getCurrentUser.');
+        userToUse = await getCurrentUser();
+      } else {
+        console.log('[addTask] Using provided user object. User ID:', userToUse.id);
+      }
+      
+      // console.log('[addTask] getCurrentUser call completed. User ID:', userToUse ? userToUse.id : 'User object is null or undefined'); // Keep for now, or adapt
+
+      if (!userToUse) {
+        console.error("[addTask] No authenticated user found for addTask (user object is null).");
         throw new Error("User not authenticated");
       }
 
       // De-duplication logic for canvas_uid (only if canvas_uid is truthy)
       if (task.canvas_uid && String(task.canvas_uid).trim() !== "") {
         const canvasUIDString = String(task.canvas_uid).trim();
-        console.log(`[addTask] Checking for existing task. User ID: ${user.id}, Canvas UID: '${canvasUIDString}'`);
+        console.log(`[addTask] Checking for existing task. User ID: ${userToUse.id}, Canvas UID: '${canvasUIDString}'`);
 
         const { data: existingTasks, error: existingTaskError } = await supabase
           .from("tasks")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", userToUse.id)
           .eq("canvas_uid", canvasUIDString)
           .limit(1); // Expect at most one match
 
@@ -112,7 +117,7 @@ export const addTask = async (task, useSupabase = false) => {
       const { id, ...taskData } = taskWithTimestamp; // Remove client-generated ID if any
       const taskToSave = {
         ...taskData,
-        user_id: user.id,
+        user_id: userToUse.id,
         canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : null, // Store as string or null
       };
 
@@ -249,109 +254,35 @@ export const deleteTask = async (taskId, useSupabase = false) => {
   return true;
 };
 
-export const getClasses = async (useSupabase = false) => {
+export const getClasses = async (userId, useSupabase = false) => {
+  console.log('[getClasses] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
   if (useSupabase) {
+    if (!userId) {
+      console.error("[getClasses] Supabase fetch requested but no userId provided. Falling back to local data.");
+      return getLocalData(CLASSES_KEY);
+    }
     try {
-      // Get current user ID
-      const user = await getCurrentUser();
-
-      if (!user) {
-        console.error("No authenticated user found for getClasses");
-        return getLocalData(CLASSES_KEY);
-      }
-
-      // Get all classes for this user
-      const { data: classesData, error: classesError } = await supabase
+      const { data, error } = await supabase
         .from("classes")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("name");
+        .select("*, class_syllabi(*), class_files(*)")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
-      if (classesError) {
-        console.error("Error fetching classes:", classesError);
+      if (error) {
+        console.error("Error fetching classes from Supabase:", error);
         return getLocalData(CLASSES_KEY);
       }
-
-      // Get all files from class_files table for this user
-      const { data: classFiles, error: filesError } = await supabase
-        .from("class_files")
-        .select("*")
-        .eq("owner", user.id)
-        .order("uploaded_at", { ascending: false });
-            
-      if (filesError) {
-        console.error("Error fetching class files:", filesError);
-        // Continue anyway, treating as if there are no files
-      }
-            
-      // Get all syllabi from class_syllabi table for this user
-      const { data: classSyllabi, error: syllabiError } = await supabase
-        .from("class_syllabi")
-        .select("*")
-        .eq("owner", user.id);
-            
-      if (syllabiError) {
-        console.error("Error fetching class syllabi:", syllabiError);
-        // Continue anyway, treating as if there are no syllabi
-      }
-
-      // Assign files and syllabi to their respective classes
-      if (classesData) {
-        for (let cls of classesData) {
-          // Initialize files array if not exists
-          if (!cls.files) {
-            cls.files = [];
-          }
-          
-          // Assign class files from class_files table
-          if (classFiles) {
-            cls.files = classFiles.filter(file => file.class_id === cls.id);
-          }
-          
-          // Assign class syllabus from class_syllabi table
-          if (classSyllabi) {
-            const syllabus = classSyllabi.find(s => s.class_id === cls.id);
-            cls.syllabus = syllabus || null;
-          }
-          
-          // Refresh syllabus URL if exists
-          if (cls.syllabus && cls.syllabus.path) {
-            const { data: syllabusUrlData, error: syllabusUrlError } = await supabase.storage
-              .from("class-materials")
-              .createSignedUrl(cls.syllabus.path, 31536000);
-            
-            if (!syllabusUrlError && syllabusUrlData) {
-              cls.syllabus.url = syllabusUrlData.signedUrl;
-            }
-          }
-
-          // Refresh URLs for all class files if they exist
-          if (cls.files && cls.files.length > 0) {
-            for (let file of cls.files) {
-              if (file.path) {
-                const { data: fileUrlData, error: fileUrlError } = await supabase.storage
-                  .from("class-materials")
-                  .createSignedUrl(file.path, 31536000);
-                
-                if (!fileUrlError && fileUrlData) {
-                  file.url = fileUrlData.signedUrl;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // Save updated classes with refreshed URLs to local storage
-      saveLocalData(CLASSES_KEY, classesData || []);
-
-      return classesData;
+      console.log(`Retrieved ${data?.length || 0} classes from Supabase for user ${userId}`);
+      return data.map(cls => ({
+        ...cls,
+        syllabus: cls.class_syllabi && cls.class_syllabi.length > 0 ? cls.class_syllabi[0] : null,
+        files: cls.class_files || [],
+      }));
     } catch (error) {
-      console.error("Error fetching classes from Supabase:", error.message);
+      console.error("Error in getClasses (Supabase path):", error);
       return getLocalData(CLASSES_KEY);
     }
   }
-
   return getLocalData(CLASSES_KEY);
 };
 
@@ -745,21 +676,31 @@ export const deleteClass = async (classId, useSupabase = false) => {
   return true;
 };
 
-export const getTaskTypes = async (useSupabase = false) => {
+export const getTaskTypes = async (userId, useSupabase = false) => {
+  console.log('[getTaskTypes] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
   if (useSupabase) {
+    if (!userId) {
+      console.error("[getTaskTypes] Supabase fetch requested but no userId provided. Falling back to local data.");
+      return getLocalData(TASK_TYPES_KEY);
+    }
     try {
       const { data, error } = await supabase
         .from("task_types")
         .select("*")
-        .order("name");
-      if (error) throw error;
+        .eq("user_id", userId)
+        .order("name", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching task types from Supabase:", error);
+        return getLocalData(TASK_TYPES_KEY);
+      }
+      console.log(`Retrieved ${data?.length || 0} task types from Supabase for user ${userId}`);
       return data;
     } catch (error) {
-      console.error("Error fetching task types from Supabase:", error.message);
+      console.error("Error in getTaskTypes (Supabase path):", error);
       return getLocalData(TASK_TYPES_KEY);
     }
   }
-
   return getLocalData(TASK_TYPES_KEY);
 };
 

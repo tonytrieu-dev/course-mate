@@ -15,7 +15,7 @@ import LoginComponent from "./LoginComponent";
 import CanvasSettings from "./CanvasSettings";
 
 const Sidebar = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, setLastCalendarSyncTimestamp } = useAuth();
   const [title, setTitle] = useState("UCR");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [classes, setClasses] = useState([]);
@@ -36,17 +36,17 @@ const Sidebar = () => {
     const autoSyncCanvas = async () => {
       const canvasUrl = localStorage.getItem("canvas_calendar_url");
       const autoSync = localStorage.getItem("canvas_auto_sync") === "true";
+      console.log('[Sidebar] autoSyncCanvas triggered. Canvas URL:', canvasUrl, 'Auto Sync Enabled:', autoSync, 'User Authenticated:', !!user);
 
-      if (canvasUrl && autoSync) {
+      if (user && canvasUrl && autoSync) {
         try {
-          console.log("Auto-syncing Canvas calendar...");
-          const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated);
+          console.log("Auto-syncing Canvas calendar (User ID available):", user.id);
+          const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user);
           console.log("fetchCanvasCalendar result:", result);
 
-          // Dispatch event to update calendar view after successful auto-sync
           if (result && result.success) {
-             console.log("Canvas auto-sync successful, dispatching calendar-update.");
-             window.dispatchEvent(new CustomEvent("calendar-update"));
+             console.log("Canvas auto-sync successful, updating sync timestamp.");
+             setLastCalendarSyncTimestamp(Date.now());
           } else {
             console.log("Canvas auto-sync did not report success or result was invalid. Result:", result);
           }
@@ -63,7 +63,7 @@ const Sidebar = () => {
 
     return () => clearTimeout(timerId); // Cleanup timer if component unmounts
 
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user, setLastCalendarSyncTimestamp]);
 
   // Load data
   useEffect(() => {
