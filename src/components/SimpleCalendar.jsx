@@ -324,8 +324,8 @@ const SimpleCalendar = ({ view }) => {
           {/* Ensure this container grows and scrolls if needed */}
           <div className="flex-grow overflow-y-auto">
             {dayTasks.map((task) => {
-              let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
-              let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
+              let bgColor = task.completed ? "bg-green-200" : "bg-blue-200";
+              let borderColor = task.completed ? "border-l-green-600" : "border-l-blue-600";
               return (
                 <div
                   key={task.id}
@@ -776,8 +776,8 @@ const SimpleCalendar = ({ view }) => {
           </div>
 
           {dayTasks.map((task) => {
-            let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
-            let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
+            let bgColor = task.completed ? "bg-green-200" : "bg-blue-200";
+            let borderColor = task.completed ? "border-l-green-600" : "border-l-blue-600";
             return (
               <div
                 key={task.id}
@@ -864,8 +864,8 @@ const SimpleCalendar = ({ view }) => {
           </div>
           <div className="flex-1">
             {tasksForHour.map((task) => {
-              let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
-              let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
+              let bgColor = task.completed ? "bg-green-200" : "bg-blue-200";
+              let borderColor = task.completed ? "border-l-green-600" : "border-l-blue-600";
               return (
                 <div
                   key={task.id}
@@ -913,8 +913,8 @@ const SimpleCalendar = ({ view }) => {
         <div className="w-16 font-bold">12 AM</div>
         <div className="flex-1">
           {(tasksByHour[0] || []).map((task) => {
-            let bgColor = task.completed ? "bg-green-50" : "bg-blue-50";
-            let borderColor = task.completed ? "border-l-green-500" : "border-l-blue-500";
+            let bgColor = task.completed ? "bg-green-200" : "bg-blue-200";
+            let borderColor = task.completed ? "border-l-green-600" : "border-l-blue-600";
             return (
               <div
                 key={task.id}
