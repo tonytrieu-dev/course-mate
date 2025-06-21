@@ -30,39 +30,7 @@ const CalendarApp = () => {
           <h2 className="text-blue-600 font-bold m-0 text-xl">Calendar view</h2>
 
           <div className="flex items-center">
-            {/* View controls */}
-            <div className="mr-4">
-              <button
-                onClick={() => setView("month")}
-                className={`py-1 px-2.5 mx-1 border border-gray-300 rounded ${
-                  view === "month"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-black"
-                }`}
-              >
-                month
-              </button>
-              <button
-                onClick={() => setView("week")}
-                className={`py-1 px-2.5 mx-1 border border-gray-300 rounded ${
-                  view === "week"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-black"
-                }`}
-              >
-                week
-              </button>
-              <button
-                onClick={() => setView("day")}
-                className={`py-1 px-2.5 mx-1 border border-gray-300 rounded ${
-                  view === "day"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-black"
-                }`}
-              >
-                day
-              </button>
-            </div>
+            {/* View controls removed */}
           </div>
         </div>
 

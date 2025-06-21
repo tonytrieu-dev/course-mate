@@ -787,15 +787,15 @@ const Sidebar = () => {
           {classes.map((c) => (
             <li
               key={c.id}
-              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 ${hoveredClassId === c.id ? "bg-gray-100" : ""
-                }`}
+              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 group relative ${
+                hoveredClassId === c.id ? "bg-gray-100" : ""
+              }`}
               onMouseEnter={() => setHoveredClassId(c.id)}
               onMouseLeave={() => setHoveredClassId(null)}
-              className="group relative"
             >
               <div
                 onClick={() => handleClassClick(c.id)}
-                className={`flex justify-between items-center p-2 rounded cursor-pointer hover:bg-gray-200 ${
+                className={`flex justify-between items-center p-2 rounded cursor-pointer hover:bg-gray-200 w-full ${
                   selectedClass?.id === c.id ? "bg-blue-100" : ""
                 }`}
               >
@@ -846,7 +846,7 @@ const Sidebar = () => {
 
       <div className="px-2 mt-auto border-t pt-4">
         <h4 className="font-medium text-gray-700 mb-2 text-sm text-center uppercase tracking-wider">
-          Class AI Assistant
+          Class Chatbot
         </h4>
         <div className="h-48 bg-gray-50 p-2 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2">
           {chatHistory.length === 0 && (
