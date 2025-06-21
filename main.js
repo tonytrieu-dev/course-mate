@@ -1,5 +1,12 @@
 const { app, BrowserWindow } = require('electron');
-const path = require('path');
+const http = require('http');
+
+function waitForServer(url, callback) {
+  const tryConnect = () => {
+    http.get(url, () => callback()).on('error', () => setTimeout(tryConnect, 500));
+  };
+  tryConnect();
+}
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -11,8 +18,13 @@ function createWindow() {
     }
   });
 
-  // Load your HTML file with the Tailwind CDN
-  mainWindow.loadFile('index.html');
+  // Wait for the dev server to be ready before loading
+  const devServerUrl = 'http://localhost:8080';
+  waitForServer(devServerUrl, () => {
+    mainWindow.loadURL(devServerUrl).catch(err => {
+      console.error('Failed to load dev server:', err);
+    });
+  });
 }
 
 app.whenReady().then(createWindow);

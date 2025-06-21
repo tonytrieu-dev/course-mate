@@ -404,116 +404,37 @@ export const updateClass = async (
   updatedClass,
   useSupabase = false
 ) => {
-  // Extract files and syllabus from the updatedClass to handle them separately
-  const { files, syllabus, ...cleanClassData } = updatedClass;
-  
-  const classToUpdate = {
-    ...cleanClassData,
-    updated_at: new Date().toISOString(),
-  };
-
   if (useSupabase) {
     try {
-      // Get current user ID
       const user = await getCurrentUser();
-      
       if (!user) {
-        console.error("No authenticated user found for updateClass");
-        throw new Error("Not authenticated");
+        throw new Error("User is not authenticated.");
       }
-      
-      // Ensure user_id is included in the update
-      const classWithUserId = {
-        ...classToUpdate,
+
+      // Create a clean object for the update
+      const updateData = {
+        name: updatedClass.name,
         user_id: user.id,
       };
-      
-      // Update the class without files and syllabus
+
+      console.log(`[updateClass] Attempting to update class ${classId} in Supabase with data:`, updateData);
+
       const { data, error } = await supabase
         .from("classes")
-        .update(classWithUserId)
+        .update(updateData)
         .eq("id", classId)
-        .select();
+        .select("*");
 
-      if (error) throw error;
-      
-      let updatedFiles = files || [];
-      let updatedSyllabus = syllabus;
-      
-      // If we have files, make sure they're properly stored in class_files
-      if (files && files.length > 0) {
-        // Get existing files to compare
-        const { data: existingFiles } = await supabase
-          .from("class_files")
-          .select("*")
-          .eq("class_id", classId);
-          
-        const existingFilesPaths = existingFiles ? existingFiles.map(f => f.path) : [];
-        
-        // Check for new files to add
-        for (const file of files) {
-          // If this file doesn't exist in the database yet, add it
-          if (file.path && !existingFilesPaths.includes(file.path)) {
-            const fileData = {
-              ...file,
-              class_id: classId,
-              owner: user.id,
-              uploaded_at: file.uploaded_at || new Date().toISOString()
-            };
-            
-            await supabase
-              .from("class_files")
-              .insert([fileData]);
-          }
+      if (error) {
+        console.error(`Error updating class in Supabase:`, error.message);
+        // Add more context to the error
+        if (error.message.includes("column")) {
+          console.error("This might be a schema mismatch. Check the columns in your 'classes' table.");
+          console.error("Data sent:", updatedClass);
         }
-        
-        // No need to handle file deletions here as that's handled by handleDeleteFile
+        throw error;
       }
-      
-      // If we have a syllabus, make sure it's properly stored in class_syllabi
-      if (syllabus) {
-        // Check if there's already a syllabus for this class
-        const { data: existingSyllabus } = await supabase
-          .from("class_syllabi")
-          .select("*")
-          .eq("class_id", classId)
-          .single();
-          
-        if (!existingSyllabus || existingSyllabus.path !== syllabus.path) {
-          // If no syllabus exists or it's different, update it
-          if (existingSyllabus) {
-            // Delete existing syllabus
-            await supabase
-              .from("class_syllabi")
-              .delete()
-              .eq("class_id", classId);
-          }
-          
-          // Add new syllabus
-          const syllabusData = {
-            ...syllabus,
-            class_id: classId,
-            owner: user.id,
-            uploaded_at: syllabus.uploaded_at || new Date().toISOString()
-          };
-          
-          const { data: newSyllabus } = await supabase
-            .from("class_syllabi")
-            .insert([syllabusData])
-            .select();
-            
-          if (newSyllabus && newSyllabus.length > 0) {
-            updatedSyllabus = newSyllabus[0];
-          }
-        }
-      } else if (syllabus === null) {
-        // If syllabus is explicitly set to null, delete any existing syllabus
-        await supabase
-          .from("class_syllabi")
-          .delete()
-          .eq("class_id", classId);
-      }
-      
+
       // Get the latest files for this class
       const { data: latestFiles } = await supabase
         .from("class_files")
@@ -521,24 +442,20 @@ export const updateClass = async (
         .eq("class_id", classId);
         
       if (latestFiles) {
-        updatedFiles = latestFiles;
+        const fullClassData = {
+          ...data[0],
+          files: latestFiles,
+        };
+
+        // Update local cache with the complete data
+        const localClasses = getLocalData(CLASSES_KEY);
+        const updatedClasses = localClasses.map((cls) =>
+          cls.id === classId ? fullClassData : cls
+        );
+        saveLocalData(CLASSES_KEY, updatedClasses);
+
+        return fullClassData;
       }
-      
-      // Combine the data for local storage
-      const fullClassData = {
-        ...data[0],
-        files: updatedFiles,
-        syllabus: updatedSyllabus
-      };
-
-      // Update local cache with the complete data
-      const localClasses = getLocalData(CLASSES_KEY);
-      const updatedClasses = localClasses.map((cls) =>
-        cls.id === classId ? fullClassData : cls
-      );
-      saveLocalData(CLASSES_KEY, updatedClasses);
-
-      return fullClassData;
     } catch (error) {
       console.error("Error updating class in Supabase:", error.message);
       // Fall back to local storage only
@@ -546,9 +463,9 @@ export const updateClass = async (
   } else {
     // For local storage, we keep the files and syllabus with the class
     const completeClassData = {
-      ...classToUpdate,
-      files: files || [],
-      syllabus: syllabus
+      ...updatedClass,
+      files: updatedClass.files || [],
+      syllabus: updatedClass.syllabus
     };
     
     const classes = getLocalData(CLASSES_KEY);
@@ -563,9 +480,9 @@ export const updateClass = async (
   // Return the complete data
   return { 
     id: classId, 
-    ...classToUpdate,
-    files: files || [],
-    syllabus: syllabus
+    ...updatedClass,
+    files: updatedClass.files || [],
+    syllabus: updatedClass.syllabus
   };
 };
 

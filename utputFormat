@@ -1,0 +1,22 @@
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json; charset=utf-8
+Content-Length: 55
+Connection: keep-alive
+Date: Fri, 20 Jun 2025 23:19:34 GMT
+ETag: W/"37-2rNK07tH7ceN3XGTWwIATU5bonw"
+X-Powered-By: huggingface-moon
+cross-origin-opener-policy: same-origin
+Referrer-Policy: strict-origin-when-cross-origin
+X-Request-Id: Root=1-6855ec86-2e2214f03476119c11929df8
+Vary: Origin
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: X-Repo-Commit,X-Request-Id,X-Error-Code,X-Error-Message,X-Total-Count,ETag,Link,Accept-Ranges,Content-Range,X-Linked-Size,X-Linked-ETag,X-Xet-Hash
+X-Robots-Tag: none
+X-Error-Message: Invalid credentials in Authorization header
+WWW-Authenticate: Bearer realm="Authentication required", charset="UTF-8"
+X-Cache: Error from cloudfront
+Via: 1.1 17d31879b820cd581d3935391244b032.cloudfront.net (CloudFront)
+X-Amz-Cf-Pop: SFO53-P3
+X-Amz-Cf-Id: 1a8fLzUzDqADTzSiFyT5uPilUGxprnWx_trZEN0L9DkQ4SiajhHBYA==
+
+{"error":"Invalid credentials in Authorization header"}

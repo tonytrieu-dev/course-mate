@@ -13,6 +13,8 @@ import { supabase } from "../services/supabaseClient";
 import { fetchCanvasCalendar } from "../services/canvasService";
 import LoginComponent from "./LoginComponent";
 import CanvasSettings from "./CanvasSettings";
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 
 const Sidebar = () => {
   const { user, isAuthenticated, logout, setLastCalendarSyncTimestamp } = useAuth();
@@ -25,11 +27,14 @@ const Sidebar = () => {
   const [showSyllabusModal, setShowSyllabusModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [isHoveringClassArea, setIsHoveringClassArea] = useState(false);
-  //const [tasksAdded, setTasksAdded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [showCanvasSettings, setShowCanvasSettings] = useState(false);
+  const [chatQuery, setChatQuery] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatResponse, setChatResponse] = useState('');
 
 
   useEffect(() => {
@@ -45,8 +50,8 @@ const Sidebar = () => {
           console.log("fetchCanvasCalendar result:", result);
 
           if (result && result.success) {
-             console.log("Canvas auto-sync successful, updating sync timestamp.");
-             setLastCalendarSyncTimestamp(Date.now());
+            console.log("Canvas auto-sync successful, updating sync timestamp.");
+            setLastCalendarSyncTimestamp(Date.now());
           } else {
             console.log("Canvas auto-sync did not report success or result was invalid. Result:", result);
           }
@@ -68,8 +73,10 @@ const Sidebar = () => {
   // Load data
   useEffect(() => {
     const loadData = async () => {
-      // Load classes
-      const fetchedClasses = await getClasses(isAuthenticated);
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      // Load classes from Supabase
+      const fetchedClasses = await getClasses(user?.id, true);
       setClasses(fetchedClasses);
 
       // Load settings
@@ -98,9 +105,33 @@ const Sidebar = () => {
   };
 
   // Class editing functions
-  const handleClassClick = (classId) => {
+  const handleClassClick = async (classId) => {
+    // Fetch the latest class data from the database
     const classObj = classes.find((c) => c.id === classId);
-    setSelectedClass(classObj);
+
+    // Fetch latest syllabus
+    const { data: syllabusArr } = await supabase
+      .from("class_syllabi")
+      .select("*")
+      .eq("class_id", classId)
+      .order("uploaded_at", { ascending: false })
+      .limit(1);
+
+    // Fetch latest files
+    const { data: filesArr } = await supabase
+      .from("class_files")
+      .select("*")
+      .eq("class_id", classId)
+      .order("uploaded_at", { ascending: false });
+
+    // Update the class object with latest data
+    const updatedClass = {
+      ...classObj,
+      syllabus: syllabusArr && syllabusArr.length > 0 ? syllabusArr[0] : null,
+      files: filesArr || [],
+    };
+
+    setSelectedClass(updatedClass);
     setShowSyllabusModal(true);
   };
 
@@ -194,6 +225,7 @@ const Sidebar = () => {
           .upload(fileName, file, {
             cacheControl: "3600",
             upsert: true,
+            contentType: file.type || 'application/pdf',
             // Make sure owner is set correctly to the authenticated user
             fileMetadata: {
               owner: user.id,
@@ -236,30 +268,41 @@ const Sidebar = () => {
           uploaded_at: new Date().toISOString(),
         };
 
-        // Store in class_syllabi table
-        const { data: syllabusDbData, error: syllabusDbError } = await supabase
+        // Insert the syllabus record and get the new record back
+        const { data: syllabusRecord, error: insertError } = await supabase
           .from("class_syllabi")
-          .insert([syllabusData])
-          .select();
+          .insert({
+            class_id: selectedClass.id,
+            name: file.name,
+            path: fileName,
+            url: signedUrlData.signedUrl,
+            owner: user.id,
+          })
+          .select()
+          .single();
 
-        if (syllabusDbError) {
-          console.error("Error storing syllabus metadata:", syllabusDbError);
-          throw syllabusDbError;
+        if (insertError) {
+          console.error("Error inserting syllabus record:", insertError);
+          throw insertError;
+        }
+        
+        // **NEW: Invoke the embed-file function for the syllabus**
+        const { error: functionError } = await supabase.functions.invoke('embed-file', {
+          body: { record: { ...syllabusRecord, file_name: syllabusRecord.name, class_id: syllabusRecord.class_id } },
+        });
+
+        if (functionError) {
+          console.error('Error invoking embed-file function for syllabus:', functionError);
         }
 
-        // Update the local class object with syllabus
-        const updatedClass = {
-          ...selectedClass,
-          syllabus: syllabusDbData[0],
-        };
+        // Update the state with the new syllabus
+        const updatedClass = { ...selectedClass, syllabus: syllabusRecord };
+        setSelectedClass(updatedClass);
 
-        // Update local state
         const updatedClasses = classes.map((c) =>
           c.id === selectedClass.id ? updatedClass : c
         );
-
         setClasses(updatedClasses);
-        setSelectedClass(updatedClass);
 
         // Also update local storage
         localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
@@ -277,45 +320,23 @@ const Sidebar = () => {
     const file = e.target.files[0];
     if (file && selectedClass) {
       try {
-        // Show loading state
         setIsUploadingFile(true);
-
-        // Get current user ID
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("User not authenticated");
-
-        // Upload the file to Supabase Storage
-        const fileName = `${selectedClass.id}/${Date.now()}_${file.name}`;
+        const fileName = `${selectedClass.id}/files/${Date.now()}_${file.name}`;
         const { data, error } = await supabase.storage
           .from("class-materials")
           .upload(fileName, file, {
             cacheControl: "3600",
             upsert: true,
-            // Make sure owner is set correctly to the authenticated user
-            fileMetadata: {
-              owner: user.id,
-            },
+            contentType: file.type || 'application/octet-stream',
+            fileMetadata: { owner: user.id },
           });
-
-        if (error) {
-          console.error("Storage upload error:", error);
-          throw error;
-        }
-
-        // Get a signed URL for the file (valid for 1 year)
+        if (error) throw error;
         const { data: signedUrlData, error: signedUrlError } = await supabase.storage
           .from("class-materials")
           .createSignedUrl(fileName, 31536000);
-
-        if (signedUrlError) {
-          console.error("Error creating signed URL:", signedUrlError);
-          throw signedUrlError;
-        }
-
-        // Create file metadata
+        if (signedUrlError) throw signedUrlError;
         const fileData = {
           name: file.name,
           type: file.type,
@@ -326,46 +347,48 @@ const Sidebar = () => {
           class_id: selectedClass.id,
           uploaded_at: new Date().toISOString(),
         };
-
-        // Store in class_files table
         const { data: fileDbData, error: fileDbError } = await supabase
           .from("class_files")
           .insert([fileData])
           .select();
-
-        if (fileDbError) {
-          console.error("Error storing file metadata:", fileDbError);
-          throw fileDbError;
-        }
-
-        // Get all files for this class
-        const { data: classFiles, error: classFilesError } = await supabase
+        if (fileDbError) throw fileDbError;
+        
+        // Insert the file record into the database
+        const { data: fileRecord, error: insertError } = await supabase
           .from("class_files")
-          .select("*")
-          .eq("class_id", selectedClass.id)
-          .order("uploaded_at", { ascending: false });
+          .insert({
+            class_id: selectedClass.id,
+            name: file.name,
+            path: fileName,
+            type: file.type,
+            url: signedUrlData.signedUrl,
+            owner: user.id,
+          })
+          .select()
+          .single();
 
-        if (classFilesError) {
-          console.error("Error fetching class files:", classFilesError);
-          throw classFilesError;
+        if (insertError) {
+          console.error("Error inserting file record:", insertError);
+          throw insertError;
+        }
+        
+        // **NEW: Invoke the embed-file function**
+        const { error: functionError } = await supabase.functions.invoke('embed-file', {
+          body: { record: { ...fileRecord, file_name: fileRecord.name } },
+        });
+
+        if (functionError) {
+          console.error('Error invoking embed-file function:', functionError);
+          // Don't throw here, as the file is already uploaded.
+          // Maybe show a warning to the user.
         }
 
-        // Update the local class object with files
-        const updatedClass = {
-          ...selectedClass,
-          files: classFiles || [],
-        };
+        // Update the state with the new file
+        setSelectedClass((prev) => ({
+          ...prev,
+          files: [...prev.files, fileRecord],
+        }));
 
-        // Update in local state only
-        const updatedClasses = classes.map((c) =>
-          c.id === selectedClass.id ? updatedClass : c
-        );
-
-        setClasses(updatedClasses);
-        setSelectedClass(updatedClass);
-
-        // Also update local storage
-        localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
       } catch (error) {
         console.error("Error uploading file:", error);
         alert("Error uploading file: " + error.message);
@@ -685,6 +708,46 @@ const Sidebar = () => {
     );
   };
 
+  // Move handleAskChatbot inside the component
+  const handleAskChatbot = async (e) => {
+    e.preventDefault();
+    if (!chatQuery.trim() || isChatLoading) return;
+
+    const newHistory = [...chatHistory, { role: 'user', content: chatQuery }];
+    setChatHistory(newHistory);
+    setChatQuery(''); // Clear input after sending
+
+    if (!selectedClass) {
+      setChatHistory([
+        ...newHistory,
+        { role: 'assistant', content: 'Please select a class before asking a question.' },
+      ]);
+      setIsChatLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('ask-chatbot', {
+        body: {
+          query: chatQuery,
+          classId: selectedClass.id,
+        },
+      });
+
+      if (error) {
+        console.error('Error asking chatbot:', error);
+        setChatHistory([...newHistory, { role: 'assistant', content: 'Sorry, something went wrong.' }]);
+      } else {
+        setChatHistory([...newHistory, { role: 'assistant', content: data.answer }]);
+      }
+    } catch (err) {
+      console.error('Error asking chatbot:', err);
+      setChatHistory([...newHistory, { role: 'assistant', content: 'Sorry, something went wrong.' }]);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
   return (
     <div className="w-64 border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col">
       <div className="pt-16">
@@ -721,67 +784,51 @@ const Sidebar = () => {
         </div>
 
         <ul className="list-none p-0 pl-8 m-0">
-          {classes.map((cls) => (
+          {classes.map((c) => (
             <li
-              key={cls.id}
-              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 ${hoveredClassId === cls.id ? "bg-gray-100" : ""
+              key={c.id}
+              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 ${hoveredClassId === c.id ? "bg-gray-100" : ""
                 }`}
-              onMouseEnter={() => setHoveredClassId(cls.id)}
+              onMouseEnter={() => setHoveredClassId(c.id)}
               onMouseLeave={() => setHoveredClassId(null)}
+              className="group relative"
             >
-              {editingClassId === cls.id ? (
-                <div className="flex items-center w-full">
-                  <span className="mr-2 ml-0 text-blue-600 text-lg select-none">•</span>
-                  <input
-                    value={cls.name}
-                    onChange={(e) => handleClassChange(e, cls.id)}
-                    onKeyDown={(e) => handleClassKeyDown(e, cls.id)}
-                    onBlur={handleClassBlur}
-                    autoFocus
-                    className="flex-1 p-0.5 bg-transparent"
-                  />
-                </div>
-              ) : (
-                <>
-                  <div
-                    className="flex items-center pl-0 flex-1 relative"
-                    onClick={() => handleClassClick(cls.id)}
-                  >
-                    <span className="mr-2 ml-0 text-blue-600 text-lg select-none" aria-hidden="true">•</span>
+              <div
+                onClick={() => handleClassClick(c.id)}
+                className={`flex justify-between items-center p-2 rounded cursor-pointer hover:bg-gray-200 ${
+                  selectedClass?.id === c.id ? "bg-blue-100" : ""
+                }`}
+              >
+                <div className="flex-1 flex items-center">
+                  {editingClassId === c.id ? (
+                    <input
+                      value={c.name}
+                      onChange={(e) => handleClassChange(e, c.id)}
+                      onKeyDown={(e) => handleClassKeyDown(e, c.id)}
+                      onBlur={handleClassBlur}
+                      autoFocus
+                      className="flex-1 p-0.5 bg-transparent"
+                    />
+                  ) : (
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleClassNameClick(e, cls.id);
+                        handleClassNameClick(e, c.id);
                       }}
-                      className={`cursor-pointer ${hoveredClassId === cls.id ? "font-bold" : "font-normal"
-                        } transition-all duration-100`}
                     >
-                      {cls.name}
+                      {c.name}
                     </span>
-
-                    {(cls.syllabus || (cls.files && cls.files.length > 0)) && (
-                      <span
-                        className="ml-1 text-base text-blue-600"
-                        title={cls.files && cls.files.length > 0
-                          ? `Syllabus and ${cls.files.length} file(s) uploaded`
-                          : "Syllabus uploaded"}
-                      >
-                      </span>
-                    )}
-                  </div>
-                  {hoveredClassId === cls.id && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClass(e, cls.id);
-                      }}
-                      className="bg-transparent border-none text-red-500 cursor-pointer text-base hover:text-red-700"
-                    >
-                      ×
-                    </button>
                   )}
-                </>
-              )}
+                </div>
+                {hoveredClassId === c.id && editingClassId !== c.id && (
+                  <button
+                    onClick={(e) => handleDeleteClass(e, c.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -795,6 +842,47 @@ const Sidebar = () => {
             <span>Add class</span>
           </button>
         )}
+      </div>
+
+      <div className="px-2 mt-auto border-t pt-4">
+        <h4 className="font-medium text-gray-700 mb-2 text-sm text-center uppercase tracking-wider">
+          Class AI Assistant
+        </h4>
+        <div className="h-48 bg-gray-50 p-2 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2">
+          {chatHistory.length === 0 && (
+            <div className="text-center text-gray-400 text-sm mt-4">
+              Ask a question about your uploaded documents.
+            </div>
+          )}
+          {chatHistory.map((msg, index) => (
+            <div
+              key={index}
+              className={`p-2 rounded-lg text-sm max-w-[85%] break-words ${msg.role === 'user'
+                  ? 'bg-blue-500 text-white self-end'
+                  : 'bg-gray-200 text-gray-800 self-start'
+                }`}
+            >
+              {msg.content}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={handleAskChatbot} className="flex">
+          <input
+            type="text"
+            value={chatQuery}
+            onChange={(e) => setChatQuery(e.target.value)}
+            placeholder="Ask a question..."
+            className="flex-1 p-2 border border-gray-300 rounded-l-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            disabled={isChatLoading}
+          />
+          <button
+            type="submit"
+            disabled={isChatLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-r-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isChatLoading ? '...' : '➤'}
+          </button>
+        </form>
       </div>
 
       {/* Canvas Integration Button */}
