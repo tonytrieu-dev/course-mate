@@ -29,11 +29,11 @@ const EventCard = ({ task, classes, taskTypes, formatTimeForDisplay, onToggleCom
     
     // Different colors based on task type
     const taskType = taskTypes.find(t => t.id === task.type)?.name?.toLowerCase() || '';
-    if (taskType.includes('exam') || taskType.includes('test')) {
+    if (taskType.includes('mid term') || taskType.includes('final') || taskType.includes('quiz')) {
       return {
-        bg: "bg-red-100",
-        border: "border-l-4 border-red-500",
-        text: "text-red-800"
+        bg: "bg-orange-100",
+        border: "border-l-4 border-orange-500",
+        text: "text-orange-800"
       };
     } else if (taskType.includes('homework') || taskType.includes('assignment')) {
       return {

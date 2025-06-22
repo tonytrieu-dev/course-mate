@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { query, classId } = await req.json();
+    const { query, classId, conversationHistory = [] } = await req.json();
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // 1. Generate an embedding for the user's question using Hugging Face.
@@ -71,7 +71,22 @@ Deno.serve(async (req) => {
 
     const contextText = documents.map((doc: any) => doc.content).join("\n\n---\n\n");
 
-    // 3. Call the Hugging Face Inference API
+    // 3. Build conversation context
+    const conversationContext = conversationHistory.length > 0 
+      ? `Previous conversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\n`
+      : '';
+
+    // 4. Create enhanced prompt with conversation history
+    const enhancedPrompt = `You are a helpful assistant answering questions about course materials. Use the following context to answer the user's question. If the context doesn't contain the answer, say so.
+
+${conversationContext}Context from documents:
+${contextText}
+
+Current question: ${query}
+
+Please provide a clear and helpful answer based on the context and conversation history:`;
+
+    // 5. Call the Hugging Face Inference API with enhanced prompt
     const hfResponse = await fetch('https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1', {
         headers: {
           Authorization: `Bearer ${hfApiKey}`,
@@ -79,15 +94,19 @@ Deno.serve(async (req) => {
         },
         method: 'POST',
         body: JSON.stringify({
-            inputs: `Based ONLY on the following context, please answer the user's question. If the context does not contain the answer, say "I'm sorry, that information is not available in the provided documents."\n\nContext:\n${contextText}\n\nQuestion:\n${query}\n\nAnswer:`,
-            parameters: { max_new_tokens: 250 }
+            inputs: enhancedPrompt,
+            parameters: { 
+              max_new_tokens: 300,
+              temperature: 0.7,
+              do_sample: true
+            }
         }),
     });
 
     const hfResult = await hfResponse.json();
 
     // Extract the answer from the model's response text
-    const answer = hfResult[0].generated_text.split("Answer:")[1]?.trim() || "I couldn't generate an answer.";
+    const answer = hfResult[0].generated_text || "I couldn't generate an answer.";
 
     return new Response(JSON.stringify({ answer }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

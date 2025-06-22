@@ -5,12 +5,6 @@ import {
 } from './dataService';
 
 const LAST_SYNC_KEY = 'last_sync_timestamp';
-/*
-const getLastSyncTimestamp = () => {
-    const timestamp = localStorage.getItem(LAST_SYNC_KEY);
-    return timestamp ? new Date(timestamp) : null;
-}
-*/
 
 const setLastSyncTimestamp = () => {
     localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());

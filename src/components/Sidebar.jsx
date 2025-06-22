@@ -6,7 +6,6 @@ import {
   deleteClass,
   getSettings,
   updateSettings,
-  //addTask,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
@@ -34,7 +33,6 @@ const Sidebar = () => {
   const [chatQuery, setChatQuery] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
-  const [chatResponse, setChatResponse] = useState('');
 
 
   useEffect(() => {
@@ -372,7 +370,7 @@ const Sidebar = () => {
           throw insertError;
         }
         
-        // **NEW: Invoke the embed-file function**
+        // Invoke the embed-file function**
         const { error: functionError } = await supabase.functions.invoke('embed-file', {
           body: { record: { ...fileRecord, file_name: fileRecord.name } },
         });
@@ -716,6 +714,7 @@ const Sidebar = () => {
     const newHistory = [...chatHistory, { role: 'user', content: chatQuery }];
     setChatHistory(newHistory);
     setChatQuery(''); // Clear input after sending
+    setIsChatLoading(true);
 
     if (!selectedClass) {
       setChatHistory([
@@ -727,10 +726,12 @@ const Sidebar = () => {
     }
 
     try {
+      // Send conversation history with the request
       const { data, error } = await supabase.functions.invoke('ask-chatbot', {
         body: {
           query: chatQuery,
           classId: selectedClass.id,
+          conversationHistory: chatHistory.slice(-6), // Send last 6 messages (3 exchanges)
         },
       });
 
@@ -746,6 +747,11 @@ const Sidebar = () => {
     } finally {
       setIsChatLoading(false);
     }
+  };
+
+  // Add this function near your other handlers
+  const clearChatHistory = () => {
+    setChatHistory([]);
   };
 
   return (
@@ -845,9 +851,20 @@ const Sidebar = () => {
       </div>
 
       <div className="px-2 mt-auto border-t pt-4">
-        <h4 className="font-medium text-gray-700 mb-2 text-sm text-center uppercase tracking-wider">
-          Class Chatbot
-        </h4>
+        <div className="flex justify-between items-center mb-2">
+          <h4 className="font-medium text-gray-700 text-sm text-center uppercase tracking-wider">
+            Class Chatbot
+          </h4>
+          {chatHistory.length > 0 && (
+            <button
+              onClick={clearChatHistory}
+              className="text-xs text-gray-500 hover:text-gray-700 underline"
+              title="Clear conversation"
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <div className="h-48 bg-gray-50 p-2 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2">
           {chatHistory.length === 0 && (
             <div className="text-center text-gray-400 text-sm mt-4">

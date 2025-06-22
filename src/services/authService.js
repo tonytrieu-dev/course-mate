@@ -41,7 +41,6 @@ export const signOut = async () => {
     // First clear any local storage items that might be related to auth
     localStorage.removeItem('supabase.auth.token');
     
-    // Then sign out from Supabase
     const { error } = await supabase.auth.signOut();
 
     if (error) {
