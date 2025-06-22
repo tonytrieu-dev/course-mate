@@ -59,10 +59,9 @@ const Sidebar = () => {
       }
     };
 
-    // autoSyncCanvas(); // Call directly
     const timerId = setTimeout(() => {
       autoSyncCanvas();
-    }, 1500); // Delay of 1.5 seconds
+    }, 1500); 
 
     return () => clearTimeout(timerId); // Cleanup timer if component unmounts
 

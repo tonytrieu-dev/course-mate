@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Validate that required environment variables are set
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const hfApiKey = Deno.env.get('HUGGINGFACE_API_KEY');
@@ -45,7 +44,7 @@ Deno.serve(async (req) => {
       content = await blob.text();
     } else {
       console.log(`Skipping embedding for unsupported file type: ${fileType}`);
-      return new Response('ok - unsupported file type', { headers: corsHeaders });
+      return new Response('OK - unsupported file type', { headers: corsHeaders });
     }
     
     // Generate the embedding using Hugging Face Inference API
@@ -76,7 +75,7 @@ Deno.serve(async (req) => {
       embedding,
     });
 
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('OK', { headers: corsHeaders });
   } catch (err) {
     console.error('Error in embed-file function:', err);
     return new Response(String(err?.message ?? err), {
