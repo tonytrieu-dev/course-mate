@@ -3,3 +3,5 @@ node_modules/
 config.js
 build/bundle.js
 build/node_modules_ws_browser_js.bundle.js
+CLAUDE.md
+.claude
