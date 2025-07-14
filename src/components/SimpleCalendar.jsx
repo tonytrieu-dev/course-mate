@@ -444,6 +444,46 @@ const SimpleCalendar = ({ view: initialView }) => {
     );
   };
 
+  // Reusable HourCell component for day view
+  const HourCell = ({ 
+    hour, 
+    tasks, 
+    classes, 
+    taskTypes, 
+    formatTimeForDisplay, 
+    onToggleComplete, 
+    onEdit, 
+    onClick 
+  }) => {
+    const format12Hours = hour % 12 || 12;
+    const beforeOrAfterNoon = hour < 12 ? " AM" : " PM";
+
+    return (
+      <div 
+        className="border border-gray-300 p-2 flex min-h-20 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+        onClick={onClick}
+      >
+        <div className="w-16 font-bold text-gray-600">
+          {format12Hours}
+          {beforeOrAfterNoon}
+        </div>
+        <div className="flex-1">
+          {tasks.map((task) => (
+            <EventCard
+              key={task.id}
+              task={task}
+              classes={classes}
+              taskTypes={taskTypes}
+              formatTimeForDisplay={formatTimeForDisplay}
+              onToggleComplete={onToggleComplete}
+              onEdit={onEdit}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   // Day view rendering
   const renderDayView = () => {
     const dayTasks = getTasksForDay(currentDate.getDate(), currentDate.getMonth(), currentDate.getFullYear());
@@ -472,66 +512,34 @@ const SimpleCalendar = ({ view: initialView }) => {
       }
     });
 
-    // Render hours from 7 AM to 11 PM
+    // Render hours from 12 AM to 11 PM
     const hours = [];
-    for (let i = 7; i <= 23; i++) {
-      const format12Hours = i % 12 || 12;
-      const beforeOrAfterNoon = i < 12 ? " AM" : " PM";
-      const tasksForHour = tasksByHour[i] || [];
 
+    // Add 4 AM to 11 PM
+    for (let i = 4; i <= 23; i++) {
       hours.push(
-        <div key={i} className="border border-gray-300 p-2 flex min-h-20">
-          <div className="w-16 font-bold">
-            {format12Hours}
-            {beforeOrAfterNoon}
-          </div>
-          <div className="flex-1">
-            {tasksForHour.map((task) => (
-              <EventCard
-                key={task.id}
-                task={task}
-                classes={classes}
-                taskTypes={taskTypes}
-                formatTimeForDisplay={formatTimeForDisplay}
-                onToggleComplete={toggleTaskCompletion}
-                onEdit={handleTaskClick}
-              />
-            ))}
-          </div>
-        </div>
+        <HourCell
+          key={i}
+          hour={i}
+          tasks={tasksByHour[i] || []}
+          classes={classes}
+          taskTypes={taskTypes}
+          formatTimeForDisplay={formatTimeForDisplay}
+          onToggleComplete={toggleTaskCompletion}
+          onEdit={handleTaskClick}
+          onClick={() => {
+            const clickedTime = new Date(currentDate);
+            clickedTime.setHours(i, 0, 0, 0);
+            setSelectedDate(clickedTime);
+            setEditingTask(null);
+            setShowTaskModal(true);
+          }}
+        />
       );
     }
 
-    // Code to add 12 AM 
-    hours.push(
-      <div key={0} className="border border-gray-300 p-2 flex min-h-20">
-        <div className="w-16 font-bold">12 AM</div>
-        <div className="flex-1">
-          {(tasksByHour[0] || []).map((task) => (
-            <EventCard
-              key={task.id}
-              task={task}
-              classes={classes}
-              taskTypes={taskTypes}
-              formatTimeForDisplay={formatTimeForDisplay}
-              onToggleComplete={toggleTaskCompletion}
-              onEdit={handleTaskClick}
-            />
-          ))}
-        </div>
-      </div>
-    );
-
     return (
       <div className="grid grid-cols-1 gap-0.5">
-        <div className="p-2 mb-2 text-lg font-bold">
-          {currentDate.toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </div>
         {hours}
       </div>
     );
