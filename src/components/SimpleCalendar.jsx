@@ -31,9 +31,9 @@ const EventCard = ({ task, classes, taskTypes, formatTimeForDisplay, onToggleCom
     const taskType = taskTypes.find(t => t.id === task.type)?.name?.toLowerCase() || '';
     if (taskType.includes('mid term') || taskType.includes('final') || taskType.includes('quiz')) {
       return {
-        bg: "bg-orange-100",
-        border: "border-l-4 border-orange-500",
-        text: "text-orange-800"
+        bg: "bg-indigo-100",
+        border: "border-l-4 border-indigo-500",
+        text: "text-indigo-800"
       };
     } else if (taskType.includes('homework') || taskType.includes('assignment')) {
       return {
@@ -49,9 +49,9 @@ const EventCard = ({ task, classes, taskTypes, formatTimeForDisplay, onToggleCom
       };
     } else {
       return {
-        bg: "bg-yellow-100",
-        border: "border-l-4 border-yellow-500",
-        text: "text-yellow-800"
+        bg: "bg-amber-100",
+        border: "border-l-4 border-amber-500",
+        text: "text-amber-800"
       };
     }
   };

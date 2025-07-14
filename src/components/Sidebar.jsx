@@ -6,6 +6,7 @@ import {
   deleteClass,
   getSettings,
   updateSettings,
+  generateUniqueId,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
@@ -163,7 +164,7 @@ const Sidebar = () => {
 
   const handleAddClass = async () => {
     if (newClassName.trim()) {
-      const newId = `class${Date.now()}`;
+      const newId = generateUniqueId();
       const newClass = {
         id: newId,
         name: newClassName.trim(),
@@ -177,7 +178,7 @@ const Sidebar = () => {
       setClasses([...classes, addedClass]);
       setNewClassName("");
     } else {
-      const newId = `class${Date.now()}`;
+      const newId = generateUniqueId();
       const newClass = {
         id: newId,
         name: "New Class",
@@ -284,8 +285,9 @@ const Sidebar = () => {
         }
         
         // **NEW: Invoke the embed-file function for the syllabus**
+        console.log('Invoking embed-file for syllabus with record:', syllabusRecord);
         const { error: functionError } = await supabase.functions.invoke('embed-file', {
-          body: { record: { ...syllabusRecord, file_name: syllabusRecord.name, class_id: syllabusRecord.class_id } },
+          body: { record: syllabusRecord },
         });
 
         if (functionError) {
@@ -334,22 +336,6 @@ const Sidebar = () => {
           .from("class-materials")
           .createSignedUrl(fileName, 31536000);
         if (signedUrlError) throw signedUrlError;
-        const fileData = {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          path: fileName,
-          url: signedUrlData.signedUrl,
-          owner: user.id,
-          class_id: selectedClass.id,
-          uploaded_at: new Date().toISOString(),
-        };
-        const { data: fileDbData, error: fileDbError } = await supabase
-          .from("class_files")
-          .insert([fileData])
-          .select();
-        if (fileDbError) throw fileDbError;
-        
         // Insert the file record into the database
         const { data: fileRecord, error: insertError } = await supabase
           .from("class_files")
@@ -358,8 +344,10 @@ const Sidebar = () => {
             name: file.name,
             path: fileName,
             type: file.type,
+            size: file.size,
             url: signedUrlData.signedUrl,
             owner: user.id,
+            uploaded_at: new Date().toISOString(),
           })
           .select()
           .single();
@@ -370,8 +358,9 @@ const Sidebar = () => {
         }
         
         // Invoke the embed-file function**
+        console.log('Invoking embed-file with fileRecord:', fileRecord);
         const { error: functionError } = await supabase.functions.invoke('embed-file', {
-          body: { record: { ...fileRecord, file_name: fileRecord.name } },
+          body: { record: fileRecord },
         });
 
         if (functionError) {
@@ -735,14 +724,24 @@ const Sidebar = () => {
       });
 
       if (error) {
-        console.error('Error asking chatbot:', error);
-        setChatHistory([...newHistory, { role: 'assistant', content: 'Sorry, something went wrong.' }]);
+        console.error('Supabase function error:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        setChatHistory([...newHistory, { role: 'assistant', content: `Error: ${error.message || 'Something went wrong.'}` }]);
       } else {
         setChatHistory([...newHistory, { role: 'assistant', content: data.answer }]);
       }
     } catch (err) {
-      console.error('Error asking chatbot:', err);
-      setChatHistory([...newHistory, { role: 'assistant', content: 'Sorry, something went wrong.' }]);
+      console.error('Caught error asking chatbot:', err);
+      console.error('Error type:', err.constructor.name);
+      console.error('Error message:', err.message);
+      console.error('Full error:', err);
+      
+      let errorMessage = 'Sorry, something went wrong.';
+      if (err.message) {
+        errorMessage = `Error: ${err.message}`;
+      }
+      
+      setChatHistory([...newHistory, { role: 'assistant', content: errorMessage }]);
     } finally {
       setIsChatLoading(false);
     }
