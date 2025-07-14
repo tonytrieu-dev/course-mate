@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   getClasses,
   addClass,
@@ -15,6 +15,15 @@ import LoginComponent from "./LoginComponent";
 import CanvasSettings from "./CanvasSettings";
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+
+// Constants
+const CHAT_HISTORY_LIMIT = 6;
+const AUTO_SYNC_DELAY = 1500;
+const SIGNED_URL_DURATION = 31536000; // 1 year
+const ACCEPTED_FILE_TYPES = {
+  syllabus: '.pdf,.doc,.docx',
+  general: '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip'
+};
 
 const Sidebar = () => {
   const { user, isAuthenticated, logout, setLastCalendarSyncTimestamp } = useAuth();
@@ -62,7 +71,7 @@ const Sidebar = () => {
 
     const timerId = setTimeout(() => {
       autoSyncCanvas();
-    }, 1500); 
+    }, AUTO_SYNC_DELAY); 
 
     return () => clearTimeout(timerId); // Cleanup timer if component unmounts
 
@@ -238,7 +247,7 @@ const Sidebar = () => {
         // Get a signed URL for the file (valid for 1 year)
         const { data: signedUrlData, error: signedUrlError } = await supabase.storage
           .from("class-materials")
-          .createSignedUrl(fileName, 31536000);
+          .createSignedUrl(fileName, SIGNED_URL_DURATION);
 
         if (signedUrlError) {
           console.error("Error creating signed URL:", signedUrlError);
@@ -315,7 +324,7 @@ const Sidebar = () => {
   };
 
   // Handle general file upload
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = useCallback(async (e) => {
     const file = e.target.files[0];
     if (file && selectedClass) {
       try {
@@ -334,7 +343,7 @@ const Sidebar = () => {
         if (error) throw error;
         const { data: signedUrlData, error: signedUrlError } = await supabase.storage
           .from("class-materials")
-          .createSignedUrl(fileName, 31536000);
+          .createSignedUrl(fileName, SIGNED_URL_DURATION);
         if (signedUrlError) throw signedUrlError;
         // Insert the file record into the database
         const { data: fileRecord, error: insertError } = await supabase
@@ -380,9 +389,10 @@ const Sidebar = () => {
         alert("Error uploading file: " + error.message);
       } finally {
         setIsUploadingFile(false);
+        e.target.value = ''; // Clear the input
       }
     }
-  };
+  }, [selectedClass]);
 
   // Delete a file
   const handleDeleteFile = async (filePath, fileIndex) => {
@@ -719,7 +729,7 @@ const Sidebar = () => {
         body: {
           query: chatQuery,
           classId: selectedClass.id,
-          conversationHistory: chatHistory.slice(-6), // Send last 6 messages (3 exchanges)
+          conversationHistory: chatHistory.slice(-CHAT_HISTORY_LIMIT), // Send last 6 messages (3 exchanges)
         },
       });
 
@@ -863,7 +873,7 @@ const Sidebar = () => {
             </button>
           )}
         </div>
-        <div className="h-48 bg-gray-50 p-2 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2">
+        <div className="h-48 bg-gray-50 p-2 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2 chat-scrollbar">
           {chatHistory.length === 0 && (
             <div className="text-center text-gray-400 text-sm mt-4">
               Ask a question about your uploaded documents.
@@ -872,14 +882,23 @@ const Sidebar = () => {
           {chatHistory.map((msg, index) => (
             <div
               key={index}
-              className={`p-2 rounded-lg text-sm max-w-[85%] break-words ${msg.role === 'user'
-                  ? 'bg-blue-500 text-white self-end'
+              className={`p-2 rounded-lg text-sm max-w-[85%] break-words transition-all duration-200 ${msg.role === 'user'
+                  ? 'bg-blue-500 text-white self-end shadow-sm'
                   : 'bg-gray-200 text-gray-800 self-start'
                 }`}
             >
               {msg.content}
             </div>
           ))}
+          {isChatLoading && (
+            <div className="bg-gray-200 text-gray-800 self-start p-2 rounded-lg text-sm">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          )}
         </div>
         <form onSubmit={handleAskChatbot} className="flex">
           <input
