@@ -27,7 +27,7 @@ const ACCEPTED_FILE_TYPES = {
 
 const Sidebar = () => {
   const { user, isAuthenticated, logout, setLastCalendarSyncTimestamp } = useAuth();
-  const [title, setTitle] = useState("UCR");
+  const [title, setTitle] = useState("UCR 🐻");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [classes, setClasses] = useState([]);
   const [editingClassId, setEditingClassId] = useState(null);
@@ -43,6 +43,8 @@ const Sidebar = () => {
   const [chatQuery, setChatQuery] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [classesTitle, setClassesTitle] = useState("Current Classes");
+  const [isEditingClassesTitle, setIsEditingClassesTitle] = useState(false);
 
 
   useEffect(() => {
@@ -90,6 +92,9 @@ const Sidebar = () => {
       const settings = getSettings();
       if (settings && settings.title) {
         setTitle(settings.title);
+      }
+      if (settings && settings.classesTitle) {
+        setClassesTitle(settings.classesTitle);
       }
     };
 
@@ -775,7 +780,7 @@ const Sidebar = () => {
           />
         ) : (
           <h1
-            className="text-blue-700 cursor-pointer text-5xl mb-3 leading-tight font-inherit font-semibold text-center"
+            className="text-blue-700 cursor-pointer text-5xl mb-3 leading-tight font-inherit font-semibold text-center transition-all duration-200 hover:text-blue-800"
             onClick={handleTitleClick}
           >
             {title}
@@ -784,33 +789,56 @@ const Sidebar = () => {
       </div>
 
       {/* Empty space to push content down */}
-      <div className="mt-6"></div>
+      <div className="mt-8"></div>
 
       <div
         className="relative flex-1"
         onMouseEnter={() => setIsHoveringClassArea(true)}
         onMouseLeave={() => setIsHoveringClassArea(false)}
       >
-        <div className="flex">
-          <h4 className="m-1 ml-8 text-yellow-500 font-medium text-xl normal-case">
-            Current Classes
-          </h4>
+        <div className="mb-4 px-8">
+          {isEditingClassesTitle ? (
+            <input
+              value={classesTitle}
+              onChange={(e) => setClassesTitle(e.target.value)}
+              onBlur={() => {
+                setIsEditingClassesTitle(false);
+                updateSettings({ classesTitle });
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setIsEditingClassesTitle(false);
+                  updateSettings({ classesTitle });
+                }
+              }}
+              autoFocus
+              className="text-yellow-500 font-medium text-xl normal-case bg-transparent border-b-2 border-yellow-500 outline-none min-w-0 max-w-full"
+              style={{ width: `${classesTitle.length + 1}ch` }}
+            />
+          ) : (
+            <h4 
+              className="text-yellow-500 font-medium text-xl normal-case cursor-pointer transition-all duration-200 hover:text-yellow-600 inline-block"
+              onClick={() => setIsEditingClassesTitle(true)}
+            >
+              {classesTitle}
+            </h4>
+          )}
         </div>
 
-        <ul className="list-none p-0 pl-8 m-0">
+        <ul className="list-none p-0 m-0">
           {classes.map((c) => (
             <li
               key={c.id}
-              className={`my-0.5 flex justify-start items-center p-0.5 pl-0 gap-1.5 cursor-pointer rounded hover:bg-gray-100 group relative ${
-                hoveredClassId === c.id ? "bg-gray-100" : ""
+              className={`mb-1 transition-all duration-200 ${
+                hoveredClassId === c.id ? "bg-gray-50" : ""
               }`}
               onMouseEnter={() => setHoveredClassId(c.id)}
               onMouseLeave={() => setHoveredClassId(null)}
             >
               <div
                 onClick={() => handleClassClick(c.id)}
-                className={`flex justify-between items-center p-2 rounded cursor-pointer hover:bg-gray-200 w-full ${
-                  selectedClass?.id === c.id ? "bg-blue-100" : ""
+                className={`flex justify-between items-center py-2 px-8 cursor-pointer hover:bg-gray-100 transition-all duration-200 ${
+                  selectedClass?.id === c.id ? "bg-blue-50 border-l-4 border-blue-500" : ""
                 }`}
               >
                 <div className="flex-1 flex items-center">
@@ -821,7 +849,7 @@ const Sidebar = () => {
                       onKeyDown={(e) => handleClassKeyDown(e, c.id)}
                       onBlur={handleClassBlur}
                       autoFocus
-                      className="flex-1 p-0.5 bg-transparent"
+                      className="flex-1 p-0.5 bg-transparent font-sans text-base text-gray-800 outline-none border-b border-gray-300 focus:border-blue-500"
                     />
                   ) : (
                     <span
@@ -830,7 +858,7 @@ const Sidebar = () => {
                         handleClassNameClick(e, c.id);
                       }}
                     >
-                      {c.name}
+                      <span className="font-sans text-base text-gray-800">{c.name}</span>
                     </span>
                   )}
                 </div>
@@ -850,7 +878,7 @@ const Sidebar = () => {
         {(classes.length === 0 || isHoveringClassArea) && (
           <button
             onClick={handleAddClass}
-            className="flex items-center mt-2.5 p-0.5 pl-8 text-blue-600 hover:text-blue-800 cursor-pointer bg-transparent border-none"
+            className="flex items-center mt-4 mb-4 p-2 pl-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer bg-transparent border-none rounded transition-all duration-200"
           >
             <span className="mr-1 text-lg">+</span>
             <span>Add class</span>
@@ -858,15 +886,15 @@ const Sidebar = () => {
         )}
       </div>
 
-      <div className="px-2 mt-auto border-t pt-4">
-        <div className="flex justify-between items-center mb-2">
-          <h4 className="font-medium text-gray-700 text-sm text-center uppercase tracking-wider">
+      <div className="px-2 mt-auto border-t pt-6">
+        <div className="mb-3">
+          <h4 className="font-medium text-center text-black-700 text-base uppercase tracking-wider">
             Class Chatbot
           </h4>
           {chatHistory.length > 0 && (
             <button
               onClick={clearChatHistory}
-              className="text-xs text-gray-500 hover:text-gray-700 underline"
+              className="text-xs text-gray-500 hover:text-gray-700 underline transition-colors duration-200"
               title="Clear conversation"
             >
               Clear
@@ -874,11 +902,6 @@ const Sidebar = () => {
           )}
         </div>
         <div className="h-48 bg-gray-50 p-2 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2 chat-scrollbar">
-          {chatHistory.length === 0 && (
-            <div className="text-center text-gray-400 text-sm mt-4">
-              Ask a question about your uploaded documents.
-            </div>
-          )}
           {chatHistory.map((msg, index) => (
             <div
               key={index}
@@ -920,36 +943,45 @@ const Sidebar = () => {
       </div>
 
       {/* Canvas Integration Button */}
-      <div className="px-2 mt-4 mb-2">
+      <div className="px-2 mt-6 mb-4">
         <button
           onClick={() => setShowCanvasSettings(true)}
-          className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-1 px-3 rounded w-full flex items-center justify-center"
+          className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 px-3 rounded-lg w-full flex items-center justify-center transition-all duration-200 hover:shadow-sm"
         >
           <span className="mr-2">🎓</span>
-          Canvas Integration
+          Sync Canvas Calendar
         </button>
       </div>
 
-      {/* Auth Controls - moved to bottom with margin-top */}
-      <div className="px-2 mt-auto mb-8 text-center">
+      {/* Auth Controls - Enhanced */}
+      <div className="px-2 mt-auto mb-8">
         {isAuthenticated ? (
-          <div className="flex flex-col items-center">
-            <span className="text-gray-600 mb-2">{user?.email}</span>
+          <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center mb-3">
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                {user?.email?.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800 truncate">
+                  {user?.email?.split('@')[0]}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
             <button
               onClick={logout}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded w-full"
+              className="bg-white hover:bg-red-50 text-gray-700 hover:text-red-600 py-2 px-3 rounded-lg w-full border border-gray-200 transition-all duration-200 text-sm font-medium"
             >
-              Logout
+              Sign out
             </button>
           </div>
         ) : (
-          <div className="flex flex-col items-center">
-            {user?.email && (
-              <span className="text-gray-600 mb-2">{user.email}</span>
-            )}
+          <div className="bg-blue-50 rounded-lg p-4">
             <button
               onClick={() => setShowLogin(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded w-full"
+              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg w-full transition-all duration-200 font-medium shadow-sm hover:shadow-md"
             >
               Login / Register
             </button>

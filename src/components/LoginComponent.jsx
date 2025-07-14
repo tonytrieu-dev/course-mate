@@ -51,7 +51,7 @@ const LoginComponent = ({onClose}) => {
         </button>
 
         <h3 className="text-xl font-semibold mb-4 text-blue-600">
-          {isRegistering ? "Create an Account" : "Sign in"}
+          {isRegistering ? "Sign up" : "Log in"}
         </h3>
 
         {authError && (
@@ -110,7 +110,7 @@ const LoginComponent = ({onClose}) => {
               {loading ? (
                 <span>Loading...</span>
               ) : (
-                <span>{isRegistering ? "Register" : "Sign In"}</span>
+                <span>{isRegistering ? "Register" : "Log in"}</span>
               )}
             </button>
           </div>
@@ -119,8 +119,8 @@ const LoginComponent = ({onClose}) => {
         <div className="mt-6 pt-6 border-t border-gray-300">
           <p className="text-center text-gray-500">
             {isRegistering
-              ? "Creating an account will sync your data to the cloud."
-              : "Sign in to sync your data across your devices."}
+              ? "Create an account to get started."
+              : "Sign in to access your data on any device."}
           </p>
           <p className="text-center text-gray-500 mt-2">
           </p>
