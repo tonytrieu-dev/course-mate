@@ -12,7 +12,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(js|jsx|mjs)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
@@ -21,11 +21,18 @@ module.exports = {
           }
         }
       },
-
+      {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto'
+      }
     ]
   },
   resolve: {
-    extensions: ['.js', '.jsx'],
+    extensions: ['.js', '.jsx', '.mjs'],
+    alias: {
+      'pdfjs-dist': path.resolve(__dirname, 'node_modules/pdfjs-dist')
+    }
   },
   devServer: {
     static: {
