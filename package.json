@@ -1,11 +1,20 @@
 {
   "name": "notion-clone",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A Notion-inspired productivity app",
+  "main": "main.js",
   "scripts": {
     "start": "webpack-dev-server --mode development",
-    "electron": "electron ."
+    "electron": "electron .",
+    "build": "node scripts/build.js",
+    "build:react": "webpack --config webpack.config.prod.js",
+    "build:electron": "electron-builder",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:all": "npm run build && electron-builder -wl",
+    "test:prod": "electron main-prod.js",
+    "test:prod:unix": "NODE_ENV=production electron main-prod.js"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +24,12 @@
     "@babel/preset-react": "^7.26.3",
     "autoprefixer": "^10.4.21",
     "babel-loader": "^10.0.0",
+    "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^7.1.2",
     "dotenv-webpack": "^8.1.0",
-    "electron": "^35.5.1",
+    "electron": "^35.7.2",
     "electron-builder": "^25.1.8",
+    "html-webpack-plugin": "^5.6.3",
     "postcss": "^8.5.3",
     "postcss-loader": "^8.1.1",
     "style-loader": "^4.0.0",
@@ -41,6 +52,7 @@
     "better-sqlite3": "^11.9.1",
     "compromise": "^14.14.4",
     "date-fns": "^4.1.0",
+    "express": "^5.1.0",
     "firebase": "^11.5.0",
     "ical.js": "^2.1.0",
     "pdfjs-dist": "^2.16.105",
@@ -51,5 +63,90 @@
     "react-router-dom": "^7.4.0",
     "sqlite3": "^5.1.7",
     "supabase": "^2.20.5"
+  },
+  "build": {
+    "appId": "com.yourcompany.notionclone",
+    "productName": "Notion Clone",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "**/*",
+      "!src",
+      "!scripts",
+      "!webpack.config.js",
+      "!webpack.config.prod.js",
+      "!.gitignore",
+      "!supabase",
+      "!**/*.map",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!node_modules/**/*.d.ts",
+      "!node_modules/**/build/node_gyp_bins/**/*",
+      "!node_modules/**/build/binding.target.mk",
+      "!node_modules/**/build/Makefile",
+      "!node_modules/**/build/config.gypi",
+      "!node_modules/**/build/**/*.target.mk",
+      "!node_modules/**/build/**/*.Makefile",
+      "!node_modules/**/build/**/*.mk",
+      "!node_modules/**/build/**/python*",
+      "!node_modules/**/prebuilds/**/*",
+      "!node_modules/**/.deps/**/*",
+      "!node_modules/**/deps/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable"
+        }
+      ]
+    },
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
+    "npmRebuild": false,
+    "afterSign": "electron-builder-notarize",
+    "beforeBuild": "scripts/before-build.js",
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

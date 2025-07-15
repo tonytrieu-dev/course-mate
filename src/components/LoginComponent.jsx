@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { validation } from "../utils/validation";
 
 const LoginComponent = ({ onClose }) => {
   const { login, register, loginWithProvider, authError, loading } = useAuth();
@@ -23,19 +24,35 @@ const LoginComponent = ({ onClose }) => {
   };
 
   // Input validation
+  const validateEmail = (email) => {
+    const result = validation.email(email);
+    setEmailError(result.isValid ? "" : result.message);
+    return result.isValid;
+  };
+
   const validatePassword = (password) => {
-    const isValid = password.length >= 6;
-    setPasswordError(isValid ? "" : "Password must be at least 6 characters.");
+    const result = validation.password(password);
+    setPasswordError(result.isValid ? "" : result.message);
+    return result.isValid;
   };
 
   useEffect(() => {
-    validatePassword(password);
-    setFormValid(!passwordError && password);
-  }, [password, passwordError]);
+    const emailValid = email ? validateEmail(email) : true;
+    const passwordValid = password ? validatePassword(password) : true;
+    setFormValid(emailValid && passwordValid && email && password);
+  }, [email, password]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formValid) return;
+    
+    // Final validation before submission
+    const emailValid = validateEmail(email);
+    const passwordValid = validatePassword(password);
+    
+    if (!emailValid || !passwordValid) {
+      return;
+    }
+    
     if (isRegistering) {
       await register(email, password);
     } else {
@@ -84,11 +101,16 @@ const LoginComponent = ({ onClose }) => {
               type="email"
               value={email}
               onChange={(e) => {
-                setEmail(e.target.value);;
+                setEmail(e.target.value);
+                if (e.target.value) validateEmail(e.target.value);
+              }}
+              onBlur={() => {
+                if (email) validateEmail(email);
               }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
+            {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
           </div>
 
           <div className="mb-6">
@@ -99,7 +121,7 @@ const LoginComponent = ({ onClose }) => {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  validatePassword(e.target.value);
+                  if (e.target.value) validatePassword(e.target.value);
                 }}
                 onFocus={() => setPasswordFocused(true)}
                 onBlur={() => setPasswordFocused(false)}
@@ -141,10 +163,10 @@ const LoginComponent = ({ onClose }) => {
                 )}
               </button>
             </div>
-            {passwordFocused && passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
             {isRegistering && !passwordError && (
               <p className="text-gray-500 text-sm mt-1">
-                Your password must be at least 6 characters
+                Password must have uppercase, lowercase, numbers, and be 6+ characters
               </p>
             )}
           </div>

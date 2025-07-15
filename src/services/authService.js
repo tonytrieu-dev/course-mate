@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { logger } from '../utils/logger';
 
 export const signUp = async (email, password) => {
     try {
@@ -13,7 +14,7 @@ export const signUp = async (email, password) => {
 
         return data;
     } catch (error) {
-        console.error('Error signing up:', error.message);
+        logger.error('Authentication signup failed', { error: error.message });
         throw error;
     }
 };
@@ -31,7 +32,7 @@ export const signIn = async (email, password) => {
       
       return data;
     } catch (error) {
-      console.error('Error signing in:', error.message);
+      logger.error('Authentication signin failed', { error: error.message });
       throw error;
     }
 };
@@ -44,35 +45,34 @@ export const signOut = async () => {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error("Auth service: signOut error", error);
+      logger.error('Authentication signout failed', { error: error.message });
       throw error;
     }
-    console.log("Auth service: signOut successful");
+    logger.auth('User signed out successfully');
     return true;
   } catch (error) {
-    console.error('Error signing out:', error.message);
+    logger.error('Authentication signout error', { error: error.message });
     throw error;
   }
 };
 
 export const getCurrentUser = async () => {
-    console.log('[getCurrentUser] Entered function.');
+    logger.debug('getCurrentUser called');
     try {
-      console.log('[getCurrentUser] About to call supabase.auth.getUser().');
+      logger.debug('Calling supabase.auth.getUser()');
       const { data: { user }, error } = await supabase.auth.getUser(); // Also capture error here for logging
       
       if (error) {
         // This error object might be different from a thrown error caught by the catch block
-        console.error('[getCurrentUser] supabase.auth.getUser() returned an error property:', error);
+        logger.error('Auth user fetch returned error', { error: error.message });
         // We still want to fall through to the return user (which might be null if error is present)
         // or let the catch block handle it if it throws.
       }
       
-      console.log('[getCurrentUser] supabase.auth.getUser() call completed. User from data:', user ? user.id : 'No user in data');
+      logger.debug('User fetch completed', { hasUser: !!user });
       return user;
     } catch (error) {
-      console.error('[getCurrentUser] Error caught during supabase.auth.getUser():', error.message);
-      console.error('[getCurrentUser] Full error object:', error);
+      logger.error('Auth user fetch failed', { error: error.message });
       return null;
     }
 };

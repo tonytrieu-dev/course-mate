@@ -8,6 +8,8 @@ import {
 } from "../services/authService";
 import { syncData, downloadDataFromSupabase } from "../services/syncService";
 import { initializeDefaultData } from "../services/dataService";
+import { errorHandler } from "../utils/errorHandler";
+import { logger } from "../utils/logger";
 
 // Create the auth context
 const AuthContext = createContext();
@@ -48,17 +50,18 @@ export const AuthProvider = ({ children }) => {
               setSyncing(false);
             }
           } else {
-            console.log("No user found, proceeding without sync");
+            logger.debug('No authenticated user, proceeding without sync');
           }
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        const errorMessage = errorHandler.handle(error, 'auth initialization');
+        logger.error('Auth initialization failed', { error: errorMessage });
         if (mounted) {
-          setAuthError("Failed to initialize application: " + error.message);
+          setAuthError(errorMessage);
         }
       } finally {
         if (mounted) {
-          console.log("AuthContext initializeApp finished. Setting timestamp and loading state.");
+          logger.debug('AuthContext initialization finished');
           setLastCalendarSyncTimestamp(Date.now());
           setLoading(false);
         }
@@ -67,19 +70,19 @@ export const AuthProvider = ({ children }) => {
 
     initializeApp();
 
-    console.log("Setting up auth state listener...");
+    logger.debug('Setting up auth state listener');
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event, session ? session.user?.id || 'session exists but no user id' : "no session");
+        logger.auth('Auth state changed', { event, hasSession: !!session, userId: session?.user?.id });
         if (mounted) {
           const authUser = session?.user || null;
           setUser(authUser);
 
           if (event === "SIGNED_OUT") {
-            console.log("[AuthContext] onAuthStateChange SIGNED_OUT: Clearing timestamp.");
+            logger.auth('User signed out, clearing sync timestamp');
             setLastCalendarSyncTimestamp(null);
           } else if (event === "SIGNED_IN" && authUser) {
-            console.log("[AuthContext] onAuthStateChange SIGNED_IN: User session active, setting timestamp.");
+            logger.auth('User signed in, setting sync timestamp');
             setLastCalendarSyncTimestamp(Date.now());
           }
         }
@@ -87,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     );
 
     return () => {
-      console.log("Cleaning up auth listener");
+      logger.debug('Cleaning up auth listener');
       mounted = false;
       if (authListener && authListener.subscription) {
         authListener.subscription.unsubscribe();
@@ -108,7 +111,8 @@ export const AuthProvider = ({ children }) => {
       }
       return true;
     } catch (error) {
-      setAuthError(error.message);
+      const errorMessage = errorHandler.handle(error, 'user login');
+      setAuthError(errorMessage);
       return false;
     } finally {
       setSyncing(false);
@@ -128,7 +132,8 @@ export const AuthProvider = ({ children }) => {
       }
       return true;
     } catch (error) {
-      setAuthError(error.message);
+      const errorMessage = errorHandler.handle(error, 'user registration');
+      setAuthError(errorMessage);
       return false;
     } finally {
       setSyncing(false);
@@ -139,10 +144,12 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
     try {
       await signOut();
+      logger.auth('User logged out successfully');
       setUser(null);
       return true;
     } catch (error) {
-      setAuthError(error.message);
+      const errorMessage = errorHandler.handle(error, 'user logout');
+      setAuthError(errorMessage);
       return false;
     }
   };
@@ -158,8 +165,8 @@ export const AuthProvider = ({ children }) => {
       });
       if (error) throw error;
     } catch (error) {
-      console.error("OAuth login failed:", error);
-      setAuthError(error.message);
+      const errorMessage = errorHandler.handle(error, 'OAuth login');
+      setAuthError(errorMessage);
     }
   };
 
