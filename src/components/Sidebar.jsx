@@ -11,22 +11,20 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../services/supabaseClient";
 import { fetchCanvasCalendar } from "../services/canvasService";
+import { useFileManager } from "../hooks/useFileManager";
 import LoginComponent from "./LoginComponent";
 import CanvasSettings from "./CanvasSettings";
+import SyllabusModal from "./SyllabusModal";
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 
 // Constants
 const CHAT_HISTORY_LIMIT = 6;
 const AUTO_SYNC_DELAY = 1500;
-const SIGNED_URL_DURATION = 31536000; // 1 year
-const ACCEPTED_FILE_TYPES = {
-  syllabus: '.pdf,.doc,.docx',
-  general: '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip'
-};
 
 const Sidebar = () => {
   const { user, isAuthenticated, logout, setLastCalendarSyncTimestamp } = useAuth();
+  const { getClassData } = useFileManager();
   const [title, setTitle] = useState("UCR 🐻");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [classes, setClasses] = useState([]);
@@ -36,9 +34,7 @@ const Sidebar = () => {
   const [showSyllabusModal, setShowSyllabusModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [isHoveringClassArea, setIsHoveringClassArea] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [showCanvasSettings, setShowCanvasSettings] = useState(false);
   const [chatQuery, setChatQuery] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
@@ -118,29 +114,12 @@ const Sidebar = () => {
 
   // Class editing functions
   const handleClassClick = async (classId) => {
-    // Fetch the latest class data from the database
     const classObj = classes.find((c) => c.id === classId);
-
-    // Fetch latest syllabus
-    const { data: syllabusArr } = await supabase
-      .from("class_syllabi")
-      .select("*")
-      .eq("class_id", classId)
-      .order("uploaded_at", { ascending: false })
-      .limit(1);
-
-    // Fetch latest files
-    const { data: filesArr } = await supabase
-      .from("class_files")
-      .select("*")
-      .eq("class_id", classId)
-      .order("uploaded_at", { ascending: false });
-
-    // Update the class object with latest data
+    const classData = await getClassData(classId);
+    
     const updatedClass = {
       ...classObj,
-      syllabus: syllabusArr && syllabusArr.length > 0 ? syllabusArr[0] : null,
-      files: filesArr || [],
+      ...classData,
     };
 
     setSelectedClass(updatedClass);
@@ -215,499 +194,42 @@ const Sidebar = () => {
     }
   };
 
-  // Syllabus handling functions
-  const handleSyllabusUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file && selectedClass) {
-      try {
-        // Show loading state
-        setIsUploading(true);
-
-        // Get current user ID
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) throw new Error("User not authenticated");
-
-        // Upload the file to Supabase Storage
-        const fileName = `${selectedClass.id}/${Date.now()}_${file.name}`;
-        const { data, error } = await supabase.storage
-          .from("class-materials")
-          .upload(fileName, file, {
-            cacheControl: "3600",
-            upsert: true,
-            contentType: file.type || 'application/pdf',
-            // Make sure owner is set correctly to the authenticated user
-            fileMetadata: {
-              owner: user.id,
-            },
-          });
-
-        if (error) {
-          console.error("Storage upload error:", error);
-          throw error;
-        }
-
-        // Get a signed URL for the file (valid for 1 year)
-        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-          .from("class-materials")
-          .createSignedUrl(fileName, SIGNED_URL_DURATION);
-
-        if (signedUrlError) {
-          console.error("Error creating signed URL:", signedUrlError);
-          throw signedUrlError;
-        }
-
-        // First, delete any existing syllabus records
-        if (selectedClass.syllabus && selectedClass.syllabus.path) {
-          // Delete old syllabus from class_syllabi table
-          await supabase
-            .from("class_syllabi")
-            .delete()
-            .eq("class_id", selectedClass.id);
-        }
-
-        // Create syllabus metadata
-        const syllabusData = {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          path: fileName,
-          url: signedUrlData.signedUrl,
-          owner: user.id,
-          class_id: selectedClass.id,
-          uploaded_at: new Date().toISOString(),
-        };
-
-        // Insert the syllabus record and get the new record back
-        const { data: syllabusRecord, error: insertError } = await supabase
-          .from("class_syllabi")
-          .insert({
-            class_id: selectedClass.id,
-            name: file.name,
-            path: fileName,
-            url: signedUrlData.signedUrl,
-            owner: user.id,
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error("Error inserting syllabus record:", insertError);
-          throw insertError;
-        }
-        
-        // **NEW: Invoke the embed-file function for the syllabus**
-        console.log('Invoking embed-file for syllabus with record:', syllabusRecord);
-        const { error: functionError } = await supabase.functions.invoke('embed-file', {
-          body: { record: syllabusRecord },
-        });
-
-        if (functionError) {
-          console.error('Error invoking embed-file function for syllabus:', functionError);
-        }
-
-        // Update the state with the new syllabus
-        const updatedClass = { ...selectedClass, syllabus: syllabusRecord };
-        setSelectedClass(updatedClass);
-
-        const updatedClasses = classes.map((c) =>
-          c.id === selectedClass.id ? updatedClass : c
-        );
-        setClasses(updatedClasses);
-
-        // Also update local storage
-        localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
-      } catch (error) {
-        console.error("Error uploading syllabus:", error);
-        alert("Error uploading syllabus: " + error.message);
-      } finally {
-        setIsUploading(false);
-      }
-    }
-  };
-
-  // Handle general file upload
-  const handleFileUpload = useCallback(async (e) => {
-    const file = e.target.files[0];
-    if (file && selectedClass) {
-      try {
-        setIsUploadingFile(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("User not authenticated");
-        const fileName = `${selectedClass.id}/files/${Date.now()}_${file.name}`;
-        const { data, error } = await supabase.storage
-          .from("class-materials")
-          .upload(fileName, file, {
-            cacheControl: "3600",
-            upsert: true,
-            contentType: file.type || 'application/octet-stream',
-            fileMetadata: { owner: user.id },
-          });
-        if (error) throw error;
-        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-          .from("class-materials")
-          .createSignedUrl(fileName, SIGNED_URL_DURATION);
-        if (signedUrlError) throw signedUrlError;
-        // Insert the file record into the database
-        const { data: fileRecord, error: insertError } = await supabase
-          .from("class_files")
-          .insert({
-            class_id: selectedClass.id,
-            name: file.name,
-            path: fileName,
-            type: file.type,
-            size: file.size,
-            url: signedUrlData.signedUrl,
-            owner: user.id,
-            uploaded_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error("Error inserting file record:", insertError);
-          throw insertError;
-        }
-        
-        // Invoke the embed-file function**
-        console.log('Invoking embed-file with fileRecord:', fileRecord);
-        const { error: functionError } = await supabase.functions.invoke('embed-file', {
-          body: { record: fileRecord },
-        });
-
-        if (functionError) {
-          console.error('Error invoking embed-file function:', functionError);
-          // Don't throw here, as the file is already uploaded.
-          // Maybe show a warning to the user.
-        }
-
-        // Update the state with the new file
-        setSelectedClass((prev) => ({
-          ...prev,
-          files: [...prev.files, fileRecord],
-        }));
-
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        alert("Error uploading file: " + error.message);
-      } finally {
-        setIsUploadingFile(false);
-        e.target.value = ''; // Clear the input
-      }
-    }
-  }, [selectedClass]);
-
-  // Delete a file
-  const handleDeleteFile = async (filePath, fileIndex) => {
-    if (!selectedClass) return;
-
-    try {
-      // First get the current user to ensure we have valid auth
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !userData.user) {
-        throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
-      }
-
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from("class-materials")
-        .remove([filePath]);
-
-      if (storageError) {
-        console.error("Error deleting file from storage:", storageError);
-        throw storageError;
-      }
-
-      // Delete from class_files table
-      const { error: fileDbError } = await supabase
-        .from("class_files")
-        .delete()
-        .eq("path", filePath);
-
-      if (fileDbError) {
-        console.error("Error deleting file metadata:", fileDbError);
-        throw fileDbError;
-      }
-
-      // Get all remaining files for this class
-      const { data: classFiles, error: classFilesError } = await supabase
-        .from("class_files")
-        .select("*")
-        .eq("class_id", selectedClass.id)
-        .order("uploaded_at", { ascending: false });
-
-      if (classFilesError) {
-        console.error("Error fetching class files:", classFilesError);
-        throw classFilesError;
-      }
-
-      // Update the local class object with remaining files
-      const updatedClass = {
-        ...selectedClass,
-        files: classFiles || [],
-      };
-
-      // Update local state
-      const updatedClasses = classes.map((c) =>
-        c.id === selectedClass.id ? updatedClass : c
-      );
-
-      setClasses(updatedClasses);
-      setSelectedClass(updatedClass);
-
-      // Also update local storage
-      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
-
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      alert("Error deleting file: " + error.message);
-    }
-  };
-
-  // Delete syllabus
-  const handleDeleteSyllabus = async () => {
-    if (!selectedClass || !selectedClass.syllabus) return;
-
-    try {
-      // First get the current user to ensure we have valid auth
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !userData.user) {
-        throw new Error("Authentication error: " + (userError?.message || "User not authenticated"));
-      }
-
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from("class-materials")
-        .remove([selectedClass.syllabus.path]);
-
-      if (storageError) {
-        console.error("Error deleting syllabus from storage:", storageError);
-        throw storageError;
-      }
-
-      // Delete from class_syllabi table
-      const { error: syllabusDbError } = await supabase
-        .from("class_syllabi")
-        .delete()
-        .eq("class_id", selectedClass.id);
-
-      if (syllabusDbError) {
-        console.error("Error deleting syllabus metadata:", syllabusDbError);
-        throw syllabusDbError;
-      }
-
-      // Update the local class object with syllabus set to null
-      const updatedClass = {
-        ...selectedClass,
-        syllabus: null,
-      };
-
-      // Update local state
-      const updatedClasses = classes.map((c) =>
-        c.id === selectedClass.id ? updatedClass : c
-      );
-
-      setClasses(updatedClasses);
-      setSelectedClass(updatedClass);
-
-      // Also update local storage
-      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
-
-    } catch (error) {
-      console.error("Error deleting syllabus:", error);
-      alert("Error deleting syllabus: " + error.message);
-    }
-  };
-
-  // Syllabus Modal
-  const renderSyllabusModal = () => {
-    if (!showSyllabusModal || !selectedClass) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-10">
-        <div className="bg-white p-5 rounded w-[600px] max-w-[90%] max-h-[90vh] overflow-auto">
-          <h2 className="text-blue-600 mt-0 font-bold text-xl">
-            {selectedClass.name}
-          </h2>
-
-          <div className="mb-5 mt-6">
-            <h3 className="font-bold text-lg mb-2">Upload syllabus</h3>
-            {!selectedClass.syllabus ? (
-              <div className="border-2 border-dashed border-gray-300 p-5 text-center mb-5">
-                <p>
-                  Drag and drop a syllabus file here, or click to select one
-                </p>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleSyllabusUpload}
-                  className="block mx-auto my-2.5"
-                />
-                {isUploading && (
-                  <div className="text-center my-2">
-                    <p className="text-blue-600">Uploading syllabus...</p>
-                    <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="mb-5">
-                <div className="flex justify-between items-center p-2.5 bg-gray-100 rounded mb-2.5">
-                  <div>
-                    <strong>Current Syllabus:</strong>{" "}
-                    {selectedClass.syllabus.name}
-                    <span className="ml-2.5 text-gray-500">
-                      ({Math.round(selectedClass.syllabus.size / 1024)} KB)
-                    </span>
-                  </div>
-                </div>
-
-                {selectedClass.syllabus && (
-                  <div className="mt-3 mb-3 p-4 bg-gray-50 rounded">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-red-500 mr-2"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <a
-                          href={selectedClass.syllabus.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline"
-                        >
-                          {selectedClass.syllabus.name}
-                        </a>
-                      </div>
-                      <button
-                        onClick={handleDeleteSyllabus}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <p className="mt-4">
-                  Upload a new syllabus to replace the current one:
-                </p>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleSyllabusUpload}
-                  className="block my-2.5"
-                />
-                {isUploading && (
-                  <div className="text-center my-2">
-                    <p className="text-blue-600">Uploading syllabus...</p>
-                    <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* New section for class files */}
-          <div className="mb-5">
-            <h3 className="font-bold text-lg mb-2">Class files</h3>
-
-            <div className="border-2 border-dashed border-gray-300 p-5 text-center mb-5">
-              <p>
-                Upload lecture notes, assignments, and other course materials
-              </p>
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip"
-                onChange={handleFileUpload}
-                className="block mx-auto my-2.5"
-              />
-              {isUploadingFile && (
-                <div className="text-center my-2">
-                  <p className="text-blue-600">Uploading file...</p>
-                  <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
-                </div>
-              )}
-            </div>
-
-            {/* Display uploaded files */}
-            {selectedClass.files && selectedClass.files.length > 0 ? (
-              <div>
-                <h4 className="font-semibold mb-2">Uploaded files</h4>
-                <ul className="divide-y divide-gray-200">
-                  {selectedClass.files.map((file, index) => (
-                    <li key={index} className="py-3 flex justify-between items-center">
-                      <div className="flex items-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-blue-500 mr-2"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline"
-                        >
-                          {file.name}
-                        </a>
-                        <span className="ml-2 text-gray-500 text-sm">
-                          ({Math.round(file.size / 1024)} KB)
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => handleDeleteFile(file.path, index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center">No files uploaded yet</p>
-            )}
-          </div>
-
-          <div className="flex justify-between mt-5">
-            <button
-              onClick={() => setShowSyllabusModal(false)}
-              className="bg-gray-100 border border-gray-300 py-2 px-4 rounded cursor-pointer"
-            >
-              Close
-            </button>
-
-            <button
-              onClick={() => setShowSyllabusModal(false)}
-              className="bg-blue-600 text-white border-none py-2 px-4 rounded cursor-pointer"
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      </div>
+  // File management callbacks
+  const handleSyllabusUpdate = (syllabusRecord) => {
+    const updatedClass = { ...selectedClass, syllabus: syllabusRecord };
+    setSelectedClass(updatedClass);
+    
+    const updatedClasses = classes.map((c) =>
+      c.id === selectedClass.id ? updatedClass : c
     );
+    setClasses(updatedClasses);
+    localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
   };
+
+  const handleFileUpdate = (fileRecord, remainingFiles) => {
+    if (fileRecord) {
+      // Adding new file
+      setSelectedClass((prev) => ({
+        ...prev,
+        files: [...prev.files, fileRecord],
+      }));
+    } else if (remainingFiles) {
+      // File deleted, update with remaining files
+      const updatedClass = {
+        ...selectedClass,
+        files: remainingFiles,
+      };
+      
+      const updatedClasses = classes.map((c) =>
+        c.id === selectedClass.id ? updatedClass : c
+      );
+      
+      setClasses(updatedClasses);
+      setSelectedClass(updatedClass);
+      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
+    }
+  };
+
 
   // Move handleAskChatbot inside the component
   const handleAskChatbot = async (e) => {
@@ -989,7 +511,13 @@ const Sidebar = () => {
         )}
       </div>
 
-      {renderSyllabusModal()}
+      <SyllabusModal
+        show={showSyllabusModal}
+        selectedClass={selectedClass}
+        onClose={() => setShowSyllabusModal(false)}
+        onSyllabusUpdate={handleSyllabusUpdate}
+        onFileUpdate={handleFileUpdate}
+      />
       {showLogin && !isAuthenticated && (
         <LoginComponent onClose={() => setShowLogin(false)} />
       )}
