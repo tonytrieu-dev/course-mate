@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     console.log('Request body:', body);
-    const { query, classId } = body; // conversationHistory is not used by Gemini in this setup
-    console.log('Parsed parameters:', { query, classId });
+    const { query, classId, conversationHistory } = body;
+    console.log('Parsed parameters:', { query, classId, historyLength: conversationHistory?.length || 0 });
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -72,17 +72,25 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to find matching documents: ${rpcError.message}`);
     }
 
-    if (!documents || documents.length === 0) {
-      console.log('No matching documents found for classId:', classId);
+    console.log(`Found ${documents?.length || 0} matching documents for classId:`, classId);
+    const contextText = documents && documents.length > 0 
+      ? documents.map((doc: any) => doc.content).join("\n\n---\n\n")
+      : '';
+
+    // Build conversation context for better follow-up handling
+    const conversationContext = conversationHistory && conversationHistory.length > 0
+      ? conversationHistory.map((msg: any) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
+      : '';
+
+    // If no documents AND no conversation history, return the "no documents" message
+    if ((!documents || documents.length === 0) && (!conversationHistory || conversationHistory.length === 0)) {
+      console.log('No matching documents and no conversation history for classId:', classId);
       return new Response(JSON.stringify({ 
         answer: "I don't have any documents to reference for this class yet. Please upload some course materials first."
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    console.log(`Found ${documents.length} matching documents for classId:`, classId);
-    const contextText = documents.map((doc: any) => doc.content).join("\n\n---\n\n");
 
     // SECTION 3: GENERATE A RESPONSE WITH GOOGLE GEMINI
     const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
@@ -91,16 +99,11 @@ Deno.serve(async (req) => {
     }
 
     const prompt = `
-Based on the following context from course documents, please answer the user's question.
-If the context doesn't contain the answer, state that you couldn't find the information in the documents.
+Based on the following context from course documents and previous conversation, please answer the user's question.
+${contextText ? 'If the context doesn\'t contain the answer, state that you couldn\'t find the information in the documents.' : 'Use the conversation history to provide helpful responses.'}
+Maintain conversation context and provide relevant follow-up responses.
 
-Context:
----
-${contextText}
----
-
-Question:
-${query}
+${conversationContext ? `Previous conversation:\n${conversationContext}\n\n` : ''}${contextText ? `Course documents context:\n---\n${contextText}\n---\n\n` : 'Note: No course documents are available for this class yet.\n\n'}Current question: ${query}
 
 Answer:
 `;
@@ -119,7 +122,7 @@ Answer:
           generationConfig: {
             temperature: 0.7,
             topP: 1,
-            maxOutputTokens: 250,
+            maxOutputTokens: 400,
           },
         }),
       }

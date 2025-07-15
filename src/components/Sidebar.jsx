@@ -251,12 +251,12 @@ const Sidebar = () => {
     }
 
     try {
-      // Send conversation history with the request
+      // Send conversation history with the request (use newHistory which includes current conversation)
       const { data, error } = await supabase.functions.invoke('ask-chatbot', {
         body: {
           query: chatQuery,
           classId: selectedClass.id,
-          conversationHistory: chatHistory.slice(-CHAT_HISTORY_LIMIT), // Send last 6 messages (3 exchanges)
+          conversationHistory: newHistory.slice(0, -1).slice(-CHAT_HISTORY_LIMIT), // Send last 6 messages (exclude current question)
         },
       });
 
@@ -445,18 +445,18 @@ const Sidebar = () => {
             </div>
           )}
         </div>
-        <form onSubmit={handleAskChatbot} className="flex items-end gap-1">
+        <form onSubmit={handleAskChatbot} className="flex items-end gap-2">
           <textarea
             value={chatQuery}
             onChange={(e) => setChatQuery(e.target.value)}
             placeholder="Ask a question..."
-            className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
+            className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden leading-normal"
             disabled={isChatLoading}
             rows={Math.min(Math.max(Math.ceil(chatQuery.length / 35), 1), 4)}
             style={{ 
               minHeight: '38px',
               maxHeight: '120px',
-              lineHeight: '1.25'
+              lineHeight: '1.5'
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
