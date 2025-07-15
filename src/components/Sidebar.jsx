@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
-  getClasses,
-  addClass,
-  updateClass,
-  deleteClass,
   getSettings,
   updateSettings,
   generateUniqueId,
@@ -16,6 +12,7 @@ import LoginComponent from "./LoginComponent";
 import CanvasSettings from "./CanvasSettings";
 import SyllabusModal from "./SyllabusModal";
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import classService from "../services/classService";
 GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 
 // Constants
@@ -80,9 +77,11 @@ const Sidebar = () => {
     const loadData = async () => {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      // Load classes from Supabase
-      const fetchedClasses = await getClasses(user?.id, true);
-      setClasses(fetchedClasses);
+      // Load classes from centralized class service
+      const fetchedClasses = await classService.initialize(user?.id, true);
+      // Filter out task-only classes from sidebar display
+      const sidebarClasses = fetchedClasses.filter(cls => !cls.isTaskClass);
+      setClasses(sidebarClasses);
 
       // Load settings
       const settings = getSettings();
@@ -95,6 +94,22 @@ const Sidebar = () => {
     };
 
     loadData();
+  }, [isAuthenticated]);
+
+  // Subscribe to class changes from the class service
+  useEffect(() => {
+    if (!isAuthenticated) {
+      classService.reset();
+      return;
+    }
+
+    const unsubscribe = classService.subscribe((updatedClasses) => {
+      // Filter out task-only classes from sidebar display
+      const sidebarClasses = updatedClasses.filter(cls => !cls.isTaskClass);
+      setClasses(sidebarClasses);
+    });
+
+    return unsubscribe;
   }, [isAuthenticated]);
 
   // Title editing functions
@@ -132,6 +147,7 @@ const Sidebar = () => {
   };
 
   const handleClassChange = (e, classId) => {
+    // Update local state for immediate UI feedback
     const updatedClasses = classes.map((c) =>
       c.id === classId ? { ...c, name: e.target.value } : c
     );
@@ -139,11 +155,11 @@ const Sidebar = () => {
   };
 
   const handleClassBlur = async () => {
-    // Save the updated class
+    // Save the updated class using class service
     if (editingClassId) {
       const classToUpdate = classes.find((c) => c.id === editingClassId);
       if (classToUpdate) {
-        await updateClass(editingClassId, classToUpdate, isAuthenticated);
+        await classService.updateClass(editingClassId, classToUpdate, isAuthenticated);
       }
     }
     setEditingClassId(null);
@@ -151,8 +167,8 @@ const Sidebar = () => {
 
   const handleDeleteClass = async (e, classId) => {
     e.stopPropagation();
-    await deleteClass(classId, isAuthenticated);
-    setClasses(classes.filter((c) => c.id !== classId));
+    await classService.deleteClass(classId, isAuthenticated);
+    // No need to update local state - the class service will notify subscribers
   };
 
   const handleAddClass = async () => {
@@ -165,10 +181,8 @@ const Sidebar = () => {
         files: [],
       };
 
-      // Add class to database/local storage
-      const addedClass = await addClass(newClass, isAuthenticated);
-
-      setClasses([...classes, addedClass]);
+      // Add class using class service
+      await classService.addClass(newClass, isAuthenticated);
       setNewClassName("");
     } else {
       const newId = generateUniqueId();
@@ -179,10 +193,8 @@ const Sidebar = () => {
         files: [],
       };
 
-      // Add class to database/local storage
-      const addedClass = await addClass(newClass, isAuthenticated);
-
-      setClasses([...classes, addedClass]);
+      // Add class using class service
+      await classService.addClass(newClass, isAuthenticated);
       setEditingClassId(newId);
     }
   };
@@ -195,24 +207,25 @@ const Sidebar = () => {
   };
 
   // File management callbacks
-  const handleSyllabusUpdate = (syllabusRecord) => {
+  const handleSyllabusUpdate = async (syllabusRecord) => {
     const updatedClass = { ...selectedClass, syllabus: syllabusRecord };
     setSelectedClass(updatedClass);
     
-    const updatedClasses = classes.map((c) =>
-      c.id === selectedClass.id ? updatedClass : c
-    );
-    setClasses(updatedClasses);
-    localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
+    // Update class using class service
+    await classService.updateClass(selectedClass.id, updatedClass, isAuthenticated);
   };
 
-  const handleFileUpdate = (fileRecord, remainingFiles) => {
+  const handleFileUpdate = async (fileRecord, remainingFiles) => {
     if (fileRecord) {
       // Adding new file
-      setSelectedClass((prev) => ({
-        ...prev,
-        files: [...prev.files, fileRecord],
-      }));
+      const updatedClass = {
+        ...selectedClass,
+        files: [...selectedClass.files, fileRecord],
+      };
+      setSelectedClass(updatedClass);
+      
+      // Update class using class service
+      await classService.updateClass(selectedClass.id, updatedClass, isAuthenticated);
     } else if (remainingFiles) {
       // File deleted, update with remaining files
       const updatedClass = {
@@ -220,13 +233,10 @@ const Sidebar = () => {
         files: remainingFiles,
       };
       
-      const updatedClasses = classes.map((c) =>
-        c.id === selectedClass.id ? updatedClass : c
-      );
-      
-      setClasses(updatedClasses);
       setSelectedClass(updatedClass);
-      localStorage.setItem('calendar_classes', JSON.stringify(updatedClasses));
+      
+      // Update class using class service
+      await classService.updateClass(selectedClass.id, updatedClass, isAuthenticated);
     }
   };
 
@@ -506,7 +516,7 @@ const Sidebar = () => {
             </div>
             <button
               onClick={logout}
-              className="bg-white hover:bg-red-50 text-gray-700 hover:text-red-600 py-2 px-3 rounded-lg w-full border border-gray-200 transition-all duration-200 text-sm font-medium"
+              className="bg-white hover:bg-red-100 mt-2 text-black-700 hover:text-red-600 py-2 px-3 rounded-lg w-full border border-gray-200 transition-all duration-200 text-sm font-medium"
             >
               Sign out
             </button>

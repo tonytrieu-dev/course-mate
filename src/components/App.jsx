@@ -27,8 +27,6 @@ const CalendarApp = () => {
       <div className="flex-1 p-5 bg-gray-100 overflow-auto box-border pt-20">
         {/* Header with auth controls */}
         <div className="flex justify-between items-center mb-4 relative">
-          <h2 className="text-blue-600 font-bold m-0 text-xl">Calendar view</h2>
-
           <div className="flex items-center">
             {/* View controls removed */}
           </div>

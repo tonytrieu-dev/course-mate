@@ -7,7 +7,6 @@ import {
   signOut,
 } from "../services/authService";
 import { syncData, downloadDataFromSupabase } from "../services/syncService";
-import { initializeDefaultData } from "../services/dataService";
 import { errorHandler } from "../utils/errorHandler";
 import { logger } from "../utils/logger";
 
@@ -30,9 +29,6 @@ export const AuthProvider = ({ children }) => {
     const initializeApp = async () => {
       try {
         console.log("Starting initialization...");
-        await initializeDefaultData();
-        console.log("Default data initialized");
-
         const currentUser = await getCurrentUser();
         console.log("Current user check result:", currentUser);
 

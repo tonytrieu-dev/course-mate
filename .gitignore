@@ -5,6 +5,7 @@ build/bundle.js
 build/node_modules_ws_browser_js.bundle.js
 CLAUDE.md
 .claude
+.node_modules_ws_browser_js
 
 # Environment variables
 .env

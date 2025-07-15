@@ -4,7 +4,6 @@ import {
   addTask,
   updateTask,
   deleteTask,
-  getClasses,
   getTaskTypes,
 } from "../services/dataService";
 import { useAuth } from "../contexts/AuthContext";
@@ -18,6 +17,7 @@ import {
   getNextPeriod
 } from "../utils/dateHelpers";
 import TaskModal from "./TaskModal";
+import classService from "../services/classService";
 
 // Reusable EventCard component
 const EventCard = ({ task, classes, taskTypes, formatTimeForDisplay, onToggleComplete, onEdit }) => {
@@ -207,7 +207,10 @@ const SimpleCalendar = ({ view: initialView }) => {
         const fetchedTasks = await getTasks(user.id, isAuthenticated);
         setTasks(fetchedTasks || []);
         
-        const fetchedClasses = await getClasses(user.id, isAuthenticated);
+        // Use class service for centralized class management
+        // Force refresh to ensure we get latest classes including new ones
+        const fetchedClasses = await classService.refreshClasses(user.id, isAuthenticated);
+        // Include all classes (both regular and task classes) for task dropdown
         setClasses(fetchedClasses || []);
 
         const fetchedTaskTypes = await getTaskTypes(user.id, isAuthenticated);
@@ -218,6 +221,21 @@ const SimpleCalendar = ({ view: initialView }) => {
     };
     loadData();
   }, [loading, isAuthenticated, user, user?.id, lastCalendarSyncTimestamp]);
+
+  // Subscribe to class changes from the class service
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      classService.reset();
+      return;
+    }
+
+    const unsubscribe = classService.subscribe((updatedClasses) => {
+      // Include all classes (both regular and task classes) for task dropdown
+      setClasses(updatedClasses);
+    });
+
+    return unsubscribe;
+  }, [isAuthenticated, user]);
 
   // Show a spinner if still loading
   if (loading) {
@@ -251,7 +269,9 @@ const SimpleCalendar = ({ view: initialView }) => {
 
   const handleTaskClick = (e, task) => {
     e.stopPropagation();
-    const taskDate = new Date(task.date);
+    // Use the appropriate date field depending on task type
+    const taskDateStr = task.dueDate || task.date;
+    const taskDate = taskDateStr ? new Date(taskDateStr) : new Date();
     setSelectedDate(taskDate);
     setEditingTask(task);
     setShowTaskModal(true);
@@ -605,6 +625,8 @@ const SimpleCalendar = ({ view: initialView }) => {
         taskTypes={taskTypes}
         isAuthenticated={isAuthenticated}
         setTaskTypes={setTaskTypes}
+        setClasses={setClasses}
+        user={user}
       />
     </div>
   );

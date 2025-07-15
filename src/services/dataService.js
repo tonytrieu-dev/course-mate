@@ -8,16 +8,7 @@ const SETTINGS_KEY = "calendar_settings";
 
 // Utility function to generate unique ID
 export const generateUniqueId = () => {
-  return `class${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
-
-// Utility function to generate UUID v4 (kept for future use)
-export const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+  return `class${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
 const getLocalData = (key, defaultValue = []) => {
@@ -175,7 +166,7 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
     } else {
       // Local storage fallback
       const taskToSaveLocally = {
-        id: task.id || `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: task.id || `task_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
          ...taskWithTimestamp,
          canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : null,
        };
@@ -639,7 +630,7 @@ export const addTaskType = async (taskType, useSupabase = false) => {
   try {
     const typeToSave = {
       ...taskType,
-      id: taskType.id || `type_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: taskType.id || `type_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       created_at: new Date().toISOString(),
     };
 
@@ -765,43 +756,4 @@ export const getSettings = () => {
 export const updateSettings = (settings) => {
   saveLocalData(SETTINGS_KEY, settings);
   return settings;
-};
-
-
-// Initialize default data if it doesn't exist
-export const initializeDefaultData = () => {
-  if (!localStorage.getItem(CLASSES_KEY)) {
-    const defaultClasses = [
-      { id: generateUniqueId(), name: "CS 179G", syllabus: null, files: [] },
-      { id: generateUniqueId(), name: "CS 147", syllabus: null, files: [] },
-      { id: generateUniqueId(), name: "EE 100A", syllabus: null, files: [] },
-      { id: generateUniqueId(), name: "SOC 151", syllabus: null, files: [] },
-      { id: generateUniqueId(), name: "Canvas Imports", syllabus: null, files: [] },
-    ];
-    saveLocalData(CLASSES_KEY, defaultClasses);
-  }
-
-  // Default task types
-  if (!localStorage.getItem(TASK_TYPES_KEY)) {
-    const defaultTaskTypes = [
-      { id: generateUniqueId(), name: "Homework" },
-      { id: generateUniqueId(), name: "Final" },
-      { id: generateUniqueId(), name: "Quiz" },
-      { id: generateUniqueId(), name: "Lab Report" },
-      { id: generateUniqueId(), name: "Project" },
-      { id: generateUniqueId(), name: "Exam" },
-      { id: generateUniqueId(), name: "Assignment" },
-    ];
-    saveLocalData(TASK_TYPES_KEY, defaultTaskTypes);
-  }
-
-  // Default tasks (empty array)
-  if (!localStorage.getItem(TASKS_KEY)) {
-    saveLocalData(TASKS_KEY, []);
-  }
-
-  // Default settings
-  if (!localStorage.getItem(SETTINGS_KEY)) {
-    saveLocalData(SETTINGS_KEY, { title: "UCR" });
-  }
 };
