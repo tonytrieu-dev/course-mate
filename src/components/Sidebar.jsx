@@ -409,21 +409,21 @@ const Sidebar = () => {
       </div>
 
       <div className="px-2 mt-auto border-t pt-6">
-        <div className="mb-3">
+        <div className="mb-3 relative group"> {/* CLAUDE DON'T add justify-between or center-items into this line or you'll uncenter the class chatbot text */ }
           <h4 className="font-medium text-center text-black-700 text-base uppercase tracking-wider">
             Class Chatbot
           </h4>
           {chatHistory.length > 0 && (
             <button
               onClick={clearChatHistory}
-              className="text-xs text-gray-500 hover:text-gray-700 underline transition-colors duration-200"
+              className="absolute top-0 right-0 text-xs text-gray-400 hover:text-gray-600 transition-all duration-200 px-2 py-1 rounded hover:bg-gray-100 opacity-0 group-hover:opacity-100"
               title="Clear conversation"
             >
-              Clear
+              🗑️
             </button>
           )}
         </div>
-        <div className="h-48 bg-gray-50 p-2 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2 chat-scrollbar">
+        <div className="bg-gray-50 p-3 rounded-md overflow-y-auto flex flex-col space-y-2 mb-2 chat-scrollbar h-48">
           {chatHistory.map((msg, index) => (
             <div
               key={index}
@@ -445,19 +445,31 @@ const Sidebar = () => {
             </div>
           )}
         </div>
-        <form onSubmit={handleAskChatbot} className="flex">
-          <input
-            type="text"
+        <form onSubmit={handleAskChatbot} className="flex items-end gap-1">
+          <textarea
             value={chatQuery}
             onChange={(e) => setChatQuery(e.target.value)}
             placeholder="Ask a question..."
-            className="flex-1 p-2 border border-gray-300 rounded-l-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
             disabled={isChatLoading}
+            rows={Math.min(Math.max(Math.ceil(chatQuery.length / 35), 1), 4)}
+            style={{ 
+              minHeight: '38px',
+              maxHeight: '120px',
+              lineHeight: '1.25'
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleAskChatbot(e);
+              }
+            }}
           />
           <button
             type="submit"
             disabled={isChatLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-r-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ height: '38px' }}
           >
             {isChatLoading ? '...' : '➤'}
           </button>
