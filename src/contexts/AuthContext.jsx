@@ -21,7 +21,6 @@ export const AuthProvider = ({ children }) => {
   const [lastCalendarSyncTimestamp, setLastCalendarSyncTimestamp] = useState(null);
   const [initialUserLoadProcessed, setInitialUserLoadProcessed] = useState(false);
 
-  // Initialize - check current user and set up auth state listener
   useEffect(() => {
     let mounted = true;
     console.log("AuthProvider useEffect started");
@@ -29,19 +28,14 @@ export const AuthProvider = ({ children }) => {
     const initializeApp = async () => {
       try {
         console.log("Starting initialization...");
-        // Initialize default data in local storage if needed
         await initializeDefaultData();
         console.log("Default data initialized");
 
-        // Check for current user
-        console.log("Checking for current user...");
         const currentUser = await getCurrentUser();
         console.log("Current user check result:", currentUser);
-        
+
         if (mounted) {
           setUser(currentUser);
-
-          // If user is logged in, sync data
           if (currentUser) {
             console.log("User found, starting sync...");
             setSyncing(true);
@@ -50,7 +44,6 @@ export const AuthProvider = ({ children }) => {
               console.log("Sync completed successfully");
             } catch (syncError) {
               console.error("Sync failed:", syncError);
-              // Don't throw here, we want to continue even if sync fails
             } finally {
               setSyncing(false);
             }
@@ -74,7 +67,6 @@ export const AuthProvider = ({ children }) => {
 
     initializeApp();
 
-    // Set up listener for auth state changes
     console.log("Setting up auth state listener...");
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -87,14 +79,13 @@ export const AuthProvider = ({ children }) => {
             console.log("[AuthContext] onAuthStateChange SIGNED_OUT: Clearing timestamp.");
             setLastCalendarSyncTimestamp(null);
           } else if (event === "SIGNED_IN" && authUser) {
-            console.log("[AuthContext] onAuthStateChange SIGNED_IN: User session active, setting timestamp to reflect potential new data state.");
+            console.log("[AuthContext] onAuthStateChange SIGNED_IN: User session active, setting timestamp.");
             setLastCalendarSyncTimestamp(Date.now());
           }
         }
       }
     );
 
-    // Clean up listener when component unmounts
     return () => {
       console.log("Cleaning up auth listener");
       mounted = false;
@@ -102,9 +93,8 @@ export const AuthProvider = ({ children }) => {
         authListener.subscription.unsubscribe();
       }
     };
-  }, []); // Only run once on mount
+  }, []);
 
-  // Handle login
   const login = async (email, password) => {
     setAuthError(null);
     setSyncing(true);
@@ -112,13 +102,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const { user: authUser } = await signIn(email, password);
       setUser(authUser);
-
-      // Download data from Supabase
       if (authUser) {
         await downloadDataFromSupabase(authUser.id);
         setLastCalendarSyncTimestamp(Date.now());
       }
-
       return true;
     } catch (error) {
       setAuthError(error.message);
@@ -128,7 +115,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Handle registration
   const register = async (email, password) => {
     setAuthError(null);
     setSyncing(true);
@@ -136,13 +122,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const { user: authUser } = await signUp(email, password);
       setUser(authUser);
-
-      // Upload local data to Supabase
       if (authUser) {
         await syncData(authUser.id);
         setLastCalendarSyncTimestamp(Date.now());
       }
-
       return true;
     } catch (error) {
       setAuthError(error.message);
@@ -152,7 +135,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Handle logout
   const logout = async () => {
     setAuthError(null);
     try {
@@ -165,12 +147,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Clear any auth errors
+  const loginWithProvider = async (provider) => {
+    setAuthError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error("OAuth login failed:", error);
+      setAuthError(error.message);
+    }
+  };
+
   const clearAuthError = () => {
     setAuthError(null);
   };
 
-  // Context value
   const value = {
     user,
     loading,
@@ -180,6 +176,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    loginWithProvider, // ✅ OAuth method added
     clearAuthError,
     lastCalendarSyncTimestamp,
     setLastCalendarSyncTimestamp,
@@ -196,7 +193,6 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
