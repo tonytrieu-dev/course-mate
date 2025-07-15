@@ -1,7 +1,7 @@
 /**
  * Centralized error handling utility
  */
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 export class AppError extends Error {
   constructor(message, code = 'UNKNOWN_ERROR', statusCode = 500) {
