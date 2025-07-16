@@ -18,6 +18,7 @@ import ChatbotPanel from "./ChatbotPanel";
 import ClassList from "./ClassList";
 import AuthSection from "./AuthSection";
 import classService from "../services/classService";
+import { logger } from "../utils/logger";
 
 // Constants
 const AUTO_SYNC_DELAY = 1500;
@@ -84,22 +85,22 @@ const Sidebar = () => {
     const autoSyncCanvas = async () => {
       const canvasUrl = localStorage.getItem("canvas_calendar_url");
       const autoSync = localStorage.getItem("canvas_auto_sync") === "true";
-      console.log('[Sidebar] autoSyncCanvas triggered. Canvas URL:', canvasUrl, 'Auto Sync Enabled:', autoSync, 'User Authenticated:', !!user);
+      logger.debug('AutoSyncCanvas triggered', { canvasUrl: !!canvasUrl, autoSync, userAuthenticated: !!user });
 
       if (user && canvasUrl && autoSync) {
         try {
-          console.log("Auto-syncing Canvas calendar (User ID available):", user.id);
+          logger.info('Starting Canvas calendar auto-sync', { userId: user.id });
           const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user);
-          console.log("fetchCanvasCalendar result:", result);
+          logger.debug('Canvas calendar fetch completed', { success: result?.success });
 
           if (result && result.success) {
-            console.log("Canvas auto-sync successful, updating sync timestamp.");
+            logger.info('Canvas auto-sync successful, updating timestamp');
             setLastCalendarSyncTimestamp(Date.now());
           } else {
-            console.log("Canvas auto-sync did not report success or result was invalid. Result:", result);
+            logger.warn('Canvas auto-sync failed or returned invalid result', { resultSuccess: result?.success });
           }
         } catch (error) {
-          console.error("Error auto-syncing Canvas calendar:", error);
+          logger.error('Canvas auto-sync error', { error: error.message });
         }
       }
     };

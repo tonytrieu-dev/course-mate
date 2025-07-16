@@ -1,5 +1,6 @@
 import { getCurrentUser } from "./authService";
 import { supabase } from "./supabaseClient";
+import { logger } from "../utils/logger";
 
 const TASKS_KEY = "calendar_tasks";
 const CLASSES_KEY = "calendar_classes";
@@ -21,10 +22,10 @@ const saveLocalData = (key, data) => {
 };
 
 export const getTasks = async (userId, useSupabase = false) => {
-  console.log('[getTasks] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
+  logger.debug('getTasks called', { userId: !!userId, userIdType: typeof userId, useSupabase });
   if (useSupabase) {
     if (!userId) {
-      console.error("[getTasks] Supabase fetch requested but no userId provided. Falling back to local data.");
+      logger.warn('getTasks: Supabase requested without userId, falling back to local data');
       return getLocalData(TASKS_KEY);
     }
     try {
@@ -36,14 +37,14 @@ export const getTasks = async (userId, useSupabase = false) => {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching tasks from Supabase:", error);
+        logger.error('Failed to fetch tasks from Supabase', { error: error.message });
         return getLocalData(TASKS_KEY);
       }
 
-      console.log(`Retrieved ${data?.length || 0} tasks from Supabase for user ${userId}`);
+      logger.debug('Retrieved tasks from Supabase', { taskCount: data?.length || 0, userId: !!userId });
       return data;
     } catch (error) {
-      console.error("Error in getTasks (Supabase path):", error);
+      logger.error('getTasks Supabase error', { error: error.message });
       return getLocalData(TASKS_KEY);
     }
   }

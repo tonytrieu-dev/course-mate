@@ -11,7 +11,17 @@ const LOG_LEVELS = {
 
 class Logger {
   constructor() {
-    this.level = process.env.NODE_ENV === 'development' ? LOG_LEVELS.DEBUG : LOG_LEVELS.WARN;
+    // Use config system for environment detection if available
+    let isDevelopment;
+    try {
+      const { config } = require('../../config.js');
+      isDevelopment = config.app.isDevelopment;
+    } catch {
+      // Fallback to direct environment check
+      isDevelopment = process.env.NODE_ENV === 'development';
+    }
+    
+    this.level = isDevelopment ? LOG_LEVELS.DEBUG : LOG_LEVELS.WARN;
   }
 
   setLevel(level) {

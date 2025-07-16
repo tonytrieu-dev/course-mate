@@ -30,7 +30,10 @@ function createWindow() {
     const devServerUrl = 'http://localhost:8080';
     waitForServer(devServerUrl, () => {
       mainWindow.loadURL(devServerUrl).catch(err => {
-        console.error('Failed to load dev server:', err);
+        // Only log in development - production should not reach this path
+        if (isDev) {
+          console.error('Failed to load dev server:', err);
+        }
       });
     });
     
@@ -39,7 +42,12 @@ function createWindow() {
   } else {
     // Production mode - load from built files
     mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html')).catch(err => {
-      console.error('Failed to load production build:', err);
+      // In production, we should handle this more gracefully
+      // For now, only log if not in production environment
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Failed to load production build:', err);
+      }
+      // Consider showing user-friendly error dialog in production
     });
   }
 

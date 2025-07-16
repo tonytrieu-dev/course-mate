@@ -2,6 +2,30 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./components/App";
 
-const container = document.getElementById("root");
-const root = createRoot(container);
-root.render(<App />);
+// Validate configuration on startup
+try {
+  // Import config to trigger validation
+  import("../config.js").then(() => {
+    const container = document.getElementById("root");
+    const root = createRoot(container);
+    root.render(<App />);
+  }).catch((error) => {
+    console.error("Configuration validation failed:", error.message);
+    // Show user-friendly error
+    document.body.innerHTML = `
+      <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+        <h2>Configuration Error</h2>
+        <p>${error.message}</p>
+        <p>Please check your environment variables and try again.</p>
+      </div>
+    `;
+  });
+} catch (error) {
+  console.error("Failed to load configuration:", error);
+  document.body.innerHTML = `
+    <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+      <h2>Application Error</h2>
+      <p>Failed to load application configuration.</p>
+    </div>
+  `;
+}

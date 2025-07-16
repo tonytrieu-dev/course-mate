@@ -39,15 +39,40 @@ export const signIn = async (email, password) => {
 
 export const signOut = async () => {
   try {
-    // First clear any local storage items that might be related to auth
-    localStorage.removeItem('supabase.auth.token');
-    
+    // Perform Supabase signout first to invalidate server-side session
     const { error } = await supabase.auth.signOut();
 
     if (error) {
       logger.error('Authentication signout failed', { error: error.message });
       throw error;
     }
+
+    // Clear local storage items only after successful server signout
+    try {
+      // Clear all potential auth-related items
+      const authKeys = [
+        'supabase.auth.token',
+        'sb-supabase-auth-token',
+        'sb-auth-token'
+      ];
+      
+      authKeys.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Verify token removal
+      const remainingTokens = authKeys.filter(key => localStorage.getItem(key));
+      if (remainingTokens.length > 0) {
+        logger.warn('Some auth tokens may not have been cleared', { remainingTokens });
+      }
+      
+    } catch (storageError) {
+      logger.warn('Local storage cleanup failed', { error: storageError.message });
+      // Don't throw - signout was successful on server
+    }
+
     logger.auth('User signed out successfully');
     return true;
   } catch (error) {
