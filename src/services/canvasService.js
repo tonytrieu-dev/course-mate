@@ -11,9 +11,64 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = nu
                 tasks: []
             };
         }
+
         console.log(`[fetchCanvasCalendar] Attempting to fetch: ${icsUrl}`);
-        const response = await fetch(icsUrl);
-        console.log("[fetchCanvasCalendar] fetch(icsUrl) completed. Response status:", response.status);
+        
+        // Use CORS proxy by default for maximum compatibility
+        let response;
+        let lastError;
+
+        // Primary strategy: Use CORS proxy service for reliable access
+        try {
+            console.log("[fetchCanvasCalendar] Using proxy service for Canvas access");
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icsUrl)}`;
+            const proxyResponse = await fetch(proxyUrl);
+            console.log("[fetchCanvasCalendar] Proxy fetch completed. Response status:", proxyResponse.status);
+            
+            if (proxyResponse.ok) {
+                const proxyData = await proxyResponse.json();
+                if (proxyData.contents) {
+                    // Create a response object with the content
+                    response = {
+                        ok: true,
+                        status: 200,
+                        text: () => Promise.resolve(proxyData.contents)
+                    };
+                    console.log("[fetchCanvasCalendar] Successfully retrieved calendar via proxy");
+                } else {
+                    throw new Error('No content received from proxy');
+                }
+            } else {
+                throw new Error(`Proxy service failed: ${proxyResponse.status}`);
+            }
+        } catch (error) {
+            console.log("[fetchCanvasCalendar] Proxy strategy failed:", error.message);
+            lastError = error;
+            
+            // Fallback: Try direct fetch as secondary option
+            try {
+                console.log("[fetchCanvasCalendar] Trying direct fetch as fallback");
+                response = await fetch(icsUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'text/calendar,text/plain,*/*'
+                    },
+                    credentials: 'omit',
+                    cache: 'no-cache'
+                });
+                console.log("[fetchCanvasCalendar] Direct fetch completed. Response status:", response.status);
+            } catch (directError) {
+                console.log("[fetchCanvasCalendar] Direct fetch also failed:", directError.message);
+                lastError = directError;
+            }
+        }
+
+        if (!response || !response.ok) {
+            throw lastError || new Error('Unable to access Canvas calendar');
+        }
+
+        console.log("[fetchCanvasCalendar] fetch successful. Response status:", response.status);
         if (!response.ok) {
             console.error(`[fetchCanvasCalendar] Fetch failed. Status: ${response.status}, StatusText: ${response.statusText}`);
             throw new Error(`Failed to fetch calendar: ${response.statusText}`);
@@ -45,9 +100,24 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = nu
         };
     } catch (error) {
         console.error('[fetchCanvasCalendar] Error in fetchCanvasCalendar:', error);
+        let errorMessage = error.message || "Unknown error during fetchCanvasCalendar";
+        
+        // Handle specific network errors
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            errorMessage = "Unable to fetch Canvas calendar. Please check: 1) The Canvas URL is correct and complete, 2) You have internet access, 3) The calendar is publicly accessible or you're logged into Canvas.";
+        } else if (error.message.includes('CORS')) {
+            errorMessage = "Canvas calendar access issue. Please verify: 1) The full calendar feed URL is copied correctly, 2) The calendar is set to public access in Canvas, 3) Try copying the URL again from Canvas.";
+        } else if (error.message.includes('NetworkError')) {
+            errorMessage = "Network error accessing Canvas. Please check your internet connection and verify the Canvas URL is correct.";
+        } else if (error.message.includes('Proxy service failed')) {
+            errorMessage = "Proxy service unavailable. Try again in a few minutes, or check that your Canvas URL is correct and publicly accessible.";
+        } else if (error.message === 'Unable to access Canvas calendar') {
+            errorMessage = "Cannot access Canvas calendar. Please verify: 1) The URL is copied correctly from Canvas > Calendar > Calendar Feed, 2) Your Canvas calendar is accessible, 3) You have internet access.";
+        }
+        
         return {
             success: false,
-            message: error.message || "Unknown error during fetchCanvasCalendar",
+            message: errorMessage,
             tasks: []
         };
     }

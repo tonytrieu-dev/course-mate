@@ -166,7 +166,7 @@ const LoginComponent = ({ onClose }) => {
             {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
             {isRegistering && !passwordError && (
               <p className="text-gray-500 text-sm mt-1">
-                Password must have uppercase, lowercase, numbers, and be 6+ characters
+                Password must have uppercase, lowercase, numbers, and be 6 characters
               </p>
             )}
           </div>

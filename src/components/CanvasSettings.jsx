@@ -3,7 +3,7 @@ import { fetchCanvasCalendar } from "../services/canvasService";
 import { useAuth } from "../contexts/AuthContext";
 
 const CanvasSettings = ({ onClose }) => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [canvasUrl, setCanvasUrl] = useState(() => localStorage.getItem("canvas_calendar_url") || "");
     const [syncStatus, setSyncStatus] = useState(null);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -39,7 +39,7 @@ const CanvasSettings = ({ onClose }) => {
         setSyncStatus({ message: "Syncing with Canvas..." });
 
         try {
-            const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated);
+            const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user);
             setSyncStatus(result);
             // Dispatch event to update calendar view after successful sync
             if (result.success) {
@@ -86,8 +86,10 @@ const CanvasSettings = ({ onClose }) => {
 
                 <div className="mb-4">
                     <p className="text-gray-700 mb-4">
-                        Enter your Canvas calendar feed URL to sync your assignments and due dates.
-                        You can find this URL in Canvas under Calendar &gt; Calendar Feed.
+                        <strong>Step 1:</strong> Go to Canvas and navigate to Calendar → Calendar Feed.<br/>
+                        <strong>Step 2:</strong> Copy the full calendar feed URL.<br/>
+                        <strong>Step 3:</strong> Paste the URL below and click "Sync Now".<br/>
+                        <span className="text-sm text-gray-600">The app uses a proxy service to access Canvas calendars from any browser.</span>
                     </p>
 
                     <label className="block text-gray-700 mb-2">Canvas Calendar URL:</label>

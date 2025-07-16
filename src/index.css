@@ -35,3 +35,31 @@
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* Sidebar resize styles */
+.sidebar-resizing {
+  user-select: none;
+}
+
+.sidebar-resizing * {
+  cursor: col-resize !important;
+}
+
+/* Resize handle visual indicator */
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 32px;
+  background-color: #e5e7eb;
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.resize-handle:hover::after {
+  opacity: 1;
+}

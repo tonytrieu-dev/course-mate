@@ -18,6 +18,9 @@ GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 // Constants
 const CHAT_HISTORY_LIMIT = 6;
 const AUTO_SYNC_DELAY = 1500;
+const MIN_SIDEBAR_WIDTH = 200;
+const MAX_SIDEBAR_WIDTH = 500;
+const DEFAULT_SIDEBAR_WIDTH = 256;
 
 const Sidebar = () => {
   const { user, isAuthenticated, logout, setLastCalendarSyncTimestamp } = useAuth();
@@ -41,6 +44,12 @@ const Sidebar = () => {
   const [isChatbotExpanded, setIsChatbotExpanded] = useState(false);
   const [isCanvasExpanded, setIsCanvasExpanded] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    return savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH;
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef(null);
 
 
   useEffect(() => {
@@ -98,6 +107,43 @@ const Sidebar = () => {
 
     loadData();
   }, [isAuthenticated]);
+
+  // Handle resize
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      
+      const newWidth = e.clientX;
+      if (newWidth >= MIN_SIDEBAR_WIDTH && newWidth <= MAX_SIDEBAR_WIDTH) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        // Save width to localStorage
+        localStorage.setItem('sidebarWidth', sidebarWidth.toString());
+      }
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      // Prevent text selection during resize
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+      document.body.classList.add('sidebar-resizing');
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      document.body.classList.remove('sidebar-resizing');
+    };
+  }, [isResizing, sidebarWidth]);
 
   // Subscribe to class changes from the class service
   useEffect(() => {
@@ -303,10 +349,26 @@ const Sidebar = () => {
   };
 
   return (
-    <div className={`${isSidebarCollapsed ? 'w-16' : 'w-64'} border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col transition-all duration-300 relative overflow-hidden`}>
+    <>
+      <div 
+        ref={sidebarRef}
+        className={`${isSidebarCollapsed ? 'w-16' : ''} border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col transition-all duration-300 relative overflow-hidden`}
+        style={{
+          width: isSidebarCollapsed ? '64px' : `${sidebarWidth}px`,
+          minWidth: isSidebarCollapsed ? '64px' : `${MIN_SIDEBAR_WIDTH}px`,
+          maxWidth: isSidebarCollapsed ? '64px' : `${MAX_SIDEBAR_WIDTH}px`
+        }}
+      >
       {/* Collapse Toggle Button */}
       <button
-        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onClick={() => {
+          setIsSidebarCollapsed(!isSidebarCollapsed);
+          // Reset to default width when expanding
+          if (isSidebarCollapsed) {
+            const savedWidth = localStorage.getItem('sidebarWidth');
+            setSidebarWidth(savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH);
+          }
+        }}
         className="absolute top-3 right-3 z-10 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200"
         title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
@@ -493,7 +555,7 @@ const Sidebar = () => {
               <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors duration-200">
                 <span className="text-blue-600 text-lg">🤖</span>
               </div>
-              <span className="font-medium text-gray-700 text-sm uppercase tracking-wider">
+              <span className="font-medium text-gray-700 text-sm tracking-wider">
                 Class Chatbot
               </span>
             </div>
@@ -597,7 +659,7 @@ const Sidebar = () => {
           <div>
             <button
               onClick={() => setIsCanvasExpanded(!isCanvasExpanded)}
-              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 px-3 rounded-lg w-full flex items-center justify-between transition-all duration-200 hover:shadow-sm border border-yellow-200 hover:border-yellow-300 group"
+              className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 px-3 rounded-lg w-full flex items-center justify-between transition-all duration-200 hover:shadow-sm border border-yellow-200 hover:border-yellow-300 group focus:outline-none focus:ring-2 focus:ring-yellow-300 active:bg-yellow-200"
             >
               <div className="flex items-center space-x-3">
                 <div className="flex items-center justify-center w-8 h-8 bg-yellow-200 rounded-full group-hover:bg-yellow-300 transition-colors duration-200">
@@ -719,7 +781,26 @@ const Sidebar = () => {
       {showCanvasSettings && (
         <CanvasSettings onClose={() => setShowCanvasSettings(false)} />
       )}
-    </div>
+      </div>
+      {/* Resize Handle */}
+      {!isSidebarCollapsed && (
+        <div
+          className="resize-handle fixed top-0 h-full w-1 cursor-col-resize hover:bg-blue-500 transition-all duration-200 z-50"
+          style={{ 
+            left: `${sidebarWidth - 2}px`,
+            backgroundColor: isResizing ? '#3B82F6' : 'transparent',
+            boxShadow: isResizing ? '0 0 0 1px #3B82F6' : 'none'
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setIsResizing(true);
+          }}
+          title="Drag to resize sidebar"
+        >
+          <div className="absolute inset-y-0 -left-1 w-3 hover:bg-blue-500/10 transition-colors duration-200" />
+        </div>
+      )}
+    </>
   );
 };
 
