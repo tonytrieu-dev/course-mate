@@ -43,6 +43,8 @@ This application is actively being developed. Here's the current status:
 
 ## 🛠️ Setup Instructions
 
+> ⚠️ **Development Setup**: These instructions are for setting up the development environment. This is beta software, so some setup steps may change as the project evolves.
+
 ### Prerequisites
 - Node.js 16+ 
 - npm or yarn
@@ -145,11 +147,33 @@ Run the application in development mode and test key features:
 
 ## 🤝 Contributing
 
+**We welcome contributions!** This project is in active development, so there are many opportunities to help:
+
+### 🐛 Bug Reports
+- Report any bugs or issues you encounter
+- Include steps to reproduce and expected vs actual behavior
+- Check existing issues first to avoid duplicates
+
+### 💡 Feature Requests
+- Suggest new features or improvements
+- Explain your use case and why it would be helpful
+- Keep in mind this is educational software
+
+### 🔧 Code Contributions
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+4. Test thoroughly (especially important for beta software!)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Submit a pull request
+
+### 📝 Documentation
+- Help improve documentation and setup instructions
+- Write tutorials or guides for new users
+- Translate content for non-English speakers
+
+> **Note**: Since this is beta software, breaking changes may occur. We'll do our best to communicate these in advance.
 
 ## 📄 License
 
