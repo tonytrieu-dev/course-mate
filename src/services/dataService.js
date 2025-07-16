@@ -278,11 +278,15 @@ export const getClasses = async (userId, useSupabase = false) => {
         return getLocalData(CLASSES_KEY);
       }
       console.log(`Retrieved ${data?.length || 0} classes from Supabase for user ${userId}`);
-      return data.map(cls => ({
-        ...cls,
-        syllabus: cls.class_syllabi && cls.class_syllabi.length > 0 ? cls.class_syllabi[0] : null,
-        files: cls.class_files || [],
-      }));
+      return data.map(cls => {
+        const { istaskclass, class_syllabi, class_files, ...cleanCls } = cls;
+        return {
+          ...cleanCls,
+          syllabus: class_syllabi && class_syllabi.length > 0 ? class_syllabi[0] : null,
+          files: class_files || [],
+          isTaskClass: istaskclass // Map database column to JavaScript field name
+        };
+      });
     } catch (error) {
       console.error("Error in getClasses (Supabase path):", error);
       return getLocalData(CLASSES_KEY);
@@ -312,15 +316,21 @@ export const addClass = async (classObj, useSupabase = false) => {
         throw new Error("Not authenticated");
       }
       
-      // Add user_id to the class data
+      // Add user_id to the class data and map isTaskClass to istaskclass for database
       const classWithUserId = {
         ...classToSave,
         user_id: user.id,
       };
       
+      // Map isTaskClass to database column name (istaskclass)
+      const { isTaskClass, ...classForSupabase } = classWithUserId;
+      if (isTaskClass !== undefined) {
+        classForSupabase.istaskclass = isTaskClass;
+      }
+      
       const { data, error } = await supabase
         .from("classes")
-        .insert([classWithUserId])
+        .insert([classForSupabase])
         .select();
 
       if (error) throw error;
@@ -371,11 +381,13 @@ export const addClass = async (classObj, useSupabase = false) => {
         }
       }
       
-      // Combine the data for local storage
+      // Combine the data for local storage, mapping database column back to JavaScript field
+      const { istaskclass, ...dbData } = data[0];
       const fullClassData = {
-        ...data[0],
+        ...dbData,
         files: savedFiles,
-        syllabus: savedSyllabus
+        syllabus: savedSyllabus,
+        isTaskClass: istaskclass // Map database column back to JavaScript field name
       };
 
       // Update local cache with the complete data

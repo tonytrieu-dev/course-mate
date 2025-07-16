@@ -77,6 +77,29 @@ const TaskModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    console.log('Form submitted, current task state:', task);
+    console.log('Available classes:', classes);
+    console.log('Available task types:', taskTypes);
+    
+    // Basic validation
+    if (!task.title || !task.title.trim()) {
+      alert('Please enter a task title');
+      return;
+    }
+    
+    // Only validate class/type if they exist
+    if (classes.length > 0 && !task.class) {
+      alert('Please select a class');
+      return;
+    }
+    
+    if (taskTypes.length > 0 && !task.type) {
+      alert('Please select a task type');
+      return;
+    }
+    
+    console.log('Validation passed, submitting task:', task);
     onSubmit(task);
   };
 
@@ -154,7 +177,7 @@ const TaskModal = ({
   if (!showModal) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/20 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100 w-[500px] max-w-lg mx-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">
           {editingTask ? "Edit Task" : "Add Task"} for{" "}
@@ -262,7 +285,15 @@ const TaskModal = ({
                     />
                     <button
                       type="button"
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('Add Class button clicked');
+                        console.log('newClassName:', newClassName);
+                        console.log('isAuthenticated:', isAuthenticated);
+                        console.log('user:', user);
+                        
                         if (newClassName.trim()) {
                           const autoId = newClassName.trim().toLowerCase().replace(/[^a-z0-9]/g, "") + "_task_" + Date.now().toString().slice(-4);
                           const newClass = {
@@ -273,9 +304,12 @@ const TaskModal = ({
                             isTaskClass: true // Mark as task-only class
                           };
                           
+                          console.log('Creating class:', newClass);
+                          
                           try {
                             // Save directly to data service
                             const savedClass = await addClass(newClass, isAuthenticated);
+                            console.log('savedClass result:', savedClass);
                             
                             if (savedClass) {
                               // Force refresh the classService to ensure persistence
@@ -288,6 +322,10 @@ const TaskModal = ({
                               }
                               
                               setTask({ ...task, class: savedClass.id });
+                              console.log('Class created successfully');
+                            } else {
+                              console.error('savedClass is null/undefined');
+                              alert("Failed to save class. Please try again.");
                             }
                           } catch (error) {
                             console.error("Error creating class:", error);
@@ -296,9 +334,13 @@ const TaskModal = ({
                           
                           setNewClassName("");
                           setShowClassInput(false);
+                        } else {
+                          console.log('No class name entered');
+                          alert('Please enter a class name');
                         }
                       }}
-                      className="bg-green-500 text-white px-3 py-2 hover:bg-green-600 rounded-r"
+                      className="bg-green-500 text-white px-3 py-2 hover:bg-green-600 rounded-r cursor-pointer"
+                      style={{ zIndex: 1000 }}
                     >
                       Add
                     </button>
@@ -586,6 +628,10 @@ const TaskModal = ({
               )}
               <button
                 type="submit"
+                onClick={(e) => {
+                  console.log('Submit button clicked');
+                  // Let the form submission handle it, but add logging
+                }}
                 className="px-4 py-2.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 {editingTask ? "Update Task" : "Create Task"}

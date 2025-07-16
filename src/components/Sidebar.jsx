@@ -455,12 +455,12 @@ const Sidebar = () => {
             </div>
           )}
         </div>
-        <form onSubmit={handleAskChatbot} className="flex items-end gap-2">
+        <form onSubmit={handleAskChatbot} className="flex items-end gap-[1%]">
           <textarea
             value={chatQuery}
             onChange={(e) => setChatQuery(e.target.value)}
             placeholder="Ask a question..."
-            className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden leading-normal"
+            className="flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm shadow-sm resize-none overflow-hidden leading-normal focus:outline-none"
             disabled={isChatLoading}
             rows={Math.min(Math.max(Math.ceil(chatQuery.length / 35), 1), 4)}
             style={{ 
