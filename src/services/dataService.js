@@ -7,6 +7,48 @@ const CLASSES_KEY = "calendar_classes";
 const TASK_TYPES_KEY = "calendar_task_types";
 const SETTINGS_KEY = "calendar_settings";
 
+// Performance cache with TTL
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const getCacheKey = (operation, userId, params = {}) => {
+  return `${operation}_${userId}_${JSON.stringify(params)}`;
+};
+
+const getCachedData = (key) => {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    logger.debug('Cache hit', { key });
+    return cached.data;
+  }
+  if (cached) {
+    cache.delete(key); // Remove expired cache
+  }
+  return null;
+};
+
+const setCachedData = (key, data) => {
+  cache.set(key, { data, timestamp: Date.now() });
+  // Clean up old cache entries periodically
+  if (cache.size > 100) {
+    const now = Date.now();
+    for (const [k, v] of cache.entries()) {
+      if (now - v.timestamp > CACHE_TTL) {
+        cache.delete(k);
+      }
+    }
+  }
+};
+
+const invalidateCache = (pattern) => {
+  for (const key of cache.keys()) {
+    if (key.includes(pattern)) {
+      cache.delete(key);
+    }
+  }
+  logger.debug('Cache invalidated', { pattern });
+};
+
 // Utility function to generate unique ID
 export const generateUniqueId = () => {
   return `class${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
@@ -23,11 +65,20 @@ const saveLocalData = (key, data) => {
 
 export const getTasks = async (userId, useSupabase = false) => {
   logger.debug('getTasks called', { userId: !!userId, userIdType: typeof userId, useSupabase });
+  
   if (useSupabase) {
     if (!userId) {
       logger.warn('getTasks: Supabase requested without userId, falling back to local data');
       return getLocalData(TASKS_KEY);
     }
+
+    // Check cache first
+    const cacheKey = getCacheKey('getTasks', userId);
+    const cachedData = getCachedData(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
     try {
       // Get tasks filtered by user_id
       const { data, error } = await supabase
@@ -42,6 +93,9 @@ export const getTasks = async (userId, useSupabase = false) => {
       }
 
       logger.debug('Retrieved tasks from Supabase', { taskCount: data?.length || 0, userId: !!userId });
+      
+      // Cache the result
+      setCachedData(cacheKey, data);
       return data;
     } catch (error) {
       logger.error('getTasks Supabase error', { error: error.message });

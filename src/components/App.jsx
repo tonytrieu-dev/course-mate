@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
-import Sidebar from "./Sidebar";
-import SimpleCalendar from "./SimpleCalendar";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
-import LoginComponent from "./LoginComponent";
+
+// Lazy load heavy components for better initial load performance
+const Sidebar = lazy(() => import("./Sidebar"));
+const SimpleCalendar = lazy(() => import("./SimpleCalendar"));
+const LoginComponent = lazy(() => import("./LoginComponent"));
 
 const CalendarApp = () => {
   const [view, setView] = useState("month");
@@ -19,11 +21,23 @@ const CalendarApp = () => {
     );
   }
 
-  if (!isAuthenticated) return <LoginComponent />;
+  if (!isAuthenticated) {
+    return (
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      }>
+        <LoginComponent />
+      </Suspense>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar isAuthenticated={isAuthenticated} />
+      <Suspense fallback={<div className="w-64 bg-gray-800 animate-pulse"></div>}>
+        <Sidebar isAuthenticated={isAuthenticated} />
+      </Suspense>
       <div className="flex-1 p-5 bg-gray-100 overflow-auto box-border pt-20">
         {/* Header with auth controls */}
         <div className="flex justify-between items-center mb-4 relative">
@@ -32,7 +46,13 @@ const CalendarApp = () => {
           </div>
         </div>
 
-        <SimpleCalendar view={view} useSupabase={isAuthenticated} />
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        }>
+          <SimpleCalendar view={view} useSupabase={isAuthenticated} />
+        </Suspense>
       </div>
     </div>
   );

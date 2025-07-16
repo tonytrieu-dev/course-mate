@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { addTaskType, addClass, deleteTaskType, deleteClass } from "../services/dataService";
 import classService from "../services/classService";
+import { logger } from "../utils/logger";
 
 const TaskModal = ({
   showModal,
@@ -30,40 +31,48 @@ const TaskModal = ({
     completed: false,
   });
 
-  // Update task state when props change
-  useEffect(() => {
-    // Reset task to default state first, then populate with editing task data
-    const newTaskState = {
+  // Memoize default task state to prevent unnecessary recalculations
+  const defaultTaskState = useMemo(() => {
+    const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : "";
+    return {
       title: "",
       class: classes.length > 0 ? classes[0].id : "",
       type: taskTypes.length > 0 ? taskTypes[0].id : "",
       isDuration: false,
-      dueDate: selectedDate ? selectedDate.toISOString().split('T')[0] : "",
+      dueDate: formattedDate,
       dueTime: "23:59",
-      startDate: selectedDate ? selectedDate.toISOString().split('T')[0] : "",
+      startDate: formattedDate,
       startTime: "08:00",
-      endDate: selectedDate ? selectedDate.toISOString().split('T')[0] : "",
+      endDate: formattedDate,
       endTime: "11:00",
       completed: false,
     };
+  }, [selectedDate, classes, taskTypes]);
+
+  // Update task state when props change
+  useEffect(() => {
+    let newTaskState = { ...defaultTaskState };
 
     // If editing an existing task, override with its data
     if (editingTask) {
-      newTaskState.title = editingTask.title || "";
-      newTaskState.class = editingTask.class || newTaskState.class;
-      newTaskState.type = editingTask.type || newTaskState.type;
-      newTaskState.isDuration = Boolean(editingTask.isDuration);
-      newTaskState.dueDate = editingTask.dueDate || newTaskState.dueDate;
-      newTaskState.dueTime = editingTask.dueTime || newTaskState.dueTime;
-      newTaskState.startDate = editingTask.startDate || newTaskState.startDate;
-      newTaskState.startTime = editingTask.startTime || newTaskState.startTime;
-      newTaskState.endDate = editingTask.endDate || newTaskState.endDate;
-      newTaskState.endTime = editingTask.endTime || newTaskState.endTime;
-      newTaskState.completed = Boolean(editingTask.completed);
+      newTaskState = {
+        ...newTaskState,
+        title: editingTask.title || "",
+        class: editingTask.class || newTaskState.class,
+        type: editingTask.type || newTaskState.type,
+        isDuration: Boolean(editingTask.isDuration),
+        dueDate: editingTask.dueDate || newTaskState.dueDate,
+        dueTime: editingTask.dueTime || newTaskState.dueTime,
+        startDate: editingTask.startDate || newTaskState.startDate,
+        startTime: editingTask.startTime || newTaskState.startTime,
+        endDate: editingTask.endDate || newTaskState.endDate,
+        endTime: editingTask.endTime || newTaskState.endTime,
+        completed: Boolean(editingTask.completed),
+      };
     }
 
     setTask(newTaskState);
-  }, [editingTask, selectedDate, classes, taskTypes]);
+  }, [editingTask, defaultTaskState]);
 
   const [showClassInput, setShowClassInput] = useState(false);
   const [showTypeInput, setShowTypeInput] = useState(false);
@@ -75,12 +84,10 @@ const TaskModal = ({
   const [hoveredTypeId, setHoveredTypeId] = useState(null);
   const [hoveredClassId, setHoveredClassId] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     
-    console.log('Form submitted, current task state:', task);
-    console.log('Available classes:', classes);
-    console.log('Available task types:', taskTypes);
+    logger.debug('TaskModal form submitted', { hasTitle: !!task.title, classCount: classes.length, typeCount: taskTypes.length });
     
     // Basic validation
     if (!task.title || !task.title.trim()) {
@@ -99,9 +106,9 @@ const TaskModal = ({
       return;
     }
     
-    console.log('Validation passed, submitting task:', task);
+    logger.debug('TaskModal validation passed, submitting task', { taskId: task.id, isDuration: task.isDuration });
     onSubmit(task);
-  };
+  }, [task, classes.length, taskTypes.length, onSubmit]);
 
   const handleDeleteTaskType = async (typeId) => {
     const typeToDelete = taskTypes.find(t => t.id === typeId);
@@ -644,4 +651,5 @@ const TaskModal = ({
   );
 };
 
-export default TaskModal;
+// Memoize component to prevent unnecessary re-renders
+export default React.memo(TaskModal);

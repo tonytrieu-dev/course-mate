@@ -9,6 +9,7 @@ import { fetchCanvasCalendar } from "../services/canvasService";
 import { useFileManager } from "../hooks/useFileManager";
 import { TextFormattingProvider } from "../contexts/TextFormattingContext";
 import { useResizable } from "../hooks/useResizable";
+import { useFontSizes } from "../hooks/useLocalStorageState";
 import LoginComponent from "./LoginComponent";
 import CanvasSettings from "./CanvasSettings";
 import SyllabusModal from "./SyllabusModal";
@@ -48,22 +49,21 @@ const Sidebar = () => {
   const [chatbotPosition, setChatbotPosition] = useState({ x: 16, y: 0 });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
-  // Font sizes
-  const [fontSize, setFontSize] = useState(() => {
-    const saved = localStorage.getItem('sidebarFontSize');
-    return saved ? parseInt(saved, 10) : 16;
-  });
-  const [titleSize, setTitleSize] = useState(() => {
-    const saved = localStorage.getItem('titleFontSize');
-    return saved ? parseInt(saved, 10) : 50;
-  });
-  const [classesHeaderSize, setClassesHeaderSize] = useState(() => {
-    const saved = localStorage.getItem('classesHeaderFontSize');
-    return saved ? parseInt(saved, 10) : 20;
-  });
-  const [classNameSize, setClassNameSize] = useState(() => {
-    const saved = localStorage.getItem('classNameFontSize');
-    return saved ? parseInt(saved, 10) : 14;
+  // Font sizes with optimized localStorage access
+  const {
+    sidebar: fontSize,
+    title: titleSize,
+    classesHeader: classesHeaderSize,
+    className: classNameSize,
+    setSidebarSize: setFontSize,
+    setTitleSize,
+    setClassesHeaderSize,
+    setClassNameSize
+  } = useFontSizes({
+    sidebar: 16,
+    title: 50,
+    classesHeader: 20,
+    className: 14
   });
   
   // UI control state
