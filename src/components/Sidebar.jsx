@@ -390,7 +390,7 @@ const Sidebar = () => {
                         handleClassNameClick(e, c.id);
                       }}
                     >
-                      <span className="font-sans text-base text-gray-800">{c.name}</span>
+                      <span className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-150">{c.name}</span>
                     </span>
                   )}
                 </div>
