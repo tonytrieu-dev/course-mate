@@ -60,3 +60,47 @@ export const getNextPeriod = (currentDate, view) => {
   }
   return newDate;
 };
+
+// Format hour to 12-hour format with AM/PM
+export const formatHourForDisplay = (hour) => {
+  const format12Hours = hour % 12 || 12;
+  const ampm = hour < 12 ? " AM" : " PM";
+  return `${format12Hours}${ampm}`;
+};
+
+// Get weekday headers array
+export const getWeekdayHeaders = () => {
+  return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+};
+
+// Get calendar title based on view and date
+export const getCalendarTitle = (currentDate, view) => {
+  if (view === "month") {
+    return currentDate.toLocaleString("default", {
+      month: "long",
+      year: "numeric",
+    });
+  } else if (view === "week") {
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    return `${startOfWeek.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })} - ${endOfWeek.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })}`;
+  } else {
+    return currentDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+};

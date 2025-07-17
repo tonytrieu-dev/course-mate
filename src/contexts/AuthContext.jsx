@@ -9,6 +9,7 @@ import {
 import { syncData, downloadDataFromSupabase } from "../services/syncService";
 import { errorHandler } from "../utils/errorHandler";
 import { logger } from "../utils/logger";
+import { handleAuthError, withSyncOperation } from "../utils/authHelpers";
 
 // Create the auth context
 const AuthContext = createContext();
@@ -96,44 +97,40 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setAuthError(null);
-    setSyncing(true);
-
-    try {
-      const { user: authUser } = await signIn(email, password);
-      setUser(authUser);
-      if (authUser) {
-        await downloadDataFromSupabase(authUser.id);
-        setLastCalendarSyncTimestamp(Date.now());
+    
+    return withSyncOperation(async () => {
+      try {
+        const { user: authUser } = await signIn(email, password);
+        setUser(authUser);
+        if (authUser) {
+          await downloadDataFromSupabase(authUser.id);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        handleAuthError(error, 'user login', setAuthError);
+        return false;
       }
-      return true;
-    } catch (error) {
-      const errorMessage = errorHandler.handle(error, 'user login');
-      setAuthError(errorMessage);
-      return false;
-    } finally {
-      setSyncing(false);
-    }
+    }, setSyncing, setLastCalendarSyncTimestamp);
   };
 
   const register = async (email, password) => {
     setAuthError(null);
-    setSyncing(true);
-
-    try {
-      const { user: authUser } = await signUp(email, password);
-      setUser(authUser);
-      if (authUser) {
-        await syncData(authUser.id);
-        setLastCalendarSyncTimestamp(Date.now());
+    
+    return withSyncOperation(async () => {
+      try {
+        const { user: authUser } = await signUp(email, password);
+        setUser(authUser);
+        if (authUser) {
+          await syncData(authUser.id);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        handleAuthError(error, 'user registration', setAuthError);
+        return false;
       }
-      return true;
-    } catch (error) {
-      const errorMessage = errorHandler.handle(error, 'user registration');
-      setAuthError(errorMessage);
-      return false;
-    } finally {
-      setSyncing(false);
-    }
+    }, setSyncing, setLastCalendarSyncTimestamp);
   };
 
   const logout = async () => {
@@ -144,8 +141,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       return true;
     } catch (error) {
-      const errorMessage = errorHandler.handle(error, 'user logout');
-      setAuthError(errorMessage);
+      handleAuthError(error, 'user logout', setAuthError);
       return false;
     }
   };
@@ -161,8 +157,7 @@ export const AuthProvider = ({ children }) => {
       });
       if (error) throw error;
     } catch (error) {
-      const errorMessage = errorHandler.handle(error, 'OAuth login');
-      setAuthError(errorMessage);
+      handleAuthError(error, 'OAuth login', setAuthError);
     }
   };
 
@@ -185,10 +180,11 @@ export const AuthProvider = ({ children }) => {
     setLastCalendarSyncTimestamp,
     triggerSync: async () => {
       if (user) {
-        setSyncing(true);
-        await syncData(user.id);
-        setLastCalendarSyncTimestamp(Date.now());
-        setSyncing(false);
+        await withSyncOperation(
+          () => syncData(user.id),
+          setSyncing,
+          setLastCalendarSyncTimestamp
+        );
       }
     },
   };

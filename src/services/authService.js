@@ -1,17 +1,16 @@
 import { supabase } from './supabaseClient';
 import { logger } from '../utils/logger';
+import { withSupabaseQuery } from '../utils/serviceHelpers';
 
 export const signUp = async (email, password) => {
     try {
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-        });
-
-        if (error) {
-            throw error;
-        }
-
+        const data = await withSupabaseQuery(
+            () => supabase.auth.signUp({ email, password }),
+            null,
+            'signup'
+        );
+        
+        if (!data) throw new Error('Signup failed');
         return data;
     } catch (error) {
         logger.error('Authentication signup failed', { error: error.message });
@@ -21,15 +20,13 @@ export const signUp = async (email, password) => {
 
 export const signIn = async (email, password) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-    });
+      const data = await withSupabaseQuery(
+          () => supabase.auth.signInWithPassword({ email, password }),
+          null,
+          'signin'
+      );
       
-      if (error) {
-        throw error;
-      }
-      
+      if (!data) throw new Error('Signin failed');
       return data;
     } catch (error) {
       logger.error('Authentication signin failed', { error: error.message });
@@ -84,16 +81,13 @@ export const signOut = async () => {
 export const getCurrentUser = async () => {
     logger.debug('getCurrentUser called');
     try {
-      logger.debug('Calling supabase.auth.getUser()');
-      const { data: { user }, error } = await supabase.auth.getUser(); // Also capture error here for logging
+      const result = await withSupabaseQuery(
+          () => supabase.auth.getUser(),
+          null,
+          'get current user'
+      );
       
-      if (error) {
-        // This error object might be different from a thrown error caught by the catch block
-        logger.error('Auth user fetch returned error', { error: error.message });
-        // We still want to fall through to the return user (which might be null if error is present)
-        // or let the catch block handle it if it throws.
-      }
-      
+      const user = result?.user || null;
       logger.debug('User fetch completed', { hasUser: !!user });
       return user;
     } catch (error) {

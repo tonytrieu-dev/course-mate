@@ -15,7 +15,6 @@ export const getEventStyle = (task, taskTypes) => {
   // Color mappings for all available colors
   const colorStyles = {
     blue: { bg: "bg-blue-100", border: "border-l-4 border-blue-500", text: "text-blue-800" },
-    green: { bg: "bg-green-100", border: "border-l-4 border-green-500", text: "text-green-800" },
     purple: { bg: "bg-purple-100", border: "border-l-4 border-purple-500", text: "text-purple-800" },
     red: { bg: "bg-red-100", border: "border-l-4 border-red-500", text: "text-red-800" },
     amber: { bg: "bg-amber-100", border: "border-l-4 border-amber-500", text: "text-amber-800" },

@@ -14,8 +14,13 @@ import {
   getStartOfWeek, 
   isSameDay,
   getPreviousPeriod,
-  getNextPeriod
+  getNextPeriod,
+  formatHourForDisplay,
+  getWeekdayHeaders,
+  getCalendarTitle
 } from "../utils/dateHelpers";
+import { getDayCellClasses, getViewButtonClasses, getNavButtonClasses, getNavIconClasses } from "../utils/styleHelpers";
+import { validateAuthState } from "../utils/authHelpers";
 import TaskModal from "./TaskModal";
 import classService from "../services/classService";
 
@@ -77,23 +82,9 @@ const DayCell = ({
   onEdit, 
   onClick 
 }) => {
-  const getDayCellClasses = () => {
-    let baseClasses = "flex flex-col justify-start p-2 border h-40 relative cursor-pointer transition-all duration-200 ease-in-out";
-    
-    if (!isCurrentMonth) {
-      baseClasses += " bg-gray-50 text-gray-400";
-    } else if (isToday) {
-      baseClasses += " bg-blue-100 border-blue-500 rounded-lg";
-    } else {
-      baseClasses += " hover:bg-blue-50";
-    }
-    
-    return baseClasses;
-  };
-
   return (
     <div
-      className={getDayCellClasses()}
+      className={getDayCellClasses(isCurrentMonth, isToday)}
       onClick={onClick}
     >
       {/* Date number */}
@@ -121,24 +112,134 @@ const DayCell = ({
   );
 };
 
-// Reusable CalendarHeader component
+// Enhanced CalendarHeader component with clickable month/year dials
 const CalendarHeader = ({ 
-  title, 
+  currentDate,
+  onDateChange,
   onPrevious, 
   onNext, 
   view, 
   onViewChange 
 }) => {
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   const viewOptions = [
     { key: 'month', label: 'Month' },
     { key: 'week', label: 'Week' },
     { key: 'day', label: 'Day' }
   ];
 
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  // Generate year options (current year ± 10 years)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 21 }, (_, i) => currentYear - 10 + i);
+
+  const handleDateChange = (monthIndex, year) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(monthIndex);
+    newDate.setFullYear(year);
+    onDateChange(newDate);
+    setShowDatePicker(false);
+  };
+
+  const renderDateTitle = () => {
+    if (view === "month") {
+      const monthName = currentDate.toLocaleString("default", { month: "long" });
+      const year = currentDate.getFullYear();
+      
+      return (
+        <div className="relative">
+          <button
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className="flex items-center gap-2 text-2xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-100"
+          >
+            <span>{monthName}</span>
+            <span>{year}</span>
+            {showDatePicker && (
+              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            )}
+          </button>
+          
+          {/* Combined Date Picker */}
+          {showDatePicker && (
+            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-80 max-h-96 overflow-y-auto">
+              <div className="p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Month and Year</h3>
+                
+                {/* Year Selection */}
+                <div className="mb-4">
+                  <label className="block text-xs text-gray-600 mb-2">Year</label>
+                  <div className="grid grid-cols-3 gap-1 max-h-32 overflow-y-auto">
+                    {years.map((yearOption) => (
+                      <button
+                        key={yearOption}
+                        onClick={() => handleDateChange(currentDate.getMonth(), yearOption)}
+                        className={`px-2 py-1 text-sm rounded transition-colors duration-200 ${
+                          yearOption === currentDate.getFullYear() 
+                            ? 'bg-blue-100 text-blue-800 font-semibold' 
+                            : 'text-gray-700 hover:bg-blue-50'
+                        }`}
+                      >
+                        {yearOption}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Month Selection */}
+                <div>
+                  <label className="block text-xs text-gray-600 mb-2">Month</label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {months.map((month, index) => (
+                      <button
+                        key={month}
+                        onClick={() => handleDateChange(index, currentDate.getFullYear())}
+                        className={`px-2 py-1 text-sm rounded transition-colors duration-200 ${
+                          index === currentDate.getMonth() 
+                            ? 'bg-blue-100 text-blue-800 font-semibold' 
+                            : 'text-gray-700 hover:bg-blue-50'
+                        }`}
+                      >
+                        {month.slice(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      // For week and day views, show the original title format
+      return <h2 className="text-2xl font-bold text-gray-800">{getCalendarTitle(currentDate, view)}</h2>;
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowDatePicker(false);
+      }
+    };
+
+    if (showDatePicker) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showDatePicker]);
+
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-      {/* Title */}
-      <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+      {/* Title with clickable month/year dials for month view */}
+      {renderDateTitle()}
       
       {/* Controls */}
       <div className="flex items-center gap-4">
@@ -148,11 +249,7 @@ const CalendarHeader = ({
             <button
               key={option.key}
               onClick={() => onViewChange(option.key)}
-              className={`px-3 py-1 rounded-md font-medium shadow transition-all duration-200 ${
-                view === option.key
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-transparent text-gray-700 hover:bg-gray-200'
-              }`}
+              className={getViewButtonClasses(view === option.key)}
             >
               {option.label}
             </button>
@@ -163,19 +260,19 @@ const CalendarHeader = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onPrevious}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            className={getNavButtonClasses()}
             aria-label="Previous period"
           >
-            <svg className="w-5 h-5 text-gray-600 hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={getNavIconClasses()} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <button
             onClick={onNext}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            className={getNavButtonClasses()}
             aria-label="Next period"
           >
-            <svg className="w-5 h-5 text-gray-600 hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={getNavIconClasses()} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -237,16 +334,21 @@ const SimpleCalendar = ({ view: initialView }) => {
     return unsubscribe;
   }, [isAuthenticated, user]);
 
-  // Show a spinner if still loading
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your calendar...</p>
+  // Validate auth state and show appropriate UI
+  const authState = validateAuthState(user, isAuthenticated, loading);
+  
+  if (!authState.isValid) {
+    if (authState.reason === 'loading') {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading your calendar...</p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+    return null;
   }
 
 
@@ -388,7 +490,7 @@ const SimpleCalendar = ({ view: initialView }) => {
     return (
       <div className="overflow-x-auto">
         <div className="grid grid-cols-7 gap-0.5 min-w-[800px]">
-          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (
+          {getWeekdayHeaders().map((day) => (
             <div key={day} className="text-center font-bold text-gray-700 py-2 text-sm">
               {day}
             </div>
@@ -453,7 +555,7 @@ const SimpleCalendar = ({ view: initialView }) => {
     return (
       <div className="overflow-x-auto">
         <div className="grid grid-cols-7 gap-0.5 min-w-[800px]">
-          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (
+          {getWeekdayHeaders().map((day) => (
             <div key={day} className="text-center font-bold text-gray-700 py-2 text-sm">
               {day}
             </div>
@@ -475,17 +577,13 @@ const SimpleCalendar = ({ view: initialView }) => {
     onEdit, 
     onClick 
   }) => {
-    const format12Hours = hour % 12 || 12;
-    const beforeOrAfterNoon = hour < 12 ? " AM" : " PM";
-
     return (
       <div 
         className="border border-gray-300 p-2 flex min-h-20 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
         onClick={onClick}
       >
         <div className="w-16 font-bold text-gray-600">
-          {format12Hours}
-          {beforeOrAfterNoon}
+          {formatHourForDisplay(hour)}
         </div>
         <div className="flex-1">
           {tasks.map((task) => (
@@ -565,42 +663,11 @@ const SimpleCalendar = ({ view: initialView }) => {
     );
   };
 
-  // Calendar title based on view
-  const renderTitle = () => {
-    if (view === "month") {
-      return currentDate.toLocaleString("default", {
-        month: "long",
-        year: "numeric",
-      });
-    } else if (view === "week") {
-      const startOfWeek = new Date(currentDate);
-      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
-
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-      return `${startOfWeek.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} - ${endOfWeek.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}`;
-    } else {
-      return currentDate.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
-    }
-  };
-
   return (
     <div className="bg-white rounded-xl shadow-md p-4">
       <CalendarHeader
-        title={renderTitle()}
+        currentDate={currentDate}
+        onDateChange={setCurrentDate}
         onPrevious={previousPeriod}
         onNext={nextPeriod}
         view={view}
