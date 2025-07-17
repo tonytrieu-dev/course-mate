@@ -20,7 +20,23 @@ const ChatbotPanel = ({
   const [isDragging, setIsDragging] = useState(false);
   
   const chatbotRef = useRef(null);
+  const chatContentRef = useRef(null);
   const dragRef = useRef({ startX: 0, startY: 0, startPosX: 0, startPosY: 0 });
+
+  // Function to smoothly scroll chat to bottom
+  const scrollToBottom = () => {
+    if (chatContentRef.current) {
+      chatContentRef.current.scrollTo({
+        top: chatContentRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Auto-scroll when chat history changes
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isChatLoading]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -180,7 +196,10 @@ const ChatbotPanel = ({
       </div>
 
       {/* Chat Content */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div 
+        ref={chatContentRef}
+        className="flex-1 overflow-y-auto p-3 space-y-2"
+      >
         {chatHistory.map((msg, index) => (
           <div
             key={index}
@@ -210,7 +229,11 @@ const ChatbotPanel = ({
             contentEditable
             suppressContentEditableWarning={true}
             data-element-type="chat-input"
-            onInput={(e) => setChatQuery(e.target.textContent)}
+            onInput={(e) => {
+              setChatQuery(e.target.textContent);
+              // Auto-scroll to bottom when user starts typing
+              scrollToBottom();
+            }}
             data-placeholder="Ask a question..."
             className={`flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 ${!chatQuery.trim() ? 'empty-placeholder' : ''}`}
             style={{ 
