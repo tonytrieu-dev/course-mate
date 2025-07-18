@@ -15,15 +15,11 @@ export const validation = {
   // Password validation
   password: (password) => {
     const minLength = 6;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    
-    const isValid = password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers;
+    const isValid = password.length >= minLength;
     
     return {
       isValid,
-      message: isValid ? '' : 'Password must be at least 6 characters with uppercase, lowercase, and numbers'
+      message: isValid ? '' : 'Password must be at least 6 characters'
     };
   },
 
