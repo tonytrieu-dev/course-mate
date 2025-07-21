@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import EditableText from './EditableText';
 import InlineSizeControl from './InlineSizeControl';
 import classService from '../services/classService';
@@ -23,19 +23,19 @@ const ClassList = ({
 }) => {
   const [newClassName, setNewClassName] = useState("");
 
-  const handleClassNameClick = (e, classId) => {
+  const handleClassNameClick = useCallback((e, classId) => {
     e.stopPropagation();
     setEditingClassId(classId);
-  };
+  }, [setEditingClassId]);
 
-  const handleClassChange = (classId, newName) => {
+  const handleClassChange = useCallback((classId, newName) => {
     const updatedClasses = classes.map((c) =>
       c.id === classId ? { ...c, name: newName } : c
     );
     setClasses(updatedClasses);
-  };
+  }, [classes, setClasses]);
 
-  const handleClassBlur = async () => {
+  const handleClassBlur = useCallback(async () => {
     if (editingClassId) {
       const classToUpdate = classes.find((c) => c.id === editingClassId);
       if (classToUpdate) {
@@ -43,14 +43,14 @@ const ClassList = ({
       }
     }
     setEditingClassId(null);
-  };
+  }, [editingClassId, classes, isAuthenticated, setEditingClassId]);
 
-  const handleDeleteClass = async (e, classId) => {
+  const handleDeleteClass = useCallback(async (e, classId) => {
     e.stopPropagation();
     await classService.deleteClass(classId, isAuthenticated);
-  };
+  }, [isAuthenticated]);
 
-  const handleAddClass = async () => {
+  const handleAddClass = useCallback(async () => {
     const newId = generateUniqueId();
     const className = newClassName.trim() || "New Class";
     const newClass = {
@@ -66,7 +66,7 @@ const ClassList = ({
       setEditingClassId(newId);
     }
     setNewClassName("");
-  };
+  }, [newClassName, isAuthenticated, setEditingClassId]);
 
   return (
     <>
@@ -183,4 +183,7 @@ const ClassList = ({
   );
 };
 
-export default ClassList;
+// Memoize the entire component to prevent unnecessary re-renders
+const MemoizedClassList = React.memo(ClassList);
+
+export default MemoizedClassList;

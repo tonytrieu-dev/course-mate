@@ -25,24 +25,24 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    console.log("AuthProvider useEffect started");
+    logger.debug("AuthProvider useEffect started");
 
     const initializeApp = async () => {
       try {
-        console.log("Starting initialization...");
+        logger.debug("Starting initialization...");
         const currentUser = await getCurrentUser();
-        console.log("Current user check result:", currentUser);
+        logger.debug("Current user check result:", currentUser);
 
         if (mounted) {
           setUser(currentUser);
           if (currentUser) {
-            console.log("User found, starting sync...");
+            logger.debug("User found, starting sync...");
             setSyncing(true);
             try {
               await syncData(currentUser.id);
-              console.log("Sync completed successfully");
+              logger.debug("Sync completed successfully");
             } catch (syncError) {
-              console.error("Sync failed:", syncError);
+              logger.error("Sync failed:", syncError);
             } finally {
               setSyncing(false);
             }

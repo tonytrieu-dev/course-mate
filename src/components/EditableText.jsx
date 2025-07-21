@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useTextFormatting } from '../contexts/TextFormattingContext';
 
 const EditableText = ({
@@ -40,13 +40,13 @@ const EditableText = ({
     }
   }, [isEditing, elementType, restoreElementFormatting]);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       onBlur && onBlur();
     }
     onKeyDown && onKeyDown(e);
-  };
+  }, [onBlur, onKeyDown]);
 
   if (isEditing) {
     return (
@@ -82,4 +82,5 @@ const EditableText = ({
   );
 };
 
-export default EditableText;
+// Memoize the component to prevent unnecessary re-renders
+export default React.memo(EditableText);

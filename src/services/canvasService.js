@@ -1,18 +1,25 @@
 import { addTask } from './dataService';
+import { logger } from '../utils/logger';
+import { errorHandler, ERROR_CODES } from '../utils/errorHandler';
 
 export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = null) => {
-    console.log(`[fetchCanvasCalendar] Starting. URL: ${icsUrl ? 'Provided' : 'Not Provided'}, useSupabase: ${useSupabase}, User provided: ${!!user}`);
+    logger.debug(`[fetchCanvasCalendar] Starting. URL: ${icsUrl ? 'Provided' : 'Not Provided'}, useSupabase: ${useSupabase}, User provided: ${!!user}`);
     try {
         if (!icsUrl) {
-            console.warn("[fetchCanvasCalendar] No ICS URL provided.");
+            const error = errorHandler.canvas.invalidUrl({ 
+                operation: 'fetchCanvasCalendar',
+                reason: 'No ICS URL provided'
+            });
+            const handled = errorHandler.handle(error, 'fetchCanvasCalendar - validation');
+            logger.warn(handled.userMessage);
             return {
                 success: false,
-                message: "No ICS URL provided",
+                message: handled.userMessage,
                 tasks: []
             };
         }
 
-        console.log(`[fetchCanvasCalendar] Attempting to fetch: ${icsUrl}`);
+        logger.debug(`[fetchCanvasCalendar] Attempting to fetch: ${icsUrl}`);
         
         // Use CORS proxy by default for maximum compatibility
         let response;
@@ -20,10 +27,10 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = nu
 
         // Primary strategy: Use CORS proxy service for reliable access
         try {
-            console.log("[fetchCanvasCalendar] Using proxy service for Canvas access");
+            logger.debug("[fetchCanvasCalendar] Using proxy service for Canvas access");
             const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icsUrl)}`;
             const proxyResponse = await fetch(proxyUrl);
-            console.log("[fetchCanvasCalendar] Proxy fetch completed. Response status:", proxyResponse.status);
+            logger.debug("[fetchCanvasCalendar] Proxy fetch completed. Response status:", proxyResponse.status);
             
             if (proxyResponse.ok) {
                 const proxyData = await proxyResponse.json();
@@ -34,7 +41,7 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = nu
                         status: 200,
                         text: () => Promise.resolve(proxyData.contents)
                     };
-                    console.log("[fetchCanvasCalendar] Successfully retrieved calendar via proxy");
+                    logger.debug("[fetchCanvasCalendar] Successfully retrieved calendar via proxy");
                 } else {
                     throw new Error('No content received from proxy');
                 }
@@ -42,12 +49,12 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = nu
                 throw new Error(`Proxy service failed: ${proxyResponse.status}`);
             }
         } catch (error) {
-            console.log("[fetchCanvasCalendar] Proxy strategy failed:", error.message);
+            logger.debug("[fetchCanvasCalendar] Proxy strategy failed:", error.message);
             lastError = error;
             
             // Fallback: Try direct fetch as secondary option
             try {
-                console.log("[fetchCanvasCalendar] Trying direct fetch as fallback");
+                logger.debug("[fetchCanvasCalendar] Trying direct fetch as fallback");
                 response = await fetch(icsUrl, {
                     method: 'GET',
                     mode: 'cors',
@@ -57,67 +64,87 @@ export const fetchCanvasCalendar = async (icsUrl, useSupabase = false, user = nu
                     credentials: 'omit',
                     cache: 'no-cache'
                 });
-                console.log("[fetchCanvasCalendar] Direct fetch completed. Response status:", response.status);
+                logger.debug("[fetchCanvasCalendar] Direct fetch completed. Response status:", response.status);
             } catch (directError) {
-                console.log("[fetchCanvasCalendar] Direct fetch also failed:", directError.message);
+                logger.debug("[fetchCanvasCalendar] Direct fetch also failed:", directError.message);
                 lastError = directError;
             }
         }
 
         if (!response || !response.ok) {
-            throw lastError || new Error('Unable to access Canvas calendar');
+            throw lastError || errorHandler.canvas.accessDenied({
+                icsUrl: icsUrl ? 'provided' : 'missing',
+                lastError: lastError?.message
+            });
         }
 
-        console.log("[fetchCanvasCalendar] fetch successful. Response status:", response.status);
+        logger.debug("[fetchCanvasCalendar] fetch successful. Response status:", response.status);
         if (!response.ok) {
-            console.error(`[fetchCanvasCalendar] Fetch failed. Status: ${response.status}, StatusText: ${response.statusText}`);
-            throw new Error(`Failed to fetch calendar: ${response.statusText}`);
+            const error = errorHandler.network.connectionError({
+                status: response.status,
+                statusText: response.statusText,
+                operation: 'fetchCanvasCalendar'
+            });
+            const handled = errorHandler.handle(error, 'fetchCanvasCalendar - response check');
+            throw error;
         }
         const icsText = await response.text();
-        console.log("[fetchCanvasCalendar] response.text() completed.");
+        logger.debug("[fetchCanvasCalendar] response.text() completed.");
         const events = parseICS(icsText);
-        console.log(`[fetchCanvasCalendar] parseICS completed. Found ${events.length} events.`);
+        logger.debug(`[fetchCanvasCalendar] parseICS completed. Found ${events.length} events.`);
         const addedTasks = [];
         for (const event of events) {
-            console.log(`[fetchCanvasCalendar] Processing event UID: "${event.uid || 'N/A'}", Summary: "${event.summary || 'N/A'}"`); // More specific log
+            logger.debug(`[fetchCanvasCalendar] Processing event UID: "${event.uid || 'N/A'}", Summary: "${event.summary || 'N/A'}"`); // More specific log
             try {
                 const task = convertEventToTask(event);
-                console.log(`[fetchCanvasCalendar] Event "${event.summary || 'N/A'}" converted to task:`, task);
+                logger.debug(`[fetchCanvasCalendar] Event "${event.summary || 'N/A'}" converted to task:`, task);
                 const addedTask = await addTask(task, useSupabase, user);
-                console.log(`[fetchCanvasCalendar] addTask for "${event.summary || 'N/A'}" completed. Result:`, addedTask !== null && addedTask !== undefined ? (addedTask.id ? `Task (ID: ${addedTask.id})` : 'Task object without ID') : 'No task returned (null/undefined)');
+                logger.debug(`[fetchCanvasCalendar] addTask for "${event.summary || 'N/A'}" completed. Result:`, addedTask !== null && addedTask !== undefined ? (addedTask.id ? `Task (ID: ${addedTask.id})` : 'Task object without ID') : 'No task returned (null/undefined)');
                 if (addedTask) {
                     addedTasks.push(addedTask);
                 }
             } catch (error) {
-                console.error(`[fetchCanvasCalendar] Error processing and adding task for event UID "${event.uid || 'N/A'}" (Summary: "${event.summary || 'N/A'}"):`, error);
+                const handled = errorHandler.handle(
+                    error,
+                    'fetchCanvasCalendar - task processing',
+                    { 
+                        eventUID: event.uid || 'N/A',
+                        eventSummary: event.summary || 'N/A'
+                    }
+                );
+                logger.warn(`Failed to process Canvas event: ${handled.userMessage}`);
             }
         }
-        console.log(`[fetchCanvasCalendar] Finished processing all events. ${addedTasks.length} tasks were prepared.`);
+        logger.debug(`[fetchCanvasCalendar] Finished processing all events. ${addedTasks.length} tasks were prepared.`);
         return {
             success: true,
             message: `Imported ${addedTasks.length} tasks from Canvas`,
             tasks: addedTasks
         };
     } catch (error) {
-        console.error('[fetchCanvasCalendar] Error in fetchCanvasCalendar:', error);
-        let errorMessage = error.message || "Unknown error during fetchCanvasCalendar";
-        
-        // Handle specific network errors
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            errorMessage = "Unable to fetch Canvas calendar. Please check: 1) The Canvas URL is correct and complete, 2) You have internet access, 3) The calendar is publicly accessible or you're logged into Canvas.";
-        } else if (error.message.includes('CORS')) {
-            errorMessage = "Canvas calendar access issue. Please verify: 1) The full calendar feed URL is copied correctly, 2) The calendar is set to public access in Canvas, 3) Try copying the URL again from Canvas.";
-        } else if (error.message.includes('NetworkError')) {
-            errorMessage = "Network error accessing Canvas. Please check your internet connection and verify the Canvas URL is correct.";
-        } else if (error.message.includes('Proxy service failed')) {
-            errorMessage = "Proxy service unavailable. Try again in a few minutes, or check that your Canvas URL is correct and publicly accessible.";
-        } else if (error.message === 'Unable to access Canvas calendar') {
-            errorMessage = "Cannot access Canvas calendar. Please verify: 1) The URL is copied correctly from Canvas > Calendar > Calendar Feed, 2) Your Canvas calendar is accessible, 3) You have internet access.";
+        // If it's already a ServiceError, use its message directly
+        if (error.name === 'ServiceError') {
+            return {
+                success: false,
+                message: error.message,
+                tasks: []
+            };
         }
+        
+        // Handle other errors with context-aware messaging
+        const handled = errorHandler.handle(
+            error,
+            'fetchCanvasCalendar - main operation',
+            { 
+                icsUrl: icsUrl ? 'provided' : 'missing',
+                useSupabase,
+                userProvided: !!user
+            }
+        );
         
         return {
             success: false,
-            message: errorMessage,
+            message: handled.userMessage,
             tasks: []
         };
     }

@@ -1,12 +1,15 @@
-# .gitignore
+# Dependencies
 node_modules/
-config.js
+
+# Build outputs
+build/
 build/bundle.js
 build/node_modules_ws_browser_js.bundle.js
+.node_modules_ws_browser_js
+
+# Claude Code assistant files
 CLAUDE.md
 .claude
-.node_modules_ws_browser_js
-build/
 
 # Environment variables
 .env
@@ -14,3 +17,32 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock

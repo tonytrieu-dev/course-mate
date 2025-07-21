@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import PropTypes from "prop-types";
 import {
   getTasks,
   addTask,
@@ -24,26 +25,40 @@ import { validateAuthState } from "../utils/authHelpers";
 import TaskModal from "./TaskModal";
 import classService from "../services/classService";
 
-// Reusable EventCard component
-const EventCard = ({ task, classes, taskTypes, formatTimeForDisplay, onToggleComplete, onEdit }) => {
-  const style = getEventStyle(task, taskTypes);
+// Reusable EventCard component - memoized for performance
+const EventCard = React.memo(({ task, classes, taskTypes, formatTimeForDisplay, onToggleComplete, onEdit }) => {
+  const style = useMemo(() => getEventStyle(task, taskTypes), [task, taskTypes]);
+  
+  const className = useMemo(() => classes.find(c => c.id === task.class)?.name || 'No Class', [classes, task.class]);
+  const typeName = useMemo(() => taskTypes.find(t => t.id === task.type)?.name || 'No Type', [taskTypes, task.type]);
+  
+  const timeDisplay = useMemo(() => {
+    if (task.isDuration) {
+      return ` • ${formatTimeForDisplay(task.startTime)}-${formatTimeForDisplay(task.endTime)}`;
+    }
+    return task.dueTime ? ` • Due ${formatTimeForDisplay(task.dueTime)}` : '';
+  }, [task, formatTimeForDisplay]);
+
+  const handleClick = useCallback((e) => {
+    e.stopPropagation();
+    onToggleComplete(task);
+  }, [onToggleComplete, task]);
+
+  const handleEdit = useCallback((e) => {
+    e.stopPropagation();
+    onEdit(e, task);
+  }, [onEdit, task]);
 
   return (
     <div
       className={`${style.bg} ${style.border} rounded-md p-2 mb-1 shadow-sm cursor-pointer group relative hover:shadow-md transition-all duration-200 ease-in-out`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggleComplete(task);
-      }}
-      title={`${task.title} - ${classes.find(c => c.id === task.class)?.name || 'No Class'}`}
+      onClick={handleClick}
+      title={`${task.title} - ${className}`}
     >
       {/* Edit button */}
       <button
         className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-white/50"
-        onClick={(e) => {
-          e.stopPropagation();
-          onEdit(e, task);
-        }}
+        onClick={handleEdit}
         aria-label="Edit task"
       >
         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3">
@@ -55,21 +70,17 @@ const EventCard = ({ task, classes, taskTypes, formatTimeForDisplay, onToggleCom
         {task.title}
       </div>
       <div className="text-xs text-gray-600 truncate">
-        {classes.find(c => c.id === task.class)?.name || 'No Class'}
+        {className}
       </div>
       <div className="text-xs text-gray-500 truncate">
-        {taskTypes.find(t => t.id === task.type)?.name || 'No Type'}
-        {task.isDuration ? 
-          ` • ${formatTimeForDisplay(task.startTime)}-${formatTimeForDisplay(task.endTime)}` :
-          task.dueTime ? ` • Due ${formatTimeForDisplay(task.dueTime)}` : ''
-        }
+        {typeName}{timeDisplay}
       </div>
     </div>
   );
-};
+});
 
-// Reusable DayCell component
-const DayCell = ({ 
+// Reusable DayCell component - memoized for performance
+const DayCell = React.memo(({ 
   day, 
   isCurrentMonth, 
   isCurrentDate, 
@@ -82,15 +93,19 @@ const DayCell = ({
   onEdit, 
   onClick 
 }) => {
+  const cellClasses = useMemo(() => getDayCellClasses(isCurrentMonth, isToday), [isCurrentMonth, isToday]);
+  const dateClasses = useMemo(() => 
+    `text-sm font-semibold absolute top-2 left-2 ${isToday ? 'text-blue-700' : 'text-gray-500'}`,
+    [isToday]
+  );
+
   return (
     <div
-      className={getDayCellClasses(isCurrentMonth, isToday)}
+      className={cellClasses}
       onClick={onClick}
     >
       {/* Date number */}
-      <div className={`text-sm font-semibold absolute top-2 left-2 ${
-        isToday ? 'text-blue-700' : 'text-gray-500'
-      }`}>
+      <div className={dateClasses}>
         {day}
       </div>
       
@@ -110,10 +125,48 @@ const DayCell = ({
       </div>
     </div>
   );
-};
+});
 
-// Enhanced CalendarHeader component with clickable month/year dials
-const CalendarHeader = ({ 
+// Reusable HourCell component for day view - memoized for performance
+const HourCell = React.memo(({ 
+  hour, 
+  tasks, 
+  classes, 
+  taskTypes, 
+  formatTimeForDisplay, 
+  onToggleComplete, 
+  onEdit, 
+  onClick 
+}) => {
+  const hourDisplay = useMemo(() => formatHourForDisplay(hour), [hour]);
+
+  return (
+    <div 
+      className="border border-gray-300 p-2 flex min-h-20 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+      onClick={onClick}
+    >
+      <div className="w-16 font-bold text-gray-600">
+        {hourDisplay}
+      </div>
+      <div className="flex-1">
+        {tasks.map((task) => (
+          <EventCard
+            key={task.id}
+            task={task}
+            classes={classes}
+            taskTypes={taskTypes}
+            formatTimeForDisplay={formatTimeForDisplay}
+            onToggleComplete={onToggleComplete}
+            onEdit={onEdit}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+// Enhanced CalendarHeader component with clickable month/year dials - memoized
+const CalendarHeader = React.memo(({ 
   currentDate,
   onDateChange,
   onPrevious, 
@@ -280,7 +333,7 @@ const CalendarHeader = ({
       </div>
     </div>
   );
-};
+});
 
 const SimpleCalendar = ({ view: initialView }) => {
   const { user, isAuthenticated, loading, lastCalendarSyncTimestamp, setLastCalendarSyncTimestamp } = useAuth();
@@ -295,13 +348,15 @@ const SimpleCalendar = ({ view: initialView }) => {
   const [editingTask, setEditingTask] = useState(null);
 
 
-  // Load data when auth state is ready or a sync has occurred
+  // Load data when auth state is ready (initial load only)
   useEffect(() => {
     const loadData = async () => {
 
-      if (!loading && isAuthenticated && user && user.id && lastCalendarSyncTimestamp) {
+      if (!loading && isAuthenticated && user && user.id) {
+        console.log('Loading initial data for user:', user.id);
         
         const fetchedTasks = await getTasks(user.id, isAuthenticated);
+        console.log('Fetched tasks from server:', fetchedTasks);
         setTasks(fetchedTasks || []);
         
         // Use class service for centralized class management
@@ -314,10 +369,11 @@ const SimpleCalendar = ({ view: initialView }) => {
         setTaskTypes(fetchedTaskTypes || []);
 
       } else {
+        console.log('Skipping data load - conditions not met:', { loading, isAuthenticated, userId: user?.id });
       }
     };
     loadData();
-  }, [loading, isAuthenticated, user, user?.id, lastCalendarSyncTimestamp]);
+  }, [loading, isAuthenticated, user, user?.id]);
 
   // Subscribe to class changes from the class service
   useEffect(() => {
@@ -362,14 +418,14 @@ const SimpleCalendar = ({ view: initialView }) => {
   };
 
 
-  const handleDateClick = (day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
+  const handleDateClick = useCallback((day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
     const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     setSelectedDate(clickedDate);
     setEditingTask(null);
     setShowTaskModal(true);
-  };
+  }, [currentDate]);
 
-  const handleTaskClick = (e, task) => {
+  const handleTaskClick = useCallback((e, task) => {
     e.stopPropagation();
     // Use the appropriate date field depending on task type
     const taskDateStr = task.dueDate || task.date;
@@ -377,7 +433,7 @@ const SimpleCalendar = ({ view: initialView }) => {
     setSelectedDate(taskDate);
     setEditingTask(task);
     setShowTaskModal(true);
-  };
+  }, []);
 
   const handleTaskSubmit = async (taskData) => {
     try {
@@ -387,42 +443,82 @@ const SimpleCalendar = ({ view: initialView }) => {
         completed: taskData.completed || false,
       };
 
+      let result;
       if (editingTask) {
-        const updatedTask = await updateTask(
+        console.log('Updating task:', { id: editingTask.id, data: completeTaskData });
+        result = await updateTask(
           editingTask.id,
           completeTaskData,
           isAuthenticated
         );
-        if (updatedTask) { 
-          setLastCalendarSyncTimestamp(Date.now());
+        console.log('Task update result:', result);
+        
+        // Immediately update local state for edited task
+        if (result) {
+          console.log('Immediately updating task in local state:', result);
+          setTasks(prevTasks => {
+            const updated = prevTasks.map(task => 
+              task.id === editingTask.id ? { ...task, ...result } : task
+            );
+            console.log('Updated tasks array:', updated);
+            return updated;
+          });
         }
       } else {
-        const newTaskObj = await addTask(completeTaskData, isAuthenticated);
-        if (newTaskObj) {
-          setLastCalendarSyncTimestamp(Date.now());
+        console.log('Creating new task:', completeTaskData);
+        result = await addTask(completeTaskData, isAuthenticated);
+        console.log('Task creation result:', result);
+        
+        // Immediately add new task to local state
+        if (result) {
+          console.log('Immediately adding new task to local state:', result);
+          setTasks(prevTasks => {
+            const updated = [...prevTasks, result];
+            console.log('Updated tasks array with new task:', updated);
+            return updated;
+          });
         }
       }
-
-      setShowTaskModal(false);
-      setEditingTask(null);
+      
+      if (result) {
+        setLastCalendarSyncTimestamp(Date.now());
+        setShowTaskModal(false);
+        setEditingTask(null);
+      } else {
+        throw new Error('Task operation returned no result');
+      }
     } catch (error) {
-      alert("There was an error adding your task. Please try again.");
+      console.error('Task submission error:', error);
+      const operation = editingTask ? 'updating' : 'creating';
+      alert(`There was an error ${operation} your task. Please try again. Error: ${error.message}`);
     }
   };
 
   const handleDeleteTask = async () => {
     if (editingTask) {
-      const success = await deleteTask(editingTask.id, isAuthenticated);
-      if (success) {
-        setLastCalendarSyncTimestamp(Date.now());
+      try {
+        const success = await deleteTask(editingTask.id, isAuthenticated);
+        if (success) {
+          // Immediately remove task from local state
+          console.log('Immediately removing task from local state:', editingTask.id);
+          setTasks(prevTasks => {
+            const updated = prevTasks.filter(task => task.id !== editingTask.id);
+            console.log('Updated tasks array after deletion:', updated);
+            return updated;
+          });
+          setLastCalendarSyncTimestamp(Date.now());
+        }
+        setShowTaskModal(false);
+        setEditingTask(null);
+      } catch (error) {
+        console.error('Task deletion error:', error);
+        alert(`There was an error deleting your task. Please try again. Error: ${error.message}`);
       }
-      setShowTaskModal(false);
-      setEditingTask(null);
     }
   };
 
 
-  const getTasksForDay = (day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
+  const getTasksForDay = useCallback((day, month = currentDate.getMonth(), year = currentDate.getFullYear()) => {
     const targetDate = new Date(year, month, day);
     const targetDateStr = formatDateForInput(targetDate);
 
@@ -447,7 +543,7 @@ const SimpleCalendar = ({ view: initialView }) => {
       const timeB = b.dueTime || (b.date ? new Date(b.date).toLocaleTimeString() : '00:00');
       return timeA.localeCompare(timeB);
     });
-  };
+  }, [tasks, currentDate]);
 
 
   const renderMonthView = () => {
@@ -502,13 +598,16 @@ const SimpleCalendar = ({ view: initialView }) => {
   };
 
   // Add a function to toggle task completion
-  const toggleTaskCompletion = async (task) => {
+  const toggleTaskCompletion = useCallback(async (task) => {
+    const originalCompleted = task.completed;
+    
     // Optimistically update local state for instant UI feedback
     setTasks((prevTasks) =>
       prevTasks.map((t) =>
         t.id === task.id ? { ...t, completed: !t.completed } : t
       )
     );
+    
     try {
       const updatedTask = {
         ...task,
@@ -517,8 +616,15 @@ const SimpleCalendar = ({ view: initialView }) => {
       await updateTask(task.id, updatedTask, isAuthenticated);
       setLastCalendarSyncTimestamp(Date.now());
     } catch (error) {
+      console.error('Failed to update task completion:', error);
+      // Revert optimistic update on error
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === task.id ? { ...t, completed: originalCompleted } : t
+        )
+      );
     }
-  };
+  }, [isAuthenticated, setLastCalendarSyncTimestamp]);
 
 
   // Week view rendering
@@ -561,42 +667,6 @@ const SimpleCalendar = ({ view: initialView }) => {
             </div>
           ))}
           {days}
-        </div>
-      </div>
-    );
-  };
-
-  // Reusable HourCell component for day view
-  const HourCell = ({ 
-    hour, 
-    tasks, 
-    classes, 
-    taskTypes, 
-    formatTimeForDisplay, 
-    onToggleComplete, 
-    onEdit, 
-    onClick 
-  }) => {
-    return (
-      <div 
-        className="border border-gray-300 p-2 flex min-h-20 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
-        onClick={onClick}
-      >
-        <div className="w-16 font-bold text-gray-600">
-          {formatHourForDisplay(hour)}
-        </div>
-        <div className="flex-1">
-          {tasks.map((task) => (
-            <EventCard
-              key={task.id}
-              task={task}
-              classes={classes}
-              taskTypes={taskTypes}
-              formatTimeForDisplay={formatTimeForDisplay}
-              onToggleComplete={onToggleComplete}
-              onEdit={onEdit}
-            />
-          ))}
         </div>
       </div>
     );
@@ -699,4 +769,74 @@ const SimpleCalendar = ({ view: initialView }) => {
   );
 };
 
-export default SimpleCalendar;
+// PropTypes for components
+EventCard.propTypes = {
+  task: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    class: PropTypes.string,
+    type: PropTypes.string,
+    isDuration: PropTypes.bool,
+    startTime: PropTypes.string,
+    endTime: PropTypes.string,
+    dueTime: PropTypes.string,
+    completed: PropTypes.bool,
+  }).isRequired,
+  classes: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+  })).isRequired,
+  taskTypes: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    color: PropTypes.string,
+  })).isRequired,
+  formatTimeForDisplay: PropTypes.func.isRequired,
+  onToggleComplete: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
+};
+
+DayCell.propTypes = {
+  day: PropTypes.number.isRequired,
+  isCurrentMonth: PropTypes.bool.isRequired,
+  isCurrentDate: PropTypes.bool,
+  isToday: PropTypes.bool.isRequired,
+  tasks: PropTypes.array.isRequired,
+  classes: PropTypes.array.isRequired,
+  taskTypes: PropTypes.array.isRequired,
+  formatTimeForDisplay: PropTypes.func.isRequired,
+  onToggleComplete: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+CalendarHeader.propTypes = {
+  currentDate: PropTypes.instanceOf(Date).isRequired,
+  onDateChange: PropTypes.func.isRequired,
+  onPrevious: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
+  view: PropTypes.oneOf(['month', 'week', 'day']).isRequired,
+  onViewChange: PropTypes.func.isRequired,
+};
+
+HourCell.propTypes = {
+  hour: PropTypes.number.isRequired,
+  tasks: PropTypes.array.isRequired,
+  classes: PropTypes.array.isRequired,
+  taskTypes: PropTypes.array.isRequired,
+  formatTimeForDisplay: PropTypes.func.isRequired,
+  onToggleComplete: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+SimpleCalendar.propTypes = {
+  view: PropTypes.oneOf(['month', 'week', 'day']),
+};
+
+SimpleCalendar.defaultProps = {
+  view: 'month',
+};
+
+// Memoize the main component for better performance
+export default React.memo(SimpleCalendar);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import PropTypes from "prop-types";
 import {
   getSettings,
   updateSettings,
@@ -48,6 +49,7 @@ const Sidebar = () => {
   const [chatbotPanelHeight, setChatbotPanelHeight] = useState(400);
   const [chatbotPosition, setChatbotPosition] = useState({ x: 16, y: 0 });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isCanvasSyncing, setIsCanvasSyncing] = useState(false);
   
   // Font sizes with optimized localStorage access
   const {
@@ -89,6 +91,7 @@ const Sidebar = () => {
 
       if (user && canvasUrl && autoSync) {
         try {
+          setIsCanvasSyncing(true);
           logger.info('Starting Canvas calendar auto-sync', { userId: user.id });
           const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user);
           logger.debug('Canvas calendar fetch completed', { success: result?.success });
@@ -101,6 +104,8 @@ const Sidebar = () => {
           }
         } catch (error) {
           logger.error('Canvas auto-sync error', { error: error.message });
+        } finally {
+          setIsCanvasSyncing(false);
         }
       }
     };
@@ -431,6 +436,9 @@ const Sidebar = () => {
               <span className="text-gray-700 text-sm font-normal">
                 Canvas Sync
               </span>
+              {isCanvasSyncing && (
+                <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              )}
             </div>
           </button>
         ) : (
@@ -502,4 +510,5 @@ const Sidebar = () => {
   );
 };
 
+// Sidebar doesn't need PropTypes as it doesn't accept props
 export default Sidebar;

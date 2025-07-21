@@ -11,16 +11,8 @@ const LOG_LEVELS = {
 
 class Logger {
   constructor() {
-    // Use config system for environment detection if available
-    let isDevelopment;
-    try {
-      const { config } = require('../../config.js');
-      isDevelopment = config.app.isDevelopment;
-    } catch {
-      // Fallback to direct environment check
-      isDevelopment = process.env.NODE_ENV === 'development';
-    }
-    
+    // Use environment directly (config.js has module compatibility issues)
+    const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
     this.level = isDevelopment ? LOG_LEVELS.DEBUG : LOG_LEVELS.WARN;
   }
 

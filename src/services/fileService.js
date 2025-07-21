@@ -1,11 +1,18 @@
 import { supabase } from './supabaseClient';
+import { errorHandler, ERROR_CODES } from '../utils/errorHandler';
 
 const SIGNED_URL_DURATION = 31536000; // 1 year
 
 export const fileService = {
   async uploadSyllabus(file, classData) {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+    if (!user) {
+      throw errorHandler.auth.notAuthenticated({
+        operation: 'uploadSyllabus',
+        fileName: file?.name,
+        classId: classData?.id
+      });
+    }
 
     const fileName = `${classData.id}/${Date.now()}_${file.name}`;
     
@@ -19,14 +26,26 @@ export const fileService = {
         fileMetadata: { owner: user.id },
       });
 
-    if (error) throw error;
+    if (error) {
+      throw errorHandler.data.saveFailed({
+        operation: 'uploadSyllabus - storage upload',
+        fileName: file.name,
+        originalError: error.message
+      });
+    }
 
     // Get signed URL
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from("class-materials")
       .createSignedUrl(fileName, SIGNED_URL_DURATION);
 
-    if (signedUrlError) throw signedUrlError;
+    if (signedUrlError) {
+      throw errorHandler.data.loadFailed({
+        operation: 'uploadSyllabus - signed URL creation',
+        fileName: file.name,
+        originalError: signedUrlError.message
+      });
+    }
 
     // Delete existing syllabus if any
     if (classData.syllabus?.path) {

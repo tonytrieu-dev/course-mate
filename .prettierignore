@@ -1,0 +1,20 @@
+# Build outputs
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Public assets
+public/
+
+# Configuration files
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

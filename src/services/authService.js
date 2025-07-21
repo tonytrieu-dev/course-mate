@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { logger } from '../utils/logger';
 import { withSupabaseQuery } from '../utils/serviceHelpers';
+import { errorHandler, ERROR_CODES } from '../utils/errorHandler';
 
 export const signUp = async (email, password) => {
     try {
@@ -10,11 +11,45 @@ export const signUp = async (email, password) => {
             'signup'
         );
         
-        if (!data) throw new Error('Signup failed');
+        if (!data) {
+            throw errorHandler.auth.invalidCredentials({
+                operation: 'signUp',
+                email: email ? 'provided' : 'missing'
+            });
+        }
         return data;
     } catch (error) {
-        logger.error('Authentication signup failed', { error: error.message });
-        throw error;
+        // If it's already a ServiceError, just re-throw it
+        if (error.name === 'ServiceError') {
+            throw error;
+        }
+        
+        const handled = errorHandler.handle(
+            error,
+            'signUp',
+            { email: email ? 'provided' : 'missing' }
+        );
+        
+        // Create appropriate auth error based on message
+        const message = error.message?.toLowerCase() || '';
+        if (message.includes('email already registered') || message.includes('already exists')) {
+            throw errorHandler.auth.invalidCredentials({
+                operation: 'signUp',
+                reason: 'Email already exists',
+                originalError: error.message
+            });
+        } else if (message.includes('password')) {
+            throw errorHandler.auth.invalidCredentials({
+                operation: 'signUp', 
+                reason: 'Invalid password',
+                originalError: error.message
+            });
+        }
+        
+        throw errorHandler.auth.invalidCredentials({
+            operation: 'signUp',
+            originalError: error.message
+        });
     }
 };
 
@@ -26,11 +61,38 @@ export const signIn = async (email, password) => {
           'signin'
       );
       
-      if (!data) throw new Error('Signin failed');
+      if (!data) {
+        throw errorHandler.auth.invalidCredentials({
+          operation: 'signIn',
+          email: email ? 'provided' : 'missing'
+        });
+      }
       return data;
     } catch (error) {
-      logger.error('Authentication signin failed', { error: error.message });
-      throw error;
+      // If it's already a ServiceError, just re-throw it
+      if (error.name === 'ServiceError') {
+        throw error;
+      }
+      
+      const handled = errorHandler.handle(
+        error,
+        'signIn',
+        { email: email ? 'provided' : 'missing' }
+      );
+      
+      // Create appropriate auth error based on message
+      const message = error.message?.toLowerCase() || '';
+      if (message.includes('invalid login') || message.includes('invalid email')) {
+        throw errorHandler.auth.invalidCredentials({
+          operation: 'signIn',
+          originalError: error.message
+        });
+      }
+      
+      throw errorHandler.auth.invalidCredentials({
+        operation: 'signIn',
+        originalError: error.message
+      });
     }
 };
 
@@ -40,8 +102,14 @@ export const signOut = async () => {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      logger.error('Authentication signout failed', { error: error.message });
-      throw error;
+      const handled = errorHandler.handle(
+        error,
+        'signOut - Supabase operation'
+      );
+      throw errorHandler.auth.sessionExpired({
+        operation: 'signOut',
+        originalError: error.message
+      });
     }
 
     // Clear local storage items only after successful server signout
@@ -73,8 +141,19 @@ export const signOut = async () => {
     logger.auth('User signed out successfully');
     return true;
   } catch (error) {
-    logger.error('Authentication signout error', { error: error.message });
-    throw error;
+    // If it's already a ServiceError, just re-throw it
+    if (error.name === 'ServiceError') {
+      throw error;
+    }
+    
+    const handled = errorHandler.handle(
+      error,
+      'signOut - overall operation'
+    );
+    throw errorHandler.auth.sessionExpired({
+      operation: 'signOut - overall',
+      originalError: error.message
+    });
   }
 };
 
@@ -91,7 +170,12 @@ export const getCurrentUser = async () => {
       logger.debug('User fetch completed', { hasUser: !!user });
       return user;
     } catch (error) {
-      logger.error('Auth user fetch failed', { error: error.message });
+      const handled = errorHandler.handle(
+        error,
+        'getCurrentUser',
+        { operation: 'getCurrentUser' }
+      );
+      logger.warn(`Failed to get current user: ${handled.userMessage}`);
       return null;
     }
 };

@@ -1,74 +1,54 @@
 import { getCurrentUser } from "./authService";
 import { supabase } from "./supabaseClient";
 import { logger } from "../utils/logger";
+import { errorHandler, ERROR_CODES } from "../utils/errorHandler";
+import { getLocalData, saveLocalData } from "../utils/storageHelpers";
+import { defaultCache } from "../utils/cacheHelpers";
+import { generateUniqueId, generateClassId, generateTypeId } from "../utils/idHelpers";
+import { createSupabaseHelper } from "../utils/supabaseHelpers";
 
 const TASKS_KEY = "calendar_tasks";
 const CLASSES_KEY = "calendar_classes";
 const TASK_TYPES_KEY = "calendar_task_types";
 const SETTINGS_KEY = "calendar_settings";
 
-// Performance cache with TTL
-const cache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Create Supabase helpers for each table
+const tasksHelper = createSupabaseHelper('tasks');
+const classesHelper = createSupabaseHelper('classes');
+const taskTypesHelper = createSupabaseHelper('task_types');
 
+// Cache helper functions
 const getCacheKey = (operation, userId, params = {}) => {
-  return `${operation}_${userId}_${JSON.stringify(params)}`;
+  return defaultCache.getCacheKey(operation, userId, params);
 };
 
 const getCachedData = (key) => {
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    logger.debug('Cache hit', { key });
-    return cached.data;
-  }
-  if (cached) {
-    cache.delete(key); // Remove expired cache
-  }
-  return null;
+  return defaultCache.get(key);
 };
 
 const setCachedData = (key, data) => {
-  cache.set(key, { data, timestamp: Date.now() });
-  // Clean up old cache entries periodically
-  if (cache.size > 100) {
-    const now = Date.now();
-    for (const [k, v] of cache.entries()) {
-      if (now - v.timestamp > CACHE_TTL) {
-        cache.delete(k);
-      }
-    }
-  }
+  defaultCache.set(key, data);
 };
 
 const invalidateCache = (pattern) => {
-  for (const key of cache.keys()) {
-    if (key.includes(pattern)) {
-      cache.delete(key);
-    }
-  }
+  defaultCache.invalidate(pattern);
   logger.debug('Cache invalidated', { pattern });
 };
 
-// Utility function to generate unique ID
-export const generateUniqueId = () => {
-  return `class${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-};
-
-const getLocalData = (key, defaultValue = []) => {
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : defaultValue;
-};
-
-const saveLocalData = (key, data) => {
-  localStorage.setItem(key, JSON.stringify(data));
-};
+// Export the generateUniqueId for backwards compatibility
+export { generateUniqueId } from "../utils/idHelpers";
 
 export const getTasks = async (userId, useSupabase = false) => {
   logger.debug('getTasks called', { userId: !!userId, userIdType: typeof userId, useSupabase });
   
   if (useSupabase) {
     if (!userId) {
-      logger.warn('getTasks: Supabase requested without userId, falling back to local data');
+      const handled = errorHandler.handle(
+        errorHandler.auth.notAuthenticated({ operation: 'getTasks' }),
+        'getTasks',
+        { useSupabase, fallbackUsed: true }
+      );
+      logger.warn(handled.userMessage);
       return getLocalData(TASKS_KEY);
     }
 
@@ -88,7 +68,12 @@ export const getTasks = async (userId, useSupabase = false) => {
         .order("created_at", { ascending: false });
 
       if (error) {
-        logger.error('Failed to fetch tasks from Supabase', { error: error.message });
+        const handled = errorHandler.handle(
+          error,
+          'getTasks - Supabase query',
+          { userId: !!userId, tableName: 'tasks', fallbackUsed: true }
+        );
+        logger.warn(`${handled.userMessage} - falling back to local data`);
         return getLocalData(TASKS_KEY);
       }
 
@@ -98,7 +83,12 @@ export const getTasks = async (userId, useSupabase = false) => {
       setCachedData(cacheKey, data);
       return data;
     } catch (error) {
-      logger.error('getTasks Supabase error', { error: error.message });
+      const handled = errorHandler.handle(
+        error,
+        'getTasks - unexpected error',
+        { userId: !!userId, useSupabase, fallbackUsed: true }
+      );
+      logger.warn(`${handled.userMessage} - falling back to local data`);
       return getLocalData(TASKS_KEY);
     }
   }
@@ -106,7 +96,7 @@ export const getTasks = async (userId, useSupabase = false) => {
 };
 
 export const addTask = async (task, useSupabase = false, providedUser = null) => {
-  console.log('[addTask] Entered function. Task summary for identification:', task ? task.title : 'Task undefined', 'useSupabase:', useSupabase, 'User provided:', !!providedUser);
+  logger.debug('[addTask] Entered function. Task summary for identification:', task ? task.title : 'Task undefined', 'useSupabase:', useSupabase, 'User provided:', !!providedUser);
   try {
     // Ensure created_at is set, Supabase default might handle this but good practice
     const taskWithTimestamp = {
@@ -115,27 +105,29 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
     };
 
     if (useSupabase) {
-      console.log('[addTask] Inside useSupabase block.');
+      logger.debug('[addTask] Inside useSupabase block.');
       
       let userToUse = providedUser;
       if (!userToUse) {
-        console.log('[addTask] No user provided directly, calling getCurrentUser.');
+        logger.debug('[addTask] No user provided directly, calling getCurrentUser.');
         userToUse = await getCurrentUser();
       } else {
-        console.log('[addTask] Using provided user object. User ID:', userToUse.id);
+        logger.debug('[addTask] Using provided user object. User ID:', userToUse.id);
       }
       
-      // console.log('[addTask] getCurrentUser call completed. User ID:', userToUse ? userToUse.id : 'User object is null or undefined'); // Keep for now, or adapt
 
       if (!userToUse) {
-        console.error("[addTask] No authenticated user found for addTask (user object is null).");
-        throw new Error("User not authenticated");
+        throw errorHandler.auth.notAuthenticated({ 
+          operation: 'addTask',
+          taskTitle: task?.title,
+          useSupabase 
+        });
       }
 
       // De-duplication logic for canvas_uid (only if canvas_uid is truthy)
       if (task.canvas_uid && String(task.canvas_uid).trim() !== "") {
         const canvasUIDString = String(task.canvas_uid).trim();
-        console.log(`[addTask] Checking for existing task. User ID: ${userToUse.id}, Canvas UID: '${canvasUIDString}'`);
+        logger.debug(`[addTask] Checking for existing task. User ID: ${userToUse.id}, Canvas UID: '${canvasUIDString}'`);
 
         const { data: existingTasks, error: existingTaskError } = await supabase
           .from("tasks")
@@ -145,13 +137,21 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
           .limit(1); // Expect at most one match
 
         if (existingTaskError) {
-          console.error(`[addTask] Error checking for existing task with canvas_uid ${canvasUIDString}:`, existingTaskError);
-          throw existingTaskError; // Critical: stop if check fails
+          const handled = errorHandler.handle(
+            existingTaskError,
+            'addTask - checking for existing task',
+            { canvasUID: canvasUIDString, userId: userToUse.id }
+          );
+          throw errorHandler.data.loadFailed({ 
+            operation: 'addTask - duplicate check',
+            canvasUID: canvasUIDString,
+            originalError: existingTaskError.message
+          });
         }
 
         if (existingTasks && existingTasks.length > 0) {
           const existingSupabaseTask = existingTasks[0];
-          console.log(`[addTask] Task with canvas_uid ${canvasUIDString} already exists in Supabase. DB record:`, existingSupabaseTask);
+          logger.debug(`[addTask] Task with canvas_uid ${canvasUIDString} already exists in Supabase. DB record:`, existingSupabaseTask);
           
           // Update local storage with the task from Supabase to ensure consistency
           const currentLocalTasks = getLocalData(TASKS_KEY);
@@ -163,14 +163,14 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
             currentLocalTasks.push(existingSupabaseTask); // Add if missing locally (e.g., first sync)
           }
           saveLocalData(TASKS_KEY, currentLocalTasks);
-          console.log(`[addTask] Local storage synced for existing task with canvas_uid ${canvasUIDString}.`);
+          logger.debug(`[addTask] Local storage synced for existing task with canvas_uid ${canvasUIDString}.`);
           
           return existingSupabaseTask; // Return the existing task from Supabase
         } else {
-          console.log(`[addTask] No existing task found for canvas_uid: ${canvasUIDString}. Proceeding to insert new task.`);
+          logger.debug(`[addTask] No existing task found for canvas_uid: ${canvasUIDString}. Proceeding to insert new task.`);
         }
       } else {
-        console.log(`[addTask] canvas_uid is not present or is empty (value: '${task.canvas_uid}', type: ${typeof task.canvas_uid}). Skipping de-duplication check and proceeding to insert.`);
+        logger.debug(`[addTask] canvas_uid is not present or is empty (value: '${task.canvas_uid}', type: ${typeof task.canvas_uid}). Skipping de-duplication check and proceeding to insert.`);
       }
 
       // Prepare task for Supabase: add user_id, ensure no client-side ID
@@ -181,7 +181,7 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
         canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : null, // Store as string or null
       };
 
-      console.log("[addTask] Attempting to insert new task into Supabase:", taskToSave);
+      logger.debug("[addTask] Attempting to insert new task into Supabase:", taskToSave);
 
       try {
         const { data: insertedData, error: insertError } = await supabase
@@ -190,13 +190,20 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
           .select("*"); 
 
         if (insertError) {
-          console.error("[addTask] Supabase task insertion error:", insertError);
-          console.error("[addTask] Task data causing error:", taskToSave);
-          throw insertError;
+          const handled = errorHandler.handle(
+            insertError,
+            'addTask - Supabase insertion',
+            { taskTitle: task?.title, taskData: taskToSave }
+          );
+          throw errorHandler.data.saveFailed({
+            operation: 'addTask - Supabase insertion',
+            taskTitle: task?.title,
+            originalError: insertError.message
+          });
         }
 
         const newSupabaseTask = insertedData[0];
-        console.log("[addTask] Task added successfully to Supabase:", newSupabaseTask);
+        logger.debug("[addTask] Task added successfully to Supabase:", newSupabaseTask);
 
         // Update local storage with the newly inserted task
         const localTasksAfterInsert = getLocalData(TASKS_KEY);
@@ -211,21 +218,34 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
             tasksToSaveLocally = [...localTasksAfterInsert, newSupabaseTask]; // Add if new
         }
         saveLocalData(TASKS_KEY, tasksToSaveLocally);
-        console.log("[addTask] Local storage updated after new task insertion.");
+        logger.debug("[addTask] Local storage updated after new task insertion.");
 
         return newSupabaseTask;
       } catch (error) {
-        console.error("[addTask] Error during Supabase insert operation:", error);
-        throw error; 
+        // If it's already a ServiceError, just re-throw it
+        if (error.name === 'ServiceError') {
+          throw error;
+        }
+        
+        const handled = errorHandler.handle(
+          error,
+          'addTask - Supabase operation',
+          { taskTitle: task?.title, useSupabase }
+        );
+        throw errorHandler.data.saveFailed({
+          operation: 'addTask - Supabase operation',
+          taskTitle: task?.title,
+          originalError: error.message
+        });
       }
     } else {
       // Local storage fallback
       const taskToSaveLocally = {
-        id: task.id || `task_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        id: task.id || generateUniqueId('task'),
          ...taskWithTimestamp,
          canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : null,
        };
-      console.log("[addTask] Saving task to local storage:", taskToSaveLocally);
+      logger.debug("[addTask] Saving task to local storage:", taskToSaveLocally);
       const tasks = getLocalData(TASKS_KEY);
       
       let updatedTasks;
@@ -249,8 +269,23 @@ export const addTask = async (task, useSupabase = false, providedUser = null) =>
       return taskToSaveLocally;
     }
   } catch (error) {
-    console.error("Error in addTask (overall):", error);
-    throw error; // Propagate error
+    // If it's already a ServiceError, just re-throw it with proper logging
+    if (error.name === 'ServiceError') {
+      // Already handled and logged
+      throw error;
+    }
+    
+    // Handle unexpected errors
+    const handled = errorHandler.handle(
+      error,
+      'addTask - overall operation',
+      { taskTitle: task?.title, useSupabase, providedUser: !!providedUser }
+    );
+    throw errorHandler.data.saveFailed({
+      operation: 'addTask - overall operation',
+      taskTitle: task?.title,
+      originalError: error.message
+    });
   }
 };
 
@@ -268,7 +303,18 @@ export const updateTask = async (taskId, updatedTask, useSupabase = false) => {
         .eq("id", taskId)
         .select("*");
 
-      if (error) throw error;
+      if (error) {
+        const handled = errorHandler.handle(
+          error,
+          'updateTask - Supabase update',
+          { taskId, taskTitle: updatedTask?.title }
+        );
+        throw errorHandler.data.saveFailed({
+          operation: 'updateTask',
+          taskId,
+          originalError: error.message
+        });
+      }
 
       const localTasks = getLocalData(TASKS_KEY);
       const updatedTasks = localTasks.map((task) =>
@@ -278,7 +324,21 @@ export const updateTask = async (taskId, updatedTask, useSupabase = false) => {
 
       return data[0];
     } catch (error) {
-      console.error("Error updating task in Supabase:", error.message);
+      // If it's already a ServiceError, just re-throw it
+      if (error.name === 'ServiceError') {
+        throw error;
+      }
+      
+      const handled = errorHandler.handle(
+        error,
+        'updateTask - unexpected error',
+        { taskId, useSupabase, taskTitle: updatedTask?.title }
+      );
+      throw errorHandler.data.saveFailed({
+        operation: 'updateTask - unexpected error',
+        taskId,
+        originalError: error.message
+      });
     }
   } else {
     const tasks = getLocalData(TASKS_KEY);
@@ -296,14 +356,39 @@ export const deleteTask = async (taskId, useSupabase = false) => {
     try {
       const { error } = await supabase.from("tasks").delete().eq("id", taskId);
 
-      if (error) throw error;
+      if (error) {
+        const handled = errorHandler.handle(
+          error,
+          'deleteTask - Supabase delete',
+          { taskId }
+        );
+        throw errorHandler.data.saveFailed({
+          operation: 'deleteTask',
+          taskId,
+          originalError: error.message
+        });
+      }
 
       const tasks = getLocalData(TASKS_KEY);
       const updatedTasks = tasks.filter((task) => task.id !== taskId);
       saveLocalData(TASKS_KEY, updatedTasks);
       return true;
     } catch (error) {
-      console.error("Error deleting task from Supabase:", error.message);
+      // If it's already a ServiceError, just re-throw it
+      if (error.name === 'ServiceError') {
+        throw error;
+      }
+      
+      const handled = errorHandler.handle(
+        error,
+        'deleteTask - unexpected error',
+        { taskId, useSupabase }
+      );
+      throw errorHandler.data.saveFailed({
+        operation: 'deleteTask - unexpected error',
+        taskId,
+        originalError: error.message
+      });
     }
   } else {
     const tasks = getLocalData(TASKS_KEY);
@@ -315,10 +400,15 @@ export const deleteTask = async (taskId, useSupabase = false) => {
 };
 
 export const getClasses = async (userId, useSupabase = false) => {
-  console.log('[getClasses] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
+  logger.debug('[getClasses] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
   if (useSupabase) {
     if (!userId) {
-      console.error("[getClasses] Supabase fetch requested but no userId provided. Falling back to local data.");
+      const handled = errorHandler.handle(
+        errorHandler.auth.notAuthenticated({ operation: 'getClasses' }),
+        'getClasses',
+        { useSupabase, fallbackUsed: true }
+      );
+      logger.warn(handled.userMessage);
       return getLocalData(CLASSES_KEY);
     }
     try {
@@ -332,7 +422,7 @@ export const getClasses = async (userId, useSupabase = false) => {
         console.error("Error fetching classes from Supabase:", error);
         return getLocalData(CLASSES_KEY);
       }
-      console.log(`Retrieved ${data?.length || 0} classes from Supabase for user ${userId}`);
+      logger.debug(`Retrieved ${data?.length || 0} classes from Supabase for user ${userId}`);
       return data.map(cls => {
         const { istaskclass, class_syllabi, class_files, ...cleanCls } = cls;
         return {
@@ -489,7 +579,7 @@ export const updateClass = async (
         user_id: user.id,
       };
 
-      console.log(`[updateClass] Attempting to update class ${classId} in Supabase with data:`, updateData);
+      logger.debug(`[updateClass] Attempting to update class ${classId} in Supabase with data:`, updateData);
 
       const { data, error } = await supabase
         .from("classes")
@@ -666,7 +756,7 @@ export const deleteClass = async (classId, useSupabase = false) => {
 };
 
 export const getTaskTypes = async (userId, useSupabase = false) => {
-  console.log('[getTaskTypes] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
+  logger.debug('[getTaskTypes] Entered. userId:', userId, '(type:', typeof userId + ')', 'useSupabase:', useSupabase);
   if (useSupabase) {
     if (!userId) {
       console.error("[getTaskTypes] Supabase fetch requested but no userId provided. Falling back to local data.");
@@ -683,7 +773,7 @@ export const getTaskTypes = async (userId, useSupabase = false) => {
         console.error("Error fetching task types from Supabase:", error);
         return getLocalData(TASK_TYPES_KEY);
       }
-      console.log(`Retrieved ${data?.length || 0} task types from Supabase for user ${userId}`);
+      logger.debug(`Retrieved ${data?.length || 0} task types from Supabase for user ${userId}`);
       return data;
     } catch (error) {
       console.error("Error in getTaskTypes (Supabase path):", error);
@@ -697,7 +787,7 @@ export const addTaskType = async (taskType, useSupabase = false) => {
   try {
     const typeToSave = {
       ...taskType,
-      id: taskType.id || `type_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      id: taskType.id || generateUniqueId('type'),
       created_at: new Date().toISOString(),
     };
 

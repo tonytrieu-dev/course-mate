@@ -1,8 +1,8 @@
 import { supabase } from './supabaseClient';
-import {
-    getLocalData, saveLocalData, 
-    getTasks, getClasses, getTaskTypes
-} from './dataService';
+import { getTasks, getClasses, getTaskTypes } from './dataService';
+import { getLocalData, saveLocalData } from '../utils/storageHelpers';
+import { checkUserDataExists, batchUpsert } from '../utils/supabaseHelpers';
+import { errorHandler, ERROR_CODES } from '../utils/errorHandler';
 
 const LAST_SYNC_KEY = 'last_sync_timestamp';
 
@@ -11,20 +11,7 @@ const setLastSyncTimestamp = () => {
 }
 
 export const checkIfDataExists = async (userId) => {
-    try {
-        const { data: tasks, error: tasksError } = await supabase
-            .from('tasks')
-            .select('id')
-            .eq('user_id', userId)
-            .limit(1);
-
-        if (tasksError) throw tasksError;
-
-        return tasks && tasks.length > 0;
-    } catch (error) {
-        console.error('There was an error checking if any data exists: ', error);
-        return false;
-    }
+    return await checkUserDataExists('tasks', userId);
 };
 
 // Upload all local data to Supabase (for first-time sync)
@@ -54,28 +41,14 @@ export const uploadLocalDataToSupabase = async (userId) => {
         }));
 
         // Now upload the data in batches
-        if (classesWithUserId.length > 0) {
-            const { error: classesError } = await supabase
-                .from('classes')
-                .upsert(classesWithUserId)
+        const uploadResults = await Promise.all([
+            classesWithUserId.length > 0 ? batchUpsert('classes', classesWithUserId) : Promise.resolve(true),
+            taskTypesWithUserId.length > 0 ? batchUpsert('task_types', taskTypesWithUserId) : Promise.resolve(true),
+            tasksWithUserId.length > 0 ? batchUpsert('tasks', tasksWithUserId) : Promise.resolve(true),
+        ]);
 
-            if (classesError) throw classesError;
-        }
-
-        if (taskTypesWithUserId.length > 0) {
-            const { error: typesError } = await supabase
-                .from('task_types')
-                .upsert(taskTypesWithUserId)
-
-            if (typesError) throw typesError;
-        }
-
-        if (tasksWithUserId.length > 0) {
-            const { error: tasksError } = await supabase
-                .from('tasks')
-                .upsert(tasksWithUserId)
-
-            if (tasksError) throw tasksError;
+        if (!uploadResults.every(result => result === true)) {
+            throw new Error('Some uploads failed');
         }
 
         // Update the sync timestamp

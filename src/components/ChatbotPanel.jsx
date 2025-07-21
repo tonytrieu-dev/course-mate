@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../services/supabaseClient';
 
 const CHAT_HISTORY_LIMIT = 6;
@@ -22,21 +22,64 @@ const ChatbotPanel = ({
   const chatbotRef = useRef(null);
   const chatContentRef = useRef(null);
   const dragRef = useRef({ startX: 0, startY: 0, startPosX: 0, startPosY: 0 });
-
+  
   // Function to smoothly scroll chat to bottom
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (chatContentRef.current) {
       chatContentRef.current.scrollTo({
         top: chatContentRef.current.scrollHeight,
         behavior: 'smooth'
       });
     }
-  };
+  }, []);
+  
+  // Memoize input handlers for better performance
+  const handleInputChange = useCallback((e) => {
+    setChatQuery(e.target.textContent);
+    // Auto-scroll to bottom when user starts typing
+    scrollToBottom();
+  }, [scrollToBottom]);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAskChatbot(e);
+    }
+  }, []);
+
+  const handleDragStart = useCallback((e) => {
+    setIsDragging(true);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startPosX: position.x,
+      startPosY: position.y
+    };
+  }, [position]);
+
+  const handleResizeStart = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  // Memoize chat messages to prevent re-creation
+  const chatMessages = useMemo(() => {
+    return chatHistory.map((msg, index) => (
+      <div
+        key={index}
+        className={`p-2 rounded-lg text-sm max-w-[85%] break-words transition-all duration-200 ${msg.role === 'user'
+            ? 'bg-blue-500 text-white self-end ml-auto'
+            : 'bg-gray-200 text-gray-800 self-start mr-auto'
+          }`}
+      >
+        {msg.content}
+      </div>
+    ));
+  }, [chatHistory]);
 
   // Auto-scroll when chat history changes
   useEffect(() => {
     scrollToBottom();
-  }, [chatHistory, isChatLoading]);
+  }, [chatHistory, isChatLoading, scrollToBottom]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -153,7 +196,7 @@ const ChatbotPanel = ({
       {/* Resize Handle */}
       <div
         className="h-1 bg-gray-200 hover:bg-gray-300 cursor-ns-resize flex items-center justify-center rounded-t-lg"
-        onMouseDown={() => setIsResizing(true)}
+        onMouseDown={handleResizeStart}
       >
         <div className="w-8 h-1 bg-gray-400 rounded-full"></div>
       </div>
@@ -161,15 +204,7 @@ const ChatbotPanel = ({
       {/* Header */}
       <div 
         className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50 rounded-t-lg cursor-move"
-        onMouseDown={(e) => {
-          setIsDragging(true);
-          dragRef.current = {
-            startX: e.clientX,
-            startY: e.clientY,
-            startPosX: position.x,
-            startPosY: position.y
-          };
-        }}
+        onMouseDown={handleDragStart}
       >
         <div className="flex items-center space-x-2">
           <span className="text-gray-600 text-base">🤖</span>
@@ -200,23 +235,16 @@ const ChatbotPanel = ({
         ref={chatContentRef}
         className="flex-1 overflow-y-auto p-3 space-y-2"
       >
-        {chatHistory.map((msg, index) => (
-          <div
-            key={index}
-            className={`p-2 rounded-lg text-sm max-w-[85%] break-words transition-all duration-200 ${msg.role === 'user'
-                ? 'bg-blue-500 text-white self-end ml-auto'
-                : 'bg-gray-200 text-gray-800 self-start mr-auto'
-              }`}
-          >
-            {msg.content}
-          </div>
-        ))}
+        {chatMessages}
         {isChatLoading && (
-          <div className="bg-gray-200 text-gray-800 p-2 rounded-lg text-sm max-w-[85%]">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+          <div className="bg-gray-200 text-gray-800 p-2 rounded-lg text-sm max-w-[85%] animate-pulse">
+            <div className="flex items-center space-x-2">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+              </div>
+              <span className="text-gray-500 text-xs">Thinking...</span>
             </div>
           </div>
         )}
@@ -229,11 +257,7 @@ const ChatbotPanel = ({
             contentEditable
             suppressContentEditableWarning={true}
             data-element-type="chat-input"
-            onInput={(e) => {
-              setChatQuery(e.target.textContent);
-              // Auto-scroll to bottom when user starts typing
-              scrollToBottom();
-            }}
+            onInput={handleInputChange}
             data-placeholder="Ask a question..."
             className={`flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 ${!chatQuery.trim() ? 'empty-placeholder' : ''}`}
             style={{ 
@@ -244,12 +268,7 @@ const ChatbotPanel = ({
               direction: 'ltr',
               textAlign: 'left'
             }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleAskChatbot(e);
-              }
-            }}
+            onKeyDown={handleKeyDown}
           ></div>
           <button
             type="submit"
@@ -265,4 +284,5 @@ const ChatbotPanel = ({
   );
 };
 
-export default ChatbotPanel;
+// Memoize the component to prevent unnecessary re-renders
+export default React.memo(ChatbotPanel);

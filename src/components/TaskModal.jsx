@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import PropTypes from "prop-types";
 import { addTaskType, addClass, deleteTaskType, deleteClass } from "../services/dataService";
 import classService from "../services/classService";
 import { logger } from "../utils/logger";
+import { generateClassId, generateTypeId } from "../utils/idHelpers";
 
 const TaskModal = ({
   showModal,
@@ -31,10 +33,11 @@ const TaskModal = ({
     completed: false,
   });
 
-  // Memoize default task state to prevent unnecessary recalculations
-  const defaultTaskState = useMemo(() => {
+
+  // Update task state when props change
+  useEffect(() => {
     const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : "";
-    return {
+    let newTaskState = {
       title: "",
       class: classes.length > 0 ? classes[0].id : "",
       type: taskTypes.length > 0 ? taskTypes[0].id : "",
@@ -47,11 +50,6 @@ const TaskModal = ({
       endTime: "11:00",
       completed: false,
     };
-  }, [selectedDate, classes, taskTypes]);
-
-  // Update task state when props change
-  useEffect(() => {
-    let newTaskState = { ...defaultTaskState };
 
     // If editing an existing task, override with its data
     if (editingTask) {
@@ -72,7 +70,7 @@ const TaskModal = ({
     }
 
     setTask(newTaskState);
-  }, [editingTask, defaultTaskState]);
+  }, [editingTask, selectedDate, classes, taskTypes]);
 
   const [showClassInput, setShowClassInput] = useState(false);
   const [showTypeInput, setShowTypeInput] = useState(false);
@@ -81,8 +79,34 @@ const TaskModal = ({
   const [newClassName, setNewClassName] = useState("");
   const [newTypeName, setNewTypeName] = useState("");
   const [newTypeColor, setNewTypeColor] = useState("blue");
+  
+  // Memoize color options to prevent re-creation on every render
+  const colorOptions = useMemo(() => [
+    { name: 'blue', bg: 'bg-blue-100', border: 'border-blue-500', ring: 'ring-blue-500' },
+    { name: 'green', bg: 'bg-green-100', border: 'border-green-500', ring: 'ring-green-500' },
+    { name: 'purple', bg: 'bg-purple-100', border: 'border-purple-500', ring: 'ring-purple-500' },
+    { name: 'red', bg: 'bg-red-100', border: 'border-red-500', ring: 'ring-red-500' },
+    { name: 'amber', bg: 'bg-amber-100', border: 'border-amber-500', ring: 'ring-amber-500' },
+    { name: 'indigo', bg: 'bg-indigo-100', border: 'border-indigo-500', ring: 'ring-indigo-500' },
+    { name: 'pink', bg: 'bg-pink-100', border: 'border-pink-500', ring: 'ring-pink-500' },
+    { name: 'gray', bg: 'bg-gray-100', border: 'border-gray-500', ring: 'ring-gray-500' }
+  ], []);
   const [hoveredTypeId, setHoveredTypeId] = useState(null);
   const [hoveredClassId, setHoveredClassId] = useState(null);
+  
+  // Memoize the modal date display to prevent recalculation on every render
+  const modalDateDisplay = useMemo(() => {
+    if (editingTask) {
+      const dateStr = editingTask.dueDate || editingTask.date;
+      if (dateStr) {
+        // Parse date string correctly to avoid timezone issues
+        const [year, month, day] = dateStr.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleDateString();
+      }
+    }
+    return selectedDate?.toLocaleDateString() || "No Date";
+  }, [editingTask, selectedDate]);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
@@ -106,11 +130,17 @@ const TaskModal = ({
       return;
     }
     
-    logger.debug('TaskModal validation passed, submitting task', { taskId: task.id, isDuration: task.isDuration });
-    onSubmit(task);
-  }, [task, classes.length, taskTypes.length, onSubmit]);
+    // Ensure we have an id for editing tasks
+    const taskToSubmit = { 
+      ...task, 
+      id: editingTask ? editingTask.id : task.id 
+    };
+    
+    logger.debug('TaskModal validation passed, submitting task', { taskId: taskToSubmit.id, isDuration: taskToSubmit.isDuration });
+    onSubmit(taskToSubmit);
+  }, [task, classes.length, taskTypes.length, editingTask, onSubmit]);
 
-  const handleDeleteTaskType = async (typeId) => {
+  const handleDeleteTaskType = useCallback(async (typeId) => {
     const typeToDelete = taskTypes.find(t => t.id === typeId);
     if (!typeToDelete) return;
 
@@ -132,9 +162,9 @@ const TaskModal = ({
       console.error("Error deleting task type:", error);
       alert("Failed to delete task type. Please try again.");
     }
-  };
+  }, [taskTypes, isAuthenticated, task, setTaskTypes, setTask]);
 
-  const handleDeleteClass = async (classId) => {
+  const handleDeleteClass = useCallback(async (classId) => {
     const classToDelete = classes.find(c => c.id === classId);
     if (!classToDelete) return;
 
@@ -164,7 +194,7 @@ const TaskModal = ({
       console.error("Error deleting class:", error);
       alert("Failed to delete class. Please try again.");
     }
-  };
+  }, [classes, isAuthenticated, task, setClasses, setTask]);
 
   // Reset input states when modal closes
   useEffect(() => {
@@ -188,18 +218,7 @@ const TaskModal = ({
       <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100 w-[500px] max-w-lg mx-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">
           {editingTask ? "Edit Task" : "Add Task"} for{" "}
-          {(() => {
-            if (editingTask) {
-              const dateStr = editingTask.dueDate || editingTask.date;
-              if (dateStr) {
-                // Parse date string correctly to avoid timezone issues
-                const [year, month, day] = dateStr.split('-');
-                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleDateString();
-              }
-            }
-            return selectedDate?.toLocaleDateString() || "No Date";
-          })()}
+          {modalDateDisplay}
         </h3>
         <form onSubmit={handleSubmit}>
           {/* Task Title */}
@@ -296,13 +315,13 @@ const TaskModal = ({
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        console.log('Add Class button clicked');
-                        console.log('newClassName:', newClassName);
-                        console.log('isAuthenticated:', isAuthenticated);
-                        console.log('user:', user);
+                        logger.debug('Add Class button clicked');
+                        logger.debug('newClassName:', newClassName);
+                        logger.debug('isAuthenticated:', isAuthenticated);
+                        logger.debug('user:', user);
                         
                         if (newClassName.trim()) {
-                          const autoId = newClassName.trim().toLowerCase().replace(/[^a-z0-9]/g, "") + "_task_" + Date.now().toString().slice(-4);
+                          const autoId = generateClassId(newClassName);
                           const newClass = {
                             id: autoId,
                             name: newClassName.trim(),
@@ -311,12 +330,12 @@ const TaskModal = ({
                             isTaskClass: true // Mark as task-only class
                           };
                           
-                          console.log('Creating class:', newClass);
+                          logger.debug('Creating class:', newClass);
                           
                           try {
                             // Save directly to data service
                             const savedClass = await addClass(newClass, isAuthenticated);
-                            console.log('savedClass result:', savedClass);
+                            logger.debug('savedClass result:', savedClass);
                             
                             if (savedClass) {
                               // Force refresh the classService to ensure persistence
@@ -329,7 +348,7 @@ const TaskModal = ({
                               }
                               
                               setTask({ ...task, class: savedClass.id });
-                              console.log('Class created successfully');
+                              logger.debug('Class created successfully');
                             } else {
                               console.error('savedClass is null/undefined');
                               alert("Failed to save class. Please try again.");
@@ -342,7 +361,7 @@ const TaskModal = ({
                           setNewClassName("");
                           setShowClassInput(false);
                         } else {
-                          console.log('No class name entered');
+                          logger.debug('No class name entered');
                           alert('Please enter a class name');
                         }
                       }}
@@ -452,16 +471,7 @@ const TaskModal = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Color Theme</label>
                     <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { name: 'blue', bg: 'bg-blue-100', border: 'border-blue-500', ring: 'ring-blue-500' },
-                        { name: 'green', bg: 'bg-green-100', border: 'border-green-500', ring: 'ring-green-500' },
-                        { name: 'purple', bg: 'bg-purple-100', border: 'border-purple-500', ring: 'ring-purple-500' },
-                        { name: 'red', bg: 'bg-red-100', border: 'border-red-500', ring: 'ring-red-500' },
-                        { name: 'amber', bg: 'bg-amber-100', border: 'border-amber-500', ring: 'ring-amber-500' },
-                        { name: 'indigo', bg: 'bg-indigo-100', border: 'border-indigo-500', ring: 'ring-indigo-500' },
-                        { name: 'pink', bg: 'bg-pink-100', border: 'border-pink-500', ring: 'ring-pink-500' },
-                        { name: 'gray', bg: 'bg-gray-100', border: 'border-gray-500', ring: 'ring-gray-500' }
-                      ].map((color) => (
+                      {colorOptions.map((color) => (
                         <button
                           key={color.name}
                           type="button"
@@ -492,7 +502,7 @@ const TaskModal = ({
                       type="button"
                       onClick={async () => {
                         if (newTypeName.trim()) {
-                          const autoId = newTypeName.trim().toLowerCase().replace(/[^a-z0-9]/g, "") + "_" + Date.now().toString().slice(-4);
+                          const autoId = generateTypeId(newTypeName);
                           const newType = {
                             id: autoId,
                             name: newTypeName.trim(),
@@ -636,7 +646,7 @@ const TaskModal = ({
               <button
                 type="submit"
                 onClick={(e) => {
-                  console.log('Submit button clicked');
+                  logger.debug('Submit button clicked');
                   // Let the form submission handle it, but add logging
                 }}
                 className="px-4 py-2.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
@@ -649,6 +659,50 @@ const TaskModal = ({
       </div>
     </div>
   );
+};
+
+TaskModal.propTypes = {
+  showModal: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  editingTask: PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    class: PropTypes.string,
+    type: PropTypes.string,
+    isDuration: PropTypes.bool,
+    dueDate: PropTypes.string,
+    dueTime: PropTypes.string,
+    startDate: PropTypes.string,
+    startTime: PropTypes.string,
+    endDate: PropTypes.string,
+    endTime: PropTypes.string,
+    completed: PropTypes.bool,
+    date: PropTypes.string,
+  }),
+  selectedDate: PropTypes.instanceOf(Date),
+  classes: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+  })).isRequired,
+  taskTypes: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    color: PropTypes.string,
+  })).isRequired,
+  isAuthenticated: PropTypes.bool.isRequired,
+  setTaskTypes: PropTypes.func.isRequired,
+  setClasses: PropTypes.func.isRequired,
+  user: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+  }),
+};
+
+TaskModal.defaultProps = {
+  editingTask: null,
+  selectedDate: null,
+  user: null,
 };
 
 // Memoize component to prevent unnecessary re-renders
