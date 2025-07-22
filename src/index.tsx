@@ -5,7 +5,7 @@ import App from "./components/App";
 // Validate configuration on startup
 try {
   // Import config to trigger validation
-  import("./config.js").then(() => {
+  import("./config").then(() => {
     const container = document.getElementById("root");
     if (!container) {
       throw new Error("Root element not found");

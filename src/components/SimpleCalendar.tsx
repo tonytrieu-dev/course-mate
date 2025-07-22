@@ -432,7 +432,11 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
   const [showTaskModal, setShowTaskModal] = useState<boolean>(false);
   const [tasks, setTasks] = useState<TaskWithMeta[]>([]);
   const [classes, setClasses] = useState<ClassWithRelations[]>([]);
+  const [taskModalClasses, setTaskModalClasses] = useState<ClassWithRelations[]>([]);
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
+  
+  // Combined classes array for EventCard display (includes both regular and TaskModal classes)
+  const allClasses = useMemo(() => [...classes, ...taskModalClasses], [classes, taskModalClasses]);
   const [view, setView] = useState<ViewType>(initialView);
   const [editingTask, setEditingTask] = useState<TaskWithMeta | null>(null);
 
@@ -449,8 +453,10 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
         // Use class service for centralized class management
         // Force refresh to ensure we get latest classes including new ones
         const fetchedClasses = await classService.refreshClasses(user.id, isAuthenticated);
-        // Include all classes (both regular and task classes) for task dropdown
+        // Include all classes for calendar display
         setClasses(fetchedClasses || []);
+        // Initialize TaskModal with its own independent classes (only task classes)
+        setTaskModalClasses(fetchedClasses?.filter(cls => cls.isTaskClass === true) || []);
 
         const fetchedTaskTypes = await getTaskTypes(user.id, isAuthenticated);
         setTaskTypes(fetchedTaskTypes || []);
@@ -470,8 +476,10 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
 
     const unsubscribe = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
-      // Include all classes (both regular and task classes) for task dropdown
+      // Include all classes for calendar display
       setClasses(updatedClasses);
+      // Keep TaskModal classes separate - only update with task classes from the service
+      setTaskModalClasses(updatedClasses.filter(cls => cls.isTaskClass === true));
     });
 
     return unsubscribe;
@@ -660,7 +668,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
           isCurrentMonth={isCurrentMonth}
           isToday={isToday}
           tasks={dayTasks}
-          classes={classes}
+          classes={allClasses}
           taskTypes={taskTypes}
           formatTimeForDisplay={formatTimeForDisplay}
           onToggleComplete={toggleTaskCompletion}
@@ -734,7 +742,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
           isCurrentMonth={true}
           isToday={isToday}
           tasks={dayTasks}
-          classes={classes}
+          classes={allClasses}
           taskTypes={taskTypes}
           formatTimeForDisplay={formatTimeForDisplay}
           onToggleComplete={toggleTaskCompletion}
@@ -797,7 +805,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
           key={i}
           hour={i}
           tasks={tasksByHour[i] || []}
-          classes={classes}
+          classes={allClasses}
           taskTypes={taskTypes}
           formatTimeForDisplay={formatTimeForDisplay}
           onToggleComplete={toggleTaskCompletion}
@@ -845,11 +853,11 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
         onDelete={handleDeleteTask}
         editingTask={editingTask as any}
         selectedDate={selectedDate}
-        classes={classes}
+        classes={taskModalClasses}
         taskTypes={taskTypes}
         isAuthenticated={isAuthenticated}
         setTaskTypes={setTaskTypes}
-        setClasses={setClasses}
+        setClasses={setTaskModalClasses}
         user={user}
       />
     </div>

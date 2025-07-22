@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { supabaseConfig } from '../config.js';
+import { supabaseConfig } from '../config';
 
 // Database types based on your schema
 export interface Database {

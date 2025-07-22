@@ -529,7 +529,11 @@ export const addClass = async (
       };
       
       // Map isTaskClass to database column name (istaskclass)
-      const { ...classForSupabase } = classWithUserId;
+      const { isTaskClass, ...classWithoutIsTaskClass } = classWithUserId as any;
+      const classForSupabase = {
+        ...classWithoutIsTaskClass,
+        istaskclass: isTaskClass || false
+      };
       
       const { data, error } = await supabase
         .from("classes")
@@ -612,7 +616,7 @@ export const addClass = async (
       updated_at: classToSave.updated_at,
       files: files || [],
       syllabus: syllabus || null,
-      isTaskClass: false
+      isTaskClass: (classObj as any).isTaskClass || false
     };
     
     const classes = getLocalData<ClassWithRelations[]>(CLASSES_KEY, []);

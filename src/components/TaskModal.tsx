@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import type { User } from '@supabase/supabase-js';
 import type { ClassWithRelations, TaskType } from "../types/database";
 import { addTaskType, addClass, deleteTaskType, deleteClass } from "../services/dataService";
-import classService from "../services/classService";
 import { logger } from "../utils/logger";
 import { generateClassId, generateTypeId } from "../utils/idHelpers";
 
@@ -210,20 +209,28 @@ const TaskModal: React.FC<TaskModalProps> = ({
     if (!confirmDelete) return;
 
     try {
-      await deleteClass(classId, isAuthenticated);
-      setClasses(classes.filter(c => c.id !== classId));
+      // Delete from database using dataService directly (bypassing classService to maintain independence)
+      const success = await deleteClass(classId, isAuthenticated);
       
-      if (task.class === classId) {
-        setTask(prev => ({ 
-          ...prev, 
-          class: classes.find(c => c.id !== classId)?.id || "" 
-        }));
+      if (success) {
+        // Update local TaskModal state
+        const updatedClasses = classes.filter(c => c.id !== classId);
+        setClasses(updatedClasses);
+        
+        if (task.class === classId) {
+          setTask(prev => ({ 
+            ...prev, 
+            class: updatedClasses.find(c => c.id !== classId)?.id || "" 
+          }));
+        }
+      } else {
+        throw new Error('Failed to delete class from database');
       }
     } catch (error: any) {
       console.error('Error deleting class:', error);
       alert('Failed to delete class. Please try again.');
     }
-  }, [classes, isAuthenticated, setClasses, task.class]);
+  }, [classes, setClasses, task.class]);
 
   const handleAddClass = useCallback(async () => {
     if (!newClassName.trim()) {
@@ -241,26 +248,34 @@ const TaskModal: React.FC<TaskModalProps> = ({
         name: newClassName.trim(),
         syllabus: null,
         files: [],
-      };
-
-      await classService.addClass(newClass, isAuthenticated);
-      
-      const updatedClasses = [...classes, { 
-        ...newClass, 
-        user_id: user?.id || 'local-user',
         created_at: new Date().toISOString(),
-        isTaskClass: false
-      } as ClassWithRelations];
+        isTaskClass: true
+      } as ClassWithRelations;
+
+      // Save to database using dataService directly (bypassing classService to maintain independence)
+      const savedClass = await addClass(newClass as any, isAuthenticated);
       
-      setClasses(updatedClasses);
-      setTask(prev => ({ ...prev, class: classId }));
-      setNewClassName("");
-      setShowClassInput(false);
+      if (savedClass) {
+        logger.debug('Class saved successfully, updating TaskModal UI', { savedClass, currentClassesCount: classes.length });
+        
+        // Update local TaskModal state
+        const updatedClasses = [...classes, savedClass];
+        setClasses(updatedClasses);
+        
+        // Use the saved class ID (in case it was modified by the database)
+        setTask(prev => ({ ...prev, class: savedClass.id }));
+        setNewClassName("");
+        setShowClassInput(false);
+        
+        logger.debug('TaskModal state updated', { newClassesCount: updatedClasses.length, selectedClassId: savedClass.id });
+      } else {
+        throw new Error('Failed to save class to database');
+      }
     } catch (error: any) {
       console.error('Error adding class:', error);
       alert('Failed to add class. Please try again.');
     }
-  }, [newClassName, classes, isAuthenticated, setClasses, user]);
+  }, [newClassName, classes, setClasses, user]);
 
   const handleAddTaskType = useCallback(async () => {
     if (!newTypeName.trim()) {
