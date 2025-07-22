@@ -28,8 +28,16 @@ export interface ClassWithRelations extends Omit<Class, 'istaskclass'> {
   syllabus: ClassSyllabus | null;
 }
 
+// Extended Task interface with calendar-specific properties
 export interface TaskWithMeta extends Task {
-  // Additional metadata fields if needed
+  // Additional calendar-specific properties
+  class?: string;
+  isDuration?: boolean;
+  startTime?: string;
+  endTime?: string;
+  dueTime?: string;
+  dueDate?: string;
+  date?: string;
 }
 
 // Priority levels
