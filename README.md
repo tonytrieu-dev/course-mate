@@ -12,10 +12,9 @@ A modern React + Electron productivity application designed to help students and
 
 - **Calendar Management**: Interactive calendar with task and event tracking ✅ *Working*
 - **Authentication**: Secure user authentication with Supabase ✅ *Working*
-- **Canvas LMS Integration**: Sync with Canvas calendar and assignments 🚧 *In Development*
+- **Canvas LMS Integration**: Sync with Canvas calendar and assignments ✅ *Working*
 - **AI Chatbot**: Intelligent assistant for academic queries 🚧 *In Development*
-- **File Management**: Upload and manage course materials 🚧 *In Development*
-- **Offline Support**: Works offline with local storage fallback 🚧 *Partial*
+- **File Management**: Upload and manage course materials ✅ *Working*
 
 ## 🚧 Development Status
 
@@ -28,10 +27,6 @@ This application is actively being developed. Here's the current status:
 - Project structure and development environment
 
 ### 🚧 In Progress
-- Canvas LMS integration and calendar sync
-- AI chatbot functionality and academic assistance
-- File upload and management system
-- Improved offline capabilities
 - UI/UX polish and responsive design
 
 ### 📋 Planned Features
