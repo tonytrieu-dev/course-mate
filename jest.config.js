@@ -5,17 +5,18 @@ module.exports = {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.{js,jsx}',
-    '<rootDir>/src/**/*.{test,spec}.{js,jsx}',
+    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
   ],
   collectCoverageFrom: [
-    'src/**/*.{js,jsx}',
-    '!src/index.js',
+    'src/**/*.{js,jsx,ts,tsx}',
+    '!src/index.{js,ts}',
     '!src/setupTests.js',
-    '!src/**/*.test.{js,jsx}',
+    '!src/**/*.test.{js,jsx,ts,tsx}',
+    '!src/**/*.d.ts',
   ],
   coverageThreshold: {
     global: {

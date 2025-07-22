@@ -772,7 +772,7 @@ const SimpleCalendar = ({ view: initialView }) => {
 // PropTypes for components
 EventCard.propTypes = {
   task: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     title: PropTypes.string.isRequired,
     class: PropTypes.string,
     type: PropTypes.string,

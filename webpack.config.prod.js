@@ -4,7 +4,7 @@ const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   mode: 'production',
-  entry: './src/index.js',
+  entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'build'),
     filename: '[name].[contenthash].js',
@@ -34,7 +34,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|mjs)$/,
+        test: /\.(js|jsx|ts|tsx|mjs)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
@@ -46,7 +46,8 @@ module.exports = {
                 },
                 modules: false
               }],
-              '@babel/preset-react'
+              '@babel/preset-react',
+              ['@babel/preset-typescript', { allowNamespaces: true }]
             ],
             plugins: [
               '@babel/plugin-syntax-dynamic-import'
@@ -66,7 +67,7 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.mjs'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs'],
     alias: {
       'pdfjs-dist': path.resolve(__dirname, 'node_modules/pdfjs-dist')
     }
