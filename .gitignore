@@ -46,3 +46,4 @@ pids
 *.pid
 *.seed
 *.pid.lock
+tsconfig.tsbuildinfo

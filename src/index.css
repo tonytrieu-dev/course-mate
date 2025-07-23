@@ -104,3 +104,16 @@
 .resize-handle:hover::after {
   opacity: 1;
 }
+
+/* Remove default contentEditable styling to prevent unwanted boxes/outlines */
+[contenteditable="true"] {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[contenteditable="true"]:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}

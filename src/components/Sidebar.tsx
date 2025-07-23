@@ -314,7 +314,7 @@ const Sidebar: React.FC = () => {
                 onClick={handleTitleClick}
                 onDoubleClick={() => setShowTitleSizeControl(true)}
                 className={isEditingTitle 
-                  ? "text-4xl font-bold w-[90%] p-0.5 text-blue-700 border border-gray-300 mt-0 mb-3 font-inherit outline-none"
+                  ? "text-4xl font-bold w-[90%] p-0.5 text-blue-700 mt-0 mb-3 font-inherit outline-none"
                   : "text-blue-700 cursor-pointer leading-tight font-inherit font-semibold transition-all duration-200 hover:text-blue-800 inline-block"
                 }
                 style={{ fontSize: `${titleSize}px` }}
@@ -362,7 +362,7 @@ const Sidebar: React.FC = () => {
                   onClick={() => setIsEditingClassesTitle(true)}
                   onDoubleClick={() => setShowClassesHeaderSizeControl(true)}
                   className={isEditingClassesTitle
-                    ? "text-yellow-500 font-medium normal-case bg-transparent border-b-2 border-yellow-500 outline-none min-w-0 max-w-full inline-block"
+                    ? "text-yellow-500 font-medium normal-case bg-transparent outline-none min-w-0 max-w-full inline-block"
                     : "text-yellow-500 font-medium normal-case cursor-pointer transition-all duration-200 hover:text-yellow-600 inline-block"
                   }
                   style={isEditingClassesTitle 
