@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { User } from '@supabase/supabase-js';
 import type { ClassWithRelations, TaskType } from "../types/database";
-import { addTaskType, addClass, deleteTaskType, deleteClass } from "../services/dataService";
+import { addTaskType, addClass, deleteTaskType, deleteClass, updateTaskType } from "../services/dataService";
 import { logger } from "../utils/logger";
 import { generateClassId, generateTypeId } from "../utils/idHelpers";
 
@@ -116,6 +116,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [newClassName, setNewClassName] = useState<string>("");
   const [newTypeName, setNewTypeName] = useState<string>("");
   const [newTypeColor, setNewTypeColor] = useState<string>("blue");
+  const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
+  const [editingTypeColor, setEditingTypeColor] = useState<string>("blue");
+  const [editingTypeCompletedColor, setEditingTypeCompletedColor] = useState<string>("green");
   
   // Memoize color options to prevent re-creation on every render
   const colorOptions = useMemo<ColorOption[]>(() => [
@@ -291,6 +294,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         id: typeId,
         name: newTypeName.trim(),
         color: newTypeColor,
+        completedColor: 'green',
         user_id: user?.id || 'local-user',
         created_at: new Date().toISOString(),
       };
@@ -309,6 +313,32 @@ const TaskModal: React.FC<TaskModalProps> = ({
       alert('Failed to add task type. Please try again.');
     }
   }, [newTypeName, newTypeColor, taskTypes, isAuthenticated, setTaskTypes, user]);
+
+  const handleUpdateTaskType = useCallback(async (typeId: string, newColor: string, newCompletedColor: string) => {
+    try {
+      const typeToUpdate = taskTypes.find(t => t.id === typeId);
+      if (!typeToUpdate) return;
+
+      const updatedType = await updateTaskType(
+        typeId,
+        { 
+          color: newColor,
+          completedColor: newCompletedColor 
+        },
+        isAuthenticated
+      );
+
+      if (updatedType) {
+        setTaskTypes(taskTypes.map(t => 
+          t.id === typeId ? { ...t, color: newColor, completedColor: newCompletedColor } : t
+        ));
+        setEditingTypeId(null);
+      }
+    } catch (error: any) {
+      console.error('Error updating task type:', error);
+      alert('Failed to update task type. Please try again.');
+    }
+  }, [taskTypes, isAuthenticated, setTaskTypes]);
 
   const handleInputChange = useCallback(<K extends keyof TaskData>(field: K, value: TaskData[K]) => {
     setTask(prev => ({ ...prev, [field]: value }));
@@ -641,29 +671,100 @@ const TaskModal: React.FC<TaskModalProps> = ({
             {showTypeManagement && taskTypes.length > 0 && (
               <div className="mt-2 p-3 bg-gray-50 rounded-md">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Manage Task Types</h4>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
+                <div className="space-y-2 max-h-64 overflow-y-auto">
                   {taskTypes.map((type) => (
                     <div
                       key={type.id}
-                      className={`flex items-center justify-between p-2 rounded text-sm ${
+                      className={`p-2 rounded text-sm ${
                         hoveredTypeId === type.id ? 'bg-gray-200' : 'bg-white'
                       }`}
                       onMouseEnter={() => setHoveredTypeId(type.id)}
                       onMouseLeave={() => setHoveredTypeId(null)}
                     >
-                      <div className="flex items-center space-x-2">
-                        <div
-                          className={`w-3 h-3 rounded-full bg-${type.color || 'blue'}-100 border border-${type.color || 'blue'}-500`}
-                        />
-                        <span>{type.name}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTaskType(type.id)}
-                        className="text-red-500 hover:text-red-700 text-xs"
-                      >
-                        Delete
-                      </button>
+                      {editingTypeId === type.id ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">{type.name}</span>
+                            <div className="flex space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateTaskType(type.id, editingTypeColor, editingTypeCompletedColor)}
+                                className="text-blue-600 hover:text-blue-800 text-xs"
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingTypeId(null)}
+                                className="text-gray-600 hover:text-gray-800 text-xs"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Task Color:</label>
+                            <div className="flex space-x-1">
+                              {colorOptions.map((color) => (
+                                <button
+                                  key={color.name}
+                                  type="button"
+                                  onClick={() => setEditingTypeColor(color.name)}
+                                  className={`w-5 h-5 rounded-full ${color.bg} ${
+                                    editingTypeColor === color.name ? `ring-2 ${color.ring}` : 'border border-gray-300'
+                                  }`}
+                                  title={color.name}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Completed Task Color:</label>
+                            <div className="flex space-x-1">
+                              {colorOptions.map((color) => (
+                                <button
+                                  key={color.name}
+                                  type="button"
+                                  onClick={() => setEditingTypeCompletedColor(color.name)}
+                                  className={`w-5 h-5 rounded-full ${color.bg} ${
+                                    editingTypeCompletedColor === color.name ? `ring-2 ${color.ring}` : 'border border-gray-300'
+                                  }`}
+                                  title={color.name}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className={`w-3 h-3 rounded-full bg-${type.color || 'blue'}-100 border border-${type.color || 'blue'}-500`}
+                            />
+                            <span>{type.name}</span>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingTypeId(type.id);
+                                setEditingTypeColor(type.color || 'blue');
+                                setEditingTypeCompletedColor((type as any).completedColor || 'green');
+                              }}
+                              className="text-blue-600 hover:text-blue-800 text-xs"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTaskType(type.id)}
+                              className="text-red-500 hover:text-red-700 text-xs"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -14,22 +14,55 @@ module.exports = {
   optimization: {
     splitChunks: {
       chunks: 'all',
+      minSize: 20000,
+      maxSize: 250000,
       cacheGroups: {
         vendor: {
           test: /[\\/]node_modules[\\/]/,
           name: 'vendors',
           chunks: 'all',
+          priority: 10,
+          reuseExistingChunk: true,
+        },
+        ui: {
+          test: /[\\/]src[\\/]components[\\/]/,
+          name: 'ui-components',
+          chunks: 'all',
+          priority: 8,
+          minChunks: 2,
+        },
+        services: {
+          test: /[\\/]src[\\/]services[\\/]/,
+          name: 'services',
+          chunks: 'all', 
+          priority: 7,
+          minChunks: 1,
+        },
+        utils: {
+          test: /[\\/]src[\\/]utils[\\/]/,
+          name: 'utils',
+          chunks: 'all',
+          priority: 6,
+          minChunks: 2,
         },
         common: {
           name: 'common',
-          minChunks: 2,
+          minChunks: 3,
           chunks: 'all',
-          enforce: true
+          priority: 5,
+          enforce: true,
+          reuseExistingChunk: true,
         }
       }
     },
     usedExports: true,
-    sideEffects: false
+    sideEffects: false,
+    providedExports: true,
+    mangleExports: 'size',
+    removeAvailableModules: true,
+    mergeDuplicateChunks: true,
+    flagIncludedChunks: true,
+    occurrenceOrder: true,
   },
   module: {
     rules: [

@@ -854,7 +854,15 @@ export const getTaskTypes = async (userId?: string, useSupabase = false): Promis
       }
       
       logger.debug(`Retrieved ${data?.length || 0} task types from Supabase for user ${userId}`);
-      return data || [];
+      
+      // Merge with local completedColor data
+      const completedColors = getLocalData<Record<string, string>>('task_type_completed_colors', {});
+      const typesWithCompletedColors = (data || []).map(type => ({
+        ...type,
+        completedColor: completedColors[type.id] || 'green'
+      })) as TaskType[];
+      
+      return typesWithCompletedColors;
     } catch (error: any) {
       console.error("Error in getTaskTypes (Supabase path):", error);
       return getLocalData<TaskType[]>(TASK_TYPES_KEY, []);
@@ -866,8 +874,11 @@ export const getTaskTypes = async (userId?: string, useSupabase = false): Promis
 
 export const addTaskType = async (taskType: Partial<TaskTypeInsert>, useSupabase = false): Promise<TaskType | null> => {
   try {
+    // Extract completedColor since it's not in the database
+    const { completedColor, ...dbTaskType } = taskType;
+    
     const typeToSave: TaskTypeInsert = {
-      ...taskType,
+      ...dbTaskType,
       id: taskType.id || generateUniqueId('type'),
       user_id: taskType.user_id || 'local-user',
       name: taskType.name || 'Untitled Type',
@@ -900,20 +911,29 @@ export const addTaskType = async (taskType: Partial<TaskTypeInsert>, useSupabase
           throw error;
         }
 
-        // Also update local cache
+        // Also update local cache with completedColor
         const localTypes = getLocalData<TaskType[]>(TASK_TYPES_KEY, []);
-        saveLocalData(TASK_TYPES_KEY, [...localTypes, data[0]]);
+        const newTaskType = { ...data[0], completedColor: completedColor || 'green' } as TaskType;
+        saveLocalData(TASK_TYPES_KEY, [...localTypes, newTaskType]);
 
-        return data[0];
+        // Save completedColor mapping separately
+        if (completedColor) {
+          const completedColors = getLocalData<Record<string, string>>('task_type_completed_colors', {});
+          completedColors[data[0].id] = completedColor;
+          saveLocalData('task_type_completed_colors', completedColors);
+        }
+
+        return newTaskType;
       } catch (error: any) {
         console.error("Error adding task type to Supabase:", error.message);
         throw error;
       }
     } else {
       const types = getLocalData<TaskType[]>(TASK_TYPES_KEY, []);
-      const updatedTypes = [...types, typeToSave as TaskType];
+      const newTaskType = { ...typeToSave, completedColor: completedColor || 'green' } as TaskType;
+      const updatedTypes = [...types, newTaskType];
       saveLocalData(TASK_TYPES_KEY, updatedTypes);
-      return typeToSave as TaskType;
+      return newTaskType;
     }
   } catch (error: any) {
     console.error("Error in addTaskType:", error);
@@ -926,8 +946,11 @@ export const updateTaskType = async (
   updatedType: Partial<TaskTypeUpdate>,
   useSupabase = false
 ): Promise<TaskType> => {
+  // Extract completedColor from the update since it's not in the database
+  const { completedColor, ...dbUpdate } = updatedType;
+  
   const typeToUpdate = {
-    ...updatedType,
+    ...dbUpdate,
     updated_at: new Date().toISOString(),
   };
 
@@ -941,13 +964,21 @@ export const updateTaskType = async (
 
       if (error) throw error;
 
+      // Store completedColor in local storage separately
       const localTypes = getLocalData<TaskType[]>(TASK_TYPES_KEY, []);
       const updatedTypes = localTypes.map((type) =>
-        type.id === typeId ? { ...type, ...typeToUpdate } as TaskType : type
+        type.id === typeId ? { ...type, ...data[0], completedColor } as TaskType : type
       );
       saveLocalData(TASK_TYPES_KEY, updatedTypes);
 
-      return data[0];
+      // Also save completedColor mappings separately
+      const completedColors = getLocalData<Record<string, string>>('task_type_completed_colors', {});
+      if (completedColor !== undefined) {
+        completedColors[typeId] = completedColor;
+        saveLocalData('task_type_completed_colors', completedColors);
+      }
+
+      return { ...data[0], completedColor } as TaskType;
     } catch (error: any) {
       console.error("Error updating task type in Supabase:", error.message);
       throw error;
@@ -955,9 +986,13 @@ export const updateTaskType = async (
   } else {
     const types = getLocalData<TaskType[]>(TASK_TYPES_KEY, []);
     const updatedTypes = types.map((type) =>
-      type.id === typeId ? { ...type, ...typeToUpdate } as TaskType : type
+      type.id === typeId ? { ...type, ...typeToUpdate, ...updatedType } as TaskType : type
     );
     saveLocalData(TASK_TYPES_KEY, updatedTypes);
+    
+    // Return the full updated type
+    const updatedTaskType = updatedTypes.find(t => t.id === typeId);
+    return updatedTaskType || { id: typeId, ...typeToUpdate, ...updatedType } as TaskType;
   }
 
   return { id: typeId, ...typeToUpdate } as TaskType;

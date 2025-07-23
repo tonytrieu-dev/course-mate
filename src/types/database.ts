@@ -9,9 +9,15 @@ export type Class = Database['public']['Tables']['classes']['Row'];
 export type ClassInsert = Database['public']['Tables']['classes']['Insert'];
 export type ClassUpdate = Database['public']['Tables']['classes']['Update'];
 
-export type TaskType = Database['public']['Tables']['task_types']['Row'];
-export type TaskTypeInsert = Database['public']['Tables']['task_types']['Insert'];
-export type TaskTypeUpdate = Database['public']['Tables']['task_types']['Update'];
+export type TaskType = Database['public']['Tables']['task_types']['Row'] & {
+  completedColor?: string;
+};
+export type TaskTypeInsert = Database['public']['Tables']['task_types']['Insert'] & {
+  completedColor?: string;
+};
+export type TaskTypeUpdate = Database['public']['Tables']['task_types']['Update'] & {
+  completedColor?: string;
+};
 
 export type ClassFile = Database['public']['Tables']['class_files']['Row'];
 export type ClassFileInsert = Database['public']['Tables']['class_files']['Insert'];
