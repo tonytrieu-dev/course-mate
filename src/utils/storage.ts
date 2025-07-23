@@ -9,7 +9,7 @@ import { logger } from './logger';
 interface BatchOperation {
   type: 'set' | 'get' | 'remove';
   key: string;
-  value?: any;
+  value?: unknown;
 }
 
 /**
@@ -24,14 +24,14 @@ interface StorageUsageInfo {
 /**
  * Storage listener callback type
  */
-type StorageListener = (value: any, key: string) => void;
+type StorageListener<T = unknown> = (value: T, key: string) => void;
 
 /**
  * Storage manager class with caching and error handling
  */
 class Storage {
-  private cache: Map<string, any>;
-  private listeners: Map<string, StorageListener[]>;
+  private cache: Map<string, unknown>;
+  private listeners: Map<string, StorageListener<unknown>[]>;
 
   // Constants for storage keys
   static KEYS = {
@@ -63,7 +63,7 @@ class Storage {
   }
 
   // Get item with caching and error handling
-  getItem<T = any>(key: string, defaultValue: T | null = null): T | null {
+  getItem<T = unknown>(key: string, defaultValue: T | null = null): T | null {
     try {
       // Check cache first
       if (this.cache.has(key)) {
@@ -89,7 +89,7 @@ class Storage {
   }
 
   // Set item with caching and error handling
-  setItem<T = any>(key: string, value: T): boolean {
+  setItem<T = unknown>(key: string, value: T): boolean {
     try {
       if (!this.isAvailable()) {
         logger.warn('localStorage not available, storing in memory cache only');
@@ -140,8 +140,8 @@ class Storage {
   }
 
   // Batch operations for better performance
-  batch(operations: BatchOperation[]): (boolean | any)[] {
-    const results: (boolean | any)[] = [];
+  batch(operations: BatchOperation[]): (boolean | unknown)[] {
+    const results: (boolean | unknown)[] = [];
     
     for (const { type, key, value } of operations) {
       switch (type) {
@@ -183,7 +183,7 @@ class Storage {
   }
 
   // Notify listeners of changes
-  private notifyListeners(key: string, value: any): void {
+  private notifyListeners(key: string, value: unknown): void {
     if (this.listeners.has(key)) {
       this.listeners.get(key)!.forEach(callback => {
         try {

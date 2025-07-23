@@ -198,7 +198,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           type: taskTypes.find(t => t.id !== typeId)?.id || "" 
         }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting task type:', error);
       alert('Failed to delete task type. Please try again.');
     }
@@ -229,7 +229,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       } else {
         throw new Error('Failed to delete class from database');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting class:', error);
       alert('Failed to delete class. Please try again.');
     }
@@ -256,7 +256,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       } as ClassWithRelations;
 
       // Save to database using dataService directly (bypassing classService to maintain independence)
-      const savedClass = await addClass(newClass as any, isAuthenticated);
+      const savedClass = await addClass(newClass, isAuthenticated);
       
       if (savedClass) {
         logger.debug('Class saved successfully, updating TaskModal UI', { savedClass, currentClassesCount: classes.length });
@@ -274,7 +274,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       } else {
         throw new Error('Failed to save class to database');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding class:', error);
       alert('Failed to add class. Please try again.');
     }
@@ -308,7 +308,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         setNewTypeColor("blue");
         setShowTypeInput(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding task type:', error);
       alert('Failed to add task type. Please try again.');
     }
@@ -334,7 +334,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         ));
         setEditingTypeId(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating task type:', error);
       alert('Failed to update task type. Please try again.');
     }
@@ -749,7 +749,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                               onClick={() => {
                                 setEditingTypeId(type.id);
                                 setEditingTypeColor(type.color || 'blue');
-                                setEditingTypeCompletedColor((type as any).completedColor || 'green');
+                                setEditingTypeCompletedColor(type.completedColor || 'green');
                               }}
                               className="text-blue-600 hover:text-blue-800 text-xs"
                             >

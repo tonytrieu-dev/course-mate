@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo, ReactNode } from "react";
 import type { User } from '@supabase/supabase-js';
 import { supabase } from "../services/supabaseClient";
 import {
@@ -120,7 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     setAuthError(null);
     
     return withSyncOperation(async () => {
@@ -138,9 +138,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
       }
     }, setSyncing, setLastCalendarSyncTimestamp);
-  };
+  }, []);
 
-  const register = async (email: string, password: string): Promise<boolean> => {
+  const register = useCallback(async (email: string, password: string): Promise<boolean> => {
     setAuthError(null);
     
     return withSyncOperation(async () => {
@@ -158,9 +158,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
       }
     }, setSyncing, setLastCalendarSyncTimestamp);
-  };
+  }, []);
 
-  const logout = async (): Promise<boolean> => {
+  const logout = useCallback(async (): Promise<boolean> => {
     setAuthError(null);
     try {
       await signOut();
@@ -172,9 +172,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthError(errorMessage);
       return false;
     }
-  };
+  }, []);
 
-  const loginWithProvider = async (provider: AuthProvider): Promise<void> => {
+  const loginWithProvider = useCallback(async (provider: AuthProvider): Promise<void> => {
     setAuthError(null);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -188,13 +188,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const errorMessage = handleAuthError(error instanceof Error ? error : new Error('OAuth login failed'), 'OAuth login');
       setAuthError(errorMessage);
     }
-  };
+  }, []);
 
-  const clearAuthError = (): void => {
+  const clearAuthError = useCallback((): void => {
     setAuthError(null);
-  };
+  }, []);
 
-  const triggerSync = async (): Promise<void> => {
+  const triggerSync = useCallback(async (): Promise<void> => {
     if (user) {
       await withSyncOperation(
         () => syncData(user.id),
@@ -202,9 +202,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setLastCalendarSyncTimestamp
       );
     }
-  };
+  }, [user]);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     loading,
     syncing,
@@ -218,7 +218,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     lastCalendarSyncTimestamp,
     setLastCalendarSyncTimestamp,
     triggerSync,
-  };
+  }), [
+    user,
+    loading,
+    syncing,
+    authError,
+    login,
+    register,
+    logout,
+    loginWithProvider,
+    clearAuthError,
+    lastCalendarSyncTimestamp,
+    setLastCalendarSyncTimestamp,
+    triggerSync,
+  ]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

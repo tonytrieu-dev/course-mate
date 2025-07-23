@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, JSX } from "react";
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, JSX } from "react";
 import {
   getTasks,
   addTask,
@@ -21,8 +21,10 @@ import {
 } from "../utils/dateHelpers";
 import { getDayCellClasses, getViewButtonClasses, getNavButtonClasses, getNavIconClasses } from "../utils/styleHelpers";
 import { validateAuthState } from "../utils/authHelpers";
-import TaskModal from "./TaskModal";
 import classService from "../services/classService";
+
+// Lazy load TaskModal for better performance
+const TaskModal = lazy(() => import("./TaskModal"));
 import type { TaskWithMeta, TaskType, ClassWithRelations } from "../types/database";
 
 // Types for component props
@@ -843,23 +845,32 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       {view === "week" && renderWeekView()}
       {view === "day" && renderDayView()}
 
-      <TaskModal
-        showModal={showTaskModal}
-        onClose={() => {
-          setShowTaskModal(false);
-          setEditingTask(null);
-        }}
-        onSubmit={handleTaskSubmit}
-        onDelete={handleDeleteTask}
-        editingTask={editingTask as any}
-        selectedDate={selectedDate}
-        classes={taskModalClasses}
-        taskTypes={taskTypes}
-        isAuthenticated={isAuthenticated}
-        setTaskTypes={setTaskTypes}
-        setClasses={setTaskModalClasses}
-        user={user}
-      />
+      <Suspense fallback={
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+            <p className="text-center mt-4 text-gray-600">Loading task editor...</p>
+          </div>
+        </div>
+      }>
+        <TaskModal
+          showModal={showTaskModal}
+          onClose={() => {
+            setShowTaskModal(false);
+            setEditingTask(null);
+          }}
+          onSubmit={handleTaskSubmit}
+          onDelete={handleDeleteTask}
+          editingTask={editingTask as unknown as TaskData | null}
+          selectedDate={selectedDate}
+          classes={taskModalClasses}
+          taskTypes={taskTypes}
+          isAuthenticated={isAuthenticated}
+          setTaskTypes={setTaskTypes}
+          setClasses={setTaskModalClasses}
+          user={user}
+        />
+      </Suspense>
     </div>
   );
 };

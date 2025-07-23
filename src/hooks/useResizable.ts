@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * Return type for useResizable hook
@@ -71,10 +71,10 @@ export const useResizable = (
     };
   }, [isResizing, width, minWidth, maxWidth, storageKey]);
 
-  const startResize = (e: React.MouseEvent) => {
+  const startResize = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
-  };
+  }, []);
 
   return {
     width,

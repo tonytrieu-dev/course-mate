@@ -81,7 +81,7 @@ const ClassList: React.FC<ClassListProps> = ({
       isTaskClass: false  // Explicitly mark as non-task class for Sidebar
     };
 
-    await classService.addClass(newClass as any, isAuthenticated);
+    await classService.addClass(newClass, isAuthenticated);
     
     if (!newClassName.trim()) {
       setEditingClassId(newId);

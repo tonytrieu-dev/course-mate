@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import type { ClassWithRelations, ClassFile, ClassSyllabus } from "../types/database";
 import {
   getSettings,
@@ -12,14 +12,16 @@ import { TextFormattingProvider } from "../contexts/TextFormattingContext";
 import { useResizable } from "../hooks/useResizable";
 import { useFontSizes } from "../hooks/useLocalStorageState";
 import LoginComponent from "./LoginComponent";
-import CanvasSettings from "./CanvasSettings";
-import SyllabusModal from "./SyllabusModal";
 import EditableText from "./EditableText";
 import InlineSizeControl from "./InlineSizeControl";
-import ChatbotPanel from "./ChatbotPanel";
 import ClassList from "./ClassList";
-import AuthSection from "./AuthSection";
 import classService from "../services/classService";
+
+// Lazy load heavy components for better performance
+const CanvasSettings = lazy(() => import("./CanvasSettings"));
+const SyllabusModal = lazy(() => import("./SyllabusModal"));
+const ChatbotPanel = lazy(() => import("./ChatbotPanel"));
+const AuthSection = lazy(() => import("./AuthSection"));
 import { logger } from "../utils/logger";
 
 // Constants
@@ -470,27 +472,51 @@ const Sidebar: React.FC = () => {
 
         {/* Auth Controls */}
         <div className="px-2 mt-auto mb-8 flex-shrink-0">
-          <AuthSection
-            user={user}
-            isAuthenticated={isAuthenticated}
-            logout={logout}
-            onShowLogin={() => setShowLogin(true)}
-            isSidebarCollapsed={isSidebarCollapsed}
-          />
+          <Suspense fallback={
+            <div className="animate-pulse bg-gray-200 h-10 rounded" />
+          }>
+            <AuthSection
+              user={user}
+              isAuthenticated={isAuthenticated}
+              logout={logout}
+              onShowLogin={() => setShowLogin(true)}
+              isSidebarCollapsed={isSidebarCollapsed}
+            />
+          </Suspense>
         </div>
 
-        <SyllabusModal
-          show={showSyllabusModal}
-          selectedClass={selectedClass}
-          onClose={() => setShowSyllabusModal(false)}
-          onSyllabusUpdate={handleSyllabusUpdate}
-          onFileUpdate={handleFileUpdate}
-        />
+        <Suspense fallback={
+          showSyllabusModal ? (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+                <p className="text-center mt-4 text-gray-600">Loading syllabus editor...</p>
+              </div>
+            </div>
+          ) : null
+        }>
+          <SyllabusModal
+            show={showSyllabusModal}
+            selectedClass={selectedClass}
+            onClose={() => setShowSyllabusModal(false)}
+            onSyllabusUpdate={handleSyllabusUpdate}
+            onFileUpdate={handleFileUpdate}
+          />
+        </Suspense>
         {showLogin && !isAuthenticated && (
           <LoginComponent onClose={() => setShowLogin(false)} />
         )}
         {showCanvasSettings && (
-          <CanvasSettings onClose={() => setShowCanvasSettings(false)} />
+          <Suspense fallback={
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+                <p className="text-center mt-4 text-gray-600">Loading Canvas settings...</p>
+              </div>
+            </div>
+          }>
+            <CanvasSettings onClose={() => setShowCanvasSettings(false)} />
+          </Suspense>
         )}
         </div>
         {/* Resize Handle */}
@@ -509,16 +535,25 @@ const Sidebar: React.FC = () => {
           </div>
         )}
 
-        <ChatbotPanel
-          selectedClass={selectedClass}
-          show={showChatbotPanel}
-          onClose={() => setShowChatbotPanel(false)}
-          position={chatbotPosition}
-          onPositionChange={setChatbotPosition}
-          height={chatbotPanelHeight}
-          onHeightChange={setChatbotPanelHeight}
-          fontSize={fontSize}
-        />
+        <Suspense fallback={
+          showChatbotPanel ? (
+            <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border p-4" style={{ width: '400px', height: `${chatbotPanelHeight}px` }}>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mt-8" />
+              <p className="text-center mt-4 text-gray-600">Loading chatbot...</p>
+            </div>
+          ) : null
+        }>
+          <ChatbotPanel
+            selectedClass={selectedClass}
+            show={showChatbotPanel}
+            onClose={() => setShowChatbotPanel(false)}
+            position={chatbotPosition}
+            onPositionChange={setChatbotPosition}
+            height={chatbotPanelHeight}
+            onHeightChange={setChatbotPanelHeight}
+            fontSize={fontSize}
+          />
+        </Suspense>
       </TextFormattingProvider>
     );
 };
