@@ -1,10 +1,10 @@
-import { User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 
 // Authentication types
 export interface AuthResponse {
   user: User | null;
-  session: any;
-  error?: any;
+  session: Session | null;
+  error?: Error | null;
 }
 
 export interface SignUpCredentials {
@@ -30,7 +30,7 @@ export interface ServiceError {
   code?: string;
   operation?: string;
   originalError?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 // Cache types
@@ -54,11 +54,11 @@ export interface QueryOptions {
 }
 
 // Supabase query function type
-export type SupabaseQueryFn<T = any> = () => Promise<{ data: T | null; error: any }>;
+export type SupabaseQueryFn<T = unknown> = () => Promise<{ data: T | null; error: Error | null }>;
 
 // Service helper types
-export interface WithSupabaseQueryOptions {
-  fallbackData?: any;
+export interface WithSupabaseQueryOptions<T = unknown> {
+  fallbackData?: T;
   operation?: string;
   retryCount?: number;
   timeout?: number;
@@ -73,12 +73,12 @@ export interface ErrorContext {
   classId?: string;
   useSupabase?: boolean;
   fallbackUsed?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Local storage types
 export type LocalStorageKey = string;
-export type LocalStorageData = any;
+export type LocalStorageData = unknown;
 
 // File upload types
 export interface FileUploadData {

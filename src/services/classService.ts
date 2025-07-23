@@ -5,6 +5,7 @@ import {
   updateClass as updateClassInData, 
   deleteClass as deleteClassFromData 
 } from "./dataService";
+import { logger } from "../utils/logger";
 
 // Type for class change listeners
 type ClassChangeListener = (classes: ClassWithRelations[]) => void;
@@ -62,7 +63,7 @@ class ClassService implements ClassServiceInterface {
       this.notifyListeners();
       return this.classes;
     } catch (error) {
-      console.error('Error initializing class service:', error);
+      logger.error('Error initializing class service:', error);
       this.classes = [];
       return this.classes;
     }
@@ -93,7 +94,7 @@ class ClassService implements ClassServiceInterface {
       }
       return newClass;
     } catch (error) {
-      console.error('Error adding class:', error);
+      logger.error('Error adding class:', error);
       return null;
     }
   }
@@ -110,7 +111,7 @@ class ClassService implements ClassServiceInterface {
       }
       return result;
     } catch (error) {
-      console.error('Error updating class:', error);
+      logger.error('Error updating class:', error);
       return null;
     }
   }
@@ -125,7 +126,7 @@ class ClassService implements ClassServiceInterface {
       }
       return success;
     } catch (error) {
-      console.error('Error deleting class:', error);
+      logger.error('Error deleting class:', error);
       return false;
     }
   }
@@ -137,7 +138,7 @@ class ClassService implements ClassServiceInterface {
       this.notifyListeners();
       return this.classes;
     } catch (error) {
-      console.error('Error refreshing classes:', error);
+      logger.error('Error refreshing classes:', error);
       return this.classes;
     }
   }

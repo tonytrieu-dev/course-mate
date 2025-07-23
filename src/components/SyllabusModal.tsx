@@ -96,7 +96,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
               <div className="flex justify-between items-center p-2.5 bg-gray-100 rounded mb-2.5">
                 <div>
                   <strong>Current Syllabus:</strong>{" "}
-                  {selectedClass.syllabus.name || selectedClass.syllabus.filename}
+                  {selectedClass.syllabus.name}
                   {selectedClass.syllabus.size && (
                     <span className="ml-2.5 text-gray-500">
                       ({Math.round(selectedClass.syllabus.size / 1024)} KB)
@@ -122,7 +122,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                         />
                       </svg>
                       <span className="text-blue-600">
-                        {selectedClass.syllabus.name || selectedClass.syllabus.filename}
+                        {selectedClass.syllabus.name}
                       </span>
                     </div>
                     <button
@@ -196,7 +196,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                         />
                       </svg>
                       <span className="text-blue-600">
-                        {file.filename || file.name || 'No filename found'}
+                        {file.name || 'No filename found'}
                       </span>
                       {file.size && (
                         <span className="ml-2 text-gray-500 text-sm">

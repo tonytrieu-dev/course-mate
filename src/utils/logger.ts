@@ -12,18 +12,18 @@ export const LOG_LEVELS = {
 export type LogLevel = typeof LOG_LEVELS[keyof typeof LOG_LEVELS];
 
 export interface AuthData {
-  [key: string]: any;
+  [key: string]: unknown;
   password?: string;
   token?: string;
   key?: string;
   user?: {
     id?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
 export interface SanitizedAuthData {
-  [key: string]: any;
+  [key: string]: unknown;
   user?: {
     id: string;
   };
@@ -42,25 +42,25 @@ class Logger {
     this.level = level;
   }
 
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.ERROR) {
       console.error(`[ERROR] ${message}`, ...args);
     }
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.WARN) {
       console.warn(`[WARN] ${message}`, ...args);
     }
   }
 
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.INFO) {
       console.info(`[INFO] ${message}`, ...args);
     }
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.DEBUG) {
       console.log(`[DEBUG] ${message}`, ...args);
     }
@@ -73,13 +73,14 @@ class Logger {
   }
 
   private sanitizeAuthData(data: AuthData): SanitizedAuthData {
-    const sanitized: any = { ...data };
+    const sanitized: Record<string, unknown> = { ...data };
     // Remove sensitive fields
     delete sanitized.password;
     delete sanitized.token;
     delete sanitized.key;
-    if (sanitized.user) {
-      sanitized.user = { id: sanitized.user.id || 'unknown' };
+    if (sanitized.user && typeof sanitized.user === 'object' && sanitized.user !== null) {
+      const user = sanitized.user as { id?: string };
+      sanitized.user = { id: user.id || 'unknown' };
     }
     return sanitized;
   }

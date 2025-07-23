@@ -76,9 +76,7 @@ export const fileService = {
     if (error) {
       console.error('Syllabus storage upload failed:', {
         error,
-        errorCode: error.code,
         errorMessage: error.message,
-        errorDetails: error.details,
         fileName,
         fileSize: file.size,
         fileType: file.type,
