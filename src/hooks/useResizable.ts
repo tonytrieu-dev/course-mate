@@ -1,5 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+// Throttle utility for smooth performance
+const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+): T => {
+  let inThrottle: boolean;
+  return ((...args: any[]) => {
+    if (!inThrottle) {
+      func.apply(null, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  }) as T;
+};
+
 /**
  * Return type for useResizable hook
  */
@@ -34,31 +49,54 @@ export const useResizable = (
   });
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const elementRef = useRef<HTMLElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastUpdateRef = useRef<number>(0);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
       
-      const newWidth = e.clientX;
-      if (newWidth >= minWidth && newWidth <= maxWidth) {
-        setWidth(newWidth);
+      // Cancel previous animation frame if it hasn't executed yet
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
       }
+      
+      // Use requestAnimationFrame for smooth updates
+      rafRef.current = requestAnimationFrame(() => {
+        const now = Date.now();
+        // Throttle updates to 60fps (16ms) for smooth performance
+        if (now - lastUpdateRef.current >= 16) {
+          const newWidth = Math.max(minWidth, Math.min(maxWidth, e.clientX));
+          setWidth(newWidth);
+          lastUpdateRef.current = now;
+        }
+      });
     };
 
     const handleMouseUp = () => {
       if (isResizing) {
         setIsResizing(false);
+        
+        // Cancel any pending animation frame
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+        
+        // Save to localStorage with a slight delay to avoid blocking
         if (storageKey) {
-          localStorage.setItem(storageKey, width.toString());
+          requestIdleCallback(() => {
+            localStorage.setItem(storageKey, width.toString());
+          }, { timeout: 100 });
         }
       }
     };
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mousemove', handleMouseMove, { passive: true });
       document.addEventListener('mouseup', handleMouseUp);
       document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'col-resize';
+      document.body.style.cursor = 'ew-resize'; // Better cursor for horizontal resize
       document.body.classList.add('sidebar-resizing');
     }
 
@@ -68,6 +106,11 @@ export const useResizable = (
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
       document.body.classList.remove('sidebar-resizing');
+      
+      // Cleanup animation frame on unmount
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, [isResizing, width, minWidth, maxWidth, storageKey]);
 

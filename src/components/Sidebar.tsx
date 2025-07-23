@@ -254,10 +254,13 @@ const Sidebar: React.FC = () => {
 
   const handleSidebarToggle = useCallback(() => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
-    // Reset to default width when expanding
+    // Reset to default width when expanding with smooth animation
     if (isSidebarCollapsed) {
-      const savedWidth = localStorage.getItem('sidebarWidth');
-      setSidebarWidth(savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH);
+      // Add a small delay to allow collapse animation to complete
+      setTimeout(() => {
+        const savedWidth = localStorage.getItem('sidebarWidth');
+        setSidebarWidth(savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH);
+      }, 150);
     }
   }, [isSidebarCollapsed, setSidebarWidth]);
 
@@ -280,15 +283,53 @@ const Sidebar: React.FC = () => {
             background-color: #EBF8FF;
             border-color: #3B82F6;
           }
+          .sidebar-resizing {
+            user-select: none;
+            cursor: ew-resize !important;
+          }
+          .sidebar-resizing * {
+            pointer-events: none;
+          }
+          .resize-handle {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          .resize-handle:hover {
+            transform: scaleX(1.2);
+          }
+          .resize-handle.active {
+            background-color: #3B82F6 !important;
+            transform: none;
+            box-shadow: 0 0 0 0.5px #3B82F6;
+          }
+          .resize-indicator {
+            width: 2px;
+            background-color: #3B82F6;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+          }
+          .resize-indicator.visible {
+            opacity: 1;
+          }
+          .sidebar-transition {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          .sidebar-no-transition {
+            transition: none;
+          }
         `}
       </style>
       <div 
         ref={sidebarRef as React.RefObject<HTMLDivElement>}
-        className={`${isSidebarCollapsed ? 'w-16' : ''} border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col transition-all duration-300 relative overflow-hidden`}
+        className={`${
+          isSidebarCollapsed ? 'w-16' : ''
+        } border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col relative overflow-hidden ${
+          isResizing ? 'sidebar-no-transition' : 'sidebar-transition'
+        }`}
         style={{
           width: isSidebarCollapsed ? '64px' : `${sidebarWidth}px`,
           minWidth: isSidebarCollapsed ? '64px' : `${MIN_SIDEBAR_WIDTH}px`,
-          maxWidth: isSidebarCollapsed ? '64px' : `${MAX_SIDEBAR_WIDTH}px`
+          maxWidth: isSidebarCollapsed ? '64px' : `${MAX_SIDEBAR_WIDTH}px`,
+          willChange: isResizing ? 'width' : 'auto'
         }}
       >
         {/* Collapse Toggle Button */}
@@ -349,7 +390,9 @@ const Sidebar: React.FC = () => {
         <div className="mt-8"></div>
 
         <div
-          className="relative flex-1 min-h-0 overflow-y-auto"
+          className={`relative flex-1 min-h-0 overflow-y-auto ${
+            isResizing ? 'pointer-events-none' : ''
+          }`}
           onMouseEnter={() => setIsHoveringClassArea(true)}
           onMouseLeave={() => setIsHoveringClassArea(false)}
         >
@@ -404,7 +447,9 @@ const Sidebar: React.FC = () => {
           />
         </div>
 
-        <div className="px-2 mt-auto border-t pt-6 flex-shrink-0 max-h-96 overflow-y-auto">
+        <div className={`px-2 mt-auto border-t pt-6 flex-shrink-0 max-h-96 overflow-y-auto ${
+          isResizing ? 'pointer-events-none' : ''
+        }`}>
           {/* Class Chatbot Button - Notion Style */}
           {!isSidebarCollapsed && (
             <div className="mb-3">
@@ -519,20 +564,43 @@ const Sidebar: React.FC = () => {
           </Suspense>
         )}
         </div>
-        {/* Resize Handle */}
+        {/* Enhanced Resize Handle */}
         {!isSidebarCollapsed && (
-          <div
-            className="resize-handle fixed top-0 h-full w-1 cursor-col-resize hover:bg-blue-500 transition-all duration-200 z-50"
-            style={{ 
-              left: `${sidebarWidth - 2}px`,
-              backgroundColor: isResizing ? '#3B82F6' : 'transparent',
-              boxShadow: isResizing ? '0 0 0 1px #3B82F6' : 'none'
-            }}
-            onMouseDown={startResize}
-            title="Drag to resize sidebar"
-          >
-            <div className="absolute inset-y-0 -left-1 w-3 hover:bg-blue-500/10 transition-colors duration-200" />
-          </div>
+          <>
+            {/* Invisible interaction area */}
+            <div
+              className="fixed top-0 h-full w-3 cursor-ew-resize z-50"
+              style={{ 
+                left: `${sidebarWidth - 1}px`
+              }}
+              onMouseDown={startResize}
+              title="Drag to resize sidebar"
+            >
+              {/* Hover area for visual feedback */}
+              <div className="absolute inset-y-0 -left-1 w-5 hover:bg-blue-500/3 transition-colors duration-150" />
+              
+              {/* Visual grip indicator - only show on hover when not resizing */}
+              {!isResizing && (
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <div className="flex flex-col space-y-1 opacity-0 hover:opacity-30 transition-opacity duration-200">
+                    <div className="w-0.5 h-3 bg-gray-400 rounded-full"></div>
+                    <div className="w-0.5 h-3 bg-gray-400 rounded-full"></div>
+                    <div className="w-0.5 h-3 bg-gray-400 rounded-full"></div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Blue resize indicator - follows the gray border exactly */}
+            <div
+              className={`resize-indicator fixed top-0 h-full z-40 ${
+                isResizing ? 'visible' : ''
+              }`}
+              style={{ 
+                left: `${sidebarWidth - 1}px`
+              }}
+            />
+          </>
         )}
 
         <Suspense fallback={
