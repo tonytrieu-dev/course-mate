@@ -5,7 +5,7 @@ import { addTaskType, addClass, deleteTaskType, deleteClass, updateTaskType } fr
 import { logger } from "../utils/logger";
 import { generateClassId, generateTypeId } from "../utils/idHelpers";
 
-interface TaskData {
+export interface TaskData {
   id?: string;
   title: string;
   class: string;

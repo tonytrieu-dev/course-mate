@@ -5,7 +5,7 @@ import { supabase } from '../services/supabaseClient';
 import { logger } from './logger';
 
 // Type for Supabase query functions
-type SupabaseQueryFn<T = any> = () => Promise<{ data: T | null; error: any }>;
+type SupabaseQueryFn<T = unknown> = () => Promise<{ data: T | null; error: unknown }>;
 
 // Cache item interface
 interface CacheItem<T> {
@@ -15,7 +15,7 @@ interface CacheItem<T> {
 
 // Cache interface
 interface Cache {
-  getCacheKey: (operation: string, userId: string, params?: Record<string, any>) => string;
+  getCacheKey: (operation: string, userId: string, params?: Record<string, unknown>) => string;
   get: <T>(key: string) => T | null;
   set: <T>(key: string, data: T) => void;
   invalidate: (pattern: string) => void;
@@ -36,7 +36,10 @@ export const withSupabaseQuery = async <T>(
     const { data, error } = await queryFn();
     
     if (error) {
-      logger.error(`Supabase ${operation} failed`, { error: error.message });
+      const errorMessage = typeof error === 'object' && error && 'message' in error 
+        ? String(error.message) 
+        : 'Unknown Supabase error';
+      logger.error(`Supabase ${operation} failed`, { error: errorMessage });
       return fallbackData;
     }
     
@@ -60,7 +63,7 @@ export const getLocalData = <T>(key: string, defaultValue: T): T => {
   }
 };
 
-export const saveLocalData = (key: string, data: any): boolean => {
+export const saveLocalData = (key: string, data: unknown): boolean => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
     return true;
@@ -73,9 +76,9 @@ export const saveLocalData = (key: string, data: any): boolean => {
 
 // Common cache operations
 export const createCache = (ttl: number = 5 * 60 * 1000): Cache => {
-  const cache = new Map<string, CacheItem<any>>();
+  const cache = new Map<string, CacheItem<unknown>>();
   
-  const getCacheKey = (operation: string, userId: string, params: Record<string, any> = {}): string => {
+  const getCacheKey = (operation: string, userId: string, params: Record<string, unknown> = {}): string => {
     return `${operation}_${userId}_${JSON.stringify(params)}`;
   };
   
@@ -83,7 +86,7 @@ export const createCache = (ttl: number = 5 * 60 * 1000): Cache => {
     const cached = cache.get(key);
     if (cached && Date.now() - cached.timestamp < ttl) {
       logger.debug('Cache hit', { key });
-      return cached.data;
+      return cached.data as T;
     }
     if (cached) {
       cache.delete(key);

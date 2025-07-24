@@ -24,7 +24,7 @@ interface ProxyResponse {
 interface FetchCanvasResult {
   success: boolean;
   message: string;
-  tasks: any[];
+  tasks: Partial<TaskInsert>[];
 }
 
 // Mock response interface for proxy fallback

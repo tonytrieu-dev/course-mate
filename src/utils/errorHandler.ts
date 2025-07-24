@@ -12,7 +12,7 @@ interface ErrorContext {
   code?: string;
   statusCode?: number;
   timestamp?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -250,13 +250,13 @@ export const errorHandler = {
   },
 
   // Async wrapper with enhanced error handling
-  async: <T = any>(
-    asyncFn: (...args: any[]) => Promise<T>,
+  async: <T = unknown>(
+    asyncFn: (...args: unknown[]) => Promise<T>,
     operation: string = '',
     fallbackValue: T | null = null,
     shouldThrow: boolean = true
   ) => {
-    return async (...args: any[]): Promise<T | null> => {
+    return async (...args: unknown[]): Promise<T | null> => {
       try {
         return await asyncFn(...args);
       } catch (error) {

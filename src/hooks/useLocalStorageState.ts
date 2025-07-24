@@ -60,8 +60,8 @@ type FontSizesResult<T extends FontSizeDefaults> = T & {
 export const useFontSizes = <T extends FontSizeDefaults>(
   defaults: T
 ): FontSizesResult<T> => {
-  const fontSizes: any = {};
-  const setters: any = {};
+  const fontSizes: Record<string, number> = {};
+  const setters: Record<string, (value: number | ((prev: number) => number)) => void> = {};
 
   Object.entries(defaults).forEach(([sizeName, defaultValue]) => {
     const [size, setSize] = useLocalStorageState(`${sizeName}FontSize`, defaultValue);
@@ -69,5 +69,5 @@ export const useFontSizes = <T extends FontSizeDefaults>(
     setters[`set${sizeName.charAt(0).toUpperCase() + sizeName.slice(1)}Size`] = setSize;
   });
 
-  return { ...fontSizes, ...setters };
+  return { ...fontSizes, ...setters } as FontSizesResult<T>;
 };

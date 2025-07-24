@@ -6,7 +6,7 @@ import type { User } from '@supabase/supabase-js';
  * Logger interface for authentication operations
  */
 interface Logger {
-  error: (message: string, context?: any) => void;
+  error: (message: string, context?: unknown) => void;
 }
 
 /**

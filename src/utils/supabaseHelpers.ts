@@ -297,7 +297,7 @@ export const checkUserDataExists = async (tableName: string, userId: string): Pr
   }
 };
 
-export const batchUpsert = async <T extends Record<string, any>>(
+export const batchUpsert = async <T extends Record<string, unknown>>(
   tableName: string, 
   records: T[]
 ): Promise<boolean> => {

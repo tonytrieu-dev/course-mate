@@ -109,10 +109,10 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       } else {
         setChatHistory([...newHistory, { role: 'assistant', content: data.answer }]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Caught error asking chatbot:', err);
       let errorMessage = 'Sorry, something went wrong.';
-      if (err.message) {
+      if (err instanceof Error && err.message) {
         errorMessage = `Error: ${err.message}`;
       }
       setChatHistory([...newHistory, { role: 'assistant', content: errorMessage }]);
@@ -124,7 +124,8 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleAskChatbot(e as any);
+      // Call handleAskChatbot with the keyboard event cast as FormEvent
+      handleAskChatbot(e as unknown as React.FormEvent);
     }
   }, [handleAskChatbot]);
 

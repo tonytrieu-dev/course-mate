@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { fetchCanvasCalendar } from "../services/canvasService";
 import { useAuth } from "../contexts/AuthContext";
+import type { TaskInsert } from "../types/database";
 
 interface SyncStatus {
   success?: boolean;
   message: string;
-  tasks?: any[];
+  tasks?: Partial<TaskInsert>[];
 }
 
 interface CanvasSettingsProps {

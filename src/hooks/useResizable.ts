@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // Throttle utility for smooth performance
-const throttle = <T extends (...args: any[]) => any>(
+const throttle = <T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): T => {
   let inThrottle: boolean;
-  return ((...args: any[]) => {
+  return ((...args: unknown[]) => {
     if (!inThrottle) {
       func.apply(null, args);
       inThrottle = true;

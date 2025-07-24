@@ -6,6 +6,7 @@ import {
   deleteTask,
   getTaskTypes,
 } from "../services/dataService";
+import type { TaskData } from "./TaskModal";
 import { useAuth } from "../contexts/AuthContext";
 import { getEventStyle } from "../utils/taskStyles";
 import { 
@@ -861,7 +862,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
           }}
           onSubmit={handleTaskSubmit}
           onDelete={handleDeleteTask}
-          editingTask={editingTask as unknown as TaskData | null}
+          editingTask={editingTask as TaskData | null}
           selectedDate={selectedDate}
           classes={taskModalClasses}
           taskTypes={taskTypes}

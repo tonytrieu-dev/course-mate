@@ -10,6 +10,11 @@ import type {
   ServiceError 
 } from '../types/service';
 
+// Helper function to safely cast unknown errors
+const toError = (error: unknown): Error => {
+  return error instanceof Error ? error : new Error(String(error));
+};
+
 export const signUp = async (email: string, password: string): Promise<AuthResponse> => {
   try {
     const result = await supabase.auth.signUp({ email, password });
@@ -27,37 +32,38 @@ export const signUp = async (email: string, password: string): Promise<AuthRespo
       session: result.data.session,
       error: result.error
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = toError(error);
     // If it's already a ServiceError, just re-throw it
-    if (error.name === 'ServiceError') {
+    if (err.name === 'ServiceError') {
       throw error;
     }
     
     const handled = errorHandler.handle(
-      error,
+      err,
       'signUp',
       { email: email ? 'provided' : 'missing' }
     );
     
     // Create appropriate auth error based on message
-    const message = error.message?.toLowerCase() || '';
+    const message = err.message?.toLowerCase() || '';
     if (message.includes('email already registered') || message.includes('already exists')) {
       throw errorHandler.auth.invalidCredentials({
         operation: 'signUp',
         reason: 'Email already exists',
-        originalError: error.message
+        originalError: err.message
       });
     } else if (message.includes('password')) {
       throw errorHandler.auth.invalidCredentials({
         operation: 'signUp', 
         reason: 'Invalid password',
-        originalError: error.message
+        originalError: err.message
       });
     }
     
     throw errorHandler.auth.invalidCredentials({
       operation: 'signUp',
-      originalError: error.message
+      originalError: err.message
     });
   }
 };
@@ -79,30 +85,31 @@ export const signIn = async (email: string, password: string): Promise<AuthRespo
       session: result.data.session,
       error: result.error
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = toError(error);
     // If it's already a ServiceError, just re-throw it
-    if (error.name === 'ServiceError') {
+    if (err.name === 'ServiceError') {
       throw error;
     }
     
     const handled = errorHandler.handle(
-      error,
+      err,
       'signIn',
       { email: email ? 'provided' : 'missing' }
     );
     
     // Create appropriate auth error based on message
-    const message = error.message?.toLowerCase() || '';
+    const message = err.message?.toLowerCase() || '';
     if (message.includes('invalid login') || message.includes('invalid email')) {
       throw errorHandler.auth.invalidCredentials({
         operation: 'signIn',
-        originalError: error.message
+        originalError: err.message
       });
     }
     
     throw errorHandler.auth.invalidCredentials({
       operation: 'signIn',
-      originalError: error.message
+      originalError: err.message
     });
   }
 };
@@ -144,26 +151,28 @@ export const signOut = async (): Promise<boolean> => {
         logger.warn('Some auth tokens may not have been cleared', { remainingTokens });
       }
       
-    } catch (storageError: any) {
-      logger.warn('Local storage cleanup failed', { error: storageError.message });
+    } catch (storageError: unknown) {
+      const errorMessage = storageError instanceof Error ? storageError.message : 'Unknown storage error';
+      logger.warn('Local storage cleanup failed', { error: errorMessage });
       // Don't throw - signout was successful on server
     }
 
     logger.auth('User signed out successfully');
     return true;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = toError(error);
     // If it's already a ServiceError, just re-throw it
-    if (error.name === 'ServiceError') {
+    if (err.name === 'ServiceError') {
       throw error;
     }
     
     const handled = errorHandler.handle(
-      error,
+      err,
       'signOut - overall operation'
     );
     throw errorHandler.auth.sessionExpired({
       operation: 'signOut - overall',
-      originalError: error.message
+      originalError: err.message
     });
   }
 };
@@ -181,9 +190,10 @@ export const getCurrentUser = async (): Promise<User | null> => {
     const user = result.data.user || null;
     logger.debug('User fetch completed', { hasUser: !!user });
     return user;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = toError(error);
     const handled = errorHandler.handle(
-      error,
+      err,
       'getCurrentUser',
       { operation: 'getCurrentUser' }
     );
@@ -203,8 +213,8 @@ export const validateCredentials = (credentials: SignUpCredentials | SignInCrede
 };
 
 // Enhanced error handling with typed errors
-export const handleAuthError = (error: any, operation: string): ServiceError => {
-  const handled = errorHandler.handle(error, operation);
+export const handleAuthError = (error: unknown, operation: string): ServiceError => {
+  const handled = errorHandler.handle(toError(error), operation);
   return {
     name: 'ServiceError',
     message: handled.userMessage,

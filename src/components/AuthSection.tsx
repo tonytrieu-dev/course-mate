@@ -91,6 +91,13 @@ const AuthSection: React.FC<AuthSectionProps> = ({
     // This would need to be passed from parent to expand sidebar
   };
 
+  const handleAvatarKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      // This would need to be passed from parent to expand sidebar
+    }
+  };
+
   // Get user initial for avatar
   const getUserInitial = (): string => {
     return user?.email?.charAt(0).toUpperCase() || 'U';
@@ -153,12 +160,7 @@ const AuthSection: React.FC<AuthSectionProps> = ({
           onClick={handleAvatarClick}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleAvatarClick(e as any);
-            }
-          }}
+          onKeyDown={handleAvatarKeyDown}
         >
           <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 flex items-center justify-center text-white font-semibold">
             {getUserInitial()}

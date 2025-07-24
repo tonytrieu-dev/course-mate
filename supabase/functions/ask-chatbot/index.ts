@@ -1,5 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js'
 
+// Type definitions
+interface Document {
+  content: string;
+  // Add other document properties as needed
+}
+
+interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -74,12 +85,12 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${documents?.length || 0} matching documents for classId:`, classId);
     const contextText = documents && documents.length > 0 
-      ? documents.map((doc: any) => doc.content).join("\n\n---\n\n")
+      ? documents.map((doc: Document) => doc.content).join("\n\n---\n\n")
       : '';
 
     // Build conversation context for better follow-up handling
     const conversationContext = conversationHistory && conversationHistory.length > 0
-      ? conversationHistory.map((msg: any) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
+      ? conversationHistory.map((msg: ConversationMessage) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
       : '';
 
     // If no documents AND no conversation history, return the "no documents" message
