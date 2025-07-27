@@ -23,6 +23,7 @@ import {
 import { getDayCellClasses, getViewButtonClasses, getNavButtonClasses, getNavIconClasses } from "../utils/styleHelpers";
 import { validateAuthState } from "../utils/authHelpers";
 import classService from "../services/classService";
+import { logger } from "../utils/logger";
 
 // Lazy load TaskModal for better performance
 const TaskModal = lazy(() => import("./TaskModal"));
@@ -447,10 +448,10 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
   useEffect(() => {
     const loadData = async (): Promise<void> => {
       if (!loading && isAuthenticated && user && user.id) {
-        console.log('Loading initial data for user:', user.id);
+        logger.debug('Loading initial data for user', { userId: user.id });
         
         const fetchedTasks = await getTasks(user.id, isAuthenticated);
-        console.log('Fetched tasks from server:', fetchedTasks);
+        logger.debug('Fetched tasks from server', { taskCount: fetchedTasks?.length || 0 });
         setTasks(fetchedTasks || []);
         
         // Use class service for centralized class management
@@ -465,7 +466,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
         setTaskTypes(fetchedTaskTypes || []);
 
       } else {
-        console.log('Skipping data load - conditions not met:', { loading, isAuthenticated, userId: user?.id });
+        logger.debug('Skipping data load - conditions not met', { loading, isAuthenticated, userId: user?.id });
       }
     };
     loadData();
@@ -543,36 +544,36 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
 
       let result: TaskWithMeta | null;
       if (editingTask) {
-        console.log('Updating task:', { id: editingTask.id, data: completeTaskData });
+        logger.debug('Updating task', { id: editingTask.id, title: completeTaskData.title });
         result = await updateTask(
           editingTask.id,
           completeTaskData,
           isAuthenticated
         ) as TaskWithMeta;
-        console.log('Task update result:', result);
+        logger.debug('Task update result', { success: !!result, id: result?.id });
         
         // Immediately update local state for edited task
         if (result) {
-          console.log('Immediately updating task in local state:', result);
+          logger.debug('Immediately updating task in local state', { id: result.id });
           setTasks(prevTasks => {
             const updated = prevTasks.map(task => 
               task.id === editingTask.id ? { ...task, ...result } : task
             ).filter(task => task !== null) as TaskWithMeta[];
-            console.log('Updated tasks array:', updated);
+            logger.debug('Updated tasks array', { taskCount: updated.length });
             return updated;
           });
         }
       } else {
-        console.log('Creating new task:', completeTaskData);
+        logger.debug('Creating new task', { title: completeTaskData.title });
         result = await addTask(completeTaskData, isAuthenticated) as TaskWithMeta;
-        console.log('Task creation result:', result);
+        logger.debug('Task creation result', { success: !!result, id: result?.id });
         
         // Immediately add new task to local state
         if (result) {
-          console.log('Immediately adding new task to local state:', result);
+          logger.debug('Immediately adding new task to local state', { id: result.id });
           setTasks(prevTasks => {
             const updated = [...prevTasks, result].filter(task => task !== null) as TaskWithMeta[];
-            console.log('Updated tasks array with new task:', updated);
+            logger.debug('Updated tasks array with new task', { taskCount: updated.length });
             return updated;
           });
         }
@@ -586,7 +587,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
         throw new Error('Task operation returned no result');
       }
     } catch (error) {
-      console.error('Task submission error:', error);
+      logger.error('Task submission error', error);
       const operation = editingTask ? 'updating' : 'creating';
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       alert(`There was an error ${operation} your task. Please try again. Error: ${errorMessage}`);
@@ -599,10 +600,10 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
         const success = await deleteTask(editingTask.id, isAuthenticated);
         if (success) {
           // Immediately remove task from local state
-          console.log('Immediately removing task from local state:', editingTask.id);
+          logger.debug('Immediately removing task from local state', { id: editingTask.id });
           setTasks(prevTasks => {
             const updated = prevTasks.filter(task => task.id !== editingTask.id);
-            console.log('Updated tasks array after deletion:', updated);
+            logger.debug('Updated tasks array after deletion', { taskCount: updated.length });
             return updated;
           });
           setLastCalendarSyncTimestamp(Date.now());
@@ -610,7 +611,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
         setShowTaskModal(false);
         setEditingTask(null);
       } catch (error) {
-        console.error('Task deletion error:', error);
+        logger.error('Task deletion error', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         alert(`There was an error deleting your task. Please try again. Error: ${errorMessage}`);
       }
@@ -714,7 +715,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       await updateTask(task.id, updatedTask, isAuthenticated);
       setLastCalendarSyncTimestamp(Date.now());
     } catch (error) {
-      console.error('Failed to update task completion:', error);
+      logger.error('Failed to update task completion', error);
       // Revert optimistic update on error
       setTasks((prevTasks) =>
         prevTasks.map((t) =>

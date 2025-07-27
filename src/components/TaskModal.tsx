@@ -199,7 +199,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         }));
       }
     } catch (error: unknown) {
-      console.error('Error deleting task type:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error deleting task type:', errorMessage);
       alert('Failed to delete task type. Please try again.');
     }
   }, [taskTypes, isAuthenticated, setTaskTypes, task.type]);
@@ -230,7 +231,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         throw new Error('Failed to delete class from database');
       }
     } catch (error: unknown) {
-      console.error('Error deleting class:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error deleting class:', errorMessage);
       alert('Failed to delete class. Please try again.');
     }
   }, [classes, setClasses, task.class]);
@@ -275,7 +277,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         throw new Error('Failed to save class to database');
       }
     } catch (error: unknown) {
-      console.error('Error adding class:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error adding class:', errorMessage);
       alert('Failed to add class. Please try again.');
     }
   }, [newClassName, classes, setClasses, user]);
@@ -309,7 +312,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         setShowTypeInput(false);
       }
     } catch (error: unknown) {
-      console.error('Error adding task type:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error adding task type:', errorMessage);
       alert('Failed to add task type. Please try again.');
     }
   }, [newTypeName, newTypeColor, taskTypes, isAuthenticated, setTaskTypes, user]);
@@ -335,7 +339,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
         setEditingTypeId(null);
       }
     } catch (error: unknown) {
-      console.error('Error updating task type:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error updating task type:', errorMessage);
       alert('Failed to update task type. Please try again.');
     }
   }, [taskTypes, isAuthenticated, setTaskTypes]);

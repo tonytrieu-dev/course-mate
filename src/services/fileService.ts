@@ -2,6 +2,7 @@ import type { User } from '@supabase/supabase-js';
 import type { ClassSyllabus, ClassFile } from '../types/database';
 import { supabase } from './supabaseClient';
 import { errorHandler } from '../utils/errorHandler';
+import { logger } from '../utils/logger';
 
 const SIGNED_URL_DURATION = 31536000; // 1 year
 
@@ -32,16 +33,18 @@ interface ClassFilesData {
 
 export const fileService = {
   async uploadSyllabus(file: File, classData: ClassData): Promise<ClassSyllabus> {
-    console.log('Syllabus upload started:', {
-      file: file ? { name: file.name, size: file.size, type: file.type } : null,
-      classData: classData ? { id: classData.id, name: classData.name } : null
+    logger.debug('Syllabus upload started', {
+      fileName: file?.name,
+      fileSize: file?.size,
+      classId: classData?.id,
+      className: classData?.name
     });
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    console.log('Syllabus auth check:', {
-      user: user ? { id: user.id, email: user.email } : null,
-      userError
+    logger.auth('Syllabus auth check', {
+      user: user ? { id: user.id, email: user.email } : undefined,
+      hasError: !!userError
     });
     
     if (userError || !user) {
@@ -56,7 +59,7 @@ export const fileService = {
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
     const fileName = `${classData.id}/syllabus/${Date.now()}_${sanitizedFileName}`;
     
-    console.log('Filename sanitization:', {
+    logger.debug('Filename sanitization', {
       original: file.name,
       sanitized: sanitizedFileName,
       storagePath: fileName
@@ -74,8 +77,7 @@ export const fileService = {
       });
 
     if (error) {
-      console.error('Syllabus storage upload failed:', {
-        error,
+      logger.error('Syllabus storage upload failed', {
         errorMessage: error.message,
         fileName,
         fileSize: file.size,
