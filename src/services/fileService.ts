@@ -413,5 +413,37 @@ export const fileService = {
       syllabus: syllabusArr && syllabusArr.length > 0 ? syllabusArr[0] : null,
       files: filesArr || [],
     };
+  },
+
+  async downloadFile(filePath: string): Promise<string> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !userData.user) {
+      throw errorHandler.auth.notAuthenticated({
+        operation: 'downloadFile',
+        originalError: userError?.message || "User not authenticated"
+      });
+    }
+
+    // Get signed URL for download
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      .from("class-materials")
+      .createSignedUrl(filePath, 3600); // 1 hour expiry for download
+
+    if (signedUrlError) {
+      throw errorHandler.data.loadFailed({
+        operation: 'downloadFile - signed URL creation',
+        originalError: signedUrlError.message
+      });
+    }
+
+    if (!signedUrlData?.signedUrl) {
+      throw errorHandler.data.loadFailed({
+        operation: 'downloadFile - no signed URL returned',
+        originalError: 'Failed to generate download URL'
+      });
+    }
+
+    return signedUrlData.signedUrl;
   }
 };

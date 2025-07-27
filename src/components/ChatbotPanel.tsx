@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import type { ClassWithRelations } from '../types/database';
 import { supabase } from '../services/supabaseClient';
 
-const CHAT_HISTORY_LIMIT = 6;
+const CHAT_HISTORY_LIMIT = 8; // Increased limit for better follow-up question context
 
 interface Position {
   x: number;
@@ -99,7 +99,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
         body: {
           query: queryText,
           classId: selectedClass.id,
-          conversationHistory: newHistory.slice(0, -1).slice(-CHAT_HISTORY_LIMIT),
+          conversationHistory: newHistory.slice(0, -1).slice(-CHAT_HISTORY_LIMIT), // Send recent history without current question
         },
       });
 

@@ -37,6 +37,7 @@ interface UseFileManagerReturn {
     files: ClassFile[];
     syllabus: ClassSyllabus | null;
   }>;
+  downloadFile: (filePath: string) => Promise<void>;
 }
 
 /**
@@ -147,6 +148,19 @@ export const useFileManager = (): UseFileManagerReturn => {
     }
   }, []);
 
+  const downloadFile = useCallback(async (filePath: string) => {
+    try {
+      const downloadUrl = await fileService.downloadFile(filePath);
+      // Open the file in a new tab/window
+      window.open(downloadUrl, '_blank');
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert("Error downloading file: " + errorMessage);
+      throw error;
+    }
+  }, []);
+
   return {
     isUploading,
     isUploadingFile,
@@ -155,5 +169,6 @@ export const useFileManager = (): UseFileManagerReturn => {
     deleteFile,
     deleteSyllabus,
     getClassData,
+    downloadFile,
   };
 };

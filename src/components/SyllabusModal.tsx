@@ -24,6 +24,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
     uploadFile,
     deleteFile,
     deleteSyllabus,
+    downloadFile,
   } = useFileManager();
 
   const handleSyllabusUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,6 +62,16 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
       onSyllabusUpdate(null);
     });
   }, [selectedClass, deleteSyllabus, onSyllabusUpdate]);
+
+  const handleSyllabusClick = useCallback(async () => {
+    if (!selectedClass?.syllabus) return;
+    
+    await downloadFile(selectedClass.syllabus.path);
+  }, [selectedClass, downloadFile]);
+
+  const handleFileClick = useCallback(async (filePath: string) => {
+    await downloadFile(filePath);
+  }, [downloadFile]);
 
   if (!show || !selectedClass) return null;
 
@@ -121,7 +132,11 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span className="text-blue-600">
+                      <span 
+                        className="text-blue-600 cursor-pointer hover:text-blue-800 hover:underline"
+                        onClick={handleSyllabusClick}
+                        title="Click to open syllabus"
+                      >
                         {selectedClass.syllabus.name}
                       </span>
                     </div>
@@ -195,7 +210,11 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span className="text-blue-600">
+                      <span 
+                        className="text-blue-600 cursor-pointer hover:text-blue-800 hover:underline"
+                        onClick={() => handleFileClick(file.path)}
+                        title="Click to open file"
+                      >
                         {file.name || 'No filename found'}
                       </span>
                       {file.size && (

@@ -93,8 +93,60 @@ Deno.serve(async (req) => {
       ? conversationHistory.map((msg: ConversationMessage) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
       : '';
 
+    // Enhanced question type classification
+    const isFollowUpQuestion = (query: string, hasConversationHistory: boolean): boolean => {
+      if (!hasConversationHistory) return false;
+      
+      const normalizedQuery = query.trim().toLowerCase();
+      
+      // Explicit follow-up patterns
+      const followUpPatterns = [
+        /^(are you sure|really|what do you mean|can you explain|explain more|tell me more|how so|why|elaborate)/i,
+        /^(what about|what if|but what|and what|or what)/i,
+        /^(that doesn't|that seems|i don't understand|unclear|confusing)/i,
+        /^(can you clarify|clarify|rephrase|simplify)/i,
+        /^(expand on|go deeper|more details|more info)/i,
+        /^(yes but|no but|however|although|still)/i,
+        /^(correct|right|wrong|true|false)\?*$/i,
+        /^(ok|okay|i see|got it|thanks|thank you)[\.\?\!]*$/i
+      ];
+      
+      // Pronouns and references often indicate follow-ups
+      const pronounPatterns = [
+        /\b(this|that|it|they|them|these|those)\b/i,
+        /\b(your answer|your response|what you said|you mentioned)\b/i
+      ];
+      
+      // Short questions or statements with conversation history are likely follow-ups
+      if (normalizedQuery.length < 20 && hasConversationHistory) {
+        return true;
+      }
+      
+      // Check for question words that might be follow-ups
+      const questionWords = ['how', 'why', 'what', 'when', 'where', 'which', 'who'];
+      const startsWithQuestionWord = questionWords.some(word => normalizedQuery.startsWith(word));
+      
+      return followUpPatterns.some(pattern => pattern.test(query.trim())) ||
+             (startsWithQuestionWord && pronounPatterns.some(pattern => pattern.test(query))) ||
+             (normalizedQuery.length < 15 && normalizedQuery.includes('?'));
+    };
+
+    // Calculate document relevance confidence
+    const hasRelevantDocuments = documents && documents.length > 0;
+    const hasConversation = conversationHistory && conversationHistory.length > 0;
+    const isFollowUp = isFollowUpQuestion(query, hasConversation);
+    
+    console.log('Question analysis:', { 
+      query: query.substring(0, 50) + (query.length > 50 ? '...' : ''),
+      isFollowUp, 
+      hasRelevantDocuments, 
+      hasConversation,
+      documentsCount: documents?.length || 0,
+      conversationLength: conversationHistory?.length || 0
+    });
+
     // If no documents AND no conversation history, return the "no documents" message
-    if ((!documents || documents.length === 0) && (!conversationHistory || conversationHistory.length === 0)) {
+    if (!hasRelevantDocuments && !hasConversation) {
       console.log('No matching documents and no conversation history for classId:', classId);
       return new Response(JSON.stringify({ 
         answer: "I don't have any documents to reference for this class yet. Please upload some course materials first."
@@ -109,15 +161,55 @@ Deno.serve(async (req) => {
       throw new Error('GOOGLE_API_KEY is not set in environment variables.');
     }
 
-    const prompt = `
-Based on the following context from course documents and previous conversation, please answer the user's question.
-${contextText ? 'If the context doesn\'t contain the answer, state that you couldn\'t find the information in the documents.' : 'Use the conversation history to provide helpful responses.'}
-Maintain conversation context and provide relevant follow-up responses.
+    // Dynamic prompt construction based on question type and available context
+    const buildPrompt = (query: string, contextText: string, conversationContext: string, isFollowUp: boolean, hasRelevantDocuments: boolean): string => {
+      if (isFollowUp && hasConversation) {
+        // For follow-up questions, prioritize conversation context
+        return `You are an intelligent academic assistant helping a student. The student is asking a follow-up question to continue our conversation.
 
-${conversationContext ? `Previous conversation:\n${conversationContext}\n\n` : ''}${contextText ? `Course documents context:\n---\n${contextText}\n---\n\n` : 'Note: No course documents are available for this class yet.\n\n'}Current question: ${query}
+Previous conversation:
+${conversationContext}
 
-Answer:
-`;
+${hasRelevantDocuments ? `Additional course material context (use if relevant):\n---\n${contextText}\n---\n\n` : ''}Current follow-up question: ${query}
+
+Please respond to the student's follow-up question by:
+1. Referencing our previous conversation 
+2. Providing clarification, elaboration, or addressing their concerns
+3. Being conversational and helpful
+4. Using course materials only if they add value to your response
+
+Answer:`;
+      } else if (hasRelevantDocuments) {
+        // For new questions with relevant documents
+        return `You are an intelligent academic assistant. Answer the student's question using the provided course materials.
+
+${conversationContext ? `Previous conversation for context:\n${conversationContext}\n\n` : ''}Course materials:
+---
+${contextText}
+---
+
+Current question: ${query}
+
+Please provide a helpful answer based on the course materials. If the materials don't contain the specific information needed, let the student know what you found and suggest they might need additional resources.
+
+Answer:`;
+      } else {
+        // For questions without relevant documents but with conversation history
+        return `You are an intelligent academic assistant. The student is asking a question, but I don't have specific course materials that directly address this topic.
+
+${conversationContext ? `Previous conversation:\n${conversationContext}\n\n` : ''}Current question: ${query}
+
+Please provide a helpful response by:
+1. Using any relevant information from our conversation history
+2. Providing general academic guidance if appropriate
+3. Suggesting the student upload relevant course materials if this is a course-specific question
+4. Being honest about the limitations while still being helpful
+
+Answer:`;
+      }
+    };
+
+    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantDocuments);
 
     console.log('Sending request to Google Gemini API...');
 
