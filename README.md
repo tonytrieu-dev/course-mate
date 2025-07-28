@@ -1,4 +1,4 @@
-# Notion-Inspired Productivity App
+# StudySync
 
 ![Beta](https://img.shields.io/badge/Status-Beta-orange) ![Development](https://img.shields.io/badge/Stage-Active%20Development-yellow) ![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue)
 
