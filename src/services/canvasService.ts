@@ -1,7 +1,8 @@
 import type { User } from '@supabase/supabase-js';
 import type { TaskInsert } from '../types/database';
-import { addTask, getTasks, deleteTask } from './dataService';
+import { addTask, getTasks, deleteTask, getTaskTypes } from './dataService';
 import { addClass, getClasses } from './class/classOperations';
+import { getSettings } from './settings/settingsOperations';
 import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
 
@@ -284,9 +285,29 @@ export const fetchCanvasCalendar = async (
         const task = convertEventToTask(event);
         logger.debug(`[fetchCanvasCalendar] Event "${event.summary}" converted to task:`, task);
         
-        // Ensure class exists before creating task
+        // Ensure class exists before creating task and use the correct class ID
         if (task.class) {
-          await ensureClassExists(task.class, useSupabase, user);
+          const actualClassId = await ensureClassExists(task.class, useSupabase, user);
+          task.class = actualClassId; // Use the actual class ID (existing or newly created)
+        }
+        
+        // Ensure task type exists and is valid
+        const taskTypes = await getTaskTypes(user?.id, useSupabase);
+        if (task.type && taskTypes.length > 0) {
+          const existingType = taskTypes.find(t => 
+            t.id.toLowerCase() === task.type?.toLowerCase() || 
+            t.name.toLowerCase() === task.type?.toLowerCase()
+          );
+          if (existingType) {
+            task.type = existingType.id; // Use the actual task type ID
+          } else {
+            // If no matching type found, use the first available type or default
+            task.type = taskTypes[0]?.id || 'assignment';
+            logger.debug(`[fetchCanvasCalendar] Task type "${task.type}" not found, using "${taskTypes[0]?.id || 'assignment'}"`);
+          }
+        } else if (taskTypes.length > 0) {
+          // If no type specified, use first available type
+          task.type = taskTypes[0].id;
         }
         
         // Enhanced logging for debugging
@@ -601,38 +622,131 @@ function generateUserFriendlyClassName(classCode: string): string {
 /**
  * Ensures a class exists, creating it if necessary
  */
-async function ensureClassExists(classCode: string, useSupabase: boolean, user: User | null): Promise<void> {
+async function ensureClassExists(classCode: string, useSupabase: boolean, user: User | null): Promise<string> {
   try {
     const userId = user?.id;
     const classes = await getClasses(userId, useSupabase);
     
-    // Check if class already exists (case insensitive)
-    const existingClass = classes.find(cls => 
-      cls.name.toLowerCase() === classCode.toLowerCase() ||
-      cls.id.toLowerCase() === classCode.toLowerCase()
-    );
+    logger.debug(`[ensureClassExists] Looking for class "${classCode}" among ${classes.length} existing classes`);
+    
+    // Enhanced class matching - check multiple patterns
+    const existingClass = classes.find(cls => {
+      const classId = cls.id.toLowerCase();
+      const className = cls.name.toLowerCase();
+      const searchCode = classCode.toLowerCase();
+      
+      logger.debug(`[ensureClassExists] Checking class "${cls.name}" (id: ${cls.id}) against search code "${classCode}"`);
+      
+      // Direct ID match
+      if (classId === searchCode) {
+        logger.debug(`[ensureClassExists] Direct ID match found`);
+        return true;
+      }
+      
+      // Direct name match
+      if (className === searchCode) {
+        logger.debug(`[ensureClassExists] Direct name match found`);
+        return true;
+      }
+      
+      // Check if the class code matches common patterns
+      // For example: "ugrd198g" should match "EE123" if that's what we're looking for
+      // Convert Canvas codes to standard format for matching
+      const standardizedCode = classCode.replace(/^ugrd/i, '').replace(/_/g, '');
+      if (classId === standardizedCode.toLowerCase()) {
+        logger.debug(`[ensureClassExists] Standardized code match found (${standardizedCode})`);
+        return true;
+      }
+      if (className.replace(/\s/g, '').toLowerCase() === standardizedCode.toLowerCase()) {
+        logger.debug(`[ensureClassExists] Standardized name match found (${standardizedCode})`);
+        return true;
+      }
+      
+      // Try to match against subject codes (e.g., EE123 matches EE 123)
+      const subjectMatch = classCode.match(/([A-Z]+)(\d+)/i);
+      if (subjectMatch) {
+        const [, subject, number] = subjectMatch;
+        const pattern = `${subject}${number}`.toLowerCase();
+        if (classId === pattern) {
+          logger.debug(`[ensureClassExists] Subject code ID match found (${pattern})`);
+          return true;
+        }
+        if (className.replace(/\s/g, '').toLowerCase() === pattern) {
+          logger.debug(`[ensureClassExists] Subject code name match found (${pattern})`);
+          return true;
+        }
+      }
+      
+      // Additional check: reverse matching - check if existing class patterns match search code
+      // E.g., if we have "EE123" class and search for "ee123"
+      const existingSubjectMatch = cls.id.match(/([A-Z]+)(\d+)/i) || cls.name.match(/([A-Z]+)\s*(\d+)/i);
+      if (existingSubjectMatch) {
+        const [, existingSubject, existingNumber] = existingSubjectMatch;
+        const existingPattern = `${existingSubject}${existingNumber}`.toLowerCase();
+        if (searchCode === existingPattern) {
+          logger.debug(`[ensureClassExists] Reverse subject match found (${existingPattern})`);
+          return true;
+        }
+        
+        // Also try without the subject (in case Canvas code is just numbers)
+        if (searchCode === existingNumber.toLowerCase()) {
+          logger.debug(`[ensureClassExists] Number-only match found (${existingNumber})`);
+          return true;
+        }
+      }
+      
+      return false;
+    });
     
     if (existingClass) {
-      logger.debug(`[ensureClassExists] Class "${classCode}" already exists`);
-      return;
+      logger.debug(`[ensureClassExists] Found existing class: "${existingClass.name}" (id: ${existingClass.id}) for code "${classCode}"`);
+      return existingClass.id; // Return the existing class ID
     }
     
-    // Create the class with a user-friendly name
-    const friendlyName = generateUserFriendlyClassName(classCode);
-    logger.debug(`[ensureClassExists] Creating new class: "${friendlyName}" (code: ${classCode})`);
+    // Get user's naming preference - ensure we get the latest settings
+    const settings = getSettings();
+    const useDescriptiveNames = settings.classNamingStyle === 'descriptive';
+    
+    logger.debug(`[ensureClassExists] Settings retrieved:`, { 
+      classNamingStyle: settings.classNamingStyle, 
+      useDescriptiveNames,
+      fullSettings: settings,
+      rawClassNamingStyle: settings.classNamingStyle,
+      isDescriptive: settings.classNamingStyle === 'descriptive',
+      isTechnical: settings.classNamingStyle === 'technical',
+      isUndefined: settings.classNamingStyle === undefined
+    });
+    
+    // Double-check the settings logic
+    logger.debug(`[ensureClassExists] Decision logic - useDescriptiveNames: ${useDescriptiveNames}, will use: ${useDescriptiveNames ? 'generateUserFriendlyClassName' : 'classCode.toUpperCase'}`);
+    
+    // Create the class with the user's preferred naming style
+    const className = useDescriptiveNames 
+      ? generateUserFriendlyClassName(classCode)
+      : classCode.toUpperCase(); // Keep technical code but make it uppercase for consistency
+    
+    logger.debug(`[ensureClassExists] Creating new class: "${className}" (code: ${classCode}, style: ${settings.classNamingStyle || 'technical'})`);
+    logger.debug(`[ensureClassExists] Name generation details:`, {
+      input: classCode,
+      useDescriptiveNames,
+      generatedName: className,
+      descriptiveName: generateUserFriendlyClassName(classCode),
+      technicalName: classCode.toUpperCase()
+    });
     
     await addClass({
       id: classCode.toLowerCase(),
-      name: friendlyName,
+      name: className,
       user_id: userId || 'local-user',
       isTaskClass: true, // Mark as task class since it's from Canvas
       created_at: new Date().toISOString()
     }, useSupabase);
     
-    logger.debug(`[ensureClassExists] Successfully created class: "${friendlyName}"`);
+    logger.debug(`[ensureClassExists] Successfully created class: "${className}"`);
+    return classCode.toLowerCase(); // Return the new class ID
   } catch (error) {
     logger.error(`[ensureClassExists] Error creating class "${classCode}":`, error);
-    // Don't throw - we can still create the task even if class creation fails
+    return classCode.toLowerCase(); // Return the original code as fallback
   }
 }
 
@@ -650,11 +764,16 @@ function convertEventToTask(event: CanvasEvent): Partial<TaskInsert> {
   const defaultDueTime = "23:59";
 
   let taskClass = 'canvas'; // Default class for canvas items
+  let cleanTitle = event.summary || 'Canvas Event';
+  
   if (event.summary) {
     // Try multiple patterns to extract class code from Canvas summary
     // Pattern 1: [UGRD_198G_F01_25U] format (from your Canvas data)
     let classMatch = event.summary.match(/\[([A-Z]+_\d+[A-Z]*_[^_\]]+(?:_[^_\]]+)*)\]/i);
     if (classMatch) {
+      // Remove the course code from the title
+      cleanTitle = event.summary.replace(/\s*\[[A-Z]+_\d+[A-Z]*_[^_\]]+(?:_[^_\]]+)*\]\s*/i, '').trim();
+      
       // Convert Canvas format to readable class code
       const canvasCode = classMatch[1];
       // Extract course prefix and number (e.g., UGRD_198G -> UGRD198G)
@@ -670,10 +789,14 @@ function convertEventToTask(event: CanvasEvent): Partial<TaskInsert> {
       if (classMatch) {
         const className = classMatch[1].trim();
         taskClass = className.toLowerCase().replace(/\s+/g, '');
+        // Don't remove this from title as it's usually part of the assignment name
       } else {
         // Pattern 3: Course code at end of summary like "Assignment 1 [EE_123_B01_25U]"
         classMatch = event.summary.match(/\[([A-Z]+_\d+[A-Z]*)/i);
         if (classMatch) {
+          // Remove the course code from the title
+          cleanTitle = event.summary.replace(/\s*\[[A-Z]+_\d+[A-Z]*_[^_\]]*\]\s*/i, '').trim();
+          
           const coursePrefix = classMatch[1].replace(/_/g, '').toLowerCase();
           taskClass = coursePrefix;
         }
@@ -681,10 +804,11 @@ function convertEventToTask(event: CanvasEvent): Partial<TaskInsert> {
     }
     
     logger.debug(`[convertEventToTask] Extracted class "${taskClass}" from summary: "${event.summary}"`);
+    logger.debug(`[convertEventToTask] Cleaned title: "${cleanTitle}" (original: "${event.summary}")`);
   }
 
   const task: Partial<TaskInsert> = {
-    title: event.summary || 'Canvas Event',
+    title: cleanTitle,
     type: getTaskTypeFromEvent(event),
     canvas_uid: event.uid || undefined,
     // Use the correct field names that match your database schema
@@ -701,18 +825,78 @@ function convertEventToTask(event: CanvasEvent): Partial<TaskInsert> {
 function getTaskTypeFromEvent(event: CanvasEvent): string {
   const summary = (event.summary || '').toLowerCase();
   const description = (event.description || '').toLowerCase();
+  const fullText = `${summary} ${description}`.toLowerCase();
 
-  if (summary.includes('exam') || summary.includes('midterm') || summary.includes('final')) {
-    return 'exam';
-  } else if (summary.includes('quiz')) {
-    return 'quiz';
-  } else if (summary.includes('assignment') || summary.includes('homework') || description.includes('submit')) {
+  logger.debug(`[getTaskTypeFromEvent] Analyzing: "${summary}" | Full text: "${fullText}"`);
+
+  // Check reflection patterns first (before exam patterns that might match "final")
+  if (fullText.match(/\b(reflection|journal|weekly reflection|week \d+ reflection)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched reflection pattern`);
     return 'homework';
-  } else if (summary.includes('lab') || description.includes('lab')) {
-    return 'lab';
-  } else if (summary.includes('project')) {
-    return 'project';
-  } else {
-    return 'assignment';
   }
+  
+  // Homework/assignment patterns (check early to catch things like "HW 3")
+  if (fullText.match(/\b(homework|hw \d+|assignment \d+|problem set|exercise|weekly assignment)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched homework pattern`);
+    return 'homework';
+  }
+  
+  // Exam-related patterns (more specific to avoid false matches)
+  if (fullText.match(/\b(exam \d+|midterm exam?|final exam|test \d+)\b/) || 
+      fullText.match(/\b(exam|midterm|test)\b/) && !fullText.match(/\b(reflection|journal|homework|assignment)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched exam pattern`);
+    return 'exam';
+  }
+  
+  // Quiz patterns
+  if (fullText.match(/\b(quiz|quizzes)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched quiz pattern`);
+    return 'quiz';
+  }
+  
+  // Lab patterns
+  if (fullText.match(/\b(lab \d+|laboratory|practical|lab report|lab assignment)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched lab pattern`);
+    return 'lab';
+  }
+  
+  // Project patterns  
+  if (fullText.match(/\b(project|capstone|final project)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched project pattern`);
+    return 'project';
+  }
+  
+  // Discussion patterns
+  if (fullText.match(/\b(discussion|forum|post|reply|respond)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched discussion pattern`);
+    return 'discussion';
+  }
+  
+  // Reading patterns
+  if (fullText.match(/\b(reading|read|chapter|textbook)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched reading pattern`);
+    return 'reading';
+  }
+  
+  // Presentation patterns
+  if (fullText.match(/\b(presentation|present|slide|demo)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched presentation pattern`);
+    return 'presentation';
+  }
+  
+  // Paper/essay patterns
+  if (fullText.match(/\b(paper|essay|report|write|writing|draft)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched paper pattern`);
+    return 'paper';
+  }
+  
+  // Research patterns
+  if (fullText.match(/\b(research|study|investigate|analysis|analyze)\b/)) {
+    logger.debug(`[getTaskTypeFromEvent] Matched research pattern`);
+    return 'research';
+  }
+  
+  // Default fallback
+  logger.debug(`[getTaskTypeFromEvent] Using default assignment type`);
+  return 'assignment';
 }

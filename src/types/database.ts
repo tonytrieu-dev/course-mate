@@ -63,5 +63,6 @@ export interface AppSettings {
   classesTitle?: string;
   theme?: 'light' | 'dark' | 'auto';
   fontSize?: number;
+  classNamingStyle?: 'technical' | 'descriptive'; // 'technical' = "CS100", 'descriptive' = "Computer Science 100"
   // Add other settings as needed
 }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { fetchCanvasCalendar, debugICSParsing } from "../services/canvasService";
+import { getSettings, updateSettings } from "../services/settings/settingsOperations";
 import { useAuth } from "../contexts/AuthContext";
-import type { TaskInsert } from "../types/database";
+import type { TaskInsert, AppSettings } from "../types/database";
 
 interface SyncStatus {
   success?: boolean;
@@ -25,6 +26,10 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
   );
   const [forceSync, setForceSync] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [classNamingStyle, setClassNamingStyle] = useState<'technical' | 'descriptive'>(() => {
+    const settings = getSettings();
+    return settings.classNamingStyle || 'technical';
+  });
 
   const handleDebugICS = useCallback(async () => {
     if (!canvasUrl) {
@@ -48,6 +53,18 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
     const isChecked = e.target.checked;
     setAutoSync(isChecked);
     localStorage.setItem("canvas_auto_sync", isChecked.toString());
+  }, []);
+
+  const handleClassNamingStyleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStyle = e.target.checked ? 'descriptive' : 'technical';
+    setClassNamingStyle(newStyle);
+    
+    // Update settings
+    const currentSettings = getSettings();
+    updateSettings({
+      ...currentSettings,
+      classNamingStyle: newStyle
+    });
   }, []);
 
   const handleSyncNow = useCallback(async () => {
@@ -216,6 +233,30 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               ⚠️ Warning: This will delete all existing Canvas tasks and re-import them from scratch.
             </div>
           )}
+
+          <div className="flex items-center mt-3 pt-3 border-t border-gray-200">
+            <input
+              type="checkbox"
+              id="classNamingStyle"
+              checked={classNamingStyle === 'descriptive'}
+              onChange={handleClassNamingStyleChange}
+              className="mr-2"
+            />
+            <label htmlFor="classNamingStyle" className="text-gray-700">
+              Use descriptive class names (e.g., "Computer Science 100" instead of "CS100")
+            </label>
+          </div>
+          
+          <div className="mt-2 text-sm text-gray-600">
+            <div className="flex justify-between">
+              <span>Technical style:</span>
+              <span className="font-mono">UGRD198G, EE123</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Descriptive style:</span>
+              <span>Undergraduate Course 198G, Electrical Engineering 123</span>
+            </div>
+          </div>
         </div>
 
         {syncStatus && (
