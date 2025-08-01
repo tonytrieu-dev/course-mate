@@ -1,6 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import type { TaskInsert } from '../types/database';
 import { addTask, getTasks, deleteTask } from './dataService';
+import { addClass, getClasses } from './class/classOperations';
 import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
 
@@ -283,6 +284,11 @@ export const fetchCanvasCalendar = async (
         const task = convertEventToTask(event);
         logger.debug(`[fetchCanvasCalendar] Event "${event.summary}" converted to task:`, task);
         
+        // Ensure class exists before creating task
+        if (task.class) {
+          await ensureClassExists(task.class, useSupabase, user);
+        }
+        
         // Enhanced logging for debugging
         if (!task.title || !task.dueDate) {
           logger.warn(`[fetchCanvasCalendar] Task missing essential fields:`, {
@@ -544,6 +550,89 @@ function parseICSDate(dateString: string): Date {
   } catch (error) {
     logger.error(`[parseICSDate] Error parsing date string "${dateString}":`, error);
     return new Date(); // Return current date as fallback
+  }
+}
+
+/**
+ * Converts technical class codes to user-friendly names
+ */
+function generateUserFriendlyClassName(classCode: string): string {
+  // Remove common prefixes and clean up codes
+  const cleanCode = classCode.replace(/^(canvas|task)_?/i, '').toUpperCase();
+  
+  // Pattern matching for common course formats
+  if (cleanCode.match(/^UGRD(\d+[A-Z]*)$/)) {
+    const courseNum = cleanCode.replace('UGRD', '');
+    return `Undergraduate Course ${courseNum}`;
+  }
+  
+  if (cleanCode.match(/^[A-Z]{2,4}\d+[A-Z]*$/)) {
+    // Format like EE123, CS100, MATH120
+    const subject = cleanCode.match(/^[A-Z]{2,4}/)?.[0] || '';
+    const number = cleanCode.replace(/^[A-Z]{2,4}/, '');
+    
+    // Common subject mappings
+    const subjectNames: { [key: string]: string } = {
+      'EE': 'Electrical Engineering',
+      'CS': 'Computer Science',
+      'MATH': 'Mathematics',
+      'PHYS': 'Physics',
+      'CHEM': 'Chemistry',
+      'BIOL': 'Biology',
+      'UGRD': 'Undergraduate',
+      'ENGL': 'English',
+      'HIST': 'History',
+      'PSYC': 'Psychology',
+      'ECON': 'Economics',
+      'POLI': 'Political Science',
+      'PHIL': 'Philosophy',
+      'ANTH': 'Anthropology',
+      'SOCI': 'Sociology'
+    };
+    
+    const fullSubjectName = subjectNames[subject] || subject;
+    return `${fullSubjectName} ${number}`;
+  }
+  
+  // Fallback: capitalize and format nicely
+  return cleanCode.replace(/([A-Z])(\d)/g, '$1 $2').replace(/_/g, ' ');
+}
+
+/**
+ * Ensures a class exists, creating it if necessary
+ */
+async function ensureClassExists(classCode: string, useSupabase: boolean, user: User | null): Promise<void> {
+  try {
+    const userId = user?.id;
+    const classes = await getClasses(userId, useSupabase);
+    
+    // Check if class already exists (case insensitive)
+    const existingClass = classes.find(cls => 
+      cls.name.toLowerCase() === classCode.toLowerCase() ||
+      cls.id.toLowerCase() === classCode.toLowerCase()
+    );
+    
+    if (existingClass) {
+      logger.debug(`[ensureClassExists] Class "${classCode}" already exists`);
+      return;
+    }
+    
+    // Create the class with a user-friendly name
+    const friendlyName = generateUserFriendlyClassName(classCode);
+    logger.debug(`[ensureClassExists] Creating new class: "${friendlyName}" (code: ${classCode})`);
+    
+    await addClass({
+      id: classCode.toLowerCase(),
+      name: friendlyName,
+      user_id: userId || 'local-user',
+      isTaskClass: true, // Mark as task class since it's from Canvas
+      created_at: new Date().toISOString()
+    }, useSupabase);
+    
+    logger.debug(`[ensureClassExists] Successfully created class: "${friendlyName}"`);
+  } catch (error) {
+    logger.error(`[ensureClassExists] Error creating class "${classCode}":`, error);
+    // Don't throw - we can still create the task even if class creation fails
   }
 }
 
