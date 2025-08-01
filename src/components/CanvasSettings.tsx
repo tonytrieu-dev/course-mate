@@ -11,7 +11,7 @@ interface SyncStatus {
 }
 
 interface CanvasSettingsProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
@@ -134,34 +134,40 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-10">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-[500px] max-w-lg relative">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
-          aria-label="Close"
-          type="button"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <div className={onClose ? "fixed inset-0 bg-black/50 flex justify-center items-center z-10" : ""}>
+      <div className={onClose ? "bg-white p-6 rounded-lg shadow-lg w-[500px] max-w-lg relative" : "space-y-6"}>
+        {/* Close button - only show when used as modal */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+            aria-label="Close"
+            type="button"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        )}
 
-        <h3 className="text-xl font-semibold mb-4 text-blue-600">
-          Canvas Calendar Integration
-        </h3>
+        {/* Header */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">🔄 Canvas Sync</h2>
+          <p className="text-gray-600 mb-6">
+            Connect your Canvas LMS to automatically sync assignments and due dates.
+          </p>
+        </div>
 
         <div className="mb-4">
           <p className="text-gray-700 mb-4">
@@ -274,13 +280,14 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
           </div>
         )}
 
-        <div className="flex justify-between items-center mt-6">
-          <button
-            onClick={onClose}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition"
-            type="button"
-          >
-            Close
+        {onClose && (
+          <div className="flex justify-between items-center mt-6">
+            <button
+              onClick={onClose}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition"
+              type="button"
+            >
+              Close
           </button>
 
           <div className="flex gap-2">
@@ -304,7 +311,8 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               {isSyncing ? "Syncing..." : "Sync Now"}
             </button>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Debug Information Display */}
         {debugInfo && (

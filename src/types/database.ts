@@ -27,6 +27,14 @@ export type ClassSyllabus = Database['public']['Tables']['class_syllabi']['Row']
 export type ClassSyllabusInsert = Database['public']['Tables']['class_syllabi']['Insert'];
 export type ClassSyllabusUpdate = Database['public']['Tables']['class_syllabi']['Update'];
 
+export type NotificationSettings = Database['public']['Tables']['notification_settings']['Row'];
+export type NotificationSettingsInsert = Database['public']['Tables']['notification_settings']['Insert'];
+export type NotificationSettingsUpdate = Database['public']['Tables']['notification_settings']['Update'];
+
+export type EmailNotification = Database['public']['Tables']['email_notifications']['Row'];
+export type EmailNotificationInsert = Database['public']['Tables']['email_notifications']['Insert'];
+export type EmailNotificationUpdate = Database['public']['Tables']['email_notifications']['Update'];
+
 // Extended types that include joined data
 export interface ClassWithRelations extends Omit<Class, 'istaskclass'> {
   isTaskClass?: boolean;

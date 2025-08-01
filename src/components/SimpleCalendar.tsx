@@ -656,7 +656,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
 
     // Empty cells for days before first of month
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="h-40"></div>);
+      days.push(<div key={`empty-${i}`} className="h-32 sm:h-40 md:h-44"></div>);
     }
 
     // Days of month
@@ -683,11 +683,12 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
 
     return (
-      <div className="overflow-x-auto">
-        <div className="grid grid-cols-7 gap-0.5 min-w-[800px]">
+      <div className="overflow-x-auto lg:overflow-x-visible">
+        <div className="grid grid-cols-7 gap-0.5 min-w-[320px] sm:min-w-[600px] lg:min-w-[800px]">
           {getWeekdayHeaders().map((day) => (
-            <div key={day} className="text-center font-bold text-gray-700 py-2 text-sm">
-              {day}
+            <div key={day} className="text-center font-bold text-gray-700 py-2 text-xs sm:text-sm md:text-base">
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{day.slice(0, 2)}</span>
             </div>
           ))}
           {days}
@@ -757,11 +758,12 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
 
     return (
-      <div className="overflow-x-auto">
-        <div className="grid grid-cols-7 gap-0.5 min-w-[800px]">
+      <div className="overflow-x-auto lg:overflow-x-visible">
+        <div className="grid grid-cols-7 gap-0.5 min-w-[320px] sm:min-w-[600px] lg:min-w-[800px]">
           {getWeekdayHeaders().map((day) => (
-            <div key={day} className="text-center font-bold text-gray-700 py-2 text-sm">
-              {day}
+            <div key={day} className="text-center font-bold text-gray-700 py-2 text-xs sm:text-sm md:text-base">
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{day.slice(0, 2)}</span>
             </div>
           ))}
           {days}

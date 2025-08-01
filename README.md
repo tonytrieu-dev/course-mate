@@ -1,4 +1,4 @@
-# StudySync
+# CourseMate
 
 ![Beta](https://img.shields.io/badge/Status-Beta-orange) ![Development](https://img.shields.io/badge/Stage-Active%20Development-yellow) ![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue)
 
@@ -49,7 +49,7 @@ This application is actively being developed. Here's the current status:
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd notion-inspired-app
+   cd coursemate
    ```
 
 2. **Install dependencies**

@@ -47,3 +47,13 @@ pids
 *.seed
 *.pid.lock
 tsconfig.tsbuildinfo
+
+# Etc.
+.env.personal
+.env.saas
+switch-mode.sh
+supabase/migrations/20241201_add_email_notifications.sql
+PERSONAL_SETUP.md
+BUILD_MODES.md
+supabase/fix-rls-performance.sql
+supabase/RLS_PERFORMANCE_FIX.md

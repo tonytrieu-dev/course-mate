@@ -15,7 +15,7 @@ import SidebarResizeHandle from "./sidebar/SidebarResizeHandle";
 import SidebarControls from "./sidebar/SidebarControls";
 
 // Lazy load heavy components for better performance
-const CanvasSettings = lazy(() => import("./CanvasSettings"));
+const Settings = lazy(() => import("./Settings"));
 const SyllabusModal = lazy(() => import("./SyllabusModal"));
 const ChatbotPanel = lazy(() => import("./ChatbotPanel"));
 const AuthSection = lazy(() => import("./AuthSection"));
@@ -48,8 +48,8 @@ const Sidebar: React.FC = () => {
     setIsHoveringClassArea,
     showLogin,
     setShowLogin,
-    showCanvasSettings,
-    setShowCanvasSettings,
+    showSettings,
+    setShowSettings,
     classesTitle,
     setClassesTitle,
     isEditingClassesTitle,
@@ -142,15 +142,18 @@ const Sidebar: React.FC = () => {
     localStorage.setItem('classNameFontSize', classNameSize.toString());
   }, [classNameSize]);
 
-  // Enhanced sidebar toggle handler
+  // Enhanced sidebar toggle handler with improved timing
   const handleEnhancedSidebarToggle = () => {
     handleSidebarToggle();
-    // Reset to default width when expanding with smooth animation
+    // Reset to default width when expanding with synchronized animation
     if (isSidebarCollapsed) {
-      setTimeout(() => {
-        const savedWidth = localStorage.getItem('sidebarWidth');
-        setSidebarWidth(savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH);
-      }, 150);
+      // Use requestAnimationFrame for smoother animation synchronization
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const savedWidth = localStorage.getItem('sidebarWidth');
+          setSidebarWidth(savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH);
+        }, 50); // Reduced from 150ms to 50ms for snappier feel
+      });
     }
   };
 
@@ -175,15 +178,17 @@ const Sidebar: React.FC = () => {
             pointer-events: none;
           }
           .resize-handle {
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           }
           .resize-handle:hover {
-            transform: scaleX(1.2);
+            transform: scaleX(1.3);
+            opacity: 0.8;
           }
           .resize-handle.active {
             background-color: #3B82F6 !important;
-            transform: none;
-            box-shadow: 0 0 0 0.5px #3B82F6;
+            transform: scaleX(1.2);
+            box-shadow: 0 0 0 1px #3B82F6;
+            opacity: 1;
           }
           .resize-indicator {
             width: 2px;
@@ -195,10 +200,23 @@ const Sidebar: React.FC = () => {
             opacity: 1;
           }
           .sidebar-transition {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                       min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                       max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           }
           .sidebar-no-transition {
             transition: none;
+          }
+          .sidebar-content-fade {
+            transition: opacity 0.2s ease-out, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          .sidebar-content-fade.collapsed {
+            opacity: 0;
+            transform: translateX(-8px);
+          }
+          .sidebar-content-fade.expanded {
+            opacity: 1;
+            transform: translateX(0);
           }
         `}
       </style>
@@ -213,7 +231,7 @@ const Sidebar: React.FC = () => {
           width: isSidebarCollapsed ? '64px' : `${sidebarWidth}px`,
           minWidth: isSidebarCollapsed ? '64px' : `${MIN_SIDEBAR_WIDTH}px`,
           maxWidth: isSidebarCollapsed ? '64px' : `${MAX_SIDEBAR_WIDTH}px`,
-          willChange: isResizing ? 'width' : 'auto'
+          willChange: isResizing || !isSidebarCollapsed ? 'width, min-width, max-width' : 'auto'
         }}
       >
         {/* Collapse Toggle Button */}
@@ -249,7 +267,9 @@ const Sidebar: React.FC = () => {
           onMouseLeave={() => setIsHoveringClassArea(false)}
         >
           {!isSidebarCollapsed && (
-            <div className="mb-4 px-8">
+            <div className={`mb-4 px-8 sidebar-content-fade ${
+              isSidebarCollapsed ? 'collapsed' : 'expanded'
+            }`}>
               <div className="flex items-center">
                 <EditableText
                   value={classesTitle}
@@ -289,6 +309,7 @@ const Sidebar: React.FC = () => {
             hoveredClassId={hoveredClassId}
             setHoveredClassId={setHoveredClassId}
             onClassClick={handleClassClick}
+            onExpandSidebar={() => setIsSidebarCollapsed(false)}
             classNameSize={classNameSize}
             setClassNameSize={setClassNameSize}
             showClassNameSizeControl={showClassNameSizeControl}
@@ -304,7 +325,7 @@ const Sidebar: React.FC = () => {
           isSidebarCollapsed={isSidebarCollapsed}
           isCanvasSyncing={isCanvasSyncing}
           onShowChatbot={() => setShowChatbotPanel(!showChatbotPanel)}
-          onShowCanvasSettings={() => setShowCanvasSettings(true)}
+          onShowSettings={() => setShowSettings(true)}
         />
 
         {/* Auth Controls */}
@@ -346,16 +367,16 @@ const Sidebar: React.FC = () => {
           <LoginComponent onClose={() => setShowLogin(false)} />
         )}
 
-        {showCanvasSettings && (
+        {showSettings && (
           <Suspense fallback={
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-                <p className="text-center mt-4 text-gray-600">Loading Canvas settings...</p>
+                <p className="text-center mt-4 text-gray-600">Loading Settings...</p>
               </div>
             </div>
           }>
-            <CanvasSettings onClose={() => setShowCanvasSettings(false)} />
+            <Settings onClose={() => setShowSettings(false)} />
           </Suspense>
         )}
 
@@ -378,6 +399,7 @@ const Sidebar: React.FC = () => {
         }>
           <ChatbotPanel
             selectedClass={selectedClass}
+            classes={classes}
             show={showChatbotPanel}
             onClose={() => setShowChatbotPanel(false)}
             position={chatbotPosition}

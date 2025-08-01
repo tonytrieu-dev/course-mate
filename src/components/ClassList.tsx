@@ -14,6 +14,7 @@ interface ClassListProps {
   hoveredClassId: string | null;
   setHoveredClassId: (id: string | null) => void;
   onClassClick: (classId: string) => void;
+  onExpandSidebar: () => void;
   classNameSize: number;
   setClassNameSize: (size: number) => void;
   showClassNameSizeControl: string | null;
@@ -32,6 +33,7 @@ const ClassList: React.FC<ClassListProps> = ({
   hoveredClassId,
   setHoveredClassId,
   onClassClick,
+  onExpandSidebar,
   classNameSize,
   setClassNameSize,
   showClassNameSizeControl,
@@ -41,6 +43,12 @@ const ClassList: React.FC<ClassListProps> = ({
   isHoveringClassArea
 }) => {
   const [newClassName, setNewClassName] = useState<string>("");
+
+  const handleCollapsedClassClick = useCallback((classId: string) => {
+    // When sidebar is collapsed, clicking a class should expand the sidebar
+    // and select the class for future interaction
+    onExpandSidebar();
+  }, [onExpandSidebar]);
 
   const handleClassNameClick = useCallback((e: React.MouseEvent, classId: string) => {
     e.stopPropagation();
@@ -103,11 +111,11 @@ const ClassList: React.FC<ClassListProps> = ({
           >
             {isSidebarCollapsed ? (
               <div
-                onClick={() => onClassClick(c.id)}
-                className={`flex justify-center items-center py-2 px-2 cursor-pointer hover:bg-gray-100 transition-all duration-200 rounded-lg ${
+                onClick={() => handleCollapsedClassClick(c.id)}
+                className={`flex justify-center items-center py-2 px-2 cursor-pointer hover:bg-blue-50 hover:scale-105 active:scale-95 transition-all duration-200 rounded-lg ${
                   selectedClass?.id === c.id ? "bg-blue-50 border border-blue-200" : ""
                 }`}
-                title={c.name}
+                title={`${c.name} - Click to expand sidebar`}
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all duration-200 ${
                   selectedClass?.id === c.id ? "bg-blue-500" : "bg-gray-400"

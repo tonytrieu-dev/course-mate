@@ -77,6 +77,77 @@
   animation: fadeIn 0.3s ease-out;
 }
 
+/* Responsive design utilities */
+
+/* Touch-friendly interactions */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Improved tap targets for mobile */
+@media (max-width: 768px) {
+  button, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Better spacing for mobile */
+  .mobile-friendly {
+    padding: 12px;
+  }
+  
+  /* Optimized text sizes for mobile */
+  .text-responsive {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+}
+
+/* Responsive calendar optimizations */
+@media (max-width: 640px) {
+  .calendar-mobile {
+    font-size: 12px;
+  }
+  
+  .calendar-mobile .task-card {
+    min-height: 40px;
+    padding: 6px;
+    margin-bottom: 4px;
+  }
+  
+  .calendar-mobile .day-cell {
+    min-height: 120px;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-icon {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Dark mode support preparation */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-ready {
+    color-scheme: dark;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Sidebar resize styles */
 .sidebar-resizing {
   user-select: none;
@@ -87,17 +158,26 @@
 }
 
 /* Resize handle visual indicator */
-.resize-handle::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 2px;
-  height: 32px;
-  background-color: #e5e7eb;
-  border-radius: 1px;
-  opacity: 0;
+/* Mobile-specific resize handle (hidden on mobile) */
+@media (min-width: 1024px) {
+  .resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 32px;
+    background-color: #e5e7eb;
+    border-radius: 1px;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .resize-handle {
+    display: none;
+  }
   transition: opacity 0.2s;
 }
 

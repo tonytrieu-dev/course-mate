@@ -90,14 +90,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
   if (!showModal) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-2 sm:p-4">
+      <div className="bg-white p-4 sm:p-6 rounded-lg w-full max-w-sm sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800">
           {editingTask ? "Edit Task" : "Add Task"}
         </h2>
-        <p className="text-sm text-gray-600 mb-4">Date: {modalDateDisplay}</p>
+        <p className="text-sm text-gray-600 mb-3 sm:mb-4">Date: {modalDateDisplay}</p>
 
-        <form onSubmit={(e) => handleSubmit(e, onSubmit)} className="space-y-4">
+        <form onSubmit={(e) => handleSubmit(e, onSubmit)} className="space-y-3 sm:space-y-4">
           <TaskFormFields
             task={task}
             onInputChange={handleInputChange}
@@ -161,29 +161,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
           )}
 
           {/* Form Actions */}
-          <div className="flex justify-between space-x-3 pt-4">
-            <div>
+          <div className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-3 pt-3 sm:pt-4">
+            <div className="order-2 sm:order-1">
               {editingTask && onDelete && (
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                 >
                   Delete Task
                 </button>
               )}
             </div>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 order-1 sm:order-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                className="flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
               >
                 {editingTask ? "Update Task" : "Add Task"}
               </button>

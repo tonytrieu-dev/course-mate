@@ -24,7 +24,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
           type="text"
           value={task.title}
           onChange={(e) => onInputChange("title", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
           placeholder="Enter task title..."
           required
         />
@@ -37,7 +37,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
             type="checkbox"
             checked={task.isDuration}
             onChange={(e) => onInputChange("isDuration", e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-4 h-4 sm:w-3 sm:h-3 touch-manipulation"
           />
           <span className="text-sm font-medium text-gray-700">Duration-based task</span>
         </label>
@@ -51,7 +51,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
 
       {/* Date and Time Fields */}
       {task.isDuration ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Start Date
@@ -60,7 +60,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="date"
               value={task.startDate}
               onChange={(e) => onInputChange("startDate", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
             />
           </div>
           <div>
@@ -71,7 +71,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="time"
               value={task.startTime}
               onChange={(e) => onInputChange("startTime", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
             />
           </div>
           <div>
@@ -82,7 +82,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="date"
               value={task.endDate}
               onChange={(e) => onInputChange("endDate", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
             />
           </div>
           <div>
@@ -93,12 +93,12 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="time"
               value={task.endTime}
               onChange={(e) => onInputChange("endTime", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
             />
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Due Date
@@ -107,7 +107,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="date"
               value={task.dueDate}
               onChange={(e) => onInputChange("dueDate", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
             />
           </div>
           <div>
@@ -118,7 +118,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="time"
               value={task.dueTime}
               onChange={(e) => onInputChange("dueTime", e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
             />
           </div>
         </div>

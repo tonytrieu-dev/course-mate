@@ -186,6 +186,79 @@ export interface Database {
           uploaded_at?: string;
         };
       };
+      notification_settings: {
+        Row: {
+          id: number;
+          user_id: string;
+          email_enabled: boolean;
+          notification_times: string[];
+          active_hours_start: number;
+          active_hours_end: number;
+          email_address?: string;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          email_enabled?: boolean;
+          notification_times?: string[];
+          active_hours_start?: number;
+          active_hours_end?: number;
+          email_address?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          email_enabled?: boolean;
+          notification_times?: string[];
+          active_hours_start?: number;
+          active_hours_end?: number;
+          email_address?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      email_notifications: {
+        Row: {
+          id: number;
+          user_id: string;
+          task_id: string;
+          email_type: 'assignment_reminder' | 'new_assignment' | 'urgent_deadline';
+          sent_at: string;
+          opened_at?: string;
+          clicked_at?: string;
+          email_address: string;
+          subject: string;
+          message_id?: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          task_id: string;
+          email_type: 'assignment_reminder' | 'new_assignment' | 'urgent_deadline';
+          sent_at?: string;
+          opened_at?: string;
+          clicked_at?: string;
+          email_address: string;
+          subject: string;
+          message_id?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          task_id?: string;
+          email_type?: 'assignment_reminder' | 'new_assignment' | 'urgent_deadline';
+          sent_at?: string;
+          opened_at?: string;
+          clicked_at?: string;
+          email_address?: string;
+          subject?: string;
+          message_id?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

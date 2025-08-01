@@ -42,8 +42,19 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     console.log('Request body:', body);
-    const { query, classId, conversationHistory } = body;
-    console.log('Parsed parameters:', { query, classId, historyLength: conversationHistory?.length || 0 });
+    const { query, classId, classIds, conversationHistory, mentionContext } = body;
+    
+    // Support both single and multiple class IDs
+    const targetClassIds = classIds && classIds.length > 0 ? classIds : (classId ? [classId] : []);
+    
+    console.log('Parsed parameters:', { 
+      query, 
+      classId, 
+      classIds: targetClassIds, 
+      historyLength: conversationHistory?.length || 0,
+      hasMentions: mentionContext?.hasMentions || false,
+      mentionedClasses: mentionContext?.mentionedClasses?.length || 0
+    });
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -70,23 +81,75 @@ Deno.serve(async (req) => {
     const queryEmbedding = await hfEmbeddingResponse.json();
     console.log('Query embedding generated.');
 
-    // SECTION 2: MATCH DOCUMENTS (Supabase)
-    const { data: documents, error: rpcError } = await supabaseAdmin.rpc('match_documents', {
-      class_id_filter: classId,
-      match_count: 5,
-      match_threshold: 0.5,
-      query_embedding: queryEmbedding,
-    });
+    // SECTION 2: MATCH DOCUMENTS (Supabase) - Multi-class support
+    let allDocuments: Document[] = [];
+    let contextText = '';
+    let contextSummary = '';
+    
+    if (targetClassIds.length === 0) {
+      console.log('No class IDs provided');
+    } else if (targetClassIds.length === 1) {
+      // Single class - use original logic
+      const { data: documents, error: rpcError } = await supabaseAdmin.rpc('match_documents', {
+        class_id_filter: targetClassIds[0],
+        match_count: 5,
+        match_threshold: 0.5,
+        query_embedding: queryEmbedding,
+      });
 
-    if (rpcError) {
-      console.error('Error from match_documents:', rpcError);
-      throw new Error(`Failed to find matching documents: ${rpcError.message}`);
+      if (rpcError) {
+        console.error('Error from match_documents:', rpcError);
+        throw new Error(`Failed to find matching documents: ${rpcError.message}`);
+      }
+
+      allDocuments = documents || [];
+      contextText = documents && documents.length > 0 
+        ? documents.map((doc: Document) => doc.content).join("\n\n---\n\n")
+        : '';
+      
+      console.log(`Found ${documents?.length || 0} matching documents for single class:`, targetClassIds[0]);
+    } else {
+      // Multiple classes - fetch documents from each and combine intelligently
+      const classDocuments: { [classId: string]: Document[] } = {};
+      let totalDocuments = 0;
+      
+      for (const classId of targetClassIds) {
+        const { data: documents, error: rpcError } = await supabaseAdmin.rpc('match_documents', {
+          class_id_filter: classId,
+          match_count: 3, // Fewer per class to avoid overwhelming context
+          match_threshold: 0.5,
+          query_embedding: queryEmbedding,
+        });
+
+        if (rpcError) {
+          console.error(`Error from match_documents for class ${classId}:`, rpcError);
+          continue;
+        }
+
+        if (documents && documents.length > 0) {
+          classDocuments[classId] = documents;
+          totalDocuments += documents.length;
+        }
+      }
+      
+      // Combine documents from all classes
+      const contextParts: string[] = [];
+      for (const [classId, documents] of Object.entries(classDocuments)) {
+        if (documents.length > 0) {
+          const classContext = documents.map((doc: Document) => doc.content).join("\n\n");
+          contextParts.push(`Documents from class ${classId}:\n${classContext}`);
+        }
+      }
+      
+      contextText = contextParts.join("\n\n---\n\n");
+      allDocuments = Object.values(classDocuments).flat();
+      
+      // Create context summary for multi-class queries
+      const classNames = mentionContext?.mentionedClasses?.map((c: any) => c.name) || targetClassIds;
+      contextSummary = `Searching across ${targetClassIds.length} classes: ${classNames.join(', ')}`;
+      
+      console.log(`Found ${totalDocuments} total documents from ${targetClassIds.length} classes:`, targetClassIds);
     }
-
-    console.log(`Found ${documents?.length || 0} matching documents for classId:`, classId);
-    const contextText = documents && documents.length > 0 
-      ? documents.map((doc: Document) => doc.content).join("\n\n---\n\n")
-      : '';
 
     // Build conversation context for better follow-up handling
     const conversationContext = conversationHistory && conversationHistory.length > 0
@@ -132,7 +195,7 @@ Deno.serve(async (req) => {
     };
 
     // Calculate document relevance confidence
-    const hasRelevantDocuments = documents && documents.length > 0;
+    const hasRelevantDocuments = allDocuments && allDocuments.length > 0;
     const hasConversation = conversationHistory && conversationHistory.length > 0;
     const isFollowUp = isFollowUpQuestion(query, hasConversation);
     
@@ -141,15 +204,23 @@ Deno.serve(async (req) => {
       isFollowUp, 
       hasRelevantDocuments, 
       hasConversation,
-      documentsCount: documents?.length || 0,
-      conversationLength: conversationHistory?.length || 0
+      documentsCount: allDocuments?.length || 0,
+      conversationLength: conversationHistory?.length || 0,
+      classCount: targetClassIds.length,
+      hasMentions: mentionContext?.hasMentions || false
     });
 
     // If no documents AND no conversation history, return the "no documents" message
     if (!hasRelevantDocuments && !hasConversation) {
-      console.log('No matching documents and no conversation history for classId:', classId);
+      const noDocsMessage = targetClassIds.length > 1 
+        ? `I don't have any documents to reference for the classes you mentioned (${contextSummary}). Please upload course materials for these classes first.`
+        : targetClassIds.length === 1
+        ? "I don't have any documents to reference for this class yet. Please upload some course materials first."
+        : "Please select a class or use @ClassName to specify which class to ask about.";
+        
+      console.log('No matching documents and no conversation history for classes:', targetClassIds);
       return new Response(JSON.stringify({ 
-        answer: "I don't have any documents to reference for this class yet. Please upload some course materials first."
+        answer: noDocsMessage
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -162,7 +233,15 @@ Deno.serve(async (req) => {
     }
 
     // Dynamic prompt construction based on question type and available context
-    const buildPrompt = (query: string, contextText: string, conversationContext: string, isFollowUp: boolean, hasRelevantDocuments: boolean): string => {
+    const buildPrompt = (
+      query: string, 
+      contextText: string, 
+      conversationContext: string, 
+      isFollowUp: boolean, 
+      hasRelevantDocuments: boolean,
+      contextSummary: string,
+      mentionContext: any
+    ): string => {
       if (isFollowUp && hasConversation) {
         // For follow-up questions, prioritize conversation context
         return `You are an intelligent academic assistant helping a student. The student is asking a follow-up question to continue our conversation.
@@ -181,16 +260,24 @@ Please respond to the student's follow-up question by:
 Answer:`;
       } else if (hasRelevantDocuments) {
         // For new questions with relevant documents
+        const contextHeader = mentionContext?.hasMentions && contextSummary 
+          ? `Course materials from ${contextSummary}:`
+          : 'Course materials:';
+          
+        const mentionNote = mentionContext?.hasMentions 
+          ? `\n\nNote: The student used @mentions to specify ${mentionContext.mentionedClasses?.length === 1 ? 'a specific class' : 'specific classes'}: ${mentionContext.mentionedClasses?.map((c: any) => c.name).join(', ')}.`
+          : '';
+          
         return `You are an intelligent academic assistant. Answer the student's question using the provided course materials.
 
-${conversationContext ? `Previous conversation for context:\n${conversationContext}\n\n` : ''}Course materials:
+${conversationContext ? `Previous conversation for context:\n${conversationContext}\n\n` : ''}${contextHeader}
 ---
 ${contextText}
 ---
 
-Current question: ${query}
+Current question: ${query}${mentionNote}
 
-Please provide a helpful answer based on the course materials. If the materials don't contain the specific information needed, let the student know what you found and suggest they might need additional resources.
+Please provide a helpful answer based on the course materials. ${mentionContext?.hasMentions ? 'Focus on the mentioned classes when relevant. ' : ''}If the materials don't contain the specific information needed, let the student know what you found and suggest they might need additional resources.
 
 Answer:`;
       } else {
@@ -209,7 +296,7 @@ Answer:`;
       }
     };
 
-    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantDocuments);
+    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantDocuments, contextSummary, mentionContext);
 
     console.log('Sending request to Google Gemini API...');
 

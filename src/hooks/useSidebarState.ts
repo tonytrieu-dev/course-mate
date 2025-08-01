@@ -27,8 +27,8 @@ interface UseSidebarStateReturn {
   setSelectedClass: (cls: ClassWithRelations | null) => void;
   showLogin: boolean;
   setShowLogin: (show: boolean) => void;
-  showCanvasSettings: boolean;
-  setShowCanvasSettings: (show: boolean) => void;
+  showSettings: boolean;
+  setShowSettings: (show: boolean) => void;
   
   // UI states
   isHoveringClassArea: boolean;
@@ -78,7 +78,7 @@ export const useSidebarState = (): UseSidebarStateReturn => {
   const [showSyllabusModal, setShowSyllabusModal] = useState<boolean>(false);
   const [selectedClass, setSelectedClass] = useState<ClassWithRelations | null>(null);
   const [showLogin, setShowLogin] = useState<boolean>(false);
-  const [showCanvasSettings, setShowCanvasSettings] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   
   // UI states
   const [isHoveringClassArea, setIsHoveringClassArea] = useState<boolean>(false);
@@ -136,8 +136,8 @@ export const useSidebarState = (): UseSidebarStateReturn => {
     setSelectedClass,
     showLogin,
     setShowLogin,
-    showCanvasSettings,
-    setShowCanvasSettings,
+    showSettings,
+    setShowSettings,
     
     // UI states
     isHoveringClassArea,

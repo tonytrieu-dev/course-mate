@@ -1,5 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy, memo, ReactNode } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import { SubscriptionProvider } from "../contexts/SubscriptionContext";
+import { features } from "../utils/buildConfig";
 import ErrorBoundary from "./ErrorBoundary";
 
 // Lazy load heavy components for better initial load performance with proper TypeScript typing
@@ -106,9 +108,9 @@ const CalendarApp: React.FC = () => {
         </Suspense>
       </ErrorBoundary>
       
-      <div className="flex-1 p-5 bg-gray-100 overflow-auto box-border pt-20">
+      <div className="flex-1 p-2 sm:p-4 lg:p-5 bg-gray-100 overflow-auto box-border pt-4 sm:pt-8 lg:pt-20 min-w-0">
         {/* Header with auth controls */}
-        <div className="flex justify-between items-center mb-4 relative">
+        <div className="flex justify-between items-center mb-2 sm:mb-4 relative">
           <div className="flex items-center">
             {/* View controls removed */}
           </div>
@@ -160,8 +162,17 @@ const App: React.FC<AppProps> = ({ children }) => {
       fallback={appErrorFallback}
     >
       <AuthProvider>
-        <MemoizedCalendarApp />
-        {children}
+        {features.subscriptions ? (
+          <SubscriptionProvider>
+            <MemoizedCalendarApp />
+            {children}
+          </SubscriptionProvider>
+        ) : (
+          <>
+            <MemoizedCalendarApp />
+            {children}
+          </>
+        )}
       </AuthProvider>
     </ErrorBoundary>
   );

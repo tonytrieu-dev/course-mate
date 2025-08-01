@@ -1,10 +1,12 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useCallback } from 'react';
 import type { ClassWithRelations, Position } from '../types/database';
 import { useChatbot } from '../hooks/useChatbot';
 import { useDragAndResize } from '../hooks/useDragAndResize';
+import ChatbotAutocomplete from './ChatbotAutocomplete';
 
 interface ChatbotPanelProps {
   selectedClass: ClassWithRelations | null;
+  classes: ClassWithRelations[];
   show: boolean;
   onClose: () => void;
   position: Position;
@@ -15,7 +17,8 @@ interface ChatbotPanelProps {
 }
 
 const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ 
-  selectedClass, 
+  selectedClass,
+  classes,
   show, 
   onClose,
   position,
@@ -36,7 +39,11 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
     handleAskChatbot,
     handleKeyDown,
     clearChatHistory,
-  } = useChatbot({ selectedClass });
+    mentionHook,
+    currentCursor,
+    setCursorPosition,
+    setIsProcessingMention,
+  } = useChatbot({ selectedClass, classes });
 
   // Custom hook for drag and resize functionality
   const {
@@ -50,6 +57,130 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
     height,
     onHeightChange,
   });
+
+  // Handle autocomplete selection
+  const handleAutocompleteSelect = useCallback((classObj: ClassWithRelations, index: number) => {
+    const chatInput = document.querySelector('[data-element-type="chat-input"]') as HTMLElement;
+    if (chatInput) {
+      // Set processing flag to prevent input handler interference
+      setIsProcessingMention(true);
+      
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        setIsProcessingMention(false);
+        return;
+      }
+      
+      const originalText = chatInput.textContent || '';
+      const beforeCursor = originalText.substring(0, currentCursor);
+      const atIndex = beforeCursor.lastIndexOf('@');
+      
+      if (atIndex !== -1) {
+        // Create a range that selects from the @ symbol to the current cursor position
+        const range = document.createRange();
+        const textNode = chatInput.firstChild;
+        
+        if (textNode) {
+          try {
+            // Select the text from @ to cursor (this includes any partial typing like "@GC")
+            range.setStart(textNode, atIndex);
+            range.setEnd(textNode, currentCursor);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            // Replace the selected text with the mention + space
+            const mentionWithSpace = `@${classObj.name} `;
+            
+            // Use execCommand to replace selected text (this maintains proper cursor positioning)
+            if (document.queryCommandSupported('insertText')) {
+              document.execCommand('insertText', false, mentionWithSpace);
+            } else {
+              // Fallback for browsers that don't support insertText
+              const newRange = selection.getRangeAt(0);
+              newRange.deleteContents();
+              const textNodeNew = document.createTextNode(mentionWithSpace);
+              newRange.insertNode(textNodeNew);
+              
+              // Position cursor after the inserted text
+              const finalRange = document.createRange();
+              finalRange.setStartAfter(textNodeNew);
+              finalRange.collapse(true);
+              selection.removeAllRanges();
+              selection.addRange(finalRange);
+            }
+            
+            // Focus the input
+            chatInput.focus();
+            
+          } catch (error) {
+            console.warn('Error with selection-based insertion:', error);
+            // Fallback to the old method
+            const newText = mentionHook.insertMention(classObj, originalText, currentCursor);
+            chatInput.textContent = newText;
+            chatInput.focus();
+          }
+        }
+      }
+      
+      // Set flag to skip next parsing to prevent cursor jumping
+      mentionHook.setSkipNextParsing(true);
+      
+      // Update the query state and trigger mention parsing
+      setTimeout(() => {
+        const event = new Event('input', { bubbles: true });
+        chatInput.dispatchEvent(event);
+        
+        // Update cursor position state
+        const newSelection = window.getSelection();
+        if (newSelection && newSelection.rangeCount > 0) {
+          const newRange = newSelection.getRangeAt(0);
+          const preCaretRange = newRange.cloneRange();
+          preCaretRange.selectNodeContents(chatInput);
+          preCaretRange.setEnd(newRange.endContainer, newRange.endOffset);
+          setCursorPosition(preCaretRange.toString().length);
+        }
+        
+        // Clear processing flag after a short delay
+        setTimeout(() => {
+          setIsProcessingMention(false);
+        }, 100);
+      }, 0);
+    }
+  }, [mentionHook, currentCursor, setCursorPosition, setIsProcessingMention]);
+
+  // Enhanced keyboard handling for autocomplete
+  const handleEnhancedKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Handle autocomplete navigation
+    if (mentionHook.autocompleteState.isVisible) {
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          mentionHook.navigateAutocomplete('up');
+          return;
+        case 'ArrowDown':
+          e.preventDefault();
+          mentionHook.navigateAutocomplete('down');
+          return;
+        case 'Enter':
+          if (!e.shiftKey) {
+            e.preventDefault();
+            const selectedClass = mentionHook.selectSuggestion(mentionHook.autocompleteState.selectedIndex);
+            if (selectedClass) {
+              handleAutocompleteSelect(selectedClass, mentionHook.autocompleteState.selectedIndex);
+            }
+            return;
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          mentionHook.hideAutocomplete();
+          return;
+      }
+    }
+    
+    // Original keyboard handling
+    handleKeyDown(e);
+  }, [mentionHook, handleKeyDown, handleAutocompleteSelect]);
 
   // Memoize chat messages to prevent re-creation
   const chatMessages = useMemo(() => {
@@ -65,6 +196,30 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       </div>
     ));
   }, [chatHistory]);
+
+  // Context indicator for mentioned classes
+  const contextIndicator = useMemo(() => {
+    const { referencedClasses } = mentionHook.mentionState;
+    if (referencedClasses.length === 0) return null;
+
+    return (
+      <div className="px-3 py-2 bg-blue-50 border-b border-blue-200">
+        <div className="flex items-center space-x-2">
+          <span className="text-blue-600 text-xs font-medium">Context:</span>
+          <div className="flex flex-wrap gap-1">
+            {referencedClasses.map((classObj, index) => (
+              <span
+                key={classObj.id}
+                className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+              >
+                @{classObj.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }, [mentionHook.mentionState]);
 
   if (!show) return null;
 
@@ -104,6 +259,11 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
         <div className="flex items-center space-x-2">
           <span className="text-gray-600 text-base">🤖</span>
           <span className="text-gray-700 text-sm font-medium">Class Chatbot</span>
+          {mentionHook.mentionState.hasValidMentions && (
+            <span className="text-blue-600 text-xs bg-blue-100 px-2 py-1 rounded-full">
+              @{mentionHook.mentionState.referencedClasses.length}
+            </span>
+          )}
         </div>
         <div className="flex items-center space-x-2" onMouseDown={(e) => e.stopPropagation()}>
           {chatHistory.length > 0 && (
@@ -126,6 +286,9 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Context Indicator */}
+      {contextIndicator}
 
       {/* Chat Content */}
       <div 
@@ -171,7 +334,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
               direction: 'ltr',
               textAlign: 'left'
             }}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleEnhancedKeyDown}
           ></div>
           <button
             type="submit"
@@ -184,6 +347,20 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
           </button>
         </form>
       </div>
+
+      {/* Autocomplete Component */}
+      <ChatbotAutocomplete
+        isVisible={mentionHook.autocompleteState.isVisible}
+        suggestions={mentionHook.autocompleteState.suggestions}
+        selectedIndex={mentionHook.autocompleteState.selectedIndex}
+        searchTerm={mentionHook.autocompleteState.searchTerm}
+        position={{
+          top: position.y - 200, // Position above the chatbot
+          left: position.x
+        }}
+        onSelect={handleAutocompleteSelect}
+        onClose={mentionHook.hideAutocomplete}
+      />
     </div>
   );
 };

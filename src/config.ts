@@ -9,6 +9,12 @@ interface SupabaseConfig {
   key: string | undefined;
 }
 
+interface StripeConfig {
+  publishableKey: string | undefined;
+  studentPriceId: string | undefined;
+  proPriceId: string | undefined;
+}
+
 interface AppConfig {
   nodeEnv: string;
   isDevelopment: boolean;
@@ -18,6 +24,7 @@ interface AppConfig {
 
 interface Config {
   supabase: SupabaseConfig;
+  stripe: StripeConfig;
   app: AppConfig;
 }
 
@@ -33,7 +40,7 @@ export class ConfigurationError extends Error {
   }
 }
 
-// Required environment variables
+// Required environment variables (only Supabase for personal mode)
 const REQUIRED_ENV_VARS: RequiredEnvVars = {
   SUPABASE_URL: 'Supabase project URL is required',
   SUPABASE_ANON_KEY: 'Supabase anonymous key is required'
@@ -84,6 +91,11 @@ function createConfig(): Config {
       url: process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL,
       key: process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY
     },
+    stripe: {
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY,
+      studentPriceId: process.env.STRIPE_STUDENT_PRICE_ID || process.env.REACT_APP_STRIPE_STUDENT_PRICE_ID,
+      proPriceId: process.env.STRIPE_PRO_PRICE_ID || process.env.REACT_APP_STRIPE_PRO_PRICE_ID
+    },
     app: {
       nodeEnv: process.env.NODE_ENV || 'development',
       isDevelopment,
@@ -96,3 +108,4 @@ function createConfig(): Config {
 // Export both the config and legacy format for backward compatibility
 export const config: Config = createConfig();
 export const supabaseConfig: SupabaseConfig = config.supabase;
+export const stripeConfig: StripeConfig = config.stripe;
