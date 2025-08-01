@@ -444,11 +444,11 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
   const [view, setView] = useState<ViewType>(initialView);
   const [editingTask, setEditingTask] = useState<TaskWithMeta | null>(null);
 
-  // Load data when auth state is ready (initial load only)
+  // Load data when auth state is ready (initial load and after Canvas sync)
   useEffect(() => {
     const loadData = async (): Promise<void> => {
       if (!loading && isAuthenticated && user && user.id) {
-        logger.debug('Loading initial data for user', { userId: user.id });
+        logger.debug('Loading data for user', { userId: user.id, trigger: lastCalendarSyncTimestamp ? 'sync' : 'initial' });
         
         const fetchedTasks = await getTasks(user.id, isAuthenticated);
         logger.debug('Fetched tasks from server', { taskCount: fetchedTasks?.length || 0 });
@@ -470,7 +470,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       }
     };
     loadData();
-  }, [loading, isAuthenticated, user, user?.id]);
+  }, [loading, isAuthenticated, user, user?.id, lastCalendarSyncTimestamp]);
 
   // Subscribe to class changes from the class service
   useEffect(() => {

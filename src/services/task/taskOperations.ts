@@ -146,11 +146,23 @@ export const addTask = async (
 
       const { id, ...taskData } = taskWithTimestamp;
       const taskToSave: TaskInsert = {
-        ...taskData,
         user_id: userToUse.id,
         title: taskData.title || 'Untitled Task',
         completed: taskData.completed ?? false,
+        class: taskData.class,
+        type: taskData.type,
+        date: taskData.date,
+        isDuration: taskData.isDuration,
+        dueDate: taskData.dueDate,
+        dueTime: taskData.dueTime,
+        startDate: taskData.startDate,
+        startTime: taskData.startTime,
+        endDate: taskData.endDate,
+        endTime: taskData.endTime,
+        priority: taskData.priority,
         canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : undefined,
+        created_at: taskData.created_at,
+        updated_at: taskData.updated_at,
       };
 
       logger.debug("[addTask] Attempting to insert new task into Supabase:", taskToSave);
@@ -158,18 +170,30 @@ export const addTask = async (
       const { data: insertedData, error: insertError } = await supabase
         .from("tasks")
         .insert(taskToSave)
-        .select("*");
+        .select();
 
       if (insertError) {
+        // Log the full error details for debugging
+        logger.error("[addTask] Supabase insertion error details:", {
+          error: insertError,
+          errorMessage: insertError.message,
+          errorCode: insertError.code,
+          errorDetails: insertError.details,
+          errorHint: insertError.hint,
+          taskToSave: taskToSave
+        });
+        
         const handled = errorHandler.handle(
           insertError,
           'addTask - Supabase insertion',
-          { taskTitle: task?.title, taskData: taskToSave }
+          { taskTitle: task?.title, taskData: taskToSave, supabaseError: insertError }
         );
         throw errorHandler.data.saveFailed({
           operation: 'addTask - Supabase insertion',
           taskTitle: task?.title,
-          originalError: insertError.message
+          originalError: insertError.message,
+          supabaseErrorCode: insertError.code,
+          supabaseErrorDetails: insertError.details
         });
       }
 
@@ -195,11 +219,18 @@ export const addTask = async (
         id: (task.id as string) || generateUniqueId('task'),
         user_id: 'local-user',
         title: taskWithTimestamp.title || 'Untitled Task',
-        description: taskWithTimestamp.description,
         completed: taskWithTimestamp.completed ?? false,
-        due_date: taskWithTimestamp.due_date,
-        priority: taskWithTimestamp.priority,
+        class: taskWithTimestamp.class,
         type: taskWithTimestamp.type,
+        date: taskWithTimestamp.date,
+        isDuration: taskWithTimestamp.isDuration,
+        dueDate: taskWithTimestamp.dueDate,
+        dueTime: taskWithTimestamp.dueTime,
+        startDate: taskWithTimestamp.startDate,
+        startTime: taskWithTimestamp.startTime,
+        endDate: taskWithTimestamp.endDate,
+        endTime: taskWithTimestamp.endTime,
+        priority: taskWithTimestamp.priority,
         canvas_uid: (task.canvas_uid && String(task.canvas_uid).trim() !== "") ? String(task.canvas_uid) : undefined,
         created_at: taskWithTimestamp.created_at || new Date().toISOString(),
         updated_at: taskWithTimestamp.updated_at,
