@@ -49,6 +49,12 @@ export interface TaskWithMeta extends Task {
 // Priority levels
 export type Priority = 'low' | 'medium' | 'high';
 
+// Position interface
+export interface Position {
+  x: number;
+  y: number;
+}
+
 // Local storage keys
 export const STORAGE_KEYS = {
   TASKS: 'calendar_tasks',

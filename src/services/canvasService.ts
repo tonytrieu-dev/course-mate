@@ -738,7 +738,7 @@ async function ensureClassExists(classCode: string, useSupabase: boolean, user: 
       id: classCode.toLowerCase(),
       name: className,
       user_id: userId || 'local-user',
-      isTaskClass: true, // Mark as task class since it's from Canvas
+      istaskclass: true, // Mark as task class since it's from Canvas
       created_at: new Date().toISOString()
     }, useSupabase);
     

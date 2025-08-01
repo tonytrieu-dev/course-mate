@@ -1,18 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import type { ClassWithRelations } from '../types/database';
-import { supabase } from '../services/supabaseClient';
-
-const CHAT_HISTORY_LIMIT = 8; // Increased limit for better follow-up question context
-
-interface Position {
-  x: number;
-  y: number;
-}
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import React, { useRef, useMemo } from 'react';
+import type { ClassWithRelations, Position } from '../types/database';
+import { useChatbot } from '../hooks/useChatbot';
+import { useDragAndResize } from '../hooks/useDragAndResize';
 
 interface ChatbotPanelProps {
   selectedClass: ClassWithRelations | null;
@@ -25,13 +14,6 @@ interface ChatbotPanelProps {
   fontSize: number;
 }
 
-interface DragRef {
-  startX: number;
-  startY: number;
-  startPosX: number;
-  startPosY: number;
-}
-
 const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ 
   selectedClass, 
   show, 
@@ -42,107 +24,32 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
   onHeightChange,
   fontSize 
 }) => {
-  const [chatQuery, setChatQuery] = useState<string>('');
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  const [isChatLoading, setIsChatLoading] = useState<boolean>(false);
-  const [isResizing, setIsResizing] = useState<boolean>(false);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  
   const chatbotRef = useRef<HTMLDivElement>(null);
-  const chatContentRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<DragRef>({ startX: 0, startY: 0, startPosX: 0, startPosY: 0 });
   
-  // Function to smoothly scroll chat to bottom
-  const scrollToBottom = useCallback(() => {
-    if (chatContentRef.current) {
-      chatContentRef.current.scrollTo({
-        top: chatContentRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  }, []);
-  
-  // Memoize input handlers for better performance
-  const handleInputChange = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    setChatQuery(target.textContent || '');
-    // Auto-scroll to bottom when user starts typing
-    scrollToBottom();
-  }, [scrollToBottom]);
+  // Custom hooks for chatbot functionality
+  const {
+    chatQuery,
+    chatHistory,
+    isChatLoading,
+    chatContentRef,
+    handleInputChange,
+    handleAskChatbot,
+    handleKeyDown,
+    clearChatHistory,
+  } = useChatbot({ selectedClass });
 
-  const handleAskChatbot = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    const queryText = typeof chatQuery === 'string' ? chatQuery : (e.target as HTMLFormElement).textContent || '';
-    if (!queryText.trim() || isChatLoading) return;
-
-    const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: queryText }];
-    setChatHistory(newHistory);
-    setChatQuery('');
-    
-    const chatInput = document.querySelector('[data-placeholder="Ask a question..."]') as HTMLElement;
-    if (chatInput) {
-      chatInput.textContent = '';
-    }
-    setIsChatLoading(true);
-
-    if (!selectedClass) {
-      setChatHistory([
-        ...newHistory,
-        { role: 'assistant', content: 'Please select a class before asking a question.' },
-      ]);
-      setIsChatLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('ask-chatbot', {
-        body: {
-          query: queryText,
-          classId: selectedClass.id,
-          conversationHistory: newHistory.slice(0, -1).slice(-CHAT_HISTORY_LIMIT), // Send recent history without current question
-        },
-      });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        setChatHistory([...newHistory, { role: 'assistant', content: `Error: ${error.message || 'Something went wrong.'}` }]);
-      } else {
-        setChatHistory([...newHistory, { role: 'assistant', content: data.answer }]);
-      }
-    } catch (err: unknown) {
-      console.error('Caught error asking chatbot:', err);
-      let errorMessage = 'Sorry, something went wrong.';
-      if (err instanceof Error && err.message) {
-        errorMessage = `Error: ${err.message}`;
-      }
-      setChatHistory([...newHistory, { role: 'assistant', content: errorMessage }]);
-    } finally {
-      setIsChatLoading(false);
-    }
-  }, [chatHistory, selectedClass, chatQuery, isChatLoading]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      // Call handleAskChatbot with the keyboard event cast as FormEvent
-      handleAskChatbot(e as unknown as React.FormEvent);
-    }
-  }, [handleAskChatbot]);
-
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
-    setIsDragging(true);
-    dragRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      startPosX: position.x,
-      startPosY: position.y
-    };
-  }, [position]);
-
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-  }, []);
+  // Custom hook for drag and resize functionality
+  const {
+    isResizing,
+    isDragging,
+    handleDragStart,
+    handleResizeStart,
+  } = useDragAndResize({
+    position,
+    onPositionChange,
+    height,
+    onHeightChange,
+  });
 
   // Memoize chat messages to prevent re-creation
   const chatMessages = useMemo(() => {
@@ -158,57 +65,6 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       </div>
     ));
   }, [chatHistory]);
-
-  // Auto-scroll when chat history changes
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatHistory, isChatLoading, scrollToBottom]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isResizing) {
-        const newHeight = window.innerHeight - e.clientY - 20;
-        if (newHeight >= 200 && newHeight <= 600) {
-          onHeightChange(newHeight);
-        }
-      } else if (isDragging) {
-        const deltaX = e.clientX - dragRef.current.startX;
-        const deltaY = e.clientY - dragRef.current.startY;
-        
-        const newX = Math.max(0, Math.min(window.innerWidth - 400, dragRef.current.startPosX + deltaX));
-        const newY = Math.max(0, Math.min(window.innerHeight - height, dragRef.current.startPosY - deltaY));
-        
-        onPositionChange({ x: newX, y: newY });
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      setIsDragging(false);
-    };
-
-    if (isResizing || isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = 'none';
-      if (isResizing) {
-        document.body.style.cursor = 'ns-resize';
-      } else if (isDragging) {
-        document.body.style.cursor = 'move';
-      }
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-    };
-  }, [isResizing, isDragging, height, onHeightChange, onPositionChange]);
-
-  const clearChatHistory = useCallback(() => {
-    setChatHistory([]);
-  }, []);
 
   if (!show) return null;
 

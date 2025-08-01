@@ -1,62 +1,79 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import type { ClassWithRelations, ClassFile, ClassSyllabus } from "../types/database";
-import {
-  getSettings,
-  updateSettings,
-} from "../services/dataService";
+import React, { useEffect, lazy, Suspense } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { supabase } from "../services/supabaseClient";
-import { fetchCanvasCalendar } from "../services/canvasService";
-import { useFileManager } from "../hooks/useFileManager";
 import { TextFormattingProvider } from "../contexts/TextFormattingContext";
 import { useResizable } from "../hooks/useResizable";
 import { useFontSizes } from "../hooks/useLocalStorageState";
+import { useSidebarState } from "../hooks/useSidebarState";
+import { useSidebarData } from "../hooks/useSidebarData";
 import LoginComponent from "./LoginComponent";
 import EditableText from "./EditableText";
 import InlineSizeControl from "./InlineSizeControl";
 import ClassList from "./ClassList";
-import classService from "../services/classService";
+import SidebarTitle from "./sidebar/SidebarTitle";
+import SidebarToggleButton from "./sidebar/SidebarToggleButton";
+import SidebarResizeHandle from "./sidebar/SidebarResizeHandle";
+import SidebarControls from "./sidebar/SidebarControls";
 
 // Lazy load heavy components for better performance
 const CanvasSettings = lazy(() => import("./CanvasSettings"));
 const SyllabusModal = lazy(() => import("./SyllabusModal"));
 const ChatbotPanel = lazy(() => import("./ChatbotPanel"));
 const AuthSection = lazy(() => import("./AuthSection"));
-import { logger } from "../utils/logger";
 
 // Constants
-const AUTO_SYNC_DELAY = 1500;
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 500;
 const DEFAULT_SIDEBAR_WIDTH = 256;
 
-interface Position {
-  x: number;
-  y: number;
-}
-
 const Sidebar: React.FC = () => {
-  const { user, isAuthenticated, logout, setLastCalendarSyncTimestamp } = useAuth();
-  const { getClassData } = useFileManager();
+  const { user, isAuthenticated, logout } = useAuth();
   
-  // Core state
-  const [title, setTitle] = useState<string>("UCR 🐻");
-  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
-  const [classes, setClasses] = useState<ClassWithRelations[]>([]);
-  const [editingClassId, setEditingClassId] = useState<string | null>(null);
-  const [hoveredClassId, setHoveredClassId] = useState<string | null>(null);
-  const [showSyllabusModal, setShowSyllabusModal] = useState<boolean>(false);
-  const [selectedClass, setSelectedClass] = useState<ClassWithRelations | null>(null);
-  const [isHoveringClassArea, setIsHoveringClassArea] = useState<boolean>(false);
-  const [showLogin, setShowLogin] = useState<boolean>(false);
-  const [showCanvasSettings, setShowCanvasSettings] = useState<boolean>(false);
-  const [classesTitle, setClassesTitle] = useState<string>("Current Classes");
-  const [isEditingClassesTitle, setIsEditingClassesTitle] = useState<boolean>(false);
-  const [showChatbotPanel, setShowChatbotPanel] = useState<boolean>(false);
-  const [chatbotPanelHeight, setChatbotPanelHeight] = useState<number>(400);
-  const [chatbotPosition, setChatbotPosition] = useState<Position>({ x: 16, y: 0 });
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
-  const [isCanvasSyncing, setIsCanvasSyncing] = useState<boolean>(false);
+  // Custom hooks for state management
+  const sidebarState = useSidebarState();
+  const {
+    title,
+    setTitle,
+    isEditingTitle,
+    classes,
+    setClasses,
+    editingClassId,
+    setEditingClassId,
+    hoveredClassId,
+    setHoveredClassId,
+    showSyllabusModal,
+    setShowSyllabusModal,
+    selectedClass,
+    setSelectedClass,
+    isHoveringClassArea,
+    setIsHoveringClassArea,
+    showLogin,
+    setShowLogin,
+    showCanvasSettings,
+    setShowCanvasSettings,
+    classesTitle,
+    setClassesTitle,
+    isEditingClassesTitle,
+    setIsEditingClassesTitle,
+    showChatbotPanel,
+    setShowChatbotPanel,
+    chatbotPanelHeight,
+    setChatbotPanelHeight,
+    chatbotPosition,
+    setChatbotPosition,
+    isSidebarCollapsed,
+    setIsSidebarCollapsed,
+    showTitleSizeControl,
+    setShowTitleSizeControl,
+    showClassesHeaderSizeControl,
+    setShowClassesHeaderSizeControl,
+    showClassNameSizeControl,
+    setShowClassNameSizeControl,
+    isCanvasSyncing,
+    setIsCanvasSyncing,
+    handleTitleClick,
+    handleSidebarToggle,
+    handleClassesTitleBlur,
+  } = sidebarState;
   
   // Font sizes with optimized localStorage access
   const {
@@ -75,11 +92,6 @@ const Sidebar: React.FC = () => {
     className: 14
   });
   
-  // UI control state
-  const [showTitleSizeControl, setShowTitleSizeControl] = useState<boolean>(false);
-  const [showClassesHeaderSizeControl, setShowClassesHeaderSizeControl] = useState<boolean>(false);
-  const [showClassNameSizeControl, setShowClassNameSizeControl] = useState<string | null>(null);
-  
   // Resizable sidebar hook
   const { 
     width: sidebarWidth, 
@@ -94,81 +106,24 @@ const Sidebar: React.FC = () => {
     'sidebarWidth'
   );
 
-  // Auto-sync Canvas calendar
-  useEffect(() => {
-    const autoSyncCanvas = async (): Promise<void> => {
-      const canvasUrl = localStorage.getItem("canvas_calendar_url");
-      const autoSync = localStorage.getItem("canvas_auto_sync") === "true";
-      logger.debug('AutoSyncCanvas triggered', { canvasUrl: !!canvasUrl, autoSync, userAuthenticated: !!user });
-
-      if (user && canvasUrl && autoSync) {
-        try {
-          setIsCanvasSyncing(true);
-          logger.info('Starting Canvas calendar auto-sync', { userId: user.id });
-          const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user);
-          logger.debug('Canvas calendar fetch completed', { success: result?.success });
-
-          if (result && result.success) {
-            logger.info('Canvas auto-sync successful, updating timestamp');
-            setLastCalendarSyncTimestamp(Date.now());
-          } else {
-            logger.warn('Canvas auto-sync failed or returned invalid result', { resultSuccess: result?.success });
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          logger.error('Canvas auto-sync error', { error: errorMessage });
-        } finally {
-          setIsCanvasSyncing(false);
-        }
-      }
-    };
-
-    const timerId = setTimeout(() => {
-      autoSyncCanvas();
-    }, AUTO_SYNC_DELAY); 
-
-    return () => clearTimeout(timerId); // Cleanup timer if component unmounts
-  }, [isAuthenticated, user, setLastCalendarSyncTimestamp]);
-
-  // Load data
-  useEffect(() => {
-    const loadData = async (): Promise<void> => {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      // Load classes from centralized class service
-      const fetchedClasses = await classService.initialize(user?.id, true);
-      // Filter out task-only classes from sidebar display
-      const sidebarClasses = fetchedClasses.filter(cls => !cls.isTaskClass);
-      setClasses(sidebarClasses);
-
-      // Load settings
-      const settings = getSettings();
-      if (settings && settings.title) {
-        setTitle(settings.title);
-      }
-      if (settings && settings.classesTitle) {
-        setClassesTitle(settings.classesTitle);
-      }
-    };
-
-    loadData();
-  }, [isAuthenticated]);
-
-  // Subscribe to class changes from the class service
-  useEffect(() => {
-    if (!isAuthenticated) {
-      classService.reset();
-      return;
-    }
-
-    const unsubscribe = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
-      // Filter out task-only classes from sidebar display
-      const sidebarClasses = updatedClasses.filter(cls => !cls.isTaskClass);
-      setClasses(sidebarClasses);
-    });
-
-    return unsubscribe;
-  }, [isAuthenticated]);
+  // Data management hook
+  const {
+    handleTitleBlur,
+    handleClassClick,
+    handleSyllabusUpdate,
+    handleFileUpdate,
+  } = useSidebarData({
+    title,
+    setTitle,
+    classesTitle,
+    setClassesTitle,
+    classes,
+    setClasses,
+    selectedClass,
+    setSelectedClass,
+    setShowSyllabusModal,
+    setIsCanvasSyncing,
+  });
 
   // Save font size preferences
   useEffect(() => {
@@ -187,88 +142,17 @@ const Sidebar: React.FC = () => {
     localStorage.setItem('classNameFontSize', classNameSize.toString());
   }, [classNameSize]);
 
-  // Title editing functions
-  const handleTitleClick = useCallback(() => {
-    setIsEditingTitle(true);
-  }, []);
-
-  const handleTitleBlur = useCallback(() => {
-    setIsEditingTitle(false);
-    const currentSettings = getSettings();
-    updateSettings({ ...currentSettings, title });
-  }, [title]);
-
-  // Class editing functions
-  const handleClassClick = useCallback(async (classId: string) => {
-    const classObj = classes.find((c) => c.id === classId);
-    if (!classObj) return;
-    
-    const classData = await getClassData(classId);
-    
-    const updatedClass: ClassWithRelations = {
-      ...classObj,
-      ...classData,
-    };
-
-    setSelectedClass(updatedClass);
-    setShowSyllabusModal(true);
-  }, [classes, getClassData]);
-
-  // File management callbacks
-  const handleSyllabusUpdate = useCallback(async (syllabusRecord: ClassSyllabus | null) => {
-    if (!selectedClass) return;
-    
-    const updatedClass = { ...selectedClass, syllabus: syllabusRecord };
-    setSelectedClass(updatedClass);
-    
-    // Update class using class service
-    await classService.updateClass(selectedClass.id, updatedClass, isAuthenticated);
-  }, [selectedClass, isAuthenticated]);
-
-  const handleFileUpdate = useCallback(async (fileRecord: ClassFile | null, remainingFiles?: ClassFile[]) => {
-    if (!selectedClass) return;
-    
-    if (fileRecord) {
-      // Adding new file
-      const updatedClass = {
-        ...selectedClass,
-        files: [...(selectedClass.files || []), fileRecord],
-      };
-      setSelectedClass(updatedClass);
-      
-      // Update class using class service
-      await classService.updateClass(selectedClass.id, updatedClass, isAuthenticated);
-    } else if (remainingFiles) {
-      // File deleted, update with remaining files
-      const updatedClass = {
-        ...selectedClass,
-        files: remainingFiles,
-      };
-      
-      setSelectedClass(updatedClass);
-      
-      // Update class using class service
-      await classService.updateClass(selectedClass.id, updatedClass, isAuthenticated);
-    }
-  }, [selectedClass, isAuthenticated]);
-
-  const handleSidebarToggle = useCallback(() => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
+  // Enhanced sidebar toggle handler
+  const handleEnhancedSidebarToggle = () => {
+    handleSidebarToggle();
     // Reset to default width when expanding with smooth animation
     if (isSidebarCollapsed) {
-      // Add a small delay to allow collapse animation to complete
       setTimeout(() => {
         const savedWidth = localStorage.getItem('sidebarWidth');
         setSidebarWidth(savedWidth ? parseInt(savedWidth, 10) : DEFAULT_SIDEBAR_WIDTH);
       }, 150);
     }
-  }, [isSidebarCollapsed, setSidebarWidth]);
-
-  const handleClassesTitleBlur = useCallback(() => {
-    setIsEditingClassesTitle(false);
-    const currentSettings = getSettings();
-    updateSettings({ ...currentSettings, classesTitle });
-  }, [classesTitle]);
+  };
 
   return (
     <TextFormattingProvider>
@@ -333,62 +217,30 @@ const Sidebar: React.FC = () => {
         }}
       >
         {/* Collapse Toggle Button */}
-        <button
-          onClick={handleSidebarToggle}
-          className="absolute top-3 right-3 z-10 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200"
-          title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          type="button"
-        >
-          <span className={`text-gray-600 text-sm transform transition-transform duration-200 ${
-            isSidebarCollapsed ? 'rotate-180' : ''
-          }`}>
-            ◀
-          </span>
-        </button>
+        <SidebarToggleButton
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggle={handleEnhancedSidebarToggle}
+        />
         
-        <div className="pt-16">
-          {!isSidebarCollapsed && (
-            <div className="text-center mb-3">
-              <EditableText
-                value={title}
-                onChange={setTitle}
-                onBlur={handleTitleBlur}
-                isEditing={isEditingTitle}
-                onClick={handleTitleClick}
-                onDoubleClick={() => setShowTitleSizeControl(true)}
-                className={isEditingTitle 
-                  ? "text-4xl font-bold w-[90%] p-0.5 text-blue-700 mt-0 mb-3 font-inherit outline-none"
-                  : "text-blue-700 cursor-pointer leading-tight font-inherit font-semibold transition-all duration-200 hover:text-blue-800 inline-block"
-                }
-                style={{ fontSize: `${titleSize}px` }}
-                title="Double-click to adjust size"
-              />
-              <InlineSizeControl 
-                size={titleSize} 
-                setSize={setTitleSize} 
-                minSize={24} 
-                maxSize={72} 
-                show={showTitleSizeControl} 
-                setShow={setShowTitleSizeControl} 
-              />
-            </div>
-          )}
-          {isSidebarCollapsed && (
-            <div className="flex justify-center mb-3">
-              <div 
-                className="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-white font-bold text-lg cursor-pointer hover:bg-blue-800 transition-colors duration-200"
-                onClick={() => setIsSidebarCollapsed(false)}
-                title={title}
-              >
-                {title.charAt(0)}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Title Section */}
+        <SidebarTitle
+          title={title}
+          setTitle={setTitle}
+          isEditingTitle={isEditingTitle}
+          onTitleClick={handleTitleClick}
+          onTitleBlur={handleTitleBlur}
+          titleSize={titleSize}
+          setTitleSize={setTitleSize}
+          showTitleSizeControl={showTitleSizeControl}
+          setShowTitleSizeControl={setShowTitleSizeControl}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onSidebarToggle={() => setIsSidebarCollapsed(false)}
+        />
 
         {/* Empty space to push content down */}
         <div className="mt-8"></div>
 
+        {/* Classes Section */}
         <div
           className={`relative flex-1 min-h-0 overflow-y-auto ${
             isResizing ? 'pointer-events-none' : ''
@@ -447,73 +299,13 @@ const Sidebar: React.FC = () => {
           />
         </div>
 
-        <div className={`px-2 mt-auto border-t pt-6 flex-shrink-0 max-h-96 overflow-y-auto ${
-          isResizing ? 'pointer-events-none' : ''
-        }`}>
-          {/* Class Chatbot Button - Notion Style */}
-          {!isSidebarCollapsed && (
-            <div className="mb-3">
-            <button
-              onClick={() => setShowChatbotPanel(!showChatbotPanel)}
-              className="w-full flex items-center p-2 hover:bg-gray-100 rounded-md transition-all duration-200 group"
-              type="button"
-            >
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-600 text-base">🤖</span>
-                <span className="text-gray-700 text-sm font-normal">
-                  Class Chatbot
-                </span>
-              </div>
-            </button>
-          </div>
-          )}
-          
-          {/* Collapsed chatbot icon */}
-          {isSidebarCollapsed && (
-            <div className="mb-3 flex justify-center">
-              <button
-                onClick={() => setShowChatbotPanel(!showChatbotPanel)}
-                className="w-10 h-10 hover:bg-gray-100 rounded-full flex items-center justify-center transition-all duration-200"
-                title="Class Chatbot"
-                type="button"
-              >
-                <span className="text-gray-600 text-lg">🤖</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Canvas Sync Button - Positioned closer to chatbot */}
-        <div className="px-2 mb-2">
-          {!isSidebarCollapsed ? (
-            <button
-              onClick={() => setShowCanvasSettings(true)}
-              className="w-full flex items-center p-2 hover:bg-gray-100 rounded-md transition-all duration-200 group"
-              type="button"
-            >
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-600 text-base">🎓</span>
-                <span className="text-gray-700 text-sm font-normal">
-                  Canvas Sync
-                </span>
-                {isCanvasSyncing && (
-                  <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                )}
-              </div>
-            </button>
-          ) : (
-            <div className="flex justify-center">
-              <button
-                onClick={() => setShowCanvasSettings(true)}
-                className="w-10 h-10 hover:bg-gray-100 rounded-full flex items-center justify-center transition-all duration-200"
-                title="Canvas Sync"
-                type="button"
-              >
-                <span className="text-gray-600 text-lg">🎓</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Controls Section */}
+        <SidebarControls
+          isSidebarCollapsed={isSidebarCollapsed}
+          isCanvasSyncing={isCanvasSyncing}
+          onShowChatbot={() => setShowChatbotPanel(!showChatbotPanel)}
+          onShowCanvasSettings={() => setShowCanvasSettings(true)}
+        />
 
         {/* Auth Controls */}
         <div className="px-2 mt-auto mb-8 flex-shrink-0">
@@ -530,6 +322,7 @@ const Sidebar: React.FC = () => {
           </Suspense>
         </div>
 
+        {/* Modals and Panels */}
         <Suspense fallback={
           showSyllabusModal ? (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -548,9 +341,11 @@ const Sidebar: React.FC = () => {
             onFileUpdate={handleFileUpdate}
           />
         </Suspense>
+
         {showLogin && !isAuthenticated && (
           <LoginComponent onClose={() => setShowLogin(false)} />
         )}
+
         {showCanvasSettings && (
           <Suspense fallback={
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -563,46 +358,16 @@ const Sidebar: React.FC = () => {
             <CanvasSettings onClose={() => setShowCanvasSettings(false)} />
           </Suspense>
         )}
-        </div>
-        {/* Enhanced Resize Handle */}
-        {!isSidebarCollapsed && (
-          <>
-            {/* Invisible interaction area */}
-            <div
-              className="fixed top-0 h-full w-3 cursor-ew-resize z-50"
-              style={{ 
-                left: `${sidebarWidth - 1}px`
-              }}
-              onMouseDown={startResize}
-              title="Drag to resize sidebar"
-            >
-              {/* Hover area for visual feedback */}
-              <div className="absolute inset-y-0 -left-1 w-5 hover:bg-blue-500/3 transition-colors duration-150" />
-              
-              {/* Visual grip indicator - only show on hover when not resizing */}
-              {!isResizing && (
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <div className="flex flex-col space-y-1 opacity-0 hover:opacity-30 transition-opacity duration-200">
-                    <div className="w-0.5 h-3 bg-gray-400 rounded-full"></div>
-                    <div className="w-0.5 h-3 bg-gray-400 rounded-full"></div>
-                    <div className="w-0.5 h-3 bg-gray-400 rounded-full"></div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Blue resize indicator - follows the gray border exactly */}
-            <div
-              className={`resize-indicator fixed top-0 h-full z-40 ${
-                isResizing ? 'visible' : ''
-              }`}
-              style={{ 
-                left: `${sidebarWidth - 1}px`
-              }}
-            />
-          </>
-        )}
 
+        {/* Resize Handle */}
+        <SidebarResizeHandle
+          isSidebarCollapsed={isSidebarCollapsed}
+          sidebarWidth={sidebarWidth}
+          isResizing={isResizing}
+          onStartResize={startResize}
+        />
+
+        {/* Chatbot Panel */}
         <Suspense fallback={
           showChatbotPanel ? (
             <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border p-4" style={{ width: '400px', height: `${chatbotPanelHeight}px` }}>
@@ -622,8 +387,9 @@ const Sidebar: React.FC = () => {
             fontSize={fontSize}
           />
         </Suspense>
-      </TextFormattingProvider>
-    );
+      </div>
+    </TextFormattingProvider>
+  );
 };
 
 export default Sidebar;
