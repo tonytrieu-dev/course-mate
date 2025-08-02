@@ -1,11 +1,12 @@
 import React, { useRef, useEffect } from "react";
 import type { User } from '@supabase/supabase-js';
-import type { ClassWithRelations, TaskType } from "../types/database";
+import type { ClassWithRelations, TaskType, TaskWithMeta } from "../types/database";
 import { useTaskForm } from "../hooks/useTaskForm";
 import { useTaskManagement } from "../hooks/useTaskManagement";
 import TaskFormFields from "./taskModal/TaskFormFields";
 import ClassManagement from "./taskModal/ClassManagement";
 import TaskTypeManagement from "./taskModal/TaskTypeManagement";
+import { StudySessionTracker } from "./StudySessionTracker";
 
 export interface TaskData {
   id?: string;
@@ -28,7 +29,7 @@ interface TaskModalProps {
   onClose: () => void;
   onSubmit: (task: TaskData) => void;
   onDelete?: () => void;
-  editingTask: TaskData | null;
+  editingTask: TaskWithMeta | null;
   selectedDate: Date | null;
   classes: ClassWithRelations[];
   taskTypes: TaskType[];
@@ -157,6 +158,14 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 />
                 <span className="text-sm font-medium text-gray-700">Mark as completed</span>
               </label>
+            </div>
+          )}
+
+          {/* Study Session Tracker */}
+          {isAuthenticated && (
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Study Session</h3>
+              <StudySessionTracker taskId={editingTask?.id} />
             </div>
           )}
 

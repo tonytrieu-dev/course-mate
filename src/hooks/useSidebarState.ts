@@ -56,6 +56,10 @@ interface UseSidebarStateReturn {
   isCanvasSyncing: boolean;
   setIsCanvasSyncing: (syncing: boolean) => void;
   
+  // Study analytics state
+  showStudyAnalytics: boolean;
+  setShowStudyAnalytics: (show: boolean) => void;
+  
   // Event handlers
   handleTitleClick: () => void;
   handleSidebarToggle: () => void;
@@ -96,6 +100,9 @@ export const useSidebarState = (): UseSidebarStateReturn => {
   
   // Canvas sync state
   const [isCanvasSyncing, setIsCanvasSyncing] = useState<boolean>(false);
+  
+  // Study analytics state
+  const [showStudyAnalytics, setShowStudyAnalytics] = useState<boolean>(false);
 
   // Event handlers
   const handleTitleClick = useCallback(() => {
@@ -164,6 +171,10 @@ export const useSidebarState = (): UseSidebarStateReturn => {
     // Canvas sync state
     isCanvasSyncing,
     setIsCanvasSyncing,
+    
+    // Study analytics state
+    showStudyAnalytics,
+    setShowStudyAnalytics,
     
     // Event handlers
     handleTitleClick,

@@ -110,48 +110,43 @@ serve(async (req) => {
       task_id
     })
 
-    // Check if Brevo API key is available
-    const brevoApiKey = Deno.env.get('BREVO_API_KEY')
-    console.log('Brevo API key exists:', !!brevoApiKey)
-    console.log('Brevo API key starts with xkeysib-:', brevoApiKey?.startsWith('xkeysib-'))
+    // Check if Resend API key is available
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    console.log('Resend API key exists:', !!resendApiKey)
+    console.log('Resend API key starts with re_:', resendApiKey?.startsWith('re_'))
     
-    if (!brevoApiKey) {
-      console.error('BREVO_API_KEY environment variable is not set')
-      throw new Error('BREVO_API_KEY not configured')
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY environment variable is not set')
+      throw new Error('RESEND_API_KEY not configured')
     }
 
-    // Send email via Brevo (Sendinblue)
-    const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+    // Send email via Resend
+    const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'api-key': brevoApiKey,
+        'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        sender: {
-          name: 'CourseMate',
-          email: 'coursemate.notifications@gmail.com'
-        },
-        to: [
-          {
-            name: '',
-            email: emailAddress
-          }
-        ],
+        from: 'ScheduleBud <onboarding@resend.dev>',
+        to: [emailAddress],
         subject: subject,
-        htmlContent: htmlContent,
-        textContent: textContent,
-        tags: ['notification', email_type]
+        html: htmlContent,
+        text: textContent,
+        tags: [
+          { name: 'category', value: 'notification' },
+          { name: 'type', value: email_type }
+        ]
       }),
     })
 
-    const brevoData = await brevoResponse.json()
-    console.log('Brevo response status:', brevoResponse.status)
-    console.log('Brevo response data:', brevoData)
+    const resendData = await resendResponse.json()
+    console.log('Resend response status:', resendResponse.status)
+    console.log('Resend response data:', resendData)
 
-    if (!brevoResponse.ok) {
-      console.error('Brevo API error:', brevoData)
-      throw new Error(`Brevo API error: ${brevoData.message || JSON.stringify(brevoData)}`)
+    if (!resendResponse.ok) {
+      console.error('Resend API error:', resendData)
+      throw new Error(`Resend API error: ${resendData.message || JSON.stringify(resendData)}`)
     }
 
     // Log the sent notification
@@ -163,7 +158,7 @@ serve(async (req) => {
         email_type,
         email_address: emailAddress,
         subject,
-        message_id: brevoData.messageId || 'brevo-' + Date.now(),
+        message_id: resendData.id,
         sent_at: new Date().toISOString()
       })
 
@@ -174,7 +169,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message_id: brevoData.messageId || 'brevo-' + Date.now(),
+        message_id: resendData.id,
         email_address: emailAddress 
       }),
       { 
@@ -238,13 +233,13 @@ function generateEmailContent({
       break
     case 'assignment_reminder':
       subject = `${priorityEmoji} Reminder: "${task_title}" due ${dueDateFormatted}`
-      greeting = 'Friendly reminder from your student planner:'
+      greeting = 'Friendly reminder from ScheduleBud:'
       urgencyMessage = 'Stay on top of your assignments and keep that GPA strong! 💪'
       break
     case 'new_assignment':
       subject = `📚 New Assignment: "${task_title}"${classInfo}`
       greeting = 'New assignment detected from Canvas:'
-      urgencyMessage = 'Get ahead of the curve by planning your time now!'
+      urgencyMessage = 'Get ahead of the curve by planning your time now. :)'
       break
   }
 
@@ -271,7 +266,7 @@ function generateEmailContent({
     <body>
       <div class="container">
         <div class="header">
-          <h1 style="margin: 0; font-size: 24px;">${priorityEmoji} Student Planner</h1>
+          <h1 style="margin: 0; font-size: 24px;">${priorityEmoji} ScheduleBud</h1>
           <p style="margin: 10px 0 0 0; opacity: 0.9;">Built for students, by a student</p>
         </div>
         

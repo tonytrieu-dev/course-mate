@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { User } from '@supabase/supabase-js';
-import type { ClassWithRelations, TaskType } from '../types/database';
+import type { ClassWithRelations, TaskType, TaskWithMeta } from '../types/database';
 import { TaskData } from '../components/TaskModal';
 
 interface UseTaskFormProps {
-  editingTask: TaskData | null;
+  editingTask: TaskWithMeta | null;
   selectedDate: Date | null;
   classes: ClassWithRelations[];
   taskTypes: TaskType[];
@@ -59,6 +59,7 @@ export const useTaskForm = ({
     if (editingTask) {
       newTaskState = {
         ...newTaskState,
+        id: editingTask.id,
         title: editingTask.title || "",
         class: editingTask.class || newTaskState.class,
         type: editingTask.type || newTaskState.type,
@@ -70,6 +71,7 @@ export const useTaskForm = ({
         endDate: editingTask.endDate || newTaskState.endDate,
         endTime: editingTask.endTime || newTaskState.endTime,
         completed: Boolean(editingTask.completed),
+        date: editingTask.date,
       };
     }
 

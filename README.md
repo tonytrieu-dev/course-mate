@@ -1,4 +1,4 @@
-# CourseMate
+# ScheduleBud
 
 ![Beta](https://img.shields.io/badge/Status-Beta-orange) ![Development](https://img.shields.io/badge/Stage-Active%20Development-yellow) ![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue)
 
@@ -134,11 +134,11 @@ As this is beta software, please be aware of these current limitations:
 ⚠️ **Beta Testing Notes**: This app is in development, so expect some features to be incomplete.
 
 Run the application in development mode and test key features:
-- ✅ Authentication flow (mostly stable)
-- ✅ Calendar functionality (core features working)
-- 🚧 Canvas integration (limited functionality)
-- 🚧 AI chatbot responses (experimental)
-- 🚧 File management (basic upload working)
+- ✅ Authentication flow (completed)
+- ✅ Calendar functionality (completed)
+- ✅ Canvas integration (stable)
+- 🚧 AI chatbot responses (stable, but currently working on improving follow-up responses / questions)
+- ✅ File management (stable)
 
 ## 🤝 Contributing
 

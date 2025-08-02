@@ -172,7 +172,7 @@ const AuthSection: React.FC<AuthSectionProps> = ({
           title="Sign out"
           type="button"
         >
-          ⤴
+          🚪
         </button>
       </div>
     );

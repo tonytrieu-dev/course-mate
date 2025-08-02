@@ -3,19 +3,26 @@ import React from 'react';
 interface SidebarToggleButtonProps {
   isSidebarCollapsed: boolean;
   onToggle: () => void;
+  sidebarWidth?: number;
 }
 
 const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
   isSidebarCollapsed,
   onToggle,
+  sidebarWidth = 256,
 }) => {
   return (
     <button
       onClick={onToggle}
-      className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 hover:bg-white hover:scale-105 active:scale-95 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md border border-gray-200/60 hover:border-gray-300 backdrop-blur-sm group"
+      className="absolute w-8 h-8 bg-transparent hover:bg-gray-50 hover:scale-105 active:scale-95 rounded-md flex items-center justify-center transition-all duration-200 opacity-30 hover:opacity-70 border-0 hover:border hover:border-gray-200 group"
       title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       type="button"
-      style={{ willChange: 'transform' }}
+      style={{ 
+        willChange: 'transform',
+        top: '24px',
+        right: '8px',
+        zIndex: 100
+      }}
     >
       <svg
         width="14"

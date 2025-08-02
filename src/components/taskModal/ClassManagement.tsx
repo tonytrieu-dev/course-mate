@@ -44,11 +44,14 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
   setHoveredClassId,
   onDeleteClass,
 }) => {
+  // Filter to only show task classes in the dropdown and management
+  const taskClasses = classes.filter(cls => cls.isTaskClass === true);
+  
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <label className="block text-sm font-medium text-gray-700">
-          Class {classes.length > 0 && "*"}
+          Class {taskClasses.length > 0 && "*"}
         </label>
         <div className="flex space-x-2">
           <button
@@ -58,7 +61,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
           >
             + Add
           </button>
-          {classes.length > 0 && (
+          {taskClasses.length > 0 && (
             <button
               type="button"
               onClick={() => setShowClassManagement(!showClassManagement)}
@@ -98,7 +101,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
         </div>
       )}
 
-      {classes.length > 0 ? (
+      {taskClasses.length > 0 ? (
         <select
           value={task.class}
           onChange={(e) => onInputChange("class", e.target.value)}
@@ -106,7 +109,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
           required
         >
           <option value="">Select a class...</option>
-          {classes.map((cls) => (
+          {taskClasses.map((cls) => (
             <option key={cls.id} value={cls.id}>
               {cls.name}
             </option>
@@ -114,15 +117,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
         </select>
       ) : (
         <p className="text-sm text-gray-500 italic">
-          No classes available. Add one above.
+          No taskClasses available. Add one above.
         </p>
       )}
 
-      {showClassManagement && classes.length > 0 && (
+      {showClassManagement && taskClasses.length > 0 && (
         <div className="mt-2 p-3 bg-gray-50 rounded-md">
           <h4 className="text-sm font-medium text-gray-700 mb-2">Manage Classes</h4>
           <div className="space-y-1 max-h-32 overflow-y-auto">
-            {classes.map((cls) => (
+            {taskClasses.map((cls) => (
               <div
                 key={cls.id}
                 className={`flex items-center justify-between p-2 rounded text-sm ${

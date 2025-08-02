@@ -62,7 +62,8 @@ module.exports = {
     removeAvailableModules: true,
     mergeDuplicateChunks: true,
     flagIncludedChunks: true,
-    occurrenceOrder: true,
+    chunkIds: 'deterministic',
+    moduleIds: 'deterministic',
   },
   module: {
     rules: [

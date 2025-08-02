@@ -259,6 +259,264 @@ export interface Database {
           message_id?: string;
         };
       };
+      assignments: {
+        Row: {
+          id: string;
+          user_id: string;
+          class_id: string;
+          task_id?: string;
+          name: string;
+          description?: string;
+          category_id: string;
+          points_possible: number;
+          weight?: number;
+          due_date?: string;
+          is_extra_credit: boolean;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          class_id: string;
+          task_id?: string;
+          name: string;
+          description?: string;
+          category_id: string;
+          points_possible: number;
+          weight?: number;
+          due_date?: string;
+          is_extra_credit?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          class_id?: string;
+          task_id?: string;
+          name?: string;
+          description?: string;
+          category_id?: string;
+          points_possible?: number;
+          weight?: number;
+          due_date?: string;
+          is_extra_credit?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      grades: {
+        Row: {
+          id: string;
+          user_id: string;
+          assignment_id: string;
+          points_earned?: number;
+          letter_grade?: string;
+          percentage?: number;
+          is_dropped: boolean;
+          feedback?: string;
+          graded_at?: string;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          assignment_id: string;
+          points_earned?: number;
+          letter_grade?: string;
+          percentage?: number;
+          is_dropped?: boolean;
+          feedback?: string;
+          graded_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          assignment_id?: string;
+          points_earned?: number;
+          letter_grade?: string;
+          percentage?: number;
+          is_dropped?: boolean;
+          feedback?: string;
+          graded_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      grade_categories: {
+        Row: {
+          id: string;
+          user_id: string;
+          class_id: string;
+          name: string;
+          weight: number;
+          drop_lowest?: number;
+          color?: string;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          class_id: string;
+          name: string;
+          weight: number;
+          drop_lowest?: number;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          class_id?: string;
+          name?: string;
+          weight?: number;
+          drop_lowest?: number;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      gpa_settings: {
+        Row: {
+          id: string;
+          user_id: string;
+          scale_type: 'four_point' | 'percentage' | 'letter';
+          a_min: number;
+          b_min: number;
+          c_min: number;
+          d_min: number;
+          a_plus_min?: number;
+          quality_points: Record<string, number>;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          scale_type: 'four_point' | 'percentage' | 'letter';
+          a_min: number;
+          b_min: number;
+          c_min: number;
+          d_min: number;
+          a_plus_min?: number;
+          quality_points: Record<string, number>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          scale_type?: 'four_point' | 'percentage' | 'letter';
+          a_min?: number;
+          b_min?: number;
+          c_min?: number;
+          d_min?: number;
+          a_plus_min?: number;
+          quality_points?: Record<string, number>;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      class_gpa_info: {
+        Row: {
+          id: string;
+          user_id: string;
+          class_id: string;
+          credit_hours: number;
+          semester: string;
+          year: number;
+          is_completed: boolean;
+          final_grade?: string;
+          final_gpa?: number;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          class_id: string;
+          credit_hours: number;
+          semester: string;
+          year: number;
+          is_completed?: boolean;
+          final_grade?: string;
+          final_gpa?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          class_id?: string;
+          credit_hours?: number;
+          semester?: string;
+          year?: number;
+          is_completed?: boolean;
+          final_grade?: string;
+          final_gpa?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      study_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          task_id?: string;
+          class_id?: string;
+          subject: string;
+          start_time: string;
+          end_time?: string;
+          duration_minutes?: number;
+          session_type: 'focused' | 'review' | 'practice' | 'reading';
+          notes?: string;
+          effectiveness_rating?: number;
+          interruptions_count?: number;
+          retention_test_score?: number;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          task_id?: string;
+          class_id?: string;
+          subject: string;
+          start_time: string;
+          end_time?: string;
+          duration_minutes?: number;
+          session_type: 'focused' | 'review' | 'practice' | 'reading';
+          notes?: string;
+          effectiveness_rating?: number;
+          interruptions_count?: number;
+          retention_test_score?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          task_id?: string;
+          class_id?: string;
+          subject?: string;
+          start_time?: string;
+          end_time?: string;
+          duration_minutes?: number;
+          session_type?: 'focused' | 'review' | 'practice' | 'reading';
+          notes?: string;
+          effectiveness_rating?: number;
+          interruptions_count?: number;
+          retention_test_score?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

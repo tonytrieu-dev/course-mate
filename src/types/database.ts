@@ -35,6 +35,30 @@ export type EmailNotification = Database['public']['Tables']['email_notification
 export type EmailNotificationInsert = Database['public']['Tables']['email_notifications']['Insert'];
 export type EmailNotificationUpdate = Database['public']['Tables']['email_notifications']['Update'];
 
+export type Assignment = Database['public']['Tables']['assignments']['Row'];
+export type AssignmentInsert = Database['public']['Tables']['assignments']['Insert'];
+export type AssignmentUpdate = Database['public']['Tables']['assignments']['Update'];
+
+export type Grade = Database['public']['Tables']['grades']['Row'];
+export type GradeInsert = Database['public']['Tables']['grades']['Insert'];
+export type GradeUpdate = Database['public']['Tables']['grades']['Update'];
+
+export type GradeCategory = Database['public']['Tables']['grade_categories']['Row'];
+export type GradeCategoryInsert = Database['public']['Tables']['grade_categories']['Insert'];
+export type GradeCategoryUpdate = Database['public']['Tables']['grade_categories']['Update'];
+
+export type GpaSettings = Database['public']['Tables']['gpa_settings']['Row'];
+export type GpaSettingsInsert = Database['public']['Tables']['gpa_settings']['Insert'];
+export type GpaSettingsUpdate = Database['public']['Tables']['gpa_settings']['Update'];
+
+export type ClassGpaInfo = Database['public']['Tables']['class_gpa_info']['Row'];
+export type ClassGpaInfoInsert = Database['public']['Tables']['class_gpa_info']['Insert'];
+export type ClassGpaInfoUpdate = Database['public']['Tables']['class_gpa_info']['Update'];
+
+export type StudySession = Database['public']['Tables']['study_sessions']['Row'];
+export type StudySessionInsert = Database['public']['Tables']['study_sessions']['Insert'];
+export type StudySessionUpdate = Database['public']['Tables']['study_sessions']['Update'];
+
 // Extended types that include joined data
 export interface ClassWithRelations extends Omit<Class, 'istaskclass'> {
   isTaskClass?: boolean;
@@ -52,6 +76,126 @@ export interface TaskWithMeta extends Task {
   dueTime?: string;
   dueDate?: string;
   date?: string;
+}
+
+// Extended Assignment interface with relations
+export interface AssignmentWithGrade extends Assignment {
+  grade?: Grade;
+  category: GradeCategory;
+}
+
+// Extended Class interface with grade info
+export interface ClassWithGrades extends Class {
+  assignments: AssignmentWithGrade[];
+  categories: GradeCategory[];
+  gpaInfo?: ClassGpaInfo;
+  currentGrade?: number;
+  currentLetterGrade?: string;
+}
+
+// GPA calculation interfaces
+export interface GPACalculation {
+  currentGPA: number;
+  cumulativeGPA: number;
+  totalCreditHours: number;
+  totalQualityPoints: number;
+  semesterGPA: number;
+  classGrades: ClassGradeInfo[];
+}
+
+export interface ClassGradeInfo {
+  classId: string;
+  className: string;
+  currentGrade: number;
+  letterGrade: string;
+  creditHours: number;
+  qualityPoints: number;
+  isCompleted: boolean;
+}
+
+// What-if scenario interface
+export interface WhatIfScenario {
+  scenarioName: string;
+  changes: GradeChange[];
+  resultingGPA: number;
+  gpaChange: number;
+}
+
+export interface GradeChange {
+  assignmentId: string;
+  assignmentName: string;
+  className: string;
+  currentGrade?: number;
+  newGrade: number;
+  pointsEarned: number;
+  pointsPossible: number;
+}
+
+// Grade analytics interfaces
+export interface GradeAnalytics {
+  classPerformance: ClassPerformance[];
+  trendAnalysis: GradeTrend[];
+  recommendations: string[];
+}
+
+export interface ClassPerformance {
+  classId: string;
+  className: string;
+  averageGrade: number;
+  trend: 'improving' | 'declining' | 'stable';
+  strongCategories: string[];
+  weakCategories: string[];
+}
+
+export interface GradeTrend {
+  date: string;
+  gpa: number;
+  semester: string;
+}
+
+// Study session analytics interfaces
+export interface StudyAnalytics {
+  totalStudyTime: number;
+  averageSessionDuration: number;
+  sessionsThisWeek: number;
+  retentionRate: number;
+  effectivenessScore: number;
+  subjectBreakdown: SubjectStudyData[];
+  weeklyTrends: StudyTrend[];
+  recommendations: StudyRecommendation[];
+}
+
+export interface SubjectStudyData {
+  subject: string;
+  totalTime: number;
+  sessionCount: number;
+  averageEffectiveness: number;
+  retentionScore: number;
+  lastStudied: string;
+}
+
+export interface StudyTrend {
+  date: string;
+  totalMinutes: number;
+  sessionCount: number;
+  averageEffectiveness: number;
+}
+
+export interface StudyRecommendation {
+  type: 'time_allocation' | 'session_length' | 'review_schedule' | 'break_frequency';
+  message: string;
+  priority: 'high' | 'medium' | 'low';
+  actionable: boolean;
+}
+
+export interface ActiveStudySession {
+  id: string;
+  subject: string;
+  startTime: Date;
+  sessionType: 'focused' | 'review' | 'practice' | 'reading';
+  taskId?: string;
+  classId?: string;
+  interruptionsCount: number;
 }
 
 // Priority levels

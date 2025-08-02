@@ -1,7 +1,7 @@
 {
-  "name": "coursemate",
+  "name": "schedulebud",
   "version": "1.0.0",
-  "description": "CourseMate - Academic productivity companion for students",
+  "description": "ScheduleBud - Academic productivity companion for students",
   "main": "main.js",
   "scripts": {
     "start": "webpack-dev-server --mode development",
@@ -83,8 +83,8 @@
     "supabase": "^2.20.5"
   },
   "build": {
-    "appId": "com.yourcompany.coursemate",
-    "productName": "CourseMate",
+    "appId": "com.yourcompany.schedulebud",
+    "productName": "ScheduleBud",
     "directories": {
       "output": "dist-electron"
     },

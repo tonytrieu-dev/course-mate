@@ -19,6 +19,7 @@ const Settings = lazy(() => import("./Settings"));
 const SyllabusModal = lazy(() => import("./SyllabusModal"));
 const ChatbotPanel = lazy(() => import("./ChatbotPanel"));
 const AuthSection = lazy(() => import("./AuthSection"));
+const StudyAnalyticsDashboard = lazy(() => import("./StudyAnalyticsDashboard"));
 
 // Constants
 const MIN_SIDEBAR_WIDTH = 200;
@@ -70,6 +71,8 @@ const Sidebar: React.FC = () => {
     setShowClassNameSizeControl,
     isCanvasSyncing,
     setIsCanvasSyncing,
+    showStudyAnalytics,
+    setShowStudyAnalytics,
     handleTitleClick,
     handleSidebarToggle,
     handleClassesTitleBlur,
@@ -224,7 +227,7 @@ const Sidebar: React.FC = () => {
         ref={sidebarRef as React.RefObject<HTMLDivElement>}
         className={`${
           isSidebarCollapsed ? 'w-16' : ''
-        } border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col relative overflow-hidden ${
+        } border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col relative ${
           isResizing ? 'sidebar-no-transition' : 'sidebar-transition'
         }`}
         style={{
@@ -238,6 +241,7 @@ const Sidebar: React.FC = () => {
         <SidebarToggleButton
           isSidebarCollapsed={isSidebarCollapsed}
           onToggle={handleEnhancedSidebarToggle}
+          sidebarWidth={sidebarWidth}
         />
         
         {/* Title Section */}
@@ -326,6 +330,7 @@ const Sidebar: React.FC = () => {
           isCanvasSyncing={isCanvasSyncing}
           onShowChatbot={() => setShowChatbotPanel(!showChatbotPanel)}
           onShowSettings={() => setShowSettings(true)}
+          onShowStudyAnalytics={() => setShowStudyAnalytics(true)}
         />
 
         {/* Auth Controls */}
@@ -378,6 +383,35 @@ const Sidebar: React.FC = () => {
           }>
             <Settings onClose={() => setShowSettings(false)} />
           </Suspense>
+        )}
+
+        {showStudyAnalytics && isAuthenticated && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">Study Analytics</h2>
+                <button
+                  onClick={() => setShowStudyAnalytics(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                    <p className="ml-4 text-gray-600">Loading Study Analytics...</p>
+                  </div>
+                }>
+                  <StudyAnalyticsDashboard />
+                </Suspense>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Resize Handle */}
