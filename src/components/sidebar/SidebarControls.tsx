@@ -38,7 +38,7 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
         
         {/* Collapsed chatbot icon */}
         {isSidebarCollapsed && (
-          <div className="mb-3 flex justify-center">
+          <div className="mb-6 flex justify-center">
             <button
               onClick={onShowChatbot}
               className="w-10 h-10 hover:bg-gray-100 hover:scale-105 active:scale-95 rounded-full flex items-center justify-center transition-all duration-150"
@@ -69,7 +69,7 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
             </button>
           </div>
         ) : (
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-4">
             <button
               onClick={onShowStudyAnalytics}
               className="w-10 h-10 hover:bg-gray-100 hover:scale-105 active:scale-95 rounded-full flex items-center justify-center transition-all duration-150"
@@ -103,7 +103,7 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
             </button>
           </div>
         ) : (
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-4">
             <button
               onClick={onShowSettings}
               className="w-10 h-10 hover:bg-gray-100 hover:scale-105 active:scale-95 rounded-full flex items-center justify-center transition-all duration-150 relative"

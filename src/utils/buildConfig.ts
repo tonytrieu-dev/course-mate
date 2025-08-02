@@ -44,7 +44,7 @@ export const features = {
 
 // UI text based on mode
 export const getAppName = (): string => {
-  return isPersonalMode() ? 'ScheduleBud Personal' : 'ScheduleBud';
+  return isPersonalMode() ? 'ScheduleBud' : 'ScheduleBud';
 };
 
 export const getAppDescription = (): string => {

@@ -8,7 +8,7 @@ interface LoginComponentProps {
 }
 
 // OAuth provider types
-type OAuthProvider = 'google' | 'github';
+type OAuthProvider = 'google' | 'github' | 'discord';
 
 // OAuth button component props
 interface OAuthButtonProps {
@@ -258,6 +258,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
           <div className="flex justify-center gap-4">
             <OAuthButton provider="google" onClick={handleOAuthLogin} />
             <OAuthButton provider="github" onClick={handleOAuthLogin} />
+            <OAuthButton provider="discord" onClick={handleOAuthLogin} />
           </div>
         </div>
       </div>
@@ -274,6 +275,10 @@ const OAuthButton: React.FC<OAuthButtonProps> = memo(({ provider, onClick }) => 
     github: {
       src: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
       alt: "Sign in with GitHub",
+    },
+    discord: {
+      src: "https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png",
+      alt: "Sign in with Discord",
     },
   };
 

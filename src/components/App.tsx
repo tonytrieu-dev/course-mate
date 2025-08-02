@@ -12,6 +12,7 @@ const DashboardView = lazy(() => import("./DashboardView"));
 const LoginComponent = lazy(() => import("./LoginComponent"));
 const GradeDashboard = lazy(() => import("./GradeDashboard"));
 const GradeEntry = lazy(() => import("./GradeEntry"));
+const LandingPage = lazy(() => import("./LandingPage"));
 
 // Define view types - now includes app views and calendar views
 type AppViewType = "dashboard" | "tasks" | "calendar" | "grades";
@@ -56,7 +57,31 @@ const CalendarApp: React.FC = () => {
   const [calendarView, setCalendarView] = useState<CalendarViewType>("month");
   const [gradeView, setGradeView] = useState<'dashboard' | 'entry'>('dashboard');
   const [isNavCollapsed, setIsNavCollapsed] = useState<boolean>(false);
+  const [showLanding, setShowLanding] = useState<boolean>(true);
   const { user, isAuthenticated, logout, loading } = useAuth();
+
+  // Handle URL state for landing page
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const app = urlParams.get('app');
+    const forceLanding = urlParams.get('landing');
+    
+    // Force landing page for testing with ?landing=true
+    if (forceLanding === 'true') {
+      setShowLanding(true);
+      return;
+    }
+    
+    if (app === 'true' || isAuthenticated) {
+      setShowLanding(false);
+    }
+  }, [isAuthenticated]);
+
+  const handleGetStarted = () => {
+    setShowLanding(false);
+    // Update URL without page reload
+    window.history.pushState({}, '', window.location.pathname + '?app=true');
+  };
 
   if (loading) {
     return (
@@ -67,6 +92,25 @@ const CalendarApp: React.FC = () => {
           aria-label="Loading application" 
         />
       </div>
+    );
+  }
+
+  // Show landing page if showLanding is true (regardless of auth status for testing)
+  if (showLanding && (new URLSearchParams(window.location.search).get('landing') === 'true' || !isAuthenticated)) {
+    const landingFallback: ReactNode = (
+      <div className="flex items-center justify-center h-screen">
+        <LoadingSpinner 
+          message="Loading..." 
+          size="large"
+          aria-label="Loading landing page" 
+        />
+      </div>
+    );
+
+    return (
+      <Suspense fallback={landingFallback}>
+        <LandingPage onGetStarted={handleGetStarted} />
+      </Suspense>
     );
   }
 
@@ -152,7 +196,7 @@ const CalendarApp: React.FC = () => {
         <div className="relative group">
           <button
             onClick={() => setIsNavCollapsed(!isNavCollapsed)}
-            className={`absolute ${isNavCollapsed ? 'top-1' : '-top-1'} left-1/2 transform -translate-x-1/2 z-10 bg-white border border-gray-200 rounded-full p-2 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50 opacity-0 group-hover:opacity-100`}
+            className={`absolute ${isNavCollapsed ? '-top-2' : '-top-3'} left-1/2 transform -translate-x-1/2 z-10 bg-white border border-gray-200 rounded-full p-2 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50 opacity-0 group-hover:opacity-100`}
             title={isNavCollapsed ? 'Show navigation' : 'Hide navigation'}
           >
             <svg 

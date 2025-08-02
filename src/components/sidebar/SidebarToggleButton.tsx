@@ -14,7 +14,7 @@ const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
   return (
     <button
       onClick={onToggle}
-      className="absolute w-8 h-8 bg-transparent hover:bg-gray-50 hover:scale-105 active:scale-95 rounded-md flex items-center justify-center transition-all duration-200 opacity-30 hover:opacity-70 border-0 hover:border hover:border-gray-200 group"
+      className="absolute w-8 h-8 bg-transparent hover:bg-gray-50 hover:scale-105 active:scale-95 rounded-md flex items-center justify-center transition-all duration-200 opacity-0 hover:opacity-70 border-0 hover:border hover:border-gray-200 group"
       title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       type="button"
       style={{ 
