@@ -174,11 +174,31 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
   onEdit, 
   onClick 
 }) => {
+  const [showAllTasks, setShowAllTasks] = useState(false);
+  
   const cellClasses = useMemo(() => getDayCellClasses(isCurrentMonth, isToday), [isCurrentMonth, isToday]);
   const dateClasses = useMemo(() => 
     `text-sm font-semibold absolute top-2 left-2 ${isToday ? 'text-blue-700' : 'text-gray-500'}`,
     [isToday]
   );
+
+  // Performance optimization: limit visible tasks for large datasets
+  const MAX_VISIBLE_TASKS = 3;
+  const visibleTasks = useMemo(() => {
+    if (tasks.length <= MAX_VISIBLE_TASKS || showAllTasks) {
+      return tasks;
+    }
+    return tasks.slice(0, MAX_VISIBLE_TASKS);
+  }, [tasks, showAllTasks]);
+
+  const hiddenTasksCount = useMemo(() => {
+    return Math.max(0, tasks.length - MAX_VISIBLE_TASKS);
+  }, [tasks.length]);
+
+  const handleShowMore = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowAllTasks(true);
+  }, []);
 
   return (
     <div
@@ -192,7 +212,7 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
       
       {/* Events container */}
       <div className="mt-8 overflow-y-auto flex-1">
-        {tasks.map((task) => (
+        {visibleTasks.map((task) => (
           <EventCard
             key={task.id}
             task={task}
@@ -203,6 +223,17 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
             onEdit={onEdit}
           />
         ))}
+        
+        {/* Show more button for performance with large task lists */}
+        {!showAllTasks && hiddenTasksCount > 0 && (
+          <button
+            onClick={handleShowMore}
+            className="w-full text-xs text-blue-600 hover:text-blue-800 py-1 mt-1 rounded hover:bg-blue-50 transition-colors"
+            aria-label={`Show ${hiddenTasksCount} more tasks`}
+          >
+            +{hiddenTasksCount} more
+          </button>
+        )}
       </div>
     </div>
   );
@@ -295,6 +326,9 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
             onClick={() => setShowDatePicker(!showDatePicker)}
             className="flex items-center gap-2 text-2xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-100"
             type="button"
+            aria-label={`${monthName} ${year}, click to change date`}
+            aria-expanded={showDatePicker}
+            aria-haspopup="true"
           >
             <span>{monthName}</span>
             <span>{year}</span>
@@ -307,9 +341,14 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
           
           {/* Combined Date Picker */}
           {showDatePicker && (
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-80 max-w-[90vw] max-h-96 overflow-y-auto">
+            <div 
+              className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-80 max-w-[90vw] max-h-96 overflow-y-auto"
+              role="dialog"
+              aria-labelledby="date-picker-title"
+              aria-modal="false"
+            >
               <div className="p-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Month and Year</h3>
+                <h3 id="date-picker-title" className="text-sm font-semibold text-gray-700 mb-3">Select Month and Year</h3>
                 
                 {/* Year Selection */}
                 <div className="mb-4">
@@ -389,13 +428,19 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
       {/* Controls */}
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
         {/* View toggle buttons */}
-        <div className="flex bg-gray-100 rounded-lg p-1 gap-1 w-full sm:w-auto">
+        <div 
+          className="flex bg-gray-100 rounded-lg p-1 gap-1 w-full sm:w-auto"
+          role="group"
+          aria-label="Calendar view options"
+        >
           {viewOptions.map((option) => (
             <button
               key={option.key}
               onClick={() => onViewChange(option.key)}
               className={`${getViewButtonClasses(view === option.key)} flex-1 sm:flex-none px-3 py-2 text-sm font-medium min-h-[44px] touch-manipulation`}
               type="button"
+              aria-pressed={view === option.key}
+              aria-label={`Switch to ${option.label.toLowerCase()} view`}
             >
               {option.label}
             </button>
@@ -625,32 +670,60 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
   };
 
+  // Performance optimization: Create indexed task lookup for large datasets
+  const tasksIndex = useMemo(() => {
+    if (!tasks || tasks.length === 0) {
+      return new Map<string, TaskWithMeta[]>();
+    }
+
+    const index = new Map<string, TaskWithMeta[]>();
+    
+    // Batch process tasks to avoid blocking UI for very large datasets
+    const processTasks = (startIndex: number, batchSize: number = 100): void => {
+      const endIndex = Math.min(startIndex + batchSize, tasks.length);
+      
+      for (let i = startIndex; i < endIndex; i++) {
+        const task = tasks[i];
+        let dateKey: string | null = null;
+        
+        if (task.dueDate) {
+          dateKey = task.dueDate;
+        } else if (task.startDate) {
+          dateKey = task.startDate;
+        }
+        
+        if (dateKey) {
+          if (!index.has(dateKey)) {
+            index.set(dateKey, []);
+          }
+          index.get(dateKey)!.push(task);
+        }
+      }
+    };
+
+    // Process all tasks in batches
+    for (let i = 0; i < tasks.length; i += 100) {
+      processTasks(i);
+    }
+
+    // Sort tasks for each date by time
+    index.forEach((dayTasks) => {
+      dayTasks.sort((a, b) => {
+        const timeA = a.dueTime || a.startTime || '00:00';
+        const timeB = b.dueTime || b.startTime || '00:00';
+        return timeA.localeCompare(timeB);
+      });
+    });
+
+    return index;
+  }, [tasks]);
+
   const getTasksForDay = useCallback((day: number, month = currentDate.getMonth(), year = currentDate.getFullYear()): TaskWithMeta[] => {
     const targetDate = new Date(year, month, day);
     const targetDateStr = formatDateForInput(targetDate);
-
-    if (!tasks || tasks.length === 0) {
-      return [];
-    }
-
-    const dayTasks = tasks.filter(task => {
-      let match = false;
-      if (task.dueDate) {
-        match = task.dueDate === targetDateStr;
-      } else if (task.date) {
-        const taskDate = new Date(task.date);
-        const taskDateStr = formatDateForInput(taskDate);
-        match = taskDateStr === targetDateStr;
-      }
-      return match;
-    });
     
-    return dayTasks.sort((a, b) => {
-      const timeA = a.dueTime || (a.date ? new Date(a.date).toLocaleTimeString() : '00:00');
-      const timeB = b.dueTime || (b.date ? new Date(b.date).toLocaleTimeString() : '00:00');
-      return timeA.localeCompare(timeB);
-    });
-  }, [tasks, currentDate]);
+    return tasksIndex.get(targetDateStr) || [];
+  }, [tasksIndex, currentDate]);
 
   const renderMonthView = (): JSX.Element => {
     const year = currentDate.getFullYear();
