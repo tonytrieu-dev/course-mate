@@ -73,6 +73,11 @@ export const ERROR_CODES = {
   CANVAS_ACCESS_DENIED: 'CANVAS_ACCESS_DENIED',
   CANVAS_INVALID_URL: 'CANVAS_INVALID_URL',
   CANVAS_PARSE_ERROR: 'CANVAS_PARSE_ERROR',
+  CANVAS_EMPTY_FEED: 'CANVAS_EMPTY_FEED',
+  CANVAS_NETWORK_ERROR: 'CANVAS_NETWORK_ERROR',
+  CANVAS_TIMEOUT: 'CANVAS_TIMEOUT',
+  CANVAS_RATE_LIMITED: 'CANVAS_RATE_LIMITED',
+  CANVAS_MALFORMED_DATA: 'CANVAS_MALFORMED_DATA',
 
   // Storage
   STORAGE_QUOTA_EXCEEDED: 'STORAGE_QUOTA_EXCEEDED',
@@ -110,6 +115,11 @@ const ERROR_MESSAGES: Record<string, string> = {
   [ERROR_CODES.CANVAS_ACCESS_DENIED]: 'Unable to access Canvas calendar. Please check your URL and permissions.',
   [ERROR_CODES.CANVAS_INVALID_URL]: 'Invalid Canvas calendar URL. Please check the URL and try again.',
   [ERROR_CODES.CANVAS_PARSE_ERROR]: 'Error parsing Canvas calendar data. Please try again or contact support.',
+  [ERROR_CODES.CANVAS_EMPTY_FEED]: 'Your Canvas calendar appears to be empty. No upcoming assignments were found.',
+  [ERROR_CODES.CANVAS_NETWORK_ERROR]: 'Network error while accessing Canvas. Please check your internet connection and try again.',
+  [ERROR_CODES.CANVAS_TIMEOUT]: 'Canvas request timed out. The server may be slow or unavailable. Please try again.',
+  [ERROR_CODES.CANVAS_RATE_LIMITED]: 'Too many requests to Canvas. Please wait a moment and try again.',
+  [ERROR_CODES.CANVAS_MALFORMED_DATA]: 'Canvas calendar data is corrupted or in an unexpected format. Please contact Canvas support.',
 
   [ERROR_CODES.STORAGE_QUOTA_EXCEEDED]: 'Storage quota exceeded. Please free up space and try again.',
   [ERROR_CODES.STORAGE_ACCESS_DENIED]: 'Storage access denied. Please check your browser permissions.'
@@ -370,6 +380,46 @@ export const errorHandler = {
         ERROR_CODES.CANVAS_PARSE_ERROR,
         500,
         context
+      ),
+
+    emptyFeed: (context: ErrorContext = {}) => 
+      new ServiceError(
+        ERROR_MESSAGES[ERROR_CODES.CANVAS_EMPTY_FEED],
+        ERROR_CODES.CANVAS_EMPTY_FEED,
+        200,
+        context
+      ),
+
+    networkError: (context: ErrorContext = {}) => 
+      new ServiceError(
+        ERROR_MESSAGES[ERROR_CODES.CANVAS_NETWORK_ERROR],
+        ERROR_CODES.CANVAS_NETWORK_ERROR,
+        503,
+        context
+      ),
+
+    timeout: (context: ErrorContext = {}) => 
+      new ServiceError(
+        ERROR_MESSAGES[ERROR_CODES.CANVAS_TIMEOUT],
+        ERROR_CODES.CANVAS_TIMEOUT,
+        504,
+        context
+      ),
+
+    rateLimited: (context: ErrorContext = {}) => 
+      new ServiceError(
+        ERROR_MESSAGES[ERROR_CODES.CANVAS_RATE_LIMITED],
+        ERROR_CODES.CANVAS_RATE_LIMITED,
+        429,
+        context
+      ),
+
+    malformedData: (context: ErrorContext = {}) => 
+      new ServiceError(
+        ERROR_MESSAGES[ERROR_CODES.CANVAS_MALFORMED_DATA],
+        ERROR_CODES.CANVAS_MALFORMED_DATA,
+        422,
+        context
       )
   },
 
@@ -395,7 +445,9 @@ export const errorHandler = {
     const retryableCodes: string[] = [
       ERROR_CODES.NETWORK_CONNECTION_ERROR,
       ERROR_CODES.NETWORK_TIMEOUT,
-      ERROR_CODES.NETWORK_SERVER_ERROR
+      ERROR_CODES.NETWORK_SERVER_ERROR,
+      ERROR_CODES.CANVAS_NETWORK_ERROR,
+      ERROR_CODES.CANVAS_TIMEOUT
     ];
     return retryableCodes.includes(error.code || '');
   },

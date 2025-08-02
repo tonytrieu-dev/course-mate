@@ -100,6 +100,29 @@
     padding: 12px;
   }
   
+  /* Calendar specific mobile improvements */
+  .calendar-container {
+    padding: 8px;
+  }
+  
+  /* Ensure touch targets are proper size on mobile */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Mobile scroll improvements */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  
+  /* Prevent horizontal bounce on iOS */
+  .no-bounce {
+    overscroll-behavior-x: none;
+  }
+}
+  
   /* Optimized text sizes for mobile */
   .text-responsive {
     font-size: 14px;

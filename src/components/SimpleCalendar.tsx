@@ -129,18 +129,18 @@ const EventCard: React.FC<EventCardProps> = React.memo(({
 
   return (
     <div
-      className={`${style.bg} ${style.border} rounded-md p-2 mb-1 shadow-sm cursor-pointer group relative hover:shadow-md transition-all duration-200 ease-in-out`}
+      className={`${style.bg} ${style.border} rounded-md p-2 sm:p-3 mb-1 shadow-sm cursor-pointer group relative hover:shadow-md transition-all duration-200 ease-in-out touch-manipulation min-h-[44px] flex flex-col justify-center`}
       onClick={handleClick}
       title={`${task.title} - ${className}`}
     >
       {/* Edit button */}
       <button
-        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-white/50"
+        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity p-2 rounded hover:bg-white/50 min-h-[32px] min-w-[32px] touch-manipulation"
         onClick={handleEdit}
         aria-label="Edit task"
         type="button"
       >
-        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z" />
         </svg>
       </button>
@@ -307,7 +307,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
           
           {/* Combined Date Picker */}
           {showDatePicker && (
-            <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-80 max-h-96 overflow-y-auto">
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-80 max-w-[90vw] max-h-96 overflow-y-auto">
               <div className="p-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Month and Year</h3>
                 
@@ -380,19 +380,21 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
   }, [showDatePicker]);
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+    <div className="flex flex-col space-y-4 mb-6">
       {/* Title with clickable month/year dials for month view */}
-      {renderDateTitle()}
+      <div className="flex justify-center">
+        {renderDateTitle()}
+      </div>
       
       {/* Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
         {/* View toggle buttons */}
-        <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
+        <div className="flex bg-gray-100 rounded-lg p-1 gap-1 w-full sm:w-auto">
           {viewOptions.map((option) => (
             <button
               key={option.key}
               onClick={() => onViewChange(option.key)}
-              className={getViewButtonClasses(view === option.key)}
+              className={`${getViewButtonClasses(view === option.key)} flex-1 sm:flex-none px-3 py-2 text-sm font-medium min-h-[44px] touch-manipulation`}
               type="button"
             >
               {option.label}
@@ -404,21 +406,21 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
         <div className="flex items-center gap-2">
           <button
             onClick={onPrevious}
-            className={getNavButtonClasses()}
+            className="p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 min-h-[44px] min-w-[44px] touch-manipulation"
             aria-label="Previous period"
             type="button"
           >
-            <svg className={getNavIconClasses()} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-600 hover:text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <button
             onClick={onNext}
-            className={getNavButtonClasses()}
+            className="p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 min-h-[44px] min-w-[44px] touch-manipulation"
             aria-label="Next period"
             type="button"
           >
-            <svg className={getNavIconClasses()} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-600 hover:text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -661,7 +663,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
 
     // Empty cells for days before first of month
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="h-32 sm:h-40 md:h-44"></div>);
+      days.push(<div key={`empty-${i}`} className="h-24 sm:h-32 md:h-40 lg:h-44"></div>);
     }
 
     // Days of month
@@ -688,12 +690,12 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
 
     return (
-      <div className="overflow-x-auto lg:overflow-x-visible">
-        <div className="grid grid-cols-7 gap-0.5 min-w-[320px] sm:min-w-[600px] lg:min-w-[800px]">
+      <div className="overflow-x-auto">
+        <div className="grid grid-cols-7 gap-0.5 min-w-[280px] w-full">
           {getWeekdayHeaders().map((day) => (
-            <div key={day} className="text-center font-bold text-gray-700 py-2 text-xs sm:text-sm md:text-base">
+            <div key={day} className="text-center font-bold text-gray-700 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
               <span className="hidden sm:inline">{day}</span>
-              <span className="sm:hidden">{day.slice(0, 2)}</span>
+              <span className="sm:hidden">{day.slice(0, 1)}</span>
             </div>
           ))}
           {days}
@@ -763,12 +765,12 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
 
     return (
-      <div className="overflow-x-auto lg:overflow-x-visible">
-        <div className="grid grid-cols-7 gap-0.5 min-w-[320px] sm:min-w-[600px] lg:min-w-[800px]">
+      <div className="overflow-x-auto">
+        <div className="grid grid-cols-7 gap-0.5 min-w-[280px] w-full">
           {getWeekdayHeaders().map((day) => (
-            <div key={day} className="text-center font-bold text-gray-700 py-2 text-xs sm:text-sm md:text-base">
+            <div key={day} className="text-center font-bold text-gray-700 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
               <span className="hidden sm:inline">{day}</span>
-              <span className="sm:hidden">{day.slice(0, 2)}</span>
+              <span className="sm:hidden">{day.slice(0, 1)}</span>
             </div>
           ))}
           {days}

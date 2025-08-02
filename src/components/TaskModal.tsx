@@ -119,6 +119,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
             hoveredClassId={taskManagement.hoveredClassId}
             setHoveredClassId={taskManagement.setHoveredClassId}
             onDeleteClass={taskManagement.handleDeleteClass}
+            isAddingClass={taskManagement.isAddingClass}
+            isDeletingClass={taskManagement.isDeletingClass}
           />
 
           <TaskTypeManagement

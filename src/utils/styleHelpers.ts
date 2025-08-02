@@ -2,7 +2,7 @@
 
 // Get day cell classes for calendar - responsive and touch-friendly
 export const getDayCellClasses = (isCurrentMonth: boolean, isToday: boolean): string => {
-  let baseClasses = "flex flex-col justify-start p-1 sm:p-2 border h-32 sm:h-40 md:h-44 relative cursor-pointer transition-all duration-200 ease-in-out touch-manipulation";
+  let baseClasses = "flex flex-col justify-start p-1 sm:p-2 border h-24 sm:h-32 md:h-40 lg:h-44 relative cursor-pointer transition-all duration-200 ease-in-out touch-manipulation";
   
   if (!isCurrentMonth) {
     baseClasses += " bg-gray-50 text-gray-400";

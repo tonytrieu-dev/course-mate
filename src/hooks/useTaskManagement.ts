@@ -31,6 +31,8 @@ export const useTaskManagement = ({
   const [showClassManagement, setShowClassManagement] = useState<boolean>(false);
   const [newClassName, setNewClassName] = useState<string>("");
   const [hoveredClassId, setHoveredClassId] = useState<string | null>(null);
+  const [isAddingClass, setIsAddingClass] = useState<boolean>(false);
+  const [isDeletingClass, setIsDeletingClass] = useState<string | null>(null);
 
   // Task type management state
   const [showTypeInput, setShowTypeInput] = useState<boolean>(false);
@@ -41,6 +43,9 @@ export const useTaskManagement = ({
   const [editingTypeColor, setEditingTypeColor] = useState<string>("blue");
   const [editingTypeCompletedColor, setEditingTypeCompletedColor] = useState<string>("green");
   const [hoveredTypeId, setHoveredTypeId] = useState<string | null>(null);
+  const [isAddingType, setIsAddingType] = useState<boolean>(false);
+  const [isDeletingType, setIsDeletingType] = useState<string | null>(null);
+  const [isUpdatingType, setIsUpdatingType] = useState<string | null>(null);
 
   // Class management handlers
   const handleAddClass = useCallback(async () => {
@@ -49,6 +54,7 @@ export const useTaskManagement = ({
       return;
     }
 
+    setIsAddingClass(true);
     try {
       logger.debug('Adding new class via TaskModal', { className: newClassName, user: !!user });
       
@@ -86,6 +92,8 @@ export const useTaskManagement = ({
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       console.error('Error adding class:', errorMessage);
       alert('Failed to add class. Please try again.');
+    } finally {
+      setIsAddingClass(false);
     }
   }, [newClassName, classes, setClasses, user, isAuthenticated, setTask]);
 
@@ -96,6 +104,7 @@ export const useTaskManagement = ({
     const confirmDelete = window.confirm(`Are you sure you want to delete the class "${classToDelete.name}"? This action cannot be undone.`);
     if (!confirmDelete) return;
 
+    setIsDeletingClass(classId);
     try {
       const success = await deleteClass(classId, isAuthenticated);
       
@@ -116,6 +125,8 @@ export const useTaskManagement = ({
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       console.error('Error deleting class:', errorMessage);
       alert('Failed to delete class. Please try again.');
+    } finally {
+      setIsDeletingClass(null);
     }
   }, [classes, setClasses, task.class, isAuthenticated, setTask]);
 
@@ -126,6 +137,7 @@ export const useTaskManagement = ({
       return;
     }
 
+    setIsAddingType(true);
     try {
       logger.debug('Adding new task type via TaskModal', { typeName: newTypeName, color: newTypeColor });
       
@@ -152,6 +164,8 @@ export const useTaskManagement = ({
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       console.error('Error adding task type:', errorMessage);
       alert('Failed to add task type. Please try again.');
+    } finally {
+      setIsAddingType(false);
     }
   }, [newTypeName, newTypeColor, taskTypes, isAuthenticated, setTaskTypes, user, setTask]);
 
@@ -162,6 +176,7 @@ export const useTaskManagement = ({
     const confirmDelete = window.confirm(`Are you sure you want to delete the task type "${typeToDelete.name}"? This action cannot be undone.`);
     if (!confirmDelete) return;
 
+    setIsDeletingType(typeId);
     try {
       await deleteTaskType(typeId, isAuthenticated);
       setTaskTypes(taskTypes.filter(t => t.id !== typeId));
@@ -176,10 +191,13 @@ export const useTaskManagement = ({
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       console.error('Error deleting task type:', errorMessage);
       alert('Failed to delete task type. Please try again.');
+    } finally {
+      setIsDeletingType(null);
     }
   }, [taskTypes, isAuthenticated, setTaskTypes, task.type, setTask]);
 
   const handleUpdateTaskType = useCallback(async (typeId: string, newColor: string, newCompletedColor: string) => {
+    setIsUpdatingType(typeId);
     try {
       const typeToUpdate = taskTypes.find(t => t.id === typeId);
       if (!typeToUpdate) return;
@@ -203,6 +221,8 @@ export const useTaskManagement = ({
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       console.error('Error updating task type:', errorMessage);
       alert('Failed to update task type. Please try again.');
+    } finally {
+      setIsUpdatingType(null);
     }
   }, [taskTypes, isAuthenticated, setTaskTypes]);
 
@@ -234,6 +254,13 @@ export const useTaskManagement = ({
     setEditingTypeCompletedColor,
     hoveredTypeId,
     setHoveredTypeId,
+    
+    // Loading states
+    isAddingClass,
+    isDeletingClass,
+    isAddingType,
+    isDeletingType,
+    isUpdatingType,
     
     // Handlers
     handleAddClass,

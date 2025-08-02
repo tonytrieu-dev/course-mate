@@ -94,6 +94,41 @@ interface FetchCanvasResult {
   tasks: Partial<TaskInsert>[];
 }
 
+// Retry utility with exponential backoff for Canvas operations
+const retryCanvasOperation = async <T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000,
+  operationName: string = 'Canvas operation'
+): Promise<T> => {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.debug(`[${operationName}] Attempt ${attempt}/${maxRetries}`);
+      return await operation();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+      
+      // Don't retry on certain error types
+      if (!errorHandler.isRetryable(lastError as any)) {
+        logger.debug(`[${operationName}] Error not retryable: ${lastError.message}`);
+        throw lastError;
+      }
+      
+      if (attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        logger.debug(`[${operationName}] Attempt ${attempt} failed, waiting ${delay}ms before retry:`, lastError.message);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        logger.debug(`[${operationName}] All ${maxRetries} attempts failed`);
+      }
+    }
+  }
+  
+  throw lastError!;
+};
+
 // Mock response interface for proxy fallback
 interface MockResponse {
   ok: boolean;
@@ -139,46 +174,95 @@ export const fetchCanvasCalendar = async (
     let response: Response | MockResponse | null = null;
     let lastError: Error | null = null;
 
-    // Primary strategy: Use CORS proxy service for reliable access
+    // Primary strategy: Use CORS proxy service with retry logic
     try {
-      logger.debug("[fetchCanvasCalendar] Using proxy service for Canvas access");
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icsUrl)}`;
-      const proxyResponse = await fetch(proxyUrl);
-      logger.debug("[fetchCanvasCalendar] Proxy fetch completed. Response status:", proxyResponse.status);
-      
-      if (proxyResponse.ok) {
-        const proxyData: ProxyResponse = await proxyResponse.json();
-        if (proxyData.contents) {
-          // Create a response object with the content
-          response = {
-            ok: true,
-            status: 200,
-            text: () => Promise.resolve(proxyData.contents!)
-          };
-          logger.debug("[fetchCanvasCalendar] Successfully retrieved calendar via proxy");
-        } else {
-          throw new Error('No content received from proxy');
+      response = await retryCanvasOperation(async () => {
+        logger.debug("[fetchCanvasCalendar] Using proxy service for Canvas access");
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icsUrl)}`;
+        
+        const proxyResponse = await fetch(proxyUrl, {
+          signal: AbortSignal.timeout(15000) // 15 second timeout
+        });
+        logger.debug("[fetchCanvasCalendar] Proxy fetch completed. Response status:", proxyResponse.status);
+        
+        // Check for rate limiting
+        if (proxyResponse.status === 429) {
+          throw errorHandler.canvas.rateLimited({ 
+            service: 'proxy',
+            retryAfter: proxyResponse.headers.get('Retry-After') || 'unknown'
+          });
         }
-      } else {
-        throw new Error(`Proxy service failed: ${proxyResponse.status}`);
-      }
+        
+        if (!proxyResponse.ok) {
+          if (proxyResponse.status >= 500) {
+            throw errorHandler.canvas.networkError({ 
+              status: proxyResponse.status,
+              service: 'proxy'
+            });
+          }
+          throw new Error(`Proxy service failed: ${proxyResponse.status}`);
+        }
+        
+        const proxyData: ProxyResponse = await proxyResponse.json();
+        if (!proxyData.contents) {
+          throw errorHandler.canvas.emptyFeed({ service: 'proxy' });
+        }
+        
+        // Create a response object with the content
+        return {
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve(proxyData.contents!)
+        };
+      }, 3, 1000, 'Canvas proxy fetch');
+      
+      logger.debug("[fetchCanvasCalendar] Successfully retrieved calendar via proxy");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.debug("[fetchCanvasCalendar] Proxy strategy failed:", errorMessage);
       lastError = error instanceof Error ? error : new Error('Proxy error');
       
-      // Fallback: Try direct fetch as secondary option
+      // Fallback: Try direct fetch with retry logic
       try {
-        logger.debug("[fetchCanvasCalendar] Trying direct fetch as fallback");
-        response = await fetch(icsUrl, {
-          method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Accept': 'text/calendar,text/plain,*/*'
-          },
-          credentials: 'omit',
-          cache: 'no-cache'
-        });
+        response = await retryCanvasOperation(async () => {
+          logger.debug("[fetchCanvasCalendar] Trying direct fetch as fallback");
+          const directResponse = await fetch(icsUrl, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+              'Accept': 'text/calendar,text/plain,*/*',
+              'User-Agent': 'ScheduleBud-Calendar-Sync/1.0'
+            },
+            credentials: 'omit',
+            cache: 'no-cache',
+            signal: AbortSignal.timeout(10000) // 10 second timeout
+          });
+          
+          if (directResponse.status === 429) {
+            throw errorHandler.canvas.rateLimited({ 
+              service: 'direct',
+              retryAfter: directResponse.headers.get('Retry-After') || 'unknown'
+            });
+          }
+          
+          if (!directResponse.ok) {
+            if (directResponse.status >= 500) {
+              throw errorHandler.canvas.networkError({ 
+                status: directResponse.status,
+                service: 'direct'
+              });
+            }
+            if (directResponse.status === 403 || directResponse.status === 401) {
+              throw errorHandler.canvas.accessDenied({ 
+                status: directResponse.status,
+                service: 'direct'
+              });
+            }
+          }
+          
+          return directResponse;
+        }, 2, 2000, 'Canvas direct fetch');
+        
         logger.debug("[fetchCanvasCalendar] Direct fetch completed. Response status:", response.status);
       } catch (directError) {
         const directErrorMessage = directError instanceof Error ? directError.message : 'Unknown error';
@@ -210,23 +294,64 @@ export const fetchCanvasCalendar = async (
     logger.debug("[fetchCanvasCalendar] response.text() completed.");
     logger.debug("[fetchCanvasCalendar] Raw response preview:", rawText.substring(0, 200) + (rawText.length > 200 ? "..." : ""));
     
+    // Validate we got some content
+    if (!rawText || rawText.trim().length === 0) {
+      throw errorHandler.canvas.emptyFeed({ 
+        reason: 'Empty response from Canvas',
+        responseLength: rawText?.length || 0
+      });
+    }
+    
     // Handle base64-encoded ICS data from Canvas
     let icsText = rawText;
     if (rawText.startsWith('data:text/calendar') && rawText.includes('base64,')) {
       logger.debug("[fetchCanvasCalendar] Detected base64-encoded ICS data, decoding...");
       const base64Data = rawText.split('base64,')[1];
+      if (!base64Data) {
+        throw errorHandler.canvas.malformedData({ 
+          reason: 'Invalid base64 format in Canvas response'
+        });
+      }
+      
       try {
         icsText = atob(base64Data);
         logger.debug("[fetchCanvasCalendar] Successfully decoded base64 ICS data");
         logger.debug("[fetchCanvasCalendar] Decoded ICS preview:", icsText.substring(0, 500) + (icsText.length > 500 ? "..." : ""));
       } catch (error) {
         logger.error("[fetchCanvasCalendar] Failed to decode base64 ICS data:", error);
-        throw new Error('Failed to decode Canvas ICS data');
+        throw errorHandler.canvas.malformedData({ 
+          reason: 'Failed to decode base64 ICS data',
+          originalError: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     }
     
-    const events = parseICS(icsText);
-    logger.debug(`[fetchCanvasCalendar] parseICS completed. Found ${events.length} events.`);
+    // Basic ICS format validation
+    if (!icsText.includes('BEGIN:VCALENDAR')) {
+      throw errorHandler.canvas.malformedData({ 
+        reason: 'Response does not appear to be valid ICS calendar data',
+        contentPreview: icsText.substring(0, 200)
+      });
+    }
+    
+    let events: CanvasEvent[];
+    try {
+      events = parseICS(icsText);
+      logger.debug(`[fetchCanvasCalendar] parseICS completed. Found ${events.length} events.`);
+    } catch (error) {
+      logger.error("[fetchCanvasCalendar] Failed to parse ICS data:", error);
+      throw errorHandler.canvas.parseError({ 
+        reason: 'Failed to parse ICS calendar format',
+        originalError: error instanceof Error ? error.message : 'Unknown error',
+        contentLength: icsText.length
+      });
+    }
+    
+    // Check if we actually got events
+    if (events.length === 0) {
+      // This is actually okay - Canvas might just have no upcoming events
+      logger.debug("[fetchCanvasCalendar] No events found in Canvas calendar");
+    }
     
     // Debug each parsed event
     events.forEach((event, index) => {
@@ -421,14 +546,18 @@ export const fetchCanvasCalendar = async (
 
 function parseICS(icsData: string): CanvasEvent[] {
   const events: CanvasEvent[] = [];
-  const lines = icsData.replace(/\r\n/g, '\n').split('\n');
-  let currentEvent: CanvasEvent | null = null;
   
-  logger.debug(`[parseICS] Processing ${lines.length} lines of ICS data`);
-  logger.debug(`[parseICS] First 10 lines:`, lines.slice(0, 10));
+  try {
+    const lines = icsData.replace(/\r\n/g, '\n').split('\n');
+    let currentEvent: CanvasEvent | null = null;
+    let lineNumber = 0;
+    
+    logger.debug(`[parseICS] Processing ${lines.length} lines of ICS data`);
+    logger.debug(`[parseICS] First 10 lines:`, lines.slice(0, 10));
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    for (let i = 0; i < lines.length; i++) {
+      lineNumber = i + 1;
+      const line = lines[i].trim();
 
     if (line === 'BEGIN:VEVENT') {
       logger.debug(`[parseICS] Found VEVENT start at line ${i + 1}`);
@@ -501,12 +630,22 @@ function parseICS(icsData: string): CanvasEvent[] {
       logger.error(`[parseICS] Response appears to contain an error:`, icsData.substring(0, 300));
     }
     
-    // Count VEVENT blocks manually
+    // Count VEVENT blocks manually for validation
     const veventCount = (icsData.match(/BEGIN:VEVENT/g) || []).length;
     logger.debug(`[parseICS] Manual count of VEVENT blocks: ${veventCount}`);
+    
+    // Validate parsing results
+    if (veventCount > 0 && events.length === 0) {
+      logger.warn(`[parseICS] Found ${veventCount} VEVENT blocks but parsed 0 events - possible parsing issue`);
+    }
   }
   
   return events;
+    
+  } catch (error) {
+    logger.error(`[parseICS] Error parsing ICS data:`, error);
+    throw new Error(`ICS parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 function parseICSDate(dateString: string): Date {

@@ -8,6 +8,7 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0); // Default first FAQ open
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -156,77 +157,116 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       </nav>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="text-center lg:text-left">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Built for students,{' '}
-              <span className="text-blue-600">by a student</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8">
-              Let me make this app better with your feedback!
-            </p>
-            
-            {/* Benefit Bullets */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-8">
-              <div className="flex items-center text-gray-700">
-                <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="font-medium">Save hours weekly</span>
-              </div>
-              <div className="flex items-center text-gray-700">
-                <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="font-medium">Sync with Canvas</span>
-              </div>
-              <div className="flex items-center text-gray-700">
-                <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="font-medium">Free forever plan</span>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button
-                text="Try ScheduleBud Free"
-                onClick={() => {
-                  trackEvent('get_started_clicked', { location: 'hero' });
-                  onGetStarted();
-                }}
-                size="lg"
-                ariaLabel="Start using ScheduleBud for free"
-                className="shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                dataTestId="hero-get-started-btn"
-              />
-              <Button
-                text="See How It Works"
-                variant="outline"
-                size="lg"
-                href="#features"
-                ariaLabel="Learn about ScheduleBud features"
-                dataTestId="hero-demo-btn"
-              />
-            </div>
-            <p className="text-sm text-gray-500 mt-4">
-              Free forever plan available • No credit card required
-            </p>
+      <section className="relative overflow-hidden">
+        {/* Background gradient with subtle pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+          <div className="absolute inset-0 bg-white/30"></div>
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute top-10 left-10 w-72 h-72 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
+            <div className="absolute top-20 right-10 w-72 h-72 bg-indigo-100 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse" style={{animationDelay: '2s'}}></div>
+            <div className="absolute bottom-10 left-1/2 w-72 h-72 bg-purple-100 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse" style={{animationDelay: '4s'}}></div>
           </div>
-          
-          {/* Hero Visual */}
-          <div className="text-center lg:text-right">
-            <div className="bg-gradient-to-br from-blue-100 to-indigo-200 rounded-2xl p-8 shadow-lg">
-              <img 
-                src="/api/placeholder/600/400" 
-                alt="ScheduleBud app interface showing Canvas integration and task management" 
-                className="w-full h-80 object-cover rounded-lg shadow-md"
-                loading="lazy"
-              />
-              <p className="text-sm text-gray-600 mt-4 italic">
-                See ScheduleBud in action - Canvas sync, AI assistance, and study analytics
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="text-center lg:text-left">
+              {/* Badge */}
+              <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-6 border border-blue-200">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Built for students, by a student
+              </div>
+              
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+                Stop Drowning in 
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600"> Deadlines</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed">
+                ScheduleBud was built to sync with Canvas, track your assignments, and help you build smarter study habits. Go from overwhelmed to on top of your work.
               </p>
+              
+              {/* Enhanced Benefit Bullets */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 mb-10">
+                <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm border border-green-100">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-gray-700">Save hours weekly</span>
+                </div>
+                <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm border border-blue-100">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-gray-700">Sync with Canvas</span>
+                </div>
+                <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm border border-purple-100">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-gray-700">Free forever plan</span>
+                </div>
+              </div>
+              
+              {/* Enhanced CTAs */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
+                <Button
+                  text="Try ScheduleBud for Free"
+                  onClick={() => {
+                    trackEvent('get_started_clicked', { location: 'hero' });
+                    onGetStarted();
+                  }}
+                  size="lg"
+                  ariaLabel="Start using ScheduleBud for free"
+                  className="shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  dataTestId="hero-get-started-btn"
+                />
+                <Button
+                  text="See How It Works"
+                  variant="outline"
+                  size="lg"
+                  href="#features"
+                  ariaLabel="Learn about ScheduleBud features"
+                  className="border-2 border-gray-300 hover:border-blue-300 bg-white/80 backdrop-blur-sm hover:bg-blue-50 transform hover:-translate-y-0.5 transition-all duration-200"
+                  dataTestId="hero-demo-btn"
+                />
+              </div>
+              <p className="text-sm text-gray-500 flex items-center justify-center lg:justify-start">
+                <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Free forever plan available • No credit card required
+              </p>
+            </div>
+            
+            {/* Enhanced Hero Visual */}
+            <div className="text-center lg:text-right">
+              <div className="relative">
+                {/* Floating elements */}
+                <div className="absolute -top-4 -left-4 w-16 h-16 bg-yellow-200 rounded-lg rotate-12 opacity-80 shadow-lg"></div>
+                <div className="absolute -top-2 -right-2 w-12 h-12 bg-green-200 rounded-full opacity-80 shadow-lg animate-bounce"></div>
+                <div className="absolute bottom-4 -left-2 w-8 h-8 bg-pink-200 rounded-lg -rotate-12 opacity-80 shadow-lg"></div>
+                
+                <div className="relative bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-2xl p-8 shadow-2xl border border-white/50 backdrop-blur-sm">
+                  <img 
+                    src="/api/placeholder/600/400" 
+                    alt="ScheduleBud app interface showing Canvas integration and task management" 
+                    className="w-full h-80 object-cover rounded-xl shadow-lg border border-white/20"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-xl"></div>
+                  <p className="text-sm text-gray-600 mt-6 italic font-medium">
+                    ✨ See ScheduleBud in action - Canvas sync, AI assistance, and study analytics
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -294,148 +334,344 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
+      {/* Early Adopter Section */}
+      <section className="py-20 bg-gradient-to-br from-indigo-50 to-blue-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+            Become a Founding Member & Help Shape the Future of ScheduleBud
+          </h2>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            ScheduleBud is brand new, and I'm looking for a handful of students to help me build the ultimate productivity tool. As an early adopter, you'll get direct access to me, your feedback will be prioritized, and you'll get the Student Plan free for a full year.
+          </p>
+          <Button
+            text="Request Early Access"
+            variant="primary"
+            size="lg"
+            href="#feedback-form"
+            ariaLabel="Request early access to ScheduleBud"
+            className="shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            dataTestId="early-access-btn"
+          />
+        </div>
+      </section>
+
       {/* Solution Features */}
-      <section id="features" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              What I built to solve these problems
+      <section id="features" className="py-20 bg-gray-50 relative">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-6 border border-blue-200">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+              Real features that actually work
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              The Tools I Built to Stay Organized
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              As a student developer, I understand because I live it. Here's what I built to 
-              make student life actually manageable.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              As a college student, I understand the struggles of college because I've lived through them. These are the tools I built to make them more manageable.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
             {/* Canvas Integration - Priority Feature */}
-            <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div className="text-center mb-4">
-                <img 
-                  src="/api/placeholder/300/150" 
-                  alt="Canvas Auto-Import feature showing assignment synchronization" 
-                  className="w-full h-32 object-cover rounded-lg mb-4"
-                  loading="lazy"
-                />
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-blue-200 transform hover:-translate-y-2">
+              {/* Priority badge */}
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-orange-400 to-red-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                MVP 🔥 
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+              
+              <div className="text-center mb-6">
+                <div className="relative overflow-hidden rounded-xl">
+                  <img 
+                    src="/api/placeholder/300/150" 
+                    alt="Canvas Auto-Import feature showing assignment synchronization" 
+                    className="w-full h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-600/20 to-transparent rounded-xl"></div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Canvas Auto-Import</h3>
-              <p className="text-gray-600 mb-4">
-                Sync Canvas assignments automatically
+              
+              <div className="flex items-center mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">Never Manually Enter an Assignment Again</h3>
+                  <span className="text-sm text-blue-600 font-medium">Canvas Integration</span>
+                </div>
+              </div>
+              
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Connect Canvas in seconds and watch all your due dates automatically populate your calendar. This feature alone saves me hours every month.
               </p>
-              <div className="text-sm text-blue-600 font-medium">
-                ✓ Automatic assignment import<br/>
-                ✓ Due date synchronization<br/>
-                ✓ Smart duplicate detection
+              
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Automatic assignment import</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Due date synchronization</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Smart duplicate detection</span>
+                </div>
               </div>
             </div>
 
 
             {/* Study Analytics - Priority Feature */}
-            <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div className="text-center mb-4">
-                <img 
-                  src="/api/placeholder/300/150" 
-                  alt="Study Analytics dashboard showing performance insights and study patterns" 
-                  className="w-full h-32 object-cover rounded-lg mb-4"
-                  loading="lazy"
-                />
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-green-200 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="relative overflow-hidden rounded-xl">
+                  <img 
+                    src="/api/placeholder/300/150" 
+                    alt="Study Analytics dashboard showing performance insights and study patterns" 
+                    className="w-full h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-green-600/20 to-transparent rounded-xl"></div>
+                </div>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+              
+              <div className="flex items-center mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-100 to-green-200 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-green-600 transition-colors">Study Analytics</h3>
+                  <span className="text-sm text-green-600 font-medium">Performance Insights</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Study Analytics</h3>
-              <p className="text-gray-600 mb-4">
+              
+              <p className="text-gray-600 mb-6 leading-relaxed">
                 Track study patterns and see what actually works
               </p>
-              <div className="text-sm text-green-600 font-medium">
-                ✓ Study session tracking<br/>
-                ✓ Performance insights<br/>
-                ✓ Time allocation analysis
+              
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Study session tracking</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Performance insights</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Time allocation analysis</span>
+                </div>
               </div>
             </div>
 
             {/* Grade Management */}
-            <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div className="text-center mb-4">
-                <img 
-                  src="/api/placeholder/300/150" 
-                  alt="Grade tracking dashboard with GPA calculation and performance trends" 
-                  className="w-full h-32 object-cover rounded-lg mb-4"
-                  loading="lazy"
-                />
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-yellow-200 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="relative overflow-hidden rounded-xl">
+                  <img 
+                    src="/api/placeholder/300/150" 
+                    alt="Grade tracking dashboard with GPA calculation and performance trends" 
+                    className="w-full h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-yellow-600/20 to-transparent rounded-xl"></div>
+                </div>
               </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
+              
+              <div className="flex items-center mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-yellow-600 transition-colors">Grade Tracking</h3>
+                  <span className="text-sm text-yellow-600 font-medium">GPA & Performance</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Grade Tracking</h3>
-              <p className="text-gray-600 mb-4">
+              
+              <p className="text-gray-600 mb-6 leading-relaxed">
                 Keep tabs on your GPA in real-time
               </p>
-              <div className="text-sm text-yellow-600 font-medium">
-                ✓ Real-time GPA calculation<br/>
-                ✓ Grade category tracking<br/>
-                ✓ Performance trends
+              
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Real-time GPA calculation</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Grade category tracking</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Performance trends</span>
+                </div>
               </div>
             </div>
 
             {/* Cross-Platform */}
-            <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div className="text-center mb-4">
-                <img 
-                  src="/api/placeholder/300/150" 
-                  alt="Cross-platform compatibility showing web and desktop apps in sync" 
-                  className="w-full h-32 object-cover rounded-lg mb-4"
-                  loading="lazy"
-                />
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-indigo-200 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="relative overflow-hidden rounded-xl">
+                  <img 
+                    src="/api/placeholder/300/150" 
+                    alt="Cross-platform compatibility showing web and desktop apps in sync" 
+                    className="w-full h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-indigo-600/20 to-transparent rounded-xl"></div>
+                </div>
               </div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+              
+              <div className="flex items-center mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">Works Everywhere</h3>
+                  <span className="text-sm text-indigo-600 font-medium">Cross-Platform Sync</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Works Everywhere</h3>
-              <p className="text-gray-600 mb-4">
+              
+              <p className="text-gray-600 mb-6 leading-relaxed">
                 Access your tasks from any device, anywhere
               </p>
-              <div className="text-sm text-indigo-600 font-medium">
-                ✓ Works on phone, tablet, laptop<br/>
-                ✓ Real-time sync<br/>
-                ✓ No app downloads needed
+              
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Works on phone, tablet, laptop</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Real-time sync</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">No app downloads needed</span>
+                </div>
               </div>
             </div>
 
             {/* File Management */}
-            <div className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div className="text-center mb-4">
-                <img 
-                  src="/api/placeholder/300/150" 
-                  alt="File organization system with syllabi and class materials" 
-                  className="w-full h-32 object-cover rounded-lg mb-4"
-                  loading="lazy"
-                />
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-red-200 transform hover:-translate-y-2">
+              <div className="text-center mb-6">
+                <div className="relative overflow-hidden rounded-xl">
+                  <img 
+                    src="/api/placeholder/300/150" 
+                    alt="File organization system with syllabi and class materials" 
+                    className="w-full h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent rounded-xl"></div>
+                </div>
               </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.239 0-4.236-.906-5.672-2.372M6.343 17.657l-.707.707A1 1 0 004.222 17.95l.707-.707m-.707-8.486l.707-.707a1 1 0 011.414 1.414l-.707.707m7.072 0l.707-.707a1 1 0 011.414 1.414l-.707.707m-.707 8.486l.707.707a1 1 0 01-1.414 1.414l-.707-.707" />
-                </svg>
+              
+              <div className="flex items-center mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.239 0-4.236-.906-5.672-2.372M6.343 17.657l-.707.707A1 1 0 004.222 17.95l.707-.707m-.707-8.486l.707-.707a1 1 0 011.414 1.414l-.707.707m7.072 0l.707-.707a1 1 0 011.414 1.414l-.707.707m-.707 8.486l.707.707a1 1 0 01-1.414 1.414l-.707-.707" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-red-600 transition-colors">File Organization</h3>
+                  <span className="text-sm text-red-600 font-medium">Document Management</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">File Organization</h3>
-              <p className="text-gray-600 mb-4">
+              
+              <p className="text-gray-600 mb-6 leading-relaxed">
                 Upload syllabi and organize class files
               </p>
-              <div className="text-sm text-red-600 font-medium">
-                ✓ Syllabus management<br/>
-                ✓ File organization by class<br/>
-                ✓ Quick access to materials
+              
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Syllabus management</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">File organization by class</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-700">
+                  <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Quick access to materials</span>
+                </div>
               </div>
             </div>
           </div>
@@ -443,34 +679,93 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       </section>
 
       {/* About the Developer */}
-      <section id="about" className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
-            Built for students, by a student
+      <section id="about" className="py-20 bg-white relative overflow-hidden">
+        {/* Background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-100 rounded-full opacity-20 animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-48 h-48 bg-indigo-100 rounded-full opacity-20 animate-pulse" style={{animationDelay: '1s'}}></div>
+        </div>
+        
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-6 border border-green-200">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            Made with genuine student struggles
+          </div>
+          
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+            I Built ScheduleBud To Save Me Time and Energy
           </h2>
-          <div className="bg-gray-50 rounded-2xl p-8 mb-8">
-            <img 
-              src="/api/placeholder/150/150" 
-              alt="Student developer profile photo" 
-              className="w-24 h-24 rounded-full mx-auto mb-6 object-cover shadow-md"
-            />
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              I'm a student who built ScheduleBud to escape Sunday-night Canvas chaos. 
-              I use it daily, and your feedback shapes its future.
-            </p>
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              <strong>Every feature exists because I needed it for my own academic success.</strong> 
-              This is the app I wish I had my first year, and I'm constantly improving it 
-              based on real student experiences.
-            </p>
-            <div className="mt-8">
+          
+          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-3xl p-8 lg:p-12 mb-8 shadow-lg border border-gray-100">
+            <div className="grid lg:grid-cols-3 gap-8 items-center">
+              {/* Developer Photo */}
+              <div className="text-center lg:text-left">
+                <div className="relative inline-block">
+                  <img 
+                    src="/api/placeholder/150/150" 
+                    alt="Photo of [Your Name], the student developer behind ScheduleBud" 
+                    className="w-32 h-32 rounded-full mx-auto lg:mx-0 object-cover shadow-lg border-4 border-white"
+                  />
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="mt-4 lg:mt-6">
+                  <h3 className="text-xl font-bold text-gray-900">[Your Name]</h3>
+                  <p className="text-blue-600 font-medium">Student Developer</p>
+                  <div className="flex justify-center lg:justify-start space-x-2 mt-2">
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">CS Student</span>
+                    <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Problem Solver</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Story Content */}
+              <div className="lg:col-span-2 text-left">
+                <div className="space-y-6">
+                  <blockquote className="text-lg lg:text-xl text-gray-700 leading-relaxed font-medium italic border-l-4 border-blue-500 pl-6">
+                    "I was constantly overwhelmed. My grades were slipping because I'd forget assignments buried in Canvas notifications."
+                  </blockquote>
+                  
+                  <p className="text-gray-700 leading-relaxed">
+                    I built the first version of ScheduleBud for myself, and the change was immediate: I stopped missing deadlines and had a clear view of my entire semester. Now, I'm opening it up to other students who are tired of the chaos.
+                  </p>
+                  
+                  {/* Impact stats */}
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 text-center">
+                      <div className="text-2xl font-bold text-blue-600">100%</div>
+                      <div className="text-sm text-gray-600">Authentic Experience</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 text-center">
+                      <div className="text-2xl font-bold text-green-600">0</div>
+                      <div className="text-sm text-gray-600">Missed Deadlines</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 text-center lg:col-span-1 col-span-2">
+                      <div className="text-2xl font-bold text-purple-600">Hours</div>
+                      <div className="text-sm text-gray-600">Saved Weekly</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-10 text-center">
               <Button
                 text="Share Your Feedback"
                 variant="primary"
                 href="#feedback-form"
                 ariaLabel="Share feedback about ScheduleBud"
+                className="shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
                 dataTestId="feedback-cta-btn"
               />
+              <p className="text-sm text-gray-500 mt-3">
+                I read every message and prioritize based on real student needs
+              </p>
             </div>
           </div>
         </div>
@@ -484,8 +779,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               Your feedback shapes ScheduleBud
             </h2>
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-              I read every message and prioritize features based on real student needs. 
-              Help me build better by sharing your experiences.
+              I read every message and prioritize features based on real student needs.
+              Help me make ScheduleBud better by sharing your experiences.
             </p>
           </div>
 
@@ -511,7 +806,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Rapid Response</h3>
               <p className="text-gray-600 text-sm">
-                Direct line from your feedback to implementation - no corporate committees
+                Direct line from your feedback to implementation - no corporate committees, VCs, or shareholders
               </p>
             </div>
 
@@ -813,27 +1108,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Google Calendar Integration */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Google Calendar Sync</h3>
-              <p className="text-gray-600 text-sm mb-3">
-                Two-way sync with Google Calendar for seamless scheduling
-              </p>
-              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                Coming Soon
-              </span>
-            </div>
-            
             {/* Group Study Tools */}
             <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Group Study Tools</h3>
@@ -841,41 +1120,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 Coordinate study sessions and share notes with classmates
               </p>
               <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                Q2 2025
+                End of August, 2025
               </span>
             </div>
-            
-            {/* Mobile App */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Native Mobile App</h3>
-              <p className="text-gray-600 text-sm mb-3">
-                iOS and Android apps for on-the-go task management
-              </p>
-              <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                Q3 2025
-              </span>
-            </div>
-            
-            {/* Gamification */}
-            <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Study Streaks & Rewards</h3>
-              <p className="text-gray-600 text-sm mb-3">
-                Gamified experience with streaks, achievements, and rewards
-              </p>
-              <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                In Development
-              </span>
-            </div>
+    
             
             {/* Smart Reminders */}
             <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2">
@@ -889,7 +1137,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 AI-powered reminders based on your study patterns and deadlines
               </p>
               <span className="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-                Q4 2025
+                Sometime in 2026
               </span>
             </div>
             
@@ -905,7 +1153,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 Create tasks and notes by voice while walking between classes
               </p>
               <span className="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">
-                2026
+                Sometime in 2026
               </span>
             </div>
           </div>
@@ -932,39 +1180,69 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           {/* FAQ */}
           <div id="faq">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Frequently Asked Questions</h2>
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Is my Canvas data safe?</h3>
-                <p className="text-gray-600">
-                  Absolutely. We only read your calendar data to import assignments. We never access grades, 
-                  messages, or any other Canvas data, and everything is encrypted and stored securely.
-                </p>
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-800 mb-6 border border-gray-200">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Honest answers from a real student
               </div>
-              
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">How long does setup take?</h3>
-                <p className="text-gray-600">
-                  Less than 5 minutes! Just sign up, connect your Canvas calendar URL, and watch your 
-                  assignments sync automatically. No complicated configuration needed.
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">What if my university doesn't use Canvas?</h3>
-                <p className="text-gray-600">
-                  ScheduleBud works great even without Canvas! You can manually add tasks and still benefit 
-                  from AI study assistance, grade tracking, and analytics. Canvas integration is just one feature.
-                </p>
-              </div>
-              
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Can I cancel my Pro subscription anytime?</h3>
-                <p className="text-gray-600">
-                  Yes! Cancel anytime with one click. If you cancel, you'll keep Pro features until the end 
-                  of your billing period, then automatically switch to the free plan.
-                </p>
-              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">A Few Honest Questions</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Real questions I get asked, with real answers from someone who actually uses this stuff.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              {[
+                {
+                  question: "Is this just another planner app?",
+                  answer: "No. ScheduleBud is a system designed specifically for the chaos of college. It's built around the reality of Canvas integration and the need to connect your study habits directly to your grades, something generic planners don't do."
+                },
+                {
+                  question: "Why is it \"by a student\"?",
+                  answer: "Because big companies don't understand our workflow. They don't live with the Sunday-night dread of copying assignments. I built this because I live this reality, and I'm committed to solving problems that real students face, not what a corporate team thinks we need."
+                },
+                {
+                  question: "What does it mean to be an early adopter?",
+                  answer: "It means you get to help build the tool you've always wanted. I read and respond to all feedback personally. Your suggestions will directly influence the roadmap, and you'll get a free year of the premium plan as a thank you for your help."
+                }
+              ].map((faq, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                  <button
+                    className="w-full px-6 py-5 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset hover:bg-gray-50 transition-colors"
+                    onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                    aria-expanded={openFaqIndex === index}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900 pr-4">{faq.question}</h3>
+                      <div className="flex-shrink-0">
+                        <svg 
+                          className={`w-5 h-5 text-gray-500 transform transition-transform duration-200 ${openFaqIndex === index ? 'rotate-180' : ''}`} 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+                  <div className={`transition-all duration-300 ease-in-out ${openFaqIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
+                    <div className="px-6 pb-5">
+                      <div className="border-t border-gray-100 pt-4">
+                        <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-center mt-8">
+              <p className="text-gray-500 text-sm">
+                Have more questions? <a href="#feedback-form" className="text-blue-600 hover:text-blue-700 font-medium">Ask me directly</a>
+              </p>
             </div>
           </div>
         </div>
