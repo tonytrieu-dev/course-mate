@@ -189,7 +189,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
         key={index}
         className={`p-2 rounded-lg text-sm max-w-[85%] break-words transition-all duration-200 ${msg.role === 'user'
             ? 'bg-blue-500 text-white self-end ml-auto'
-            : 'bg-gray-200 text-gray-800 self-start mr-auto'
+            : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 self-start mr-auto'
           }`}
       >
         {msg.content}
@@ -203,14 +203,14 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
     if (referencedClasses.length === 0) return null;
 
     return (
-      <div className="px-3 py-2 bg-blue-50 border-b border-blue-200">
+      <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
         <div className="flex items-center space-x-2">
-          <span className="text-blue-600 text-xs font-medium">Context:</span>
+          <span className="text-blue-600 dark:text-blue-400 text-xs font-medium">Context:</span>
           <div className="flex flex-wrap gap-1">
             {referencedClasses.map((classObj, index) => (
               <span
                 key={classObj.id}
-                className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                className="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded-full"
               >
                 @{classObj.name}
               </span>
@@ -226,7 +226,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
   return (
     <div
       ref={chatbotRef}
-      className="fixed bg-white border border-gray-200 rounded-xl shadow-xl z-50 flex flex-col animate-scaleIn backdrop-blur-sm"
+      className="fixed bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl dark:shadow-slate-900/40 z-50 flex flex-col animate-scaleIn backdrop-blur-sm"
       role="dialog"
       aria-label="Class Chatbot"
       aria-modal="true"
@@ -241,24 +241,24 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
     >
       {/* Resize Handle */}
       <div
-        className="h-1 bg-gray-200 hover:bg-gray-300 cursor-ns-resize flex items-center justify-center rounded-t-lg"
+        className="h-1 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 cursor-ns-resize flex items-center justify-center rounded-t-lg"
         onMouseDown={handleResizeStart}
         role="separator"
         aria-label="Resize panel"
         aria-orientation="horizontal"
         tabIndex={0}
       >
-        <div className="w-8 h-1 bg-gray-400 rounded-full"></div>
+        <div className="w-8 h-1 bg-gray-400 dark:bg-slate-500 rounded-full"></div>
       </div>
 
       {/* Header */}
       <div 
-        className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50 rounded-t-lg cursor-move"
+        className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 rounded-t-lg cursor-move"
         onMouseDown={handleDragStart}
       >
         <div className="flex items-center space-x-2">
           <span className="text-gray-600 text-base">🤖</span>
-          <span className="text-gray-700 text-sm font-medium">Class Chatbot</span>
+          <span className="text-gray-700 dark:text-slate-200 text-sm font-medium">Class Chatbot</span>
           {mentionHook.mentionState.hasValidMentions && (
             <span className="text-blue-600 text-xs bg-blue-100 px-2 py-1 rounded-full">
               @{mentionHook.mentionState.referencedClasses.length}
@@ -269,7 +269,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
           {chatHistory.length > 0 && (
             <button
               onClick={clearChatHistory}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-all duration-200 px-2 py-1 rounded hover:bg-gray-200"
+              className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-all duration-200 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
               title="Clear conversation"
               type="button"
             >
@@ -278,7 +278,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
           )}
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-all duration-200 p-1 rounded hover:bg-gray-200"
+            className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-all duration-200 p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700"
             title="Close chatbot"
             type="button"
           >
@@ -293,28 +293,28 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       {/* Chat Content */}
       <div 
         ref={chatContentRef}
-        className="flex-1 overflow-y-auto p-3 space-y-2"
+        className="flex-1 overflow-y-auto p-3 space-y-2 dark:bg-slate-800/50"
         role="log"
         aria-label="Chat history"
         aria-live="polite"
       >
         {chatMessages}
         {isChatLoading && (
-          <div className="bg-gray-200 text-gray-800 p-2 rounded-lg text-sm max-w-[85%] animate-pulse">
+          <div className="bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-200 p-2 rounded-lg text-sm max-w-[85%] animate-pulse">
             <div className="flex items-center space-x-2">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-gray-400 dark:bg-slate-500 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
               </div>
-              <span className="text-gray-500 text-xs">Thinking...</span>
+              <span className="text-gray-500 dark:text-slate-400 text-xs">Thinking...</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Input Form */}
-      <div className="p-3 border-t border-gray-200 bg-gray-50">
+      <div className="p-3 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50">
         <form onSubmit={handleAskChatbot} className="flex items-end gap-2">
           <div
             contentEditable
@@ -325,7 +325,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
             role="textbox"
             aria-label="Chat message input"
             aria-multiline="true"
-            className={`flex-1 py-2 px-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 ${!chatQuery.trim() ? 'empty-placeholder' : ''}`}
+            className={`flex-1 py-2 px-3 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 ${!chatQuery.trim() ? 'empty-placeholder' : ''}`}
             style={{ 
               minHeight: '38px',
               maxHeight: '90px',

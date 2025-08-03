@@ -419,56 +419,63 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
   }, [showDatePicker]);
 
   return (
-    <div className="flex flex-col space-y-4 mb-6">
-      {/* Title with clickable month/year dials - centered */}
-      <div className="flex justify-center">
-        {renderDateTitle()}
-      </div>
-      
-      {/* Controls - right aligned */}
-      <div className="flex flex-col sm:flex-row justify-center sm:justify-end items-center gap-3 sm:gap-4">
-        {/* View toggle buttons */}
-        <div 
-          className="flex bg-gray-100 dark:bg-slate-700/50 rounded-lg p-1 gap-2 sm:gap-3 w-full sm:w-auto max-w-xs sm:max-w-none border border-gray-200 dark:border-slate-600/30"
-          role="group"
-          aria-label="Calendar view options"
-        >
-          {viewOptions.map((option) => (
-            <button
-              key={option.key}
-              onClick={() => onViewChange(option.key)}
-              className={`${getViewButtonClasses(view === option.key)} flex-1 sm:flex-none px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[40px] sm:min-h-[44px] touch-manipulation`}
-              type="button"
-              aria-pressed={view === option.key}
-              aria-label={`Switch to ${option.label.toLowerCase()} view`}
-            >
-              {option.label}
-            </button>
-          ))}
+    <div className="mb-6">
+      {/* Single row layout with title and controls aligned */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+        {/* Title - moved to align with controls */}
+        <div className="flex justify-center sm:justify-start">
+          {renderDateTitle()}
         </div>
         
-        {/* Navigation arrows */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={onPrevious}
-            className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 active:bg-gray-200 dark:active:bg-slate-600/50 transition-colors duration-200 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] touch-manipulation border border-gray-200 dark:border-slate-600/30 bg-white dark:bg-slate-800/50"
-            aria-label="Previous period"
-            type="button"
+        {/* Controls - hover-only visibility with proper trigger area */}
+        <div className="group relative">
+          {/* Invisible hover area to trigger controls - non-clickable */}
+          <div className="absolute -inset-4 rounded-lg pointer-events-none"></div>
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {/* View toggle buttons */}
+          <div 
+            className="flex bg-gray-100 dark:bg-slate-700/50 rounded-lg p-1 gap-2 sm:gap-3 w-full sm:w-auto max-w-xs sm:max-w-none border border-gray-200 dark:border-slate-600/30"
+            role="group"
+            aria-label="Calendar view options"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button
-            onClick={onNext}
-            className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 active:bg-gray-200 dark:active:bg-slate-600/50 transition-colors duration-200 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] touch-manipulation border border-gray-200 dark:border-slate-600/30 bg-white dark:bg-slate-800/50"
-            aria-label="Next period"
-            type="button"
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+            {viewOptions.map((option) => (
+              <button
+                key={option.key}
+                onClick={() => onViewChange(option.key)}
+                className={`${getViewButtonClasses(view === option.key)} flex-1 sm:flex-none px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[40px] sm:min-h-[44px] touch-manipulation`}
+                type="button"
+                aria-pressed={view === option.key}
+                aria-label={`Switch to ${option.label.toLowerCase()} view`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          
+          {/* Navigation arrows */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={onPrevious}
+              className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 active:bg-gray-200 dark:active:bg-slate-600/50 transition-colors duration-200 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] touch-manipulation border border-gray-200 dark:border-slate-600/30 bg-white dark:bg-slate-800/50"
+              aria-label="Previous period"
+              type="button"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={onNext}
+              className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 active:bg-gray-200 dark:active:bg-slate-600/50 transition-colors duration-200 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] touch-manipulation border border-gray-200 dark:border-slate-600/30 bg-white dark:bg-slate-800/50"
+              aria-label="Next period"
+              type="button"
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          </div>
         </div>
       </div>
     </div>

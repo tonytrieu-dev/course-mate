@@ -350,7 +350,10 @@ const CalendarApp: React.FC = () => {
             fallback={sidebarErrorFallback}
           >
             <Suspense fallback={sidebarFallback}>
-              <Sidebar />
+              <Sidebar 
+                isNavCollapsed={isNavCollapsed}
+                setIsNavCollapsed={setIsNavCollapsed}
+              />
             </Suspense>
           </ErrorBoundary>
         </div>
@@ -363,7 +366,10 @@ const CalendarApp: React.FC = () => {
           fallback={sidebarErrorFallback}
         >
           <Suspense fallback={sidebarFallback}>
-            <Sidebar />
+            <Sidebar 
+              isNavCollapsed={isNavCollapsed}
+              setIsNavCollapsed={setIsNavCollapsed}
+            />
           </Suspense>
         </ErrorBoundary>
       </div>
@@ -485,29 +491,10 @@ const CalendarApp: React.FC = () => {
           </div>
         </div>
 
-        {/* Collapse Toggle Button */}
-        <div className="relative group">
-          <button
-            onClick={() => setIsNavCollapsed(!isNavCollapsed)}
-            className={`absolute ${isNavCollapsed ? '-top-2' : '-top-3'} left-1/2 transform -translate-x-1/2 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full p-2 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100`}
-            title={isNavCollapsed ? 'Show navigation' : 'Hide navigation'}
-          >
-            <svg 
-              className={`w-3.5 h-3.5 text-gray-600 dark:text-gray-300 transition-transform duration-300 ${
-                isNavCollapsed ? 'rotate-180' : ''
-              }`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          </button>
-        </div>
 
         {/* Main Content Area */}
         <div 
-          className="p-1 sm:p-2 md:p-4 lg:p-5"
+          className={`p-1 sm:p-2 md:p-4 lg:p-5 ${isNavCollapsed ? 'pt-8 sm:pt-10 md:pt-12' : ''}`}
           onClick={() => {
             // Exit reorder mode when clicking in main content area
             if (isReorderMode) {

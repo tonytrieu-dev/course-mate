@@ -73,7 +73,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
                    focus:ring-offset-2 rounded-md px-2 py-1 hover:shadow-lg hover:bg-white/20 backdrop-blur-sm`
               }
               style={{ fontSize: `${titleSize}px` }}
-              title="Click to edit • Right-click for color"
+              title="Click to edit • Right-click for color options"
               tabIndex={0}
               role="heading"
               aria-level={1}

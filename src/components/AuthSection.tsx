@@ -110,7 +110,7 @@ const AuthSection: React.FC<AuthSectionProps> = ({
 
   if (isAuthenticated && user) {
     return !isSidebarCollapsed ? (
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 shadow-sm border border-gray-200">
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800/50 dark:to-slate-900/50 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-slate-700/50">
         <div className="flex items-center mb-3">
           <div className="mr-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
@@ -131,22 +131,22 @@ const AuthSection: React.FC<AuthSectionProps> = ({
               elementType="display-name"
               placeholder="Enter display name"
               className={isEditingDisplayName 
-                ? "text-sm font-medium text-gray-800 bg-white border border-blue-300 rounded px-1 py-0.5 w-full outline-none"
-                : "text-sm font-medium text-gray-800 truncate cursor-pointer hover:text-blue-600 transition-colors duration-200"
+                ? "text-sm font-medium text-gray-800 dark:text-slate-200 bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-600 rounded px-1 py-0.5 w-full outline-none"
+                : "text-sm font-medium text-gray-800 dark:text-slate-200 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
               }
               style={displayNameStyle}
               title="Click to edit display name"
             >
               {displayName}
             </EditableText>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
               {user.email}
             </p>
           </div>
         </div>
         <button
           onClick={handleLogoutClick}
-          className="bg-white hover:bg-red-50 mt-2 text-gray-700 hover:text-red-600 py-2 px-3 rounded-lg w-full border border-gray-200 hover:border-red-200 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+          className="bg-white dark:bg-slate-800/50 hover:bg-red-50 dark:hover:bg-red-900/20 mt-2 text-gray-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 py-2 px-3 rounded-lg w-full border border-gray-200 dark:border-slate-700/50 hover:border-red-200 dark:hover:border-red-800/50 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md"
           type="button"
         >
           Sign out
@@ -168,7 +168,7 @@ const AuthSection: React.FC<AuthSectionProps> = ({
         </div>
         <button
           onClick={handleLogoutClick}
-          className="w-10 h-8 bg-white hover:bg-red-50 text-gray-700 hover:text-red-600 rounded-md border border-gray-200 hover:border-red-200 transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center justify-center"
+          className="w-10 h-8 bg-white dark:bg-slate-800/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 rounded-md border border-gray-200 dark:border-slate-700/50 hover:border-red-200 dark:hover:border-red-800/50 transition-all duration-200 text-xs font-medium shadow-sm hover:shadow-md flex items-center justify-center"
           title="Sign out"
           type="button"
         >
@@ -180,7 +180,7 @@ const AuthSection: React.FC<AuthSectionProps> = ({
 
   // Not authenticated - show login button
   return !isSidebarCollapsed ? (
-    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800/50">
       <button
         onClick={handleLoginClick}
         className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-4 rounded-lg w-full transition-all duration-200 font-medium shadow-sm hover:shadow-md transform hover:-translate-y-0.5"

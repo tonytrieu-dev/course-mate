@@ -104,7 +104,7 @@ const ClassList: React.FC<ClassListProps> = ({
           <li
             key={c.id}
             className={`transition-all duration-200 rounded-xl group ${
-              hoveredClassId === c.id ? "bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm" : ""
+              hoveredClassId === c.id ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 shadow-sm" : ""
             }`}
             onMouseEnter={() => setHoveredClassId(c.id)}
             onMouseLeave={() => setHoveredClassId(null)}
@@ -113,8 +113,8 @@ const ClassList: React.FC<ClassListProps> = ({
             {isSidebarCollapsed ? (
               <div
                 onClick={() => handleCollapsedClassClick(c.id)}
-                className={`flex justify-center items-center py-3 px-2 cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:scale-105 active:scale-95 transition-all duration-200 rounded-xl min-h-[44px] ${
-                  selectedClass?.id === c.id ? "bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 shadow-md" : "border border-transparent"
+                className={`flex justify-center items-center py-3 px-2 cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 hover:scale-105 active:scale-95 transition-all duration-200 rounded-xl min-h-[44px] ${
+                  selectedClass?.id === c.id ? "bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-slate-700 dark:to-slate-600 border-2 border-blue-300 dark:border-slate-500 shadow-md" : "border border-transparent"
                 }`}
                 title={`${c.name} - Click to expand sidebar`}
                 role="button"
@@ -129,8 +129,8 @@ const ClassList: React.FC<ClassListProps> = ({
             ) : (
               <div
                 onClick={() => onClassClick(c.id)}
-                className={`flex justify-between items-center py-4 px-6 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 rounded-xl group min-h-[44px] border ${
-                  selectedClass?.id === c.id ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-md" : "border-transparent hover:border-gray-200"
+                className={`flex justify-between items-center py-4 px-6 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 dark:hover:from-slate-800 dark:hover:to-slate-700 transition-all duration-200 rounded-xl group min-h-[44px] border ${
+                  selectedClass?.id === c.id ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 border-blue-200 dark:border-slate-500 shadow-md" : "border-transparent hover:border-gray-200 dark:hover:border-slate-600"
                 }`}
                 role="button"
                 aria-label={`Select ${c.name} class`}
@@ -165,7 +165,7 @@ const ClassList: React.FC<ClassListProps> = ({
                     >
                       <div className="relative flex items-center">
                         <span 
-                          className="font-semibold text-gray-800 hover:text-gray-900 transition-colors duration-200 cursor-text select-none"
+                          className="font-semibold text-gray-800 dark:text-slate-100 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 cursor-text select-none"
                           style={{ fontSize: `${classNameSize}px` }}
                           onDoubleClick={() => setShowClassNameSizeControl(c.id)}
                           title="Click to edit"
@@ -242,7 +242,7 @@ const ClassList: React.FC<ClassListProps> = ({
       {(classes.length === 0 || isHoveringClassArea) && !isSidebarCollapsed && (
         <button
           onClick={handleAddClass}
-          className="flex items-center mt-6 mb-4 p-4 mx-6 text-blue-600 hover:text-blue-800 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-blue-200 border-dashed rounded-xl transition-all duration-200 hover:border-blue-300 hover:shadow-lg group w-auto min-h-[44px]"
+          className="flex items-center mt-6 mb-4 p-4 mx-6 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-800 dark:hover:to-slate-700 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 border-2 border-blue-200 dark:border-slate-600 border-dashed rounded-xl transition-all duration-200 hover:border-blue-300 dark:hover:border-slate-500 hover:shadow-lg group w-auto min-h-[44px]"
           type="button"
           aria-label="Add new class"
         >
@@ -257,7 +257,7 @@ const ClassList: React.FC<ClassListProps> = ({
       {(classes.length === 0 || isHoveringClassArea) && isSidebarCollapsed && (
         <button
           onClick={handleAddClass}
-          className="flex justify-center items-center mt-6 mb-4 p-3 mx-2 text-blue-600 hover:text-blue-800 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-blue-200 border-dashed rounded-xl transition-all duration-200 hover:border-blue-300 hover:shadow-lg hover:scale-105 active:scale-95 min-h-[44px] min-w-[44px]"
+          className="flex justify-center items-center mt-6 mb-4 p-3 mx-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-800 dark:hover:to-slate-700 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 border-2 border-blue-200 dark:border-slate-600 border-dashed rounded-xl transition-all duration-200 hover:border-blue-300 dark:hover:border-slate-500 hover:shadow-lg hover:scale-105 active:scale-95 min-h-[44px] min-w-[44px]"
           title="Add new class"
           type="button"
           aria-label="Add new class"

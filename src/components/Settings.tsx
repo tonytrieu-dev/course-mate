@@ -15,6 +15,8 @@ interface SettingsProps {
   user?: User | null;
   classes?: ClassWithRelations[];
   useSupabase?: boolean;
+  isNavCollapsed?: boolean;
+  setIsNavCollapsed?: (collapsed: boolean) => void;
 }
 
 type SettingsTab = 'general' | 'canvas' | 'notifications' | 'study-schedule';
@@ -24,7 +26,9 @@ const Settings: React.FC<SettingsProps> = ({
   initialTab = 'general',
   user = null,
   classes = [],
-  useSupabase = false
+  useSupabase = false,
+  isNavCollapsed = false,
+  setIsNavCollapsed = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [showStudySchedule, setShowStudySchedule] = useState(false);
@@ -59,7 +63,10 @@ const Settings: React.FC<SettingsProps> = ({
   const renderTabContent = () => {
     switch (activeTab) {
       case 'general':
-        return <GeneralSettings />;
+        return <GeneralSettings 
+          isNavCollapsed={isNavCollapsed}
+          setIsNavCollapsed={setIsNavCollapsed}
+        />;
       case 'canvas':
         return <CanvasSettings />;
       case 'notifications':
@@ -73,7 +80,10 @@ const Settings: React.FC<SettingsProps> = ({
           />
         );
       default:
-        return <GeneralSettings />;
+        return <GeneralSettings 
+          isNavCollapsed={isNavCollapsed}
+          setIsNavCollapsed={setIsNavCollapsed}
+        />;
     }
   };
 
@@ -157,7 +167,15 @@ const Settings: React.FC<SettingsProps> = ({
 };
 
 // General Settings Component
-const GeneralSettings: React.FC = () => {
+interface GeneralSettingsProps {
+  isNavCollapsed?: boolean;
+  setIsNavCollapsed?: (collapsed: boolean) => void;
+}
+
+const GeneralSettings: React.FC<GeneralSettingsProps> = ({ 
+  isNavCollapsed = false, 
+  setIsNavCollapsed = () => {} 
+}) => {
   const { mode, isDark, setMode } = useTheme();
   const { user } = useAuth();
   
@@ -169,6 +187,7 @@ const GeneralSettings: React.FC = () => {
       defaultView: localStorage.getItem('defaultView') || 'calendar',
       taskCompletionSound: localStorage.getItem('taskCompletionSound') !== 'false',
       showWeekNumbers: localStorage.getItem('showWeekNumbers') === 'true',
+      showNavigationBar: !isNavCollapsed, // Track navigation bar state
       theme: mode // Track theme in local settings state
     };
   });
@@ -185,6 +204,7 @@ const GeneralSettings: React.FC = () => {
     }
   }, [mode, settings.theme]);
 
+
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -194,12 +214,22 @@ const GeneralSettings: React.FC = () => {
     setSaveStatus('idle');
   };
 
+  // Special handler for navigation bar toggle - only updates local state, doesn't apply immediately
+  const handleNavigationToggle = (value: boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      showNavigationBar: value
+    }));
+    setHasChanges(true);
+    setSaveStatus('idle');
+  };
+
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
-      // Save non-theme settings to localStorage
+      // Save non-theme and non-navigation settings to localStorage
       Object.entries(settings).forEach(([key, value]) => {
-        if (key !== 'theme') { // Theme handled separately
+        if (key !== 'theme' && key !== 'showNavigationBar') { // Theme and navigation handled separately
           localStorage.setItem(key, String(value));
         }
       });
@@ -208,6 +238,9 @@ const GeneralSettings: React.FC = () => {
       if (settings.theme) {
         await updateTheme(settings.theme as 'light' | 'dark' | 'auto', user?.id);
       }
+
+      // Apply navigation bar setting only when saving
+      setIsNavCollapsed(!settings.showNavigationBar);
 
       setHasChanges(false);
       setSaveStatus('saved');
@@ -227,10 +260,12 @@ const GeneralSettings: React.FC = () => {
       defaultView: 'calendar',
       taskCompletionSound: true,
       showWeekNumbers: false,
+      showNavigationBar: true, // Default to showing navigation bar
       theme: 'auto' as 'light' | 'dark' | 'auto'
     };
     setSettings(defaultSettings);
     setMode('auto'); // Reset theme to auto
+    // Don't apply navigation change immediately - let user save first
     setHasChanges(true);
     setSaveStatus('idle');
   };
@@ -356,6 +391,22 @@ const GeneralSettings: React.FC = () => {
                 type="checkbox" 
                 checked={settings.showWeekNumbers}
                 onChange={(e) => handleSettingChange('showWeekNumbers', e.target.checked)}
+                className="sr-only peer" 
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Show Navigation Bar</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Display the top navigation bar with Calendar, Dashboard, Tasks, and Grades buttons</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={settings.showNavigationBar}
+                onChange={(e) => handleNavigationToggle(e.target.checked)}
                 className="sr-only peer" 
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>

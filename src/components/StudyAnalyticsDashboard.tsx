@@ -66,8 +66,8 @@ const StudyAnalyticsDashboard: React.FC<StudyAnalyticsDashboardProps> = ({
     return (
       <div className={`study-analytics-dashboard ${className}`}>
         <div className="text-center py-8">
-          <p className="text-gray-500">No study data available yet.</p>
-          <p className="text-sm text-gray-400 mt-1">Start tracking your study sessions to see analytics.</p>
+          <p className="text-gray-500 dark:text-slate-400">No study data available yet.</p>
+          <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">Start tracking your study sessions to see analytics.</p>
         </div>
       </div>
     );
@@ -77,11 +77,11 @@ const StudyAnalyticsDashboard: React.FC<StudyAnalyticsDashboardProps> = ({
     <div className={`study-analytics-dashboard ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Study Analytics</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Study Analytics</h2>
         <select
           value={selectedPeriod}
           onChange={(e) => setSelectedPeriod(Number(e.target.value))}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           <option value={7}>Last 7 days</option>
           <option value={30}>Last 30 days</option>
@@ -91,50 +91,50 @@ const StudyAnalyticsDashboard: React.FC<StudyAnalyticsDashboardProps> = ({
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
           <div className="text-2xl font-bold text-blue-600">
             {formatTime(analytics.totalStudyTime)}
           </div>
-          <div className="text-sm text-gray-600">Total Study Time</div>
+          <div className="text-sm text-gray-600 dark:text-slate-400">Total Study Time</div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
           <div className="text-2xl font-bold text-green-600">
             {analytics.sessionsThisWeek}
           </div>
-          <div className="text-sm text-gray-600">Sessions This Week</div>
+          <div className="text-sm text-gray-600 dark:text-slate-400">Sessions This Week</div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
           <div className="text-2xl font-bold text-purple-600">
             {analytics.averageSessionDuration.toFixed(0)}m
           </div>
-          <div className="text-sm text-gray-600">Avg Session Length</div>
+          <div className="text-sm text-gray-600 dark:text-slate-400">Avg Session Length</div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
           <div className={`text-2xl font-bold ${getEffectivenessColor(analytics.effectivenessScore).split(' ')[0]}`}>
             {analytics.effectivenessScore.toFixed(1)}/5
           </div>
-          <div className="text-sm text-gray-600">Effectiveness Score</div>
+          <div className="text-sm text-gray-600 dark:text-slate-400">Effectiveness Score</div>
         </div>
       </div>
 
       {/* Subject Breakdown */}
       {analytics.subjectBreakdown.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Subject Breakdown</h3>
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">Subject Breakdown</h3>
           <div className="space-y-3">
             {analytics.subjectBreakdown
               .sort((a, b) => b.totalTime - a.totalTime)
               .map((subject, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-gray-900">{subject.subject}</span>
-                      <span className="text-sm text-gray-600">{formatTime(subject.totalTime)}</span>
+                      <span className="font-medium text-gray-900 dark:text-slate-100">{subject.subject}</span>
+                      <span className="text-sm text-gray-600 dark:text-slate-400">{formatTime(subject.totalTime)}</span>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-slate-400">
                       <span>{subject.sessionCount} sessions</span>
                       <span>Effectiveness: {subject.averageEffectiveness.toFixed(1)}/5</span>
                       {subject.retentionScore > 0 && (
@@ -151,15 +151,15 @@ const StudyAnalyticsDashboard: React.FC<StudyAnalyticsDashboardProps> = ({
 
       {/* Weekly Trends */}
       {analytics.weeklyTrends.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Weekly Trends</h3>
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">Weekly Trends</h3>
           <div className="space-y-2">
             {analytics.weeklyTrends.map((trend, index) => (
-              <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+              <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-slate-900/50 rounded">
                 <span className="text-sm text-gray-600">Week of {formatDate(trend.date)}</span>
                 <div className="flex items-center space-x-4 text-sm">
-                  <span className="text-gray-900">{formatTime(trend.totalMinutes)}</span>
-                  <span className="text-gray-600">{trend.sessionCount} sessions</span>
+                  <span className="text-gray-900 dark:text-slate-100">{formatTime(trend.totalMinutes)}</span>
+                  <span className="text-gray-600 dark:text-slate-400">{trend.sessionCount} sessions</span>
                   <span className={`px-2 py-1 rounded-full text-xs ${getEffectivenessColor(trend.averageEffectiveness)}`}>
                     {trend.averageEffectiveness.toFixed(1)}/5
                   </span>
@@ -172,25 +172,25 @@ const StudyAnalyticsDashboard: React.FC<StudyAnalyticsDashboardProps> = ({
 
       {/* Recommendations */}
       {analytics.recommendations.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Recommendations</h3>
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">Recommendations</h3>
           <div className="space-y-3">
             {analytics.recommendations.map((rec, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+              <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <div className="flex-shrink-0">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(rec.priority)}`}>
                     {rec.priority}
                   </span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-900">{rec.message}</p>
-                  <p className="text-xs text-gray-600 mt-1 capitalize">
+                  <p className="text-sm text-gray-900 dark:text-slate-100">{rec.message}</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400 mt-1 capitalize">
                     Type: {rec.type.replace('_', ' ')}
                   </p>
                 </div>
                 {rec.actionable && (
                   <div className="flex-shrink-0">
-                    <button className="text-xs text-blue-600 hover:text-blue-800">
+                    <button className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                       Take Action
                     </button>
                   </div>
@@ -202,9 +202,9 @@ const StudyAnalyticsDashboard: React.FC<StudyAnalyticsDashboardProps> = ({
       )}
 
       {analytics.subjectBreakdown.length === 0 && analytics.weeklyTrends.length === 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-500">No detailed analytics available yet.</p>
-          <p className="text-sm text-gray-400 mt-1">
+        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-8 text-center">
+          <p className="text-gray-500 dark:text-slate-400">No detailed analytics available yet.</p>
+          <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">
             Complete more study sessions to see trends and insights.
           </p>
         </div>

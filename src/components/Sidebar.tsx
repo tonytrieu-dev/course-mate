@@ -26,7 +26,15 @@ const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 500;
 const DEFAULT_SIDEBAR_WIDTH = 256;
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isNavCollapsed?: boolean;
+  setIsNavCollapsed?: (collapsed: boolean) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ 
+  isNavCollapsed = false, 
+  setIsNavCollapsed = () => {} 
+}) => {
   const { user, isAuthenticated, logout } = useAuth();
   
   // Custom hooks for state management
@@ -352,7 +360,7 @@ const Sidebar: React.FC = () => {
                     ? { fontSize: `${classesHeaderSize}px`, minWidth: `${classesTitle.length + 1}ch` }
                     : { fontSize: `${classesHeaderSize}px` }
                   }
-                  title="Right-click to change color"
+                  title="Left-click to edit, Right-click to change color"
                 />
                 <InlineSizeControl 
                   size={classesHeaderSize} 
@@ -494,6 +502,8 @@ const Sidebar: React.FC = () => {
             user={user}
             classes={classes}
             useSupabase={isAuthenticated}
+            isNavCollapsed={isNavCollapsed}
+            setIsNavCollapsed={setIsNavCollapsed}
           />
         </Suspense>
       )}
