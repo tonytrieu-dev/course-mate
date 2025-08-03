@@ -79,19 +79,19 @@ const Settings: React.FC<SettingsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-2 sm:p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm sm:max-w-2xl lg:max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+      <div className="bg-white dark:bg-slate-800/95 dark:backdrop-blur-md rounded-xl shadow-2xl dark:shadow-slate-900/40 border border-gray-100 dark:border-slate-700/50 max-w-sm sm:max-w-2xl lg:max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-slate-700/50 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
           <div className="flex items-center space-x-2 sm:space-x-3">
             <span className="text-xl sm:text-2xl">⚙️</span>
             <div>
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">Customize your ScheduleBud experience</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-slate-100">Settings</h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 hidden sm:block">Customize your ScheduleBud experience</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl sm:text-2xl font-bold transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
+            className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 text-xl sm:text-2xl font-bold transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
             aria-label="Close settings"
           >
             ×
@@ -100,7 +100,7 @@ const Settings: React.FC<SettingsProps> = ({
 
         <div className="flex flex-col sm:flex-row h-[calc(95vh-80px)] sm:h-[calc(90vh-120px)]">
           {/* Sidebar Navigation */}
-          <div className="w-full sm:w-48 lg:w-64 bg-gray-50 dark:bg-gray-800 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-gray-700 p-2 sm:p-4">
+          <div className="w-full sm:w-48 lg:w-64 bg-gray-50 dark:bg-slate-800/50 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-slate-700/50 p-2 sm:p-4">
             <nav className="flex sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-x-visible">
               {tabs.map((tab) => (
                 <button
@@ -108,15 +108,15 @@ const Settings: React.FC<SettingsProps> = ({
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full sm:w-auto text-left p-2 sm:p-3 rounded-lg transition-all duration-200 group whitespace-nowrap sm:whitespace-normal min-w-[120px] sm:min-w-0 touch-manipulation ${
                     activeTab === tab.id
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 shadow-sm'
+                      : 'hover:bg-gray-100 dark:hover:bg-slate-700/50 text-gray-700 dark:text-slate-300'
                   }`}
                 >
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <span className="text-base sm:text-lg">{tab.icon}</span>
                     <div className="hidden sm:block">
                       <div className="font-medium text-sm sm:text-base">{tab.label}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 hidden lg:block">
+                      <div className="text-xs text-gray-500 dark:text-slate-400 group-hover:text-gray-600 dark:group-hover:text-slate-300 hidden lg:block">
                         {tab.description}
                       </div>
                     </div>
@@ -131,7 +131,7 @@ const Settings: React.FC<SettingsProps> = ({
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-900/95">
             <div className="p-6">
               {renderTabContent()}
             </div>
@@ -244,18 +244,18 @@ const GeneralSettings: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">⚙️ General Settings</h2>
-        <p className="text-gray-600 mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">⚙️ General Settings</h2>
+        <p className="text-gray-600 dark:text-slate-400 mb-6">
           Configure your app preferences and general settings.
         </p>
       </div>
 
       {/* App Theme */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">🎨 Appearance</h3>
+      <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3">🎨 Appearance</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Theme</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Theme</label>
             <div className="flex gap-2">
               <button
                 onClick={() => handleThemeChange('light')}
@@ -301,7 +301,7 @@ const GeneralSettings: React.FC = () => {
             <select 
               value={settings.fontSize}
               onChange={(e) => handleSettingChange('fontSize', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
             >
               <option value="small">Small</option>
               <option value="medium">Medium</option>
@@ -315,7 +315,7 @@ const GeneralSettings: React.FC = () => {
             <select 
               value={settings.defaultView}
               onChange={(e) => handleSettingChange('defaultView', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
             >
               <option value="calendar">Calendar View</option>
               <option value="tasks">Task List</option>
@@ -327,7 +327,7 @@ const GeneralSettings: React.FC = () => {
       </div>
 
       {/* User Experience */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+      <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">✨ User Experience</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -366,7 +366,7 @@ const GeneralSettings: React.FC = () => {
 
 
       {/* Action Buttons */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+      <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -512,9 +512,9 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
       </div>
 
       {/* Main Action */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-3">🚀 Get Started</h3>
-        <p className="text-gray-600 mb-4">
+      <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3">🚀 Get Started</h3>
+        <p className="text-gray-600 dark:text-slate-400 mb-4">
           Generate an AI-optimized study schedule based on your Canvas assignments and learning preferences.
         </p>
         <button
@@ -531,14 +531,14 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
       </div>
 
       {/* Features Overview */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">✨ Features</h3>
+      <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-4">✨ Features</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex items-start space-x-3">
             <span className="text-2xl">🧠</span>
             <div>
-              <h4 className="font-medium text-gray-900">AI-Powered Analysis</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-medium text-gray-900 dark:text-slate-100">AI-Powered Analysis</h4>
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 Analyzes your Canvas workload and generates personalized study schedules
               </p>
             </div>
@@ -547,8 +547,8 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
           <div className="flex items-start space-x-3">
             <span className="text-2xl">⏰</span>
             <div>
-              <h4 className="font-medium text-gray-900">Smart Time Allocation</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-medium text-gray-900 dark:text-slate-100">Smart Time Allocation</h4>
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 Balances subjects and deadlines for optimal learning outcomes
               </p>
             </div>
@@ -557,8 +557,8 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
           <div className="flex items-start space-x-3">
             <span className="text-2xl">📊</span>
             <div>
-              <h4 className="font-medium text-gray-900">Progress Tracking</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-medium text-gray-900 dark:text-slate-100">Progress Tracking</h4>
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 Monitor your study sessions and retention rates over time
               </p>
             </div>
@@ -567,8 +567,8 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
           <div className="flex items-start space-x-3">
             <span className="text-2xl">🔄</span>
             <div>
-              <h4 className="font-medium text-gray-900">Spaced Repetition</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-medium text-gray-900 dark:text-slate-100">Spaced Repetition</h4>
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 Uses scientifically-proven techniques for better retention
               </p>
             </div>
@@ -577,13 +577,13 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
       </div>
 
       {/* Settings */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">⚙️ Settings</h3>
+      <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-4">⚙️ Settings</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-gray-900">Enable Study Schedule Optimizer</p>
-              <p className="text-sm text-gray-600">Allow AI-powered study scheduling features</p>
+              <p className="font-medium text-gray-900 dark:text-slate-100">Enable Study Schedule Optimizer</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Allow AI-powered study scheduling features</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input 
@@ -598,8 +598,8 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-gray-900">Auto-sync with Canvas</p>
-              <p className="text-sm text-gray-600">Automatically update schedule when Canvas tasks change</p>
+              <p className="font-medium text-gray-900 dark:text-slate-100">Auto-sync with Canvas</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Automatically update schedule when Canvas tasks change</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input 
@@ -615,8 +615,8 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-gray-900">Study Reminders</p>
-              <p className="text-sm text-gray-600">Get notifications for upcoming study sessions</p>
+              <p className="font-medium text-gray-900 dark:text-slate-100">Study Reminders</p>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Get notifications for upcoming study sessions</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input 

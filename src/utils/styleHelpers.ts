@@ -1,35 +1,35 @@
 // Style utility functions
 
-// Get day cell classes for calendar - responsive and touch-friendly
+// Get day cell classes for calendar - responsive and touch-friendly with enhanced dark mode
 export const getDayCellClasses = (isCurrentMonth: boolean, isToday: boolean): string => {
-  let baseClasses = "flex flex-col justify-start p-1 sm:p-2 border h-20 sm:h-24 md:h-32 lg:h-40 relative cursor-pointer transition-all duration-200 ease-in-out touch-manipulation";
+  let baseClasses = "flex flex-col justify-start p-1 sm:p-2 border border-gray-200 dark:border-slate-600/50 h-20 sm:h-24 md:h-32 lg:h-40 relative cursor-pointer transition-all duration-200 ease-in-out touch-manipulation bg-white dark:bg-slate-800/30";
   
   if (!isCurrentMonth) {
-    baseClasses += " bg-gray-50 text-gray-400";
+    baseClasses += " bg-gray-50 dark:bg-slate-900/50 text-gray-400 dark:text-slate-500";
   } else if (isToday) {
-    baseClasses += " bg-blue-100 border-blue-500 rounded-lg";
+    baseClasses += " bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400/50 rounded-lg shadow-sm";
   } else {
-    baseClasses += " hover:bg-blue-50 active:bg-blue-100";
+    baseClasses += " hover:bg-blue-50 dark:hover:bg-slate-700/30 active:bg-blue-100 dark:active:bg-slate-600/50";
   }
   
   return baseClasses;
 };
 
-// Get view button classes
+// Get view button classes with enhanced dark mode
 export const getViewButtonClasses = (isActive: boolean): string => {
   return `px-3 py-1 rounded-md font-medium shadow transition-all duration-200 ${
     isActive
-      ? 'bg-blue-600 text-white'
-      : 'bg-transparent text-gray-700 hover:bg-gray-200'
+      ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-md'
+      : 'bg-transparent text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600/50'
   }`;
 };
 
-// Get navigation button classes
+// Get navigation button classes with enhanced dark mode
 export const getNavButtonClasses = (): string => {
-  return "p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200";
+  return "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors duration-200 bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-600/30";
 };
 
-// Get navigation icon classes
+// Get navigation icon classes with enhanced dark mode
 export const getNavIconClasses = (): string => {
-  return "w-5 h-5 text-gray-600 hover:text-blue-500";
+  return "w-5 h-5 text-gray-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400";
 };

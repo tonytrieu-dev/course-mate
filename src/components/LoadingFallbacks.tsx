@@ -9,7 +9,7 @@ interface SkeletonProps {
 
 const Skeleton: React.FC<SkeletonProps> = ({ className = "", animate = true }) => (
   <div 
-    className={`skeleton-rounded relative overflow-hidden ${animate ? 'animate-skeleton' : 'bg-gray-200'} ${className}`}
+    className={`skeleton-rounded relative overflow-hidden ${animate ? 'animate-skeleton' : 'bg-gray-200 dark:bg-slate-700/50'} ${className}`}
   >
     {animate && (
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
@@ -19,11 +19,11 @@ const Skeleton: React.FC<SkeletonProps> = ({ className = "", animate = true }) =
 
 // Sidebar Loading Skeleton
 export const SidebarLoadingFallback: React.FC = () => (
-  <div className="w-64 bg-gray-800 p-4 space-y-4" role="status" aria-label="Loading sidebar">
-    <Skeleton className="h-8 bg-gray-600" />
+  <div className="w-64 bg-gray-800 dark:bg-slate-800/90 p-4 space-y-4" role="status" aria-label="Loading sidebar">
+    <Skeleton className="h-8 bg-gray-600 dark:bg-slate-600/50" />
     <div className="space-y-2">
       {[...Array(5)].map((_, i) => (
-        <Skeleton key={i} className="h-6 bg-gray-700" />
+        <Skeleton key={i} className="h-6 bg-gray-700 dark:bg-slate-700/50" />
       ))}
     </div>
     <Skeleton className="h-32 bg-gray-700" />

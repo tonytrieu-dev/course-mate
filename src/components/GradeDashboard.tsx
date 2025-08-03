@@ -93,12 +93,12 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
     return (
       <div className="text-center py-12">
         <div className="mb-6">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Grades Yet</h3>
-        <p className="text-gray-600 mb-6">Start tracking your grades to see your GPA and analytics.</p>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Grades Yet</h3>
+        <p className="text-gray-600 dark:text-slate-400 mb-6">Start tracking your grades to see your GPA and analytics.</p>
         <button
           onClick={onSwitchToGradeEntry}
           className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-6 py-3 rounded-lg transition-colors min-h-[44px] touch-manipulation shadow-sm hover:shadow-md"
@@ -112,15 +112,15 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
   return (
     <div className="space-y-6">
       {/* GPA Overview */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Grade Dashboard</h2>
+      <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Grade Dashboard</h2>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-blue-50 rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
+          <div className="bg-blue-50 dark:bg-blue-900/30 backdrop-blur-sm rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
             <div className="text-2xl sm:text-3xl font-bold text-blue-600">
               {whatIfScenario ? whatIfScenario.resultingGPA : gpaData.currentGPA}
             </div>
-            <div className="text-sm text-gray-600">Current GPA</div>
+            <div className="text-sm text-gray-600 dark:text-slate-400">Current GPA</div>
             {whatIfScenario && (
               <div className={`text-sm font-medium ${
                 whatIfScenario.gpaChange >= 0 ? 'text-green-600' : 'text-red-600'
@@ -130,24 +130,24 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
             )}
           </div>
           
-          <div className="bg-green-50 rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
+          <div className="bg-green-50 dark:bg-green-900/30 backdrop-blur-sm rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
             <div className="text-2xl sm:text-3xl font-bold text-green-600">{gpaData.semesterGPA}</div>
-            <div className="text-sm text-gray-600">Semester GPA</div>
+            <div className="text-sm text-gray-600 dark:text-slate-400">Semester GPA</div>
           </div>
           
-          <div className="bg-purple-50 rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
+          <div className="bg-purple-50 dark:bg-purple-900/30 backdrop-blur-sm rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
             <div className="text-2xl sm:text-3xl font-bold text-purple-600">{gpaData.totalCreditHours}</div>
-            <div className="text-sm text-gray-600">Credit Hours</div>
+            <div className="text-sm text-gray-600 dark:text-slate-400">Credit Hours</div>
           </div>
           
-          <div className="bg-orange-50 rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
+          <div className="bg-orange-50 dark:bg-orange-900/30 backdrop-blur-sm rounded-lg p-4 sm:p-6 text-center min-h-[100px] flex flex-col justify-center">
             <div className="text-2xl sm:text-3xl font-bold text-orange-600">{gpaData.classGrades.length}</div>
-            <div className="text-sm text-gray-600">Classes</div>
+            <div className="text-sm text-gray-600 dark:text-slate-400">Classes</div>
           </div>
         </div>
 
         {whatIfScenario && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 backdrop-blur-sm border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-4 mb-6">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-medium text-yellow-800">What-If Scenario Active</h3>
@@ -168,13 +168,13 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
       </div>
 
       {/* Class Breakdown */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Class Performance</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Class Performance</h3>
           <select
             value={selectedClass || ''}
             onChange={(e) => setSelectedClass(e.target.value || null)}
-            className="border border-gray-300 rounded px-3 py-1 text-sm"
+            className="border border-gray-300 dark:border-slate-600/50 rounded px-3 py-1 text-sm bg-white dark:bg-slate-700/50 backdrop-blur-sm text-gray-900 dark:text-slate-100"
           >
             <option value="">All Classes</option>
             {gpaData.classGrades.map(classGrade => (
@@ -192,11 +192,11 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
               const classData = classesWithGrades.find(c => c.id === classGrade.classId);
               
               return (
-                <div key={classGrade.classId} className="border border-gray-200 rounded-lg p-4">
+                <div key={classGrade.classId} className="border border-gray-200 dark:border-slate-600/50 rounded-lg p-4 bg-white dark:bg-slate-700/30 backdrop-blur-sm">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h4 className="font-medium text-gray-900">{classGrade.className}</h4>
-                      <p className="text-sm text-gray-600">
+                      <h4 className="font-medium text-gray-900 dark:text-white">{classGrade.className}</h4>
+                      <p className="text-sm text-gray-600 dark:text-slate-400">
                         {classGrade.creditHours} credit hours • {classGrade.isCompleted ? 'Completed' : 'In Progress'}
                       </p>
                     </div>
@@ -232,14 +232,14 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
                         const categoryPercentage = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
 
                         return (
-                          <div key={category.id} className="flex justify-between items-center py-2 border-t border-gray-100">
+                          <div key={category.id} className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-slate-600/50">
                             <div className="flex items-center gap-3">
                               <div 
                                 className="w-3 h-3 rounded-full" 
                                 style={{ backgroundColor: category.color || '#6b7280' }}
                               />
                               <span className="text-sm font-medium">{category.name}</span>
-                              <span className="text-xs text-gray-500">({category.weight}%)</span>
+                              <span className="text-xs text-gray-500 dark:text-slate-400">({category.weight}%)</span>
                             </div>
                             <div className="text-sm font-medium">
                               {categoryPercentage.toFixed(1)}%
@@ -252,16 +252,16 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
 
                   {/* Recent Assignments with What-If Controls */}
                   {classData && classData.assignments.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <h5 className="text-sm font-medium text-gray-900 mb-2">Recent Assignments</h5>
+                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-600/50">
+                      <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Recent Assignments</h5>
                       <div className="space-y-2">
                         {classData.assignments
                           .slice(0, 3)
                           .map(assignment => (
                             <div key={assignment.id} className="flex justify-between items-center py-1">
                               <div className="flex-1">
-                                <span className="text-sm text-gray-900">{assignment.name}</span>
-                                <span className="text-xs text-gray-500 ml-2">
+                                <span className="text-sm text-gray-900 dark:text-white">{assignment.name}</span>
+                                <span className="text-xs text-gray-500 dark:text-slate-400 ml-2">
                                   ({assignment.points_possible} pts)
                                 </span>
                               </div>
@@ -281,12 +281,12 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
                                         assignment.id, 
                                         Number(e.target.value)
                                       )}
-                                      className="w-16 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                      className="w-16 h-2 bg-gray-200 dark:bg-slate-600/50 rounded-lg appearance-none cursor-pointer"
                                       title="Drag to see what-if scenario"
                                     />
                                   </>
                                 ) : (
-                                  <span className="text-sm text-gray-400">Not graded</span>
+                                  <span className="text-sm text-gray-400 dark:text-slate-500">Not graded</span>
                                 )}
                               </div>
                             </div>
@@ -301,51 +301,51 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+      <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={onSwitchToGradeEntry}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
           >
-            <div className="bg-blue-100 p-2 rounded-lg">
+            <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg backdrop-blur-sm">
               <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </div>
             <div className="text-left">
-              <div className="font-medium">Add Grade</div>
-              <div className="text-sm text-gray-600">Enter a new assignment grade</div>
+              <div className="font-medium text-gray-900 dark:text-white">Add Grade</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">Enter a new assignment grade</div>
             </div>
           </button>
 
           <button
             onClick={() => {/* TODO: Implement grade import */}}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
           >
-            <div className="bg-green-100 p-2 rounded-lg">
+            <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-lg backdrop-blur-sm">
               <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div className="text-left">
-              <div className="font-medium">Import Grades</div>
-              <div className="text-sm text-gray-600">Upload from CSV or gradebook</div>
+              <div className="font-medium text-gray-900 dark:text-white">Import Grades</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">Upload from CSV or gradebook</div>
             </div>
           </button>
 
           <button
             onClick={() => {/* TODO: Implement analytics view */}}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
           >
-            <div className="bg-purple-100 p-2 rounded-lg">
+            <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-lg backdrop-blur-sm">
               <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
             <div className="text-left">
-              <div className="font-medium">View Analytics</div>
-              <div className="text-sm text-gray-600">Detailed grade trends</div>
+              <div className="font-medium text-gray-900 dark:text-white">View Analytics</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">Detailed grade trends</div>
             </div>
           </button>
         </div>

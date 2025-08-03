@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global dark mode styles */
+/* Global dark mode styles with improved aesthetics */
 body {
-  @apply bg-gray-100 text-gray-900 transition-colors duration-300;
+  @apply bg-gray-50 text-gray-900 transition-colors duration-300;
 }
 
 .dark body {
-  @apply bg-gray-900 text-gray-100;
+  @apply bg-slate-900 text-slate-100;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 /* Base styles */
@@ -22,15 +23,18 @@ body {
   --color-accent: #3b82f6;
 }
 
-/* Dark mode variables */
+/* Enhanced dark mode variables with warmer tones */
 .dark {
-  --color-bg-primary: #111827;
-  --color-bg-secondary: #1f2937;
-  --color-bg-tertiary: #374151;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #d1d5db;
-  --color-border: #4b5563;
-  --color-accent: #60a5fa;
+  --color-bg-primary: #1e293b;
+  --color-bg-secondary: #334155;
+  --color-bg-tertiary: #475569;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-border: #64748b;
+  --color-accent: #3b82f6;
+  --color-surface: #0f172a;
+  --color-surface-elevated: #1e293b;
+  --color-surface-hover: #334155;
 }
 
 /* Loading Animations */
@@ -161,36 +165,46 @@ body {
   transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* Enhanced button styles with dark mode */
+/* Enhanced button styles with modern dark mode */
 .btn-primary {
   @apply bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium px-4 py-2 rounded-lg transition-smooth shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
-  @apply dark:bg-blue-700 dark:hover:bg-blue-600 dark:active:bg-blue-800 dark:focus:ring-blue-400;
+  @apply dark:bg-blue-600 dark:hover:bg-blue-500 dark:active:bg-blue-700 dark:focus:ring-blue-400 dark:shadow-blue-900/20;
 }
 
 .btn-secondary {
   @apply bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-900 font-medium px-4 py-2 rounded-lg transition-smooth shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
-  @apply dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-800 dark:text-gray-100 dark:focus:ring-gray-400;
+  @apply dark:bg-slate-700/50 dark:hover:bg-slate-600/50 dark:active:bg-slate-800/50 dark:text-slate-100 dark:focus:ring-slate-400 dark:border dark:border-slate-600/30;
 }
 
 .btn-ghost {
   @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100 font-medium px-4 py-2 rounded-lg transition-smooth focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
-  @apply dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-400;
+  @apply dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700/50 dark:focus:ring-slate-400;
 }
 
-/* Modern card styles with dark mode */
+/* Enhanced card styles with modern dark mode */
 .card {
   @apply bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-smooth;
-  @apply dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-900/20;
+  @apply dark:bg-slate-800/50 dark:border-slate-700/50 dark:shadow-slate-900/20 dark:backdrop-blur-sm;
+}
+
+.card-elevated {
+  @apply bg-white rounded-xl shadow-xl border border-gray-100 hover:shadow-2xl transition-smooth;
+  @apply dark:bg-slate-800/80 dark:border-slate-600/50 dark:shadow-slate-900/40 dark:backdrop-blur-md;
 }
 
 .card-interactive {
   @apply card cursor-pointer hover:scale-[1.02] active:scale-[0.98];
 }
 
-/* Enhanced input styles with dark mode */
+/* Enhanced input styles with modern dark mode */
 .input-primary {
   @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-smooth;
-  @apply dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-blue-400 dark:focus:border-blue-400;
+  @apply dark:bg-slate-800/50 dark:border-slate-600/50 dark:text-slate-100 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:placeholder-slate-400;
+}
+
+.input-ghost {
+  @apply w-full px-3 py-2 bg-transparent border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-smooth;
+  @apply dark:text-slate-100 dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:placeholder-slate-500;
 }
 
 /* Error Boundary Styles */

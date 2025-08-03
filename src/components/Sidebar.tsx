@@ -216,9 +216,16 @@ const Sidebar: React.FC = () => {
           .sidebar-resizing {
             user-select: none;
             cursor: ew-resize !important;
+            /* Disable expensive visual effects during resize */
+            filter: none !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
           }
           .sidebar-resizing * {
             pointer-events: none;
+            /* Disable transitions and animations during resize for performance */
+            transition: none !important;
+            animation: none !important;
           }
           .resize-handle {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -243,13 +250,12 @@ const Sidebar: React.FC = () => {
             opacity: 1;
           }
           .sidebar-transition {
-            transition: width 0.2s ease-out;
+            transition: width 0.3s ease;
+            will-change: auto;
           }
           .sidebar-no-transition {
             transition: none;
-          }
-          .sidebar-resizing {
-            will-change: width;
+            will-change: width; /* Hint browser to optimize for width changes during resize */
           }
           .sidebar-content-fade {
             transition: opacity 0.2s ease-out, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -268,13 +274,13 @@ const Sidebar: React.FC = () => {
         ref={sidebarRef as React.RefObject<HTMLDivElement>}
         className={`${
           isSidebarCollapsed ? 'w-16' : ''
-        } border-r border-gray-300 dark:border-gray-600 py-3 px-2.5 bg-white dark:bg-gray-900 h-full box-border font-sans flex flex-col relative ${
-          isResizing ? 'sidebar-no-transition sidebar-resizing' : 'sidebar-transition'
-        }`}
+        } border-r border-gray-300 dark:border-slate-700/50 py-3 px-2.5 bg-white ${
+          isResizing 
+            ? 'dark:bg-slate-900 sidebar-no-transition' // No backdrop-blur during resize for performance
+            : 'dark:bg-slate-900/95 dark:backdrop-blur-sm sidebar-transition'
+        } h-full box-border font-sans flex flex-col relative`}
         style={{
-          width: isSidebarCollapsed ? '64px' : `${sidebarWidth}px`,
-          minWidth: isSidebarCollapsed ? '64px' : `${MIN_SIDEBAR_WIDTH}px`,
-          maxWidth: isSidebarCollapsed ? '64px' : `${MAX_SIDEBAR_WIDTH}px`
+          width: isSidebarCollapsed ? '64px' : `${sidebarWidth}px`
         }}
       >
         {/* Collapse Toggle Button */}
@@ -365,8 +371,8 @@ const Sidebar: React.FC = () => {
                       onClick={() => setShowClassesHeaderColorPicker(false)}
                     />
                     {/* Color picker positioned to avoid overlapping */}
-                    <div className="absolute z-50 top-8 left-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl p-4 min-w-[200px]">
-                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-3">Choose Color</div>
+                    <div className="absolute z-50 top-8 left-0 bg-white dark:bg-slate-800/90 dark:backdrop-blur-md border border-gray-300 dark:border-slate-600/50 rounded-lg shadow-xl dark:shadow-slate-900/40 p-4 min-w-[200px]">
+                      <div className="text-xs font-medium text-gray-700 dark:text-slate-300 mb-3">Choose Color</div>
                       <div className="grid grid-cols-5 gap-3 mb-3">
                         {colorOptions.map((color) => (
                           <button
@@ -429,7 +435,7 @@ const Sidebar: React.FC = () => {
         {/* Auth Controls */}
         <div className="px-2 mt-auto mb-8 flex-shrink-0">
           <Suspense fallback={
-            <div className="animate-pulse bg-gray-200 h-10 rounded" />
+            <div className="animate-pulse bg-gray-200 dark:bg-slate-700 h-10 rounded" />
           }>
             <AuthSection
               user={user}
@@ -441,77 +447,6 @@ const Sidebar: React.FC = () => {
           </Suspense>
         </div>
 
-        {/* Modals and Panels */}
-        <Suspense fallback={
-          showSyllabusModal ? (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
-              <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-                <p className="text-center mt-4 text-gray-600">Loading syllabus editor...</p>
-              </div>
-            </div>
-          ) : null
-        }>
-          <SyllabusModal
-            show={showSyllabusModal}
-            selectedClass={selectedClass}
-            onClose={() => setShowSyllabusModal(false)}
-            onSyllabusUpdate={handleSyllabusUpdate}
-            onFileUpdate={handleFileUpdate}
-          />
-        </Suspense>
-
-        {showLogin && !isAuthenticated && (
-          <LoginComponent onClose={() => setShowLogin(false)} />
-        )}
-
-        {showSettings && (
-          <Suspense fallback={
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-                <p className="text-center mt-4 text-gray-600">Loading Settings...</p>
-              </div>
-            </div>
-          }>
-            <Settings 
-              onClose={() => setShowSettings(false)}
-              user={user}
-              classes={classes}
-              useSupabase={isAuthenticated}
-            />
-          </Suspense>
-        )}
-
-        {showStudyAnalytics && isAuthenticated && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Study Analytics</h2>
-                <button
-                  onClick={() => setShowStudyAnalytics(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                >
-                  <span className="sr-only">Close</span>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                <Suspense fallback={
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-                    <p className="ml-4 text-gray-600 dark:text-gray-400">Loading Study Analytics...</p>
-                  </div>
-                }>
-                  <StudyAnalyticsDashboard />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Resize Handle */}
         <SidebarResizeHandle
           isSidebarCollapsed={isSidebarCollapsed}
@@ -519,29 +454,100 @@ const Sidebar: React.FC = () => {
           isResizing={isResizing}
           onStartResize={startResize}
         />
+      </div>
 
-        {/* Chatbot Panel */}
-        <Suspense fallback={
-          showChatbotPanel ? (
-            <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4" style={{ width: '400px', height: `${chatbotPanelHeight}px` }}>
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mt-8" />
-              <p className="text-center mt-4 text-gray-600 dark:text-gray-400">Loading chatbot...</p>
+      {/* Modals and Panels - OUTSIDE sidebar container */}
+      <Suspense fallback={
+        showSyllabusModal ? (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] border border-gray-100 dark:border-slate-700/50">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+              <p className="text-center mt-4 text-gray-600 dark:text-slate-400">Loading syllabus editor...</p>
             </div>
-          ) : null
+          </div>
+        ) : null
+      }>
+        <SyllabusModal
+          show={showSyllabusModal}
+          selectedClass={selectedClass}
+          onClose={() => setShowSyllabusModal(false)}
+          onSyllabusUpdate={handleSyllabusUpdate}
+          onFileUpdate={handleFileUpdate}
+        />
+      </Suspense>
+
+      {showLogin && !isAuthenticated && (
+        <LoginComponent onClose={() => setShowLogin(false)} />
+      )}
+
+      {showSettings && (
+        <Suspense fallback={
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-100 dark:border-slate-700/50">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+              <p className="text-center mt-4 text-gray-600 dark:text-slate-400">Loading Settings...</p>
+            </div>
+          </div>
         }>
-          <ChatbotPanel
-            selectedClass={selectedClass}
+          <Settings 
+            onClose={() => setShowSettings(false)}
+            user={user}
             classes={classes}
-            show={showChatbotPanel}
-            onClose={() => setShowChatbotPanel(false)}
-            position={chatbotPosition}
-            onPositionChange={setChatbotPosition}
-            height={chatbotPanelHeight}
-            onHeightChange={setChatbotPanelHeight}
-            fontSize={fontSize}
+            useSupabase={isAuthenticated}
           />
         </Suspense>
-      </div>
+      )}
+
+      {showStudyAnalytics && isAuthenticated && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white dark:bg-slate-800/90 dark:backdrop-blur-md rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl dark:shadow-slate-900/40 border border-gray-100 dark:border-slate-700/50">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700/50">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Study Analytics</h2>
+              <button
+                onClick={() => setShowStudyAnalytics(false)}
+                className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                  <p className="ml-4 text-gray-600 dark:text-gray-400">Loading Study Analytics...</p>
+                </div>
+              }>
+                <StudyAnalyticsDashboard />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chatbot Panel */}
+      <Suspense fallback={
+        showChatbotPanel ? (
+          <div className="fixed bottom-4 right-4 bg-white dark:bg-slate-800/90 dark:backdrop-blur-md rounded-lg shadow-lg dark:shadow-slate-900/40 border border-gray-200 dark:border-slate-600/50 p-4" style={{ width: '400px', height: `${chatbotPanelHeight}px` }}>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mt-8" />
+            <p className="text-center mt-4 text-gray-600 dark:text-slate-400">Loading chatbot...</p>
+          </div>
+        ) : null
+      }>
+        <ChatbotPanel
+          selectedClass={selectedClass}
+          classes={classes}
+          show={showChatbotPanel}
+          onClose={() => setShowChatbotPanel(false)}
+          position={chatbotPosition}
+          onPositionChange={setChatbotPosition}
+          height={chatbotPanelHeight}
+          onHeightChange={setChatbotPanelHeight}
+          fontSize={fontSize}
+        />
+      </Suspense>
     </TextFormattingProvider>
   );
 };

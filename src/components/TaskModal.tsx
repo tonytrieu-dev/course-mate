@@ -136,18 +136,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
       data-testid="modal-backdrop"
     >
       <div 
-        className="bg-white p-3 sm:p-4 md:p-6 rounded-t-lg sm:rounded-lg w-full max-w-lg sm:max-w-2xl max-h-[100vh] sm:max-h-[95vh] overflow-y-auto mt-auto sm:mt-0 shadow-xl animate-scaleIn"
+        className="bg-white dark:bg-slate-800/95 backdrop-blur-md p-3 sm:p-4 md:p-6 rounded-t-lg sm:rounded-lg w-full max-w-lg sm:max-w-2xl max-h-[100vh] sm:max-h-[95vh] overflow-y-auto mt-auto sm:mt-0 shadow-xl animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 
           id="modal-title"
-          className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800"
+          className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800 dark:text-white"
         >
           {editingTask ? "Edit Task" : "Add Task"}
         </h2>
         <p 
           id="modal-description"
-          className="text-sm text-gray-600 mb-3 sm:mb-4"
+          className="text-sm text-gray-600 dark:text-slate-400 mb-3 sm:mb-4"
         >
           Date: {modalDateDisplay}
         </p>
@@ -210,17 +210,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
                   type="checkbox"
                   checked={task.completed}
                   onChange={(e) => handleInputChange("completed", e.target.checked)}
-                  className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
+                  className="rounded border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
                 />
-                <span className="text-sm font-medium text-gray-700">Mark as completed</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Mark as completed</span>
               </label>
             </div>
           )}
 
           {/* Study Session Tracker */}
           {isAuthenticated && (
-            <div className="border-t pt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Study Session</h3>
+            <div className="border-t border-gray-200 dark:border-slate-600/50 pt-4">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Study Session</h3>
               <StudySessionTracker taskId={editingTask?.id} />
             </div>
           )}
@@ -232,7 +232,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
+                  className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                   aria-label="Delete this task permanently"
                 >
                   Delete Task
@@ -243,7 +243,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
+                className="flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-gray-300 dark:bg-slate-600/50 text-gray-700 dark:text-slate-200 rounded-md hover:bg-gray-400 dark:hover:bg-slate-600/70 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
                 aria-label="Cancel and close task modal"
               >
                 Cancel
@@ -251,7 +251,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-h-[44px] touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                className={`flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-h-[44px] touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
                 aria-label={editingTask ? "Update task with current information" : "Create new task with entered information"}
               >
                 {isSubmitting && (

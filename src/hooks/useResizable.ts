@@ -51,6 +51,8 @@ export const useResizable = (
   const elementRef = useRef<HTMLElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const lastUpdateRef = useRef<number>(0);
+  const startXRef = useRef<number>(0);
+  const startWidthRef = useRef<number>(0);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -65,8 +67,10 @@ export const useResizable = (
       rafRef.current = requestAnimationFrame(() => {
         const now = Date.now();
         // Throttle updates to 60fps (16ms) for smooth performance
-        if (now - lastUpdateRef.current >= 16) {
-          const newWidth = Math.max(minWidth, Math.min(maxWidth, e.clientX));
+        if (now - lastUpdateRef.current >= 8) { // Reduced throttle for smoother resizing
+          // Calculate delta from starting position and apply to starting width
+          const deltaX = e.clientX - startXRef.current;
+          const newWidth = Math.max(minWidth, Math.min(maxWidth, startWidthRef.current + deltaX));
           setWidth(newWidth);
           lastUpdateRef.current = now;
         }
@@ -116,8 +120,11 @@ export const useResizable = (
 
   const startResize = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    // Capture starting position and width for accurate delta calculation
+    startXRef.current = e.clientX;
+    startWidthRef.current = width;
     setIsResizing(true);
-  }, []);
+  }, [width]);
 
   return {
     width,

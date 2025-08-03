@@ -50,12 +50,11 @@ const InlineSizeControl: React.FC<InlineSizeControlProps> = ({
     }
   }, [show]);
 
-  // Click outside to close - with delay to prevent immediate closure
+  // Click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        // Small delay to prevent immediate closure when clicking the trigger
-        setTimeout(() => setShow(false), 100);
+        setShow(false);
       }
     };
 
@@ -75,21 +74,28 @@ const InlineSizeControl: React.FC<InlineSizeControlProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="absolute top-0 left-full ml-2 z-50 inline-flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg px-2 py-1.5 space-x-1.5 
-                 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 animate-fadeIn
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      className="absolute top-1/2 -translate-y-1/2 right-2 z-50 flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg px-2 py-1.5 space-x-1.5 
+                 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 animate-fadeIn"
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="toolbar"
       aria-label={`Font size control. Current size: ${size}px. Use arrow keys or +/- to adjust.`}
+      style={{
+        position: 'absolute',
+        top: '50%',
+        right: '8px',
+        transform: 'translateY(-50%)',
+        zIndex: 50
+      }}
     >
       {/* Size decrease button */}
       <button
         onClick={handleDecrease}
-        onMouseDown={(e) => e.preventDefault()}
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onFocus={(e) => e.preventDefault()}
         disabled={isAtMin}
         className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center
-                   transition-all duration-150 shadow-sm
+                   transition-all duration-150 shadow-sm focus:outline-none
                    ${isAtMin 
                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' 
                      : 'bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/40 text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:scale-105 active:scale-95'
@@ -111,10 +117,11 @@ const InlineSizeControl: React.FC<InlineSizeControlProps> = ({
       {/* Size increase button */}
       <button
         onClick={handleIncrease}
-        onMouseDown={(e) => e.preventDefault()}
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        onFocus={(e) => e.preventDefault()}
         disabled={isAtMax}
         className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center
-                   transition-all duration-150 shadow-sm
+                   transition-all duration-150 shadow-sm focus:outline-none
                    ${isAtMax 
                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed' 
                      : 'bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-800/40 text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:scale-105 active:scale-95'

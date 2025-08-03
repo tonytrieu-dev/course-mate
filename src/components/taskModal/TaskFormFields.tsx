@@ -16,7 +16,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
     <>
       {/* Task Title */}
       <div>
-        <label htmlFor="task-title" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="task-title" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
           Task Title *
         </label>
         <input
@@ -25,7 +25,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
           type="text"
           value={task.title}
           onChange={(e) => onInputChange("title", e.target.value)}
-          className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
+          className="w-full p-3 sm:p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 backdrop-blur-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
           placeholder="Enter task title..."
           aria-required="true"
           aria-describedby="task-title-help"
@@ -44,12 +44,12 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
             type="checkbox"
             checked={task.isDuration}
             onChange={(e) => onInputChange("isDuration", e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-4 h-4 sm:w-3 sm:h-3 touch-manipulation"
+            className="rounded border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-4 h-4 sm:w-3 sm:h-3 touch-manipulation"
             aria-describedby="task-duration-help"
           />
-          <span className="text-sm font-medium text-gray-700">Duration-based task</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Duration-based task</span>
         </label>
-        <p id="task-duration-help" className="text-xs text-gray-500 mt-1">
+        <p id="task-duration-help" className="text-xs text-gray-500 dark:text-slate-400 mt-1">
           {task.isDuration 
             ? "Task has start and end times" 
             : "Task has a single due date and time"
@@ -62,7 +62,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
         <fieldset className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <legend className="sr-only">Duration-based task time period</legend>
           <div>
-            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Start Date
             </label>
             <input
@@ -70,12 +70,12 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="date"
               value={task.startDate}
               onChange={(e) => onInputChange("startDate", e.target.value)}
-              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
+              className="w-full p-3 sm:p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 backdrop-blur-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
               aria-label="Task start date"
             />
           </div>
           <div>
-            <label htmlFor="start-time" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="start-time" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Start Time
             </label>
             <input
@@ -83,7 +83,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="time"
               value={task.startTime}
               onChange={(e) => onInputChange("startTime", e.target.value)}
-              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
+              className="w-full p-3 sm:p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 backdrop-blur-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
               aria-label="Task start time"
             />
           </div>
@@ -96,7 +96,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="date"
               value={task.endDate}
               onChange={(e) => onInputChange("endDate", e.target.value)}
-              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
+              className="w-full p-3 sm:p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 backdrop-blur-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
               aria-label="Task end date"
             />
           </div>
@@ -109,7 +109,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="time"
               value={task.endTime}
               onChange={(e) => onInputChange("endTime", e.target.value)}
-              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
+              className="w-full p-3 sm:p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 backdrop-blur-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
               aria-label="Task end time"
             />
           </div>
@@ -126,7 +126,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="date"
               value={task.dueDate}
               onChange={(e) => onInputChange("dueDate", e.target.value)}
-              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
+              className="w-full p-3 sm:p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 backdrop-blur-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
               aria-label="Task due date"
             />
           </div>
@@ -139,7 +139,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
               type="time"
               value={task.dueTime}
               onChange={(e) => onInputChange("dueTime", e.target.value)}
-              className="w-full p-3 sm:p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation"
+              className="w-full p-3 sm:p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 backdrop-blur-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base touch-manipulation text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
               aria-label="Task due time"
             />
           </div>
