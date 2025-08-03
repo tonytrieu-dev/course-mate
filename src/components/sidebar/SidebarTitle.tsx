@@ -79,29 +79,40 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
           />
           {/* Title Color Picker */}
           {showTitleColorPicker && (
-            <div className="absolute z-50 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-3 left-1/2 transform -translate-x-1/2">
-              <div className="grid grid-cols-5 gap-2 mb-2">
-                {colorOptions.map((color) => (
-                  <button
-                    key={color.name}
-                    onClick={() => {
-                      setTitleColor(color.name);
-                      setShowTitleColorPicker(false);
-                    }}
-                    className={`w-6 h-6 rounded-full border-2 ${color.class.replace('text-', 'bg-')} ${
-                      titleColor === color.name ? 'border-gray-800' : 'border-gray-300'
-                    } hover:scale-110 transition-transform`}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-              <button
+            <>
+              {/* Backdrop to prevent interaction with content below */}
+              <div 
+                className="fixed inset-0 z-40 bg-black bg-opacity-25"
                 onClick={() => setShowTitleColorPicker(false)}
-                className="w-full text-xs text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Close
-              </button>
-            </div>
+              />
+              {/* Color picker centered and elevated */}
+              <div className="absolute z-50 top-full mt-2 bg-white border border-gray-300 rounded-lg shadow-xl p-4 left-1/2 transform -translate-x-1/2 min-w-[200px]">
+                <div className="text-xs font-medium text-gray-700 mb-3">Choose Color</div>
+                <div className="grid grid-cols-5 gap-3 mb-3">
+                  {colorOptions.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => {
+                        setTitleColor(color.name);
+                        setShowTitleColorPicker(false);
+                      }}
+                      className={`w-7 h-7 rounded-full border-2 ${color.class.replace('text-', 'bg-')} ${
+                        titleColor === color.name 
+                          ? 'border-gray-800 ring-2 ring-gray-300' 
+                          : 'border-gray-300 hover:border-gray-500'
+                      } hover:scale-110 transition-all duration-200 shadow-sm`}
+                      title={color.name.charAt(0).toUpperCase() + color.name.slice(1)}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowTitleColorPicker(false)}
+                  className="w-full text-xs text-gray-600 hover:text-gray-800 transition-colors py-1 px-2 rounded border border-gray-200 hover:border-gray-300"
+                >
+                  Close
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}

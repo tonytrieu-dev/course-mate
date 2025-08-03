@@ -76,8 +76,8 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
   if (!show || !selectedClass) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-10">
-      <div className="bg-white p-5 rounded w-[600px] max-w-[90%] max-h-[90vh] overflow-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999]">
+      <div className="bg-white p-5 rounded-xl shadow-2xl w-[600px] max-w-[90%] max-h-[90vh] overflow-auto relative z-[10000]">
         <h2 className="text-blue-600 mt-0 font-bold text-xl">
           {selectedClass.name}
         </h2>

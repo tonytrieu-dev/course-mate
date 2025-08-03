@@ -152,7 +152,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className={onClose ? "fixed inset-0 bg-black/50 flex justify-center items-center z-10" : ""}>
+    <div className={onClose ? "fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999]" : ""}>
       <div className={onClose ? "bg-white p-6 rounded-lg shadow-lg w-[500px] max-w-lg relative" : "space-y-6"}>
         {/* Close button - only show when used as modal */}
         {onClose && (

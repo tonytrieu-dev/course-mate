@@ -199,7 +199,7 @@ export const StudySessionTracker: React.FC<StudySessionTrackerProps> = ({
 
       {/* Start Session Modal */}
       {showStartForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Start Study Session</h3>
             
@@ -276,7 +276,7 @@ export const StudySessionTracker: React.FC<StudySessionTrackerProps> = ({
 
       {/* End Session Modal */}
       {showEndForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">End Study Session</h3>
             

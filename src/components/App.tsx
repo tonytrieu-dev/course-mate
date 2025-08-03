@@ -74,6 +74,8 @@ const CalendarApp: React.FC = () => {
   const [showLanding, setShowLanding] = useState<boolean>(true);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [dragOverItem, setDragOverItem] = useState<number | null>(null);
+  const [isReorderMode, setIsReorderMode] = useState<boolean>(false);
+  const [reorderTimer, setReorderTimer] = useState<NodeJS.Timeout | null>(null);
   const { user, isAuthenticated, logout, loading } = useAuth();
 
   // Default navigation items
@@ -118,19 +120,67 @@ const CalendarApp: React.FC = () => {
     }
   }, []);
 
-  // Drag and drop handlers
+  // iOS-style reorder mode activation
+  const enterReorderMode = useCallback(() => {
+    console.log('Entering reorder mode'); // Debug log to track when this is called
+    setIsReorderMode(true);
+    // Auto-exit reorder mode after 10 seconds of inactivity
+    if (reorderTimer) clearTimeout(reorderTimer);
+    const timer = setTimeout(() => {
+      setIsReorderMode(false);
+    }, 10000);
+    setReorderTimer(timer);
+  }, [reorderTimer]);
+
+  const exitReorderMode = useCallback(() => {
+    setIsReorderMode(false);
+    if (reorderTimer) clearTimeout(reorderTimer);
+    setReorderTimer(null);
+  }, [reorderTimer]);
+
+  // Long press detection for entering reorder mode
+  const handleTouchStart = useCallback((e: React.TouchEvent, index: number) => {
+    // Only activate on navigation buttons, not other elements
+    e.stopPropagation();
+    const timer = setTimeout(() => {
+      enterReorderMode();
+    }, 800); // Increased to 800ms to prevent accidental activation
+
+    // Store timer on the element for cleanup
+    (e.currentTarget as any)._longPressTimer = timer;
+  }, [enterReorderMode]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Clear long press timer
+    const timer = (e.currentTarget as any)._longPressTimer;
+    if (timer) {
+      clearTimeout(timer);
+      delete (e.currentTarget as any)._longPressTimer;
+    }
+  }, []);
+
+  // Enhanced drag and drop handlers
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    // Only allow drag from navigation buttons
+    e.stopPropagation();
     setDraggedItem(index);
     e.dataTransfer.effectAllowed = 'move';
+    enterReorderMode();
     // Add visual feedback
     e.currentTarget.classList.add('opacity-50');
-  }, []);
+  }, [enterReorderMode]);
 
   const handleDragEnd = useCallback((e: React.DragEvent) => {
     e.currentTarget.classList.remove('opacity-50');
     setDraggedItem(null);
     setDragOverItem(null);
-  }, []);
+    // Keep reorder mode active for a bit longer after drag ends
+    if (reorderTimer) clearTimeout(reorderTimer);
+    const timer = setTimeout(() => {
+      setIsReorderMode(false);
+    }, 3000);
+    setReorderTimer(timer);
+  }, [reorderTimer]);
 
   const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
@@ -183,6 +233,15 @@ const CalendarApp: React.FC = () => {
       setShowLanding(false);
     }
   }, [isAuthenticated]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (reorderTimer) {
+        clearTimeout(reorderTimer);
+      }
+    };
+  }, [reorderTimer]);
 
   const handleGetStarted = () => {
     setShowLanding(false);
@@ -238,7 +297,14 @@ const CalendarApp: React.FC = () => {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-gray-100 relative">
+      {/* Reorder mode overlay - covers everything */}
+      {isReorderMode && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-10 z-40 animate-fadeIn"
+          onClick={exitReorderMode}
+        />
+      )}
       {/* Mobile Sidebar Overlay */}
       <div className={`lg:hidden fixed inset-0 z-50 ${isNavCollapsed ? 'hidden' : 'block'}`}>
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsNavCollapsed(true)} />
@@ -268,10 +334,28 @@ const CalendarApp: React.FC = () => {
       
       <div className="flex-1 bg-gray-100 overflow-auto box-border min-w-0">
         {/* Main Navigation Header */}
-        <div className={`bg-white border-b border-gray-200 transition-all duration-300 ease-in-out ${
+        <div className={`bg-white border-b border-gray-200 transition-all duration-300 ease-in-out relative ${
+          isReorderMode ? 'z-50' : 'z-10'
+        } ${
           isNavCollapsed ? 'h-0 overflow-hidden border-b-0' : 'px-2 sm:px-4 lg:px-6 py-3'
         }`}>
-          <div className="flex justify-between lg:justify-center items-center">
+          {/* Reorder mode indicator */}
+          {isReorderMode && (
+            <div className="text-center py-1 mb-2">
+              <span className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">
+                📱 Reorder Mode Active - Tap outside to exit
+              </span>
+            </div>
+          )}
+          <div 
+            className="flex justify-between lg:justify-center items-center"
+            onClick={(e) => {
+              // Exit reorder mode when clicking outside nav buttons
+              if (isReorderMode && e.target === e.currentTarget) {
+                exitReorderMode();
+              }
+            }}
+          >
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsNavCollapsed(false)}
@@ -293,20 +377,57 @@ const CalendarApp: React.FC = () => {
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, index)}
-                  onClick={() => setAppView(nav.id)}
-                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-smooth flex items-center gap-1 sm:gap-2 whitespace-nowrap cursor-move select-none ${
+                  onTouchStart={(e) => {
+                    // Only handle touch events on the navigation buttons themselves
+                    if (e.currentTarget.contains(e.target as Node)) {
+                      handleTouchStart(e, index);
+                    }
+                  }}
+                  onTouchEnd={handleTouchEnd}
+                  onTouchCancel={handleTouchEnd}
+                  onClick={(e) => {
+                    // Stop event bubbling to prevent interference
+                    e.stopPropagation();
+                    
+                    // Prevent navigation if in reorder mode and not dragging
+                    if (isReorderMode && draggedItem === null) {
+                      e.preventDefault();
+                      return;
+                    }
+                    setAppView(nav.id);
+                    exitReorderMode();
+                  }}
+                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-smooth flex items-center gap-1 sm:gap-2 whitespace-nowrap select-none ${
+                    isReorderMode 
+                      ? 'cursor-grab' 
+                      : 'cursor-move'
+                  } ${
                     appView === nav.id
                       ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
                   } ${
                     dragOverItem === index && draggedItem !== index
-                      ? 'border-2 border-blue-400 border-dashed'
+                      ? 'border-2 border-blue-400 border-dashed bg-blue-50'
+                      : ''
+                  } ${
+                    draggedItem === index
+                      ? 'opacity-50 scale-105'
                       : ''
                   }`}
-                  title={`${nav.label} - Drag to reorder`}
+                  title={
+                    isReorderMode 
+                      ? `${nav.label} - Tap anywhere to exit reorder mode` 
+                      : `${nav.label} - Long press or drag to reorder`
+                  }
                 >
-                  {/* Drag handle indicator */}
-                  <svg className="w-3 h-3 text-gray-400 opacity-60 mr-1" fill="currentColor" viewBox="0 0 6 10">
+                  {/* Drag handle indicator - more visible in reorder mode */}
+                  <svg 
+                    className={`w-3 h-3 text-gray-400 mr-1 transition-opacity ${
+                      isReorderMode ? 'opacity-100' : 'opacity-60'
+                    }`} 
+                    fill="currentColor" 
+                    viewBox="0 0 6 10"
+                  >
                     <circle cx="2" cy="2" r="1"/>
                     <circle cx="2" cy="5" r="1"/>
                     <circle cx="2" cy="8" r="1"/>
@@ -349,7 +470,15 @@ const CalendarApp: React.FC = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="p-1 sm:p-2 md:p-4 lg:p-5">
+        <div 
+          className="p-1 sm:p-2 md:p-4 lg:p-5"
+          onClick={() => {
+            // Exit reorder mode when clicking in main content area
+            if (isReorderMode) {
+              exitReorderMode();
+            }
+          }}
+        >
           <ErrorBoundary name={`${appView}View`} showDetails={false}>
             {appView === 'dashboard' && (
               <Suspense fallback={<DashboardLoadingFallback />}>

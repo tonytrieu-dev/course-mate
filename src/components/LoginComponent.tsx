@@ -130,7 +130,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-10">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999]">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[400px] max-w-lg relative">
         <button
           onClick={handleCloseClick}

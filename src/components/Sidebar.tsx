@@ -351,29 +351,40 @@ const Sidebar: React.FC = () => {
                 />
                 {/* Classes Header Color Picker */}
                 {showClassesHeaderColorPicker && (
-                  <div className="absolute z-50 mt-8 bg-white border border-gray-300 rounded-lg shadow-lg p-3">
-                    <div className="grid grid-cols-5 gap-2 mb-2">
-                      {colorOptions.map((color) => (
-                        <button
-                          key={color.name}
-                          onClick={() => {
-                            setClassesHeaderColor(color.name);
-                            setShowClassesHeaderColorPicker(false);
-                          }}
-                          className={`w-6 h-6 rounded-full border-2 ${color.class.replace('text-', 'bg-')} ${
-                            classesHeaderColor === color.name ? 'border-gray-800' : 'border-gray-300'
-                          } hover:scale-110 transition-transform`}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                    <button
+                  <>
+                    {/* Backdrop to prevent interaction with content below */}
+                    <div 
+                      className="fixed inset-0 z-40 bg-black bg-opacity-25"
                       onClick={() => setShowClassesHeaderColorPicker(false)}
-                      className="w-full text-xs text-gray-600 hover:text-gray-800 transition-colors"
-                    >
-                      Close
-                    </button>
-                  </div>
+                    />
+                    {/* Color picker positioned to avoid overlapping */}
+                    <div className="absolute z-50 top-8 left-0 bg-white border border-gray-300 rounded-lg shadow-xl p-4 min-w-[200px]">
+                      <div className="text-xs font-medium text-gray-700 mb-3">Choose Color</div>
+                      <div className="grid grid-cols-5 gap-3 mb-3">
+                        {colorOptions.map((color) => (
+                          <button
+                            key={color.name}
+                            onClick={() => {
+                              setClassesHeaderColor(color.name);
+                              setShowClassesHeaderColorPicker(false);
+                            }}
+                            className={`w-7 h-7 rounded-full border-2 ${color.class.replace('text-', 'bg-')} ${
+                              classesHeaderColor === color.name 
+                                ? 'border-gray-800 ring-2 ring-gray-300' 
+                                : 'border-gray-300 hover:border-gray-500'
+                            } hover:scale-110 transition-all duration-200 shadow-sm`}
+                            title={color.name.charAt(0).toUpperCase() + color.name.slice(1)}
+                          />
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setShowClassesHeaderColorPicker(false)}
+                        className="w-full text-xs text-gray-600 hover:text-gray-800 transition-colors py-1 px-2 rounded border border-gray-200 hover:border-gray-300"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -426,7 +437,7 @@ const Sidebar: React.FC = () => {
         {/* Modals and Panels */}
         <Suspense fallback={
           showSyllabusModal ? (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
               <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
                 <p className="text-center mt-4 text-gray-600">Loading syllabus editor...</p>
@@ -449,7 +460,7 @@ const Sidebar: React.FC = () => {
 
         {showSettings && (
           <Suspense fallback={
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
                 <p className="text-center mt-4 text-gray-600">Loading Settings...</p>
@@ -466,7 +477,7 @@ const Sidebar: React.FC = () => {
         )}
 
         {showStudyAnalytics && isAuthenticated && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
             <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-900">Study Analytics</h2>

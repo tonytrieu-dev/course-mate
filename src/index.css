@@ -79,6 +79,19 @@
   }
 }
 
+/* Modal utility classes */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999];
+}
+
+.modal-overlay {
+  @apply flex items-center justify-center p-4;
+}
+
+.modal-content {
+  @apply bg-white rounded-xl shadow-2xl relative z-[10000];
+}
+
 /* Animation utility classes */
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;

@@ -126,7 +126,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start sm:items-center z-50 p-1 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-start sm:items-center z-[9999] p-1 sm:p-4 overflow-y-auto"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       role="dialog"
