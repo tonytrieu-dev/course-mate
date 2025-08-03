@@ -9,10 +9,10 @@ interface SkeletonProps {
 
 const Skeleton: React.FC<SkeletonProps> = ({ className = "", animate = true }) => (
   <div 
-    className={`bg-gray-200 rounded relative overflow-hidden ${animate ? 'animate-pulse' : ''} ${className}`}
+    className={`skeleton-rounded relative overflow-hidden ${animate ? 'animate-skeleton' : 'bg-gray-200'} ${className}`}
   >
     {animate && (
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
     )}
   </div>
 );
@@ -67,7 +67,7 @@ export const TaskViewLoadingFallback: React.FC = () => (
     {/* Task List */}
     <div className="space-y-2">
       {[...Array(8)].map((_, i) => (
-        <div key={i} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-white dark:bg-gray-800">
+        <div key={i} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-white">
           <Skeleton className="h-4 w-4" />
           <Skeleton className="h-4 flex-1" />
           <Skeleton className="h-4 w-16" />
@@ -84,7 +84,7 @@ export const DashboardLoadingFallback: React.FC = () => (
     {/* Stats Cards */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="p-4 border rounded-lg space-y-2">
+        <div key={i} className="p-4 border border-gray-200 rounded-lg space-y-2 bg-white">
           <Skeleton className="h-6 w-24" />
           <Skeleton className="h-8 w-16" />
         </div>
@@ -106,7 +106,7 @@ export const GradeDashboardLoadingFallback: React.FC = () => (
     {/* GPA Overview */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="p-4 border rounded-lg space-y-2">
+        <div key={i} className="p-4 border border-gray-200 rounded-lg space-y-2 bg-white">
           <Skeleton className="h-6 w-20" />
           <Skeleton className="h-8 w-12" />
         </div>
@@ -116,7 +116,7 @@ export const GradeDashboardLoadingFallback: React.FC = () => (
     {/* Grade List */}
     <div className="space-y-3">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="flex justify-between items-center p-3 border rounded-lg">
+        <div key={i} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg bg-white">
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-4 w-12" />
@@ -155,7 +155,7 @@ export const SettingsLoadingFallback: React.FC = () => (
         <Skeleton className="h-6 w-32" />
         <div className="space-y-2">
           {[...Array(3)].map((_, item) => (
-            <div key={item} className="flex items-center justify-between p-3 border rounded-lg">
+            <div key={item} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-white">
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-6 w-12" />
             </div>
@@ -173,7 +173,7 @@ export const StudyAnalyticsLoadingFallback: React.FC = () => (
     {/* Metrics Row */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="p-4 border rounded-lg space-y-2">
+        <div key={i} className="p-4 border border-gray-200 rounded-lg space-y-2 bg-white">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-6 w-16" />
         </div>
@@ -192,7 +192,7 @@ export const StudyAnalyticsLoadingFallback: React.FC = () => (
 // Generic Small Component Loading
 export const SmallComponentLoadingFallback: React.FC = () => (
   <div className="flex items-center justify-center p-4" role="status" aria-label="Loading">
-    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
     <span className="sr-only">Loading...</span>
   </div>
 );

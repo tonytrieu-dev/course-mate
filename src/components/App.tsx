@@ -193,10 +193,10 @@ const CalendarApp: React.FC = () => {
                 <button
                   key={nav.id}
                   onClick={() => setAppView(nav.id as AppViewType)}
-                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
+                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-smooth flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
                     appView === nav.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
                   }`}
                 >
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,24 +267,24 @@ const CalendarApp: React.FC = () => {
             {appView === 'grades' && (
                 <div className="space-y-4 animate-fadeIn">
                   {/* Grade View Toggle */}
-                  <div className="bg-white rounded-lg shadow p-4">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-smooth">
                     <div className="flex gap-2">
                       <button
                         onClick={() => setGradeView('dashboard')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
                           gradeView === 'dashboard'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
                         }`}
                       >
                         📊 Dashboard
                       </button>
                       <button
                         onClick={() => setGradeView('entry')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
                           gradeView === 'entry'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
                         }`}
                       >
                         ✏️ Add Grades

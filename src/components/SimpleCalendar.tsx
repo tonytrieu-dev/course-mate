@@ -228,7 +228,7 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
         {!showAllTasks && hiddenTasksCount > 0 && (
           <button
             onClick={handleShowMore}
-            className="w-full text-xs text-blue-600 hover:text-blue-800 py-1 mt-1 rounded hover:bg-blue-50 transition-colors"
+            className="w-full text-xs text-blue-600 hover:text-blue-800 py-2 mt-1 rounded hover:bg-blue-50 transition-colors min-h-[32px] touch-manipulation"
             aria-label={`Show ${hiddenTasksCount} more tasks`}
           >
             +{hiddenTasksCount} more
@@ -324,7 +324,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
         <div className="relative">
           <button
             onClick={() => setShowDatePicker(!showDatePicker)}
-            className="flex items-center gap-2 text-2xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-200 px-2 py-1 rounded hover:bg-gray-100"
+            className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded hover:bg-gray-100 min-h-[44px] touch-manipulation"
             type="button"
             aria-label={`${monthName} ${year}, click to change date`}
             aria-expanded={showDatePicker}
@@ -358,7 +358,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
                       <button
                         key={yearOption}
                         onClick={() => handleDateChange(currentDate.getMonth(), yearOption)}
-                        className={`px-2 py-1 text-sm rounded transition-colors duration-200 ${
+                        className={`px-3 py-2 text-sm rounded transition-colors duration-200 min-h-[40px] touch-manipulation ${
                           yearOption === currentDate.getFullYear() 
                             ? 'bg-blue-100 text-blue-800 font-semibold' 
                             : 'text-gray-700 hover:bg-blue-50'
@@ -379,7 +379,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
                       <button
                         key={month}
                         onClick={() => handleDateChange(index, currentDate.getFullYear())}
-                        className={`px-2 py-1 text-sm rounded transition-colors duration-200 ${
+                        className={`px-3 py-2 text-sm rounded transition-colors duration-200 min-h-[40px] touch-manipulation ${
                           index === currentDate.getMonth() 
                             ? 'bg-blue-100 text-blue-800 font-semibold' 
                             : 'text-gray-700 hover:bg-blue-50'

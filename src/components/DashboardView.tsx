@@ -241,13 +241,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     onClick?: () => void;
   }> = ({ title, value, subtitle, color = 'blue', onClick }) => (
     <div 
-      className={`bg-white rounded-xl shadow-md p-6 ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
+      className={`bg-white rounded-xl shadow-md p-4 sm:p-6 transition-smooth ${onClick ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] min-h-[88px] touch-manipulation' : 'min-h-[88px]'}`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className={`text-3xl font-bold text-${color}-600 mt-2`}>{value}</p>
+          <p className="text-sm font-medium text-gray-600">{label}</p>
+          <p className={`text-2xl sm:text-3xl font-bold text-${color}-600 mt-2`}>{value}</p>
           {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
         </div>
       </div>
