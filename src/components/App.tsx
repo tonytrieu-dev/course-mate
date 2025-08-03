@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { SubscriptionProvider } from "../contexts/SubscriptionContext";
 import { features } from "../utils/buildConfig";
 import ErrorBoundary from "./ErrorBoundary";
+import { getSettingsWithSync, updateNavigationOrder, updateSelectedView } from "../services/settings/settingsOperations";
 import {
   SidebarLoadingFallback,
   CalendarLoadingFallback,
@@ -67,6 +68,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 };
 
 const CalendarApp: React.FC = () => {
+  // State for navigation and settings
   const [appView, setAppView] = useState<AppViewType>("dashboard");
   const [calendarView, setCalendarView] = useState<CalendarViewType>("month");
   const [gradeView, setGradeView] = useState<'dashboard' | 'entry'>('dashboard');
@@ -76,6 +78,7 @@ const CalendarApp: React.FC = () => {
   const [dragOverItem, setDragOverItem] = useState<number | null>(null);
   const [isReorderMode, setIsReorderMode] = useState<boolean>(false);
   const [reorderTimer, setReorderTimer] = useState<NodeJS.Timeout | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState<boolean>(false);
   const { user, isAuthenticated, logout, loading } = useAuth();
 
   // Default navigation items
@@ -86,39 +89,71 @@ const CalendarApp: React.FC = () => {
     { id: 'grades', label: 'Grades', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' }
   ];
 
-  // Load navigation order from localStorage or use default
-  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('schedulebudNavOrder');
-      if (saved) {
-        const savedOrder = JSON.parse(saved) as string[];
-        // Reorder default items based on saved order
-        const reordered = savedOrder.map(id => 
-          defaultNavItems.find(item => item.id === id)
-        ).filter((item): item is NavigationItem => item !== undefined);
-        
-        // Add any missing items to the end
-        const missingItems = defaultNavItems.filter(item => 
-          !savedOrder.includes(item.id)
-        );
-        
-        return [...reordered, ...missingItems];
-      }
-    } catch (error) {
-      console.warn('Failed to load navigation order from localStorage:', error);
-    }
-    return defaultNavItems;
-  });
+  // Navigation items state - will be populated from settings
+  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>(defaultNavItems);
 
-  // Save navigation order to localStorage
-  const saveNavigationOrder = useCallback((items: NavigationItem[]) => {
+  // Save navigation order with cross-device sync
+  const saveNavigationOrder = useCallback(async (items: NavigationItem[]) => {
+    const order = items.map(item => item.id);
     try {
-      const order = items.map(item => item.id);
-      localStorage.setItem('schedulebudNavOrder', JSON.stringify(order));
+      await updateNavigationOrder(order, user?.id);
     } catch (error) {
-      console.warn('Failed to save navigation order to localStorage:', error);
+      console.warn('Failed to save navigation order:', error);
     }
-  }, []);
+  }, [user?.id]);
+
+  // Load user settings with cross-device sync when authentication state changes
+  useEffect(() => {
+    if (loading) return; // Wait for auth to finish loading
+    
+    const loadSettings = async () => {
+      try {
+        const settings = await getSettingsWithSync(user?.id);
+        
+        // Apply navigation order if available
+        if (settings.navigationOrder && settings.navigationOrder.length > 0) {
+          const reorderedItems = settings.navigationOrder.map(id => 
+            defaultNavItems.find(item => item.id === id)
+          ).filter((item): item is NavigationItem => item !== undefined);
+          
+          // Add any missing items to the end
+          const missingItems = defaultNavItems.filter(item => 
+            !settings.navigationOrder!.includes(item.id)
+          );
+          
+          setNavigationItems([...reorderedItems, ...missingItems]);
+        }
+        
+        // Apply selected view if available
+        if (settings.selectedView && 
+            ['dashboard', 'tasks', 'calendar', 'grades'].includes(settings.selectedView)) {
+          setAppView(settings.selectedView);
+        }
+        
+        setSettingsLoaded(true);
+      } catch (error) {
+        console.warn('Failed to load settings:', error);
+        setSettingsLoaded(true); // Still mark as loaded to prevent infinite loading
+      }
+    };
+    
+    loadSettings();
+  }, [loading, user?.id]);
+
+  // Save selected view with cross-device sync whenever it changes
+  useEffect(() => {
+    if (!settingsLoaded) return; // Don't save during initial load
+    
+    const saveSelectedView = async () => {
+      try {
+        await updateSelectedView(appView, user?.id);
+      } catch (error) {
+        console.warn('Failed to save selected view:', error);
+      }
+    };
+    
+    saveSelectedView();
+  }, [appView, user?.id, settingsLoaded]);
 
   // iOS-style reorder mode activation
   const enterReorderMode = useCallback(() => {
