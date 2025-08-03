@@ -72,6 +72,24 @@ class Logger {
     this.info(`[AUTH] ${message}`, safeData);
   }
 
+  // Security-specific logging with enhanced monitoring
+  security(message: string, data: Record<string, unknown> = {}): void {
+    const securityData = {
+      ...data,
+      timestamp: new Date().toISOString(),
+      severity: data.severity || 'medium',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server'
+    };
+    
+    // Always log security events regardless of log level
+    console.warn(`[SECURITY] ${message}`, securityData);
+    
+    // In production, this would also send to security monitoring service
+    if (process.env.NODE_ENV === 'production') {
+      // TODO: Send to security monitoring service (e.g., Sentry, DataDog)
+    }
+  }
+
   private sanitizeAuthData(data: AuthData): SanitizedAuthData {
     const sanitized: Record<string, unknown> = { ...data };
     // Remove sensitive fields

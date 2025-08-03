@@ -64,7 +64,6 @@
     "postcss-loader": "^8.1.1",
     "prop-types": "^15.8.1",
     "style-loader": "^4.0.0",
-    "tailwindcss": "^4.0.17",
     "typescript": "^5.8.3",
     "webpack": "^5.98.0",
     "webpack-bundle-analyzer": "^4.10.2",

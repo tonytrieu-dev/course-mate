@@ -6,6 +6,120 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Security configuration
+const SECURITY_CONFIG = {
+  MAX_TEXT_LENGTH: 1000000, // 1MB of text content
+  MAX_CHUNK_SIZE: 2000, // Increased for academic content
+  MIN_CHUNK_SIZE: 50, // Minimum meaningful content
+  SUSPICIOUS_PATTERNS: [
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+    /javascript:/gi,
+    /data:text\/html/gi,
+    /vbscript:/gi,
+    /on\w+\s*=/gi,
+  ],
+  ACADEMIC_INDICATORS: [
+    /syllabus/gi,
+    /course/gi,
+    /assignment/gi,
+    /semester/gi,
+    /professor/gi,
+    /due date/gi,
+    /exam/gi,
+    /quiz/gi,
+  ]
+}
+
+// Security logging utility
+function logSecurityEvent(level: 'info' | 'warn' | 'error', event: string, details: any) {
+  console[level](`[SECURITY] ${event}:`, {
+    timestamp: new Date().toISOString(),
+    ...details
+  });
+}
+
+// PDF content validation function
+function validatePDFContent(content: string, fileName: string): { isValid: boolean; warnings: string[]; sanitizedContent: string } {
+  const warnings: string[] = [];
+  let sanitizedContent = content;
+  
+  logSecurityEvent('info', 'PDF content validation started', {
+    fileName,
+    contentLength: content.length
+  });
+
+  // Check content length
+  if (content.length > SECURITY_CONFIG.MAX_TEXT_LENGTH) {
+    logSecurityEvent('warn', 'PDF content exceeds size limit', {
+      fileName,
+      contentLength: content.length,
+      maxLength: SECURITY_CONFIG.MAX_TEXT_LENGTH
+    });
+    
+    sanitizedContent = content.substring(0, SECURITY_CONFIG.MAX_TEXT_LENGTH);
+    warnings.push('Content truncated due to size limit');
+  }
+
+  // Check for suspicious patterns
+  let suspiciousPatternFound = false;
+  for (const pattern of SECURITY_CONFIG.SUSPICIOUS_PATTERNS) {
+    if (pattern.test(content)) {
+      suspiciousPatternFound = true;
+      logSecurityEvent('warn', 'Suspicious pattern detected in PDF content', {
+        fileName,
+        pattern: pattern.toString()
+      });
+      
+      // Remove suspicious content
+      sanitizedContent = sanitizedContent.replace(pattern, '[CONTENT_REMOVED]');
+      warnings.push('Suspicious content was removed for security');
+    }
+  }
+
+  // Check for academic content indicators
+  const academicIndicators = SECURITY_CONFIG.ACADEMIC_INDICATORS.filter(pattern => 
+    pattern.test(content)
+  ).length;
+  
+  const isLikelyAcademic = academicIndicators >= 2;
+  
+  if (!isLikelyAcademic) {
+    logSecurityEvent('warn', 'Content may not be academic material', {
+      fileName,
+      academicIndicators,
+      contentSample: content.substring(0, 200)
+    });
+    warnings.push('Content does not appear to be academic material');
+  }
+
+  // Final validation
+  const isValid = sanitizedContent.length >= SECURITY_CONFIG.MIN_CHUNK_SIZE && !suspiciousPatternFound;
+  
+  logSecurityEvent('info', 'PDF content validation completed', {
+    fileName,
+    isValid,
+    warnings: warnings.length,
+    isLikelyAcademic,
+    finalContentLength: sanitizedContent.length
+  });
+
+  return {
+    isValid,
+    warnings,
+    sanitizedContent
+  };
+}
+
+// Determine bucket based on file type/path
+function getBucketName(filePath: string): string {
+  // If the path contains 'syllabi' or looks like a syllabus, use secure bucket
+  if (filePath.includes('/syllabi/') || filePath.toLowerCase().includes('syllabus')) {
+    return 'secure-syllabi';
+  }
+  // Otherwise use regular bucket
+  return 'class-materials';
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -47,10 +161,24 @@ Deno.serve(async (req) => {
       class_id: file.class_id,
       type: file.type
     });
+    
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Download file content from storage
-    const { data: blob, error: downloadError } = await supabaseAdmin.storage.from('class-materials').download(file.path);
+    // Determine appropriate bucket based on file path
+    const bucketName = getBucketName(file.path);
+    
+    logSecurityEvent('info', 'File processing started', {
+      fileId: file.id,
+      fileName: file.name,
+      filePath: file.path,
+      bucketName,
+      fileType: file.type
+    });
+
+    // Download file content from appropriate storage bucket
+    const { data: blob, error: downloadError } = await supabaseAdmin.storage
+      .from(bucketName)
+      .download(file.path);
     if (downloadError) throw downloadError;
     if (!blob) {
       throw new Error('File not found in storage.');
@@ -62,22 +190,95 @@ Deno.serve(async (req) => {
     if (fileType === 'application/pdf') {
       const fileBuffer = await blob.arrayBuffer();
       const { text } = await extractText(new Uint8Array(fileBuffer), { mergePages: true });
-      content = text;
+      
+      // SECURITY: Validate and sanitize PDF content
+      const validation = validatePDFContent(text, file.name);
+      
+      if (!validation.isValid) {
+        logSecurityEvent('error', 'PDF content validation failed', {
+          fileName: file.name,
+          fileId: file.id,
+          warnings: validation.warnings
+        });
+        
+        return new Response(JSON.stringify({
+          error: 'PDF content validation failed',
+          warnings: validation.warnings
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      // Use sanitized content
+      content = validation.sanitizedContent;
+      
+      // Log warnings if any
+      if (validation.warnings.length > 0) {
+        logSecurityEvent('warn', 'PDF content validation warnings', {
+          fileName: file.name,
+          fileId: file.id,
+          warnings: validation.warnings
+        });
+      }
+      
     } else if (fileType.startsWith('text/')) {
-      content = await blob.text();
+      const rawContent = await blob.text();
+      
+      // SECURITY: Apply same validation to text files
+      const validation = validatePDFContent(rawContent, file.name);
+      
+      if (!validation.isValid) {
+        logSecurityEvent('error', 'Text content validation failed', {
+          fileName: file.name,
+          fileId: file.id,
+          warnings: validation.warnings
+        });
+        
+        return new Response(JSON.stringify({
+          error: 'Text content validation failed',
+          warnings: validation.warnings
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      content = validation.sanitizedContent;
+      
     } else {
+      logSecurityEvent('info', 'Unsupported file type skipped', {
+        fileName: file.name,
+        fileType,
+        fileId: file.id
+      });
+      
       console.log(`Skipping embedding for unsupported file type: ${fileType}`);
       return new Response('OK - unsupported file type', { headers: corsHeaders });
     }
     
-    // Chunk the content into smaller pieces (max 1000 chars with overlap)
-    const chunkSize = 1000;
-    const overlapSize = 200;
+    // Chunk the content into smaller pieces using security configuration
+    const chunkSize = SECURITY_CONFIG.MAX_CHUNK_SIZE;
+    const overlapSize = Math.floor(chunkSize * 0.1); // 10% overlap
     const chunks = [];
     
     for (let i = 0; i < content.length; i += chunkSize - overlapSize) {
-      chunks.push(content.slice(i, i + chunkSize));
+      const chunk = content.slice(i, i + chunkSize);
+      
+      // Only include chunks that meet minimum size requirement
+      if (chunk.trim().length >= SECURITY_CONFIG.MIN_CHUNK_SIZE) {
+        chunks.push(chunk.trim());
+      }
     }
+    
+    logSecurityEvent('info', 'Content chunking completed', {
+      fileName: file.name,
+      fileId: file.id,
+      totalChunks: chunks.length,
+      contentLength: content.length,
+      chunkSize,
+      overlapSize
+    });
     
     console.log(`Processing ${chunks.length} chunks for file: ${file.name}`);
     
@@ -151,10 +352,19 @@ Deno.serve(async (req) => {
       console.log(`Successfully embedded chunk ${i + 1}/${chunks.length} for ${file.name}`, insertedDoc);
     }
 
+    logSecurityEvent('info', 'File processing completed successfully', {
+      fileName: file.name,
+      fileId: file.id,
+      totalChunks: chunks.length,
+      bucketName,
+      processingTimeMs: Date.now() - (req.headers.get('x-request-start') ? parseInt(req.headers.get('x-request-start')!) : Date.now())
+    });
+    
     console.log('Successfully processed all chunks for file:', file.name);
     return new Response(JSON.stringify({ 
       success: true, 
-      message: `Successfully embedded ${chunks.length} chunks for ${file.name}` 
+      message: `Successfully embedded ${chunks.length} chunks for ${file.name}`,
+      securityStatus: 'validated'
     }), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });

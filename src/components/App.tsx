@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy, memo, ReactNode, useCallback } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { SubscriptionProvider } from "../contexts/SubscriptionContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 import { features } from "../utils/buildConfig";
 import ErrorBoundary from "./ErrorBoundary";
 import { getSettingsWithSync, updateNavigationOrder, updateSelectedView } from "../services/settings/settingsOperations";
@@ -59,7 +60,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     <div className="flex items-center justify-center animate-fadeIn">
       <div className="text-center" role="status" aria-live="polite">
         <div className={`animate-spin rounded-full border-b-2 border-blue-600 mx-auto ${sizeClasses[size]}`} />
-        <p className="mt-4 text-gray-600">
+        <p className="mt-4 text-gray-600 dark:text-gray-400">
           <span className="sr-only">{ariaLabel || "Loading"}:</span> {message}
         </p>
       </div>
@@ -286,7 +287,7 @@ const CalendarApp: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 animate-fadeIn">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900 animate-fadeIn">
         <LoadingSpinner 
           message="Loading your calendar..." 
           size="medium"
@@ -332,7 +333,7 @@ const CalendarApp: React.FC = () => {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100 relative">
+    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 relative">
       {/* Reorder mode overlay - covers everything */}
       {isReorderMode && (
         <div 
@@ -343,7 +344,7 @@ const CalendarApp: React.FC = () => {
       {/* Mobile Sidebar Overlay */}
       <div className={`lg:hidden fixed inset-0 z-50 ${isNavCollapsed ? 'hidden' : 'block'}`}>
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsNavCollapsed(true)} />
-        <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw]">
+        <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-gray-900">
           <ErrorBoundary 
             name="Sidebar" 
             fallback={sidebarErrorFallback}
@@ -367,9 +368,9 @@ const CalendarApp: React.FC = () => {
         </ErrorBoundary>
       </div>
       
-      <div className="flex-1 bg-gray-100 overflow-auto box-border min-w-0">
+      <div className="flex-1 bg-gray-100 dark:bg-gray-900 overflow-auto box-border min-w-0">
         {/* Main Navigation Header */}
-        <div className={`bg-white border-b border-gray-200 transition-all duration-300 ease-in-out relative ${
+        <div className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out relative ${
           isReorderMode ? 'z-50' : 'z-10'
         } ${
           isNavCollapsed ? 'h-0 overflow-hidden border-b-0' : 'px-2 sm:px-4 lg:px-6 py-3'
@@ -377,7 +378,7 @@ const CalendarApp: React.FC = () => {
           {/* Reorder mode indicator */}
           {isReorderMode && (
             <div className="text-center py-1 mb-2">
-              <span className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded-full">
                 📱 Reorder Mode Active - Tap outside to exit
               </span>
             </div>
@@ -394,7 +395,7 @@ const CalendarApp: React.FC = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsNavCollapsed(false)}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               aria-label="Open sidebar"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -438,11 +439,11 @@ const CalendarApp: React.FC = () => {
                       : 'cursor-move'
                   } ${
                     appView === nav.id
-                      ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow-sm border border-blue-200 dark:border-blue-700'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm hover:scale-105 active:scale-95'
                   } ${
                     dragOverItem === index && draggedItem !== index
-                      ? 'border-2 border-blue-400 border-dashed bg-blue-50'
+                      ? 'border-2 border-blue-400 dark:border-blue-500 border-dashed bg-blue-50 dark:bg-blue-900/30'
                       : ''
                   } ${
                     draggedItem === index
@@ -457,7 +458,7 @@ const CalendarApp: React.FC = () => {
                 >
                   {/* Drag handle indicator - more visible in reorder mode */}
                   <svg 
-                    className={`w-3 h-3 text-gray-400 mr-1 transition-opacity ${
+                    className={`w-3 h-3 text-gray-400 dark:text-gray-500 mr-1 transition-opacity ${
                       isReorderMode ? 'opacity-100' : 'opacity-60'
                     }`} 
                     fill="currentColor" 
@@ -488,11 +489,11 @@ const CalendarApp: React.FC = () => {
         <div className="relative group">
           <button
             onClick={() => setIsNavCollapsed(!isNavCollapsed)}
-            className={`absolute ${isNavCollapsed ? '-top-2' : '-top-3'} left-1/2 transform -translate-x-1/2 z-10 bg-white border border-gray-200 rounded-full p-2 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50 opacity-0 group-hover:opacity-100`}
+            className={`absolute ${isNavCollapsed ? '-top-2' : '-top-3'} left-1/2 transform -translate-x-1/2 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-full p-2 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100`}
             title={isNavCollapsed ? 'Show navigation' : 'Hide navigation'}
           >
             <svg 
-              className={`w-3.5 h-3.5 text-gray-600 transition-transform duration-300 ${
+              className={`w-3.5 h-3.5 text-gray-600 dark:text-gray-300 transition-transform duration-300 ${
                 isNavCollapsed ? 'rotate-180' : ''
               }`} 
               fill="none" 
@@ -546,14 +547,14 @@ const CalendarApp: React.FC = () => {
             {appView === 'grades' && (
                 <div className="space-y-4 animate-fadeIn">
                   {/* Grade View Toggle */}
-                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-smooth">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-4 hover:shadow-xl transition-smooth">
                     <div className="flex gap-2">
                       <button
                         onClick={() => setGradeView('dashboard')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
                           gradeView === 'dashboard'
-                            ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
+                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow-sm border border-blue-200 dark:border-blue-700'
+                            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm hover:scale-105 active:scale-95'
                         }`}
                       >
                         📊 Dashboard
@@ -562,8 +563,8 @@ const CalendarApp: React.FC = () => {
                         onClick={() => setGradeView('entry')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
                           gradeView === 'entry'
-                            ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
+                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow-sm border border-blue-200 dark:border-blue-700'
+                            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-sm hover:scale-105 active:scale-95'
                         }`}
                       >
                         ✏️ Add Grades
@@ -637,19 +638,21 @@ const App: React.FC<AppProps> = ({ children }) => {
       showDetails={true}
       fallback={appErrorFallback}
     >
-      <AuthProvider>
-        {features.subscriptions ? (
-          <SubscriptionProvider>
-            <MemoizedCalendarApp />
-            {children}
-          </SubscriptionProvider>
-        ) : (
-          <>
-            <MemoizedCalendarApp />
-            {children}
-          </>
-        )}
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          {features.subscriptions ? (
+            <SubscriptionProvider>
+              <MemoizedCalendarApp />
+              {children}
+            </SubscriptionProvider>
+          ) : (
+            <>
+              <MemoizedCalendarApp />
+              {children}
+            </>
+          )}
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

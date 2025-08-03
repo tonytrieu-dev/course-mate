@@ -14,7 +14,8 @@ export const getDefaultSettings = (): AppSettings => ({
   navigationOrder: DEFAULT_NAV_ORDER,
   selectedView: 'dashboard',
   titleColor: 'blue',
-  classesHeaderColor: 'blue'
+  classesHeaderColor: 'blue',
+  theme: 'auto'
 });
 
 export const getSettings = (): AppSettings => {
@@ -160,6 +161,52 @@ export const updateSelectedView = async (view: 'dashboard' | 'tasks' | 'calendar
 export const isCanvasConfigured = (): boolean => {
   const canvasUrl = localStorage.getItem('canvas_calendar_url');
   return canvasUrl !== null && canvasUrl.trim() !== '';
+};
+
+/**
+ * Theme-specific operations to sync with ThemeContext
+ */
+export const getThemeFromSettings = (): 'light' | 'dark' | 'auto' => {
+  const settings = getSettings();
+  return settings.theme || 'auto';
+};
+
+export const updateTheme = async (theme: 'light' | 'dark' | 'auto', userId?: string): Promise<void> => {
+  // Update both the settings system and ThemeContext localStorage
+  const currentSettings = await getSettingsWithSync(userId);
+  const updatedSettings = {
+    ...currentSettings,
+    theme
+  };
+  
+  // Save to settings system
+  await updateSettingsWithSync(updatedSettings, userId);
+  
+  // Also save to ThemeContext localStorage key for compatibility
+  try {
+    localStorage.setItem('theme', theme);
+  } catch (error) {
+    console.warn('Failed to save theme to localStorage:', error);
+  }
+};
+
+export const syncThemeFromContext = (): 'light' | 'dark' | 'auto' => {
+  // Get theme from ThemeContext localStorage and sync it to settings
+  try {
+    const themeFromContext = localStorage.getItem('theme');
+    if (themeFromContext && ['light', 'dark', 'auto'].includes(themeFromContext)) {
+      const settings = getSettings();
+      const updatedSettings = {
+        ...settings,
+        theme: themeFromContext as 'light' | 'dark' | 'auto'
+      };
+      updateSettings(updatedSettings);
+      return themeFromContext as 'light' | 'dark' | 'auto';
+    }
+  } catch (error) {
+    console.warn('Failed to sync theme from context:', error);
+  }
+  return 'auto';
 };
 
 /**

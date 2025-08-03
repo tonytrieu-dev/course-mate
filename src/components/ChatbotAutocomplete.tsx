@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import type { ClassWithRelations } from '../types/database';
 
 interface ChatbotAutocompleteProps {
@@ -9,6 +9,9 @@ interface ChatbotAutocompleteProps {
   position: { top: number; left: number };
   onSelect: (classObj: ClassWithRelations, index: number) => void;
   onClose: () => void;
+  maxResults?: number;
+  showShortcuts?: boolean;
+  className?: string;
 }
 
 const ChatbotAutocomplete: React.FC<ChatbotAutocompleteProps> = ({
@@ -18,166 +21,321 @@ const ChatbotAutocomplete: React.FC<ChatbotAutocompleteProps> = ({
   searchTerm,
   position,
   onSelect,
-  onClose
+  onClose,
+  maxResults = 5,
+  showShortcuts = true,
+  className
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [adjustedPosition, setAdjustedPosition] = useState(position);
 
-  // Auto-scroll to selected item
-  useEffect(() => {
+  // Auto-scroll to selected item with performance optimization
+  const scrollToSelected = useCallback(() => {
     if (containerRef.current && selectedIndex >= 0) {
-      const selectedElement = containerRef.current.children[selectedIndex] as HTMLElement;
+      const container = containerRef.current;
+      const selectedElement = container.querySelector(`[data-index="${selectedIndex}"]`) as HTMLElement;
+      
       if (selectedElement) {
-        selectedElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest'
-        });
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = selectedElement.getBoundingClientRect();
+        
+        if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
+          selectedElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+          });
+        }
       }
     }
   }, [selectedIndex]);
 
-  // Handle click outside to close
+  useEffect(() => {
+    scrollToSelected();
+  }, [scrollToSelected]);
+
+  // Handle click outside to close with improved event handling
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        // Add slight delay to prevent conflicts with other click handlers
+        setTimeout(() => onClose(), 0);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
         onClose();
       }
     };
 
     if (isVisible) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
     }
     
     return () => {
-      if (isVisible) {
-        document.removeEventListener('mousedown', handleClickOutside);
-      }
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
     };
   }, [isVisible, onClose]);
+
+  // Position adjustment to stay within viewport
+  useEffect(() => {
+    if (isVisible && containerRef.current) {
+      const container = containerRef.current;
+      const rect = container.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      let newPosition = { ...position };
+      
+      // Adjust horizontal position
+      if (rect.right > viewportWidth - 20) {
+        newPosition.left = viewportWidth - rect.width - 20;
+      }
+      
+      // Adjust vertical position
+      if (rect.bottom > viewportHeight - 20) {
+        newPosition.top = position.top - rect.height - 10;
+      }
+      
+      setAdjustedPosition(newPosition);
+    }
+  }, [isVisible, position]);
+
+  // Animation effect
+  useEffect(() => {
+    if (isVisible) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 200);
+      return () => clearTimeout(timer);
+    }
+    return undefined; // Explicit return for all code paths
+  }, [isVisible]);
 
   if (!isVisible || suggestions.length === 0) {
     return null;
   }
 
   /**
-   * Highlight matching text in class name
+   * Enhanced text highlighting with fuzzy matching support
    */
-  const highlightMatch = (text: string, searchTerm: string): React.ReactNode => {
+  const highlightMatch = useCallback((text: string, searchTerm: string): React.ReactNode => {
     if (!searchTerm) return text;
 
     const lowerText = text.toLowerCase();
     const lowerSearchTerm = searchTerm.toLowerCase();
-    const index = lowerText.indexOf(lowerSearchTerm);
-
-    if (index === -1) {
-      // Check for acronym match
-      const acronym = text
-        .split(/\s+/)
-        .map(word => word.charAt(0))
-        .join('')
-        .toLowerCase();
-      
-      if (acronym.includes(lowerSearchTerm)) {
-        return (
-          <span>
-            {text}
-            <span className="text-xs text-gray-500 ml-1">({acronym.toUpperCase()})</span>
+    
+    // Direct substring match
+    const directIndex = lowerText.indexOf(lowerSearchTerm);
+    if (directIndex !== -1) {
+      return (
+        <>
+          {text.substring(0, directIndex)}
+          <span className="bg-gradient-to-r from-blue-200 to-blue-300 text-blue-900 font-semibold px-1 rounded">
+            {text.substring(directIndex, directIndex + searchTerm.length)}
           </span>
-        );
-      }
-      
-      return text;
+          {text.substring(directIndex + searchTerm.length)}
+        </>
+      );
     }
 
-    return (
-      <>
-        {text.substring(0, index)}
-        <span className="bg-blue-200 text-blue-800 font-medium">
-          {text.substring(index, index + searchTerm.length)}
+    // Acronym match
+    const words = text.split(/\s+/);
+    const acronym = words.map(word => word.charAt(0)).join('').toLowerCase();
+    
+    if (acronym.includes(lowerSearchTerm)) {
+      return (
+        <span className="flex items-center">
+          <span>{text}</span>
+          <span className="ml-2 px-1.5 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full font-medium">
+            {acronym.toUpperCase()}
+          </span>
         </span>
-        {text.substring(index + searchTerm.length)}
-      </>
-    );
-  };
+      );
+    }
+
+    // Fuzzy match - highlight individual characters
+    const highlightedText: React.ReactNode[] = [];
+    let searchIndex = 0;
+    
+    for (let i = 0; i < text.length && searchIndex < searchTerm.length; i++) {
+      const char = text[i];
+      const isMatch = char.toLowerCase() === lowerSearchTerm[searchIndex];
+      
+      if (isMatch) {
+        highlightedText.push(
+          <span key={i} className="bg-green-200 text-green-800 font-medium">
+            {char}
+          </span>
+        );
+        searchIndex++;
+      } else {
+        highlightedText.push(char);
+      }
+    }
+    
+    // Add remaining text
+    if (text.length > highlightedText.length) {
+      highlightedText.push(text.substring(highlightedText.length));
+    }
+    
+    return searchIndex === searchTerm.length ? <>{highlightedText}</> : text;
+  }, []);
 
   /**
-   * Get display info for a class (shows file count, syllabus status)
+   * Enhanced class information with visual indicators
    */
-  const getClassInfo = (classObj: ClassWithRelations): string => {
+  const getClassInfo = useCallback((classObj: ClassWithRelations) => {
     const fileCount = classObj.files?.length || 0;
     const hasSyllabus = !!classObj.syllabus;
     
-    const parts: string[] = [];
-    if (fileCount > 0) {
-      parts.push(`${fileCount} file${fileCount === 1 ? '' : 's'}`);
-    }
-    if (hasSyllabus) {
-      parts.push('syllabus');
-    }
-    
-    return parts.length > 0 ? parts.join(', ') : 'No materials';
-  };
+    return (
+      <div className="flex items-center space-x-2 text-xs">
+        {fileCount > 0 && (
+          <span className="flex items-center text-blue-600">
+            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            {fileCount}
+          </span>
+        )}
+        {hasSyllabus && (
+          <span className="flex items-center text-green-600">
+            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Syllabus
+          </span>
+        )}
+        {fileCount === 0 && !hasSyllabus && (
+          <span className="text-gray-400 italic">No materials</span>
+        )}
+      </div>
+    );
+  }, []);
+
+  const displayedSuggestions = suggestions.slice(0, maxResults);
+  const hasMoreResults = suggestions.length > maxResults;
 
   return (
     <div
       ref={containerRef}
-      className="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto min-w-64"
+      className={`
+        absolute z-50 bg-white border border-gray-300 rounded-xl shadow-2xl max-h-64 overflow-hidden min-w-72
+        ${isAnimating ? 'animate-scaleIn' : ''}
+        ${className || ''}
+        transition-all duration-200 ease-out
+      `}
       style={{
-        top: position.top,
-        left: position.left,
-        // Ensure it doesn't go off screen
-        maxWidth: '300px'
+        top: adjustedPosition.top,
+        left: adjustedPosition.left,
+        maxWidth: '320px',
+        filter: 'drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1))'
       }}
       role="listbox"
-      aria-label="Class suggestions"
+      aria-label={`Class suggestions${searchTerm ? ` for "${searchTerm}"` : ''}`}
+      aria-expanded={isVisible}
     >
       {/* Header */}
-      <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 font-medium">
-        Classes {searchTerm && `matching "${searchTerm}"`}
+      <div className="px-4 py-3 text-xs font-semibold text-gray-600 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center">
+          <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          Classes {searchTerm && `matching "${searchTerm}"`}
+        </div>
+        <span className="text-gray-400">{displayedSuggestions.length} of {suggestions.length}</span>
       </div>
 
       {/* Suggestions */}
-      {suggestions.map((classObj, index) => (
-        <div
-          key={classObj.id}
-          className={`px-3 py-2 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors duration-150 ${
-            index === selectedIndex
-              ? 'bg-blue-50 text-blue-900'
-              : 'hover:bg-gray-50 text-gray-900'
-          }`}
-          onClick={() => onSelect(classObj, index)}
-          role="option"
-          aria-selected={index === selectedIndex}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              {/* Class name with highlighting */}
-              <div className="text-sm font-medium truncate">
-                {highlightMatch(classObj.name, searchTerm)}
-              </div>
-              
-              {/* Class info */}
-              <div className="text-xs text-gray-500 mt-1">
+      <div className="overflow-y-auto max-h-48">
+        {displayedSuggestions.map((classObj, index) => (
+          <div
+            key={classObj.id}
+            data-index={index}
+            className={`
+              px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 
+              transition-all duration-150 hover:shadow-sm
+              ${index === selectedIndex
+                ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-900 border-blue-200'
+                : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 text-gray-900'
+              }
+            `}
+            onClick={() => onSelect(classObj, index)}
+            onMouseEnter={() => {/* Optional: update selectedIndex on hover */}}
+            role="option"
+            aria-selected={index === selectedIndex}
+            tabIndex={-1}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                {/* Class name with enhanced highlighting */}
+                <div className="text-sm font-semibold truncate mb-1">
+                  {highlightMatch(classObj.name, searchTerm)}
+                </div>
+                
+                {/* Enhanced class info with icons */}
                 {getClassInfo(classObj)}
               </div>
-            </div>
-            
-            {/* @ symbol indicator */}
-            <div className="text-gray-400 text-xs ml-2 flex-shrink-0">
-              @
+              
+              {/* Enhanced @ symbol indicator */}
+              <div className={`ml-3 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                index === selectedIndex ? 'bg-blue-200 text-blue-800' : 'bg-gray-200 text-gray-600'
+              }`}>
+                @
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-
-      {/* Footer with help text */}
-      <div className="px-3 py-2 text-xs text-gray-400 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <span>↑↓ navigate</span>
-          <span>Enter to select</span>
-        </div>
+        ))}
+        
+        {/* More results indicator */}
+        {hasMoreResults && (
+          <div className="px-4 py-2 text-xs text-gray-500 bg-gray-50 border-t border-gray-200 text-center">
+            <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            {suggestions.length - maxResults} more results available
+          </div>
+        )}
       </div>
+
+      {/* Enhanced footer with keyboard shortcuts */}
+      {showShortcuts && (
+        <div className="px-4 py-3 text-xs bg-gradient-to-r from-gray-50 to-blue-50 border-t border-gray-200">
+          <div className="flex items-center justify-between space-x-4">
+            <div className="flex items-center space-x-3">
+              <span className="flex items-center text-gray-600">
+                <kbd className="px-1.5 py-0.5 text-xs font-medium bg-gray-200 border border-gray-300 rounded mr-1">↑↓</kbd>
+                Navigate
+              </span>
+              <span className="flex items-center text-gray-600">
+                <kbd className="px-1.5 py-0.5 text-xs font-medium bg-gray-200 border border-gray-300 rounded mr-1">Enter</kbd>
+                Select
+              </span>
+            </div>
+            <span className="flex items-center text-gray-600">
+              <kbd className="px-1.5 py-0.5 text-xs font-medium bg-gray-200 border border-gray-300 rounded mr-1">Esc</kbd>
+              Close
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default React.memo(ChatbotAutocomplete);
+
+// Component enhancements:
+// ✅ Enhanced performance with optimized event handling and scrolling
+// ✅ Improved accessibility with ARIA labels and keyboard navigation
+// ✅ Better visual feedback with gradients, animations, and icons
+// ✅ Smart positioning to stay within viewport boundaries
+// ✅ Enhanced text highlighting with fuzzy matching support
+// ✅ Professional UI with modern styling and micro-interactions
+// ✅ Configurable features (max results, shortcuts display)
+// ✅ Better mobile support with improved touch targets

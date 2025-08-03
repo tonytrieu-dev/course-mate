@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NotificationSettings from './NotificationSettings';
 import CanvasSettings from './CanvasSettings';
 import StudyScheduleOptimizer from './StudyScheduleOptimizer';
 import { StudyScheduleProvider } from '../contexts/StudyScheduleContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { updateTheme, getThemeFromSettings, syncThemeFromContext } from '../services/settings/settingsOperations';
 import type { User } from '@supabase/supabase-js';
 import type { ClassWithRelations } from '../types/database';
 
@@ -76,19 +79,19 @@ const Settings: React.FC<SettingsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-sm sm:max-w-2xl lg:max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm sm:max-w-2xl lg:max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
           <div className="flex items-center space-x-2 sm:space-x-3">
             <span className="text-xl sm:text-2xl">⚙️</span>
             <div>
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Settings</h1>
-              <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Customize your ScheduleBud experience</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">Customize your ScheduleBud experience</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl sm:text-2xl font-bold transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl sm:text-2xl font-bold transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
             aria-label="Close settings"
           >
             ×
@@ -97,7 +100,7 @@ const Settings: React.FC<SettingsProps> = ({
 
         <div className="flex flex-col sm:flex-row h-[calc(95vh-80px)] sm:h-[calc(90vh-120px)]">
           {/* Sidebar Navigation */}
-          <div className="w-full sm:w-48 lg:w-64 bg-gray-50 border-b sm:border-b-0 sm:border-r border-gray-200 p-2 sm:p-4">
+          <div className="w-full sm:w-48 lg:w-64 bg-gray-50 dark:bg-gray-800 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-gray-700 p-2 sm:p-4">
             <nav className="flex sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-x-visible">
               {tabs.map((tab) => (
                 <button
@@ -105,15 +108,15 @@ const Settings: React.FC<SettingsProps> = ({
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full sm:w-auto text-left p-2 sm:p-3 rounded-lg transition-all duration-200 group whitespace-nowrap sm:whitespace-normal min-w-[120px] sm:min-w-0 touch-manipulation ${
                     activeTab === tab.id
-                      ? 'bg-blue-100 text-blue-700 shadow-sm'
-                      : 'hover:bg-gray-100 text-gray-700'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <span className="text-base sm:text-lg">{tab.icon}</span>
                     <div className="hidden sm:block">
                       <div className="font-medium text-sm sm:text-base">{tab.label}</div>
-                      <div className="text-xs text-gray-500 group-hover:text-gray-600 hidden lg:block">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 hidden lg:block">
                         {tab.description}
                       </div>
                     </div>
@@ -155,16 +158,32 @@ const Settings: React.FC<SettingsProps> = ({
 
 // General Settings Component
 const GeneralSettings: React.FC = () => {
-  const [settings, setSettings] = useState({
-    theme: localStorage.getItem('theme') || 'auto',
-    fontSize: localStorage.getItem('fontSize') || 'medium',
-    defaultView: localStorage.getItem('defaultView') || 'calendar',
-    taskCompletionSound: localStorage.getItem('taskCompletionSound') !== 'false',
-    showWeekNumbers: localStorage.getItem('showWeekNumbers') === 'true'
+  const { mode, isDark, setMode } = useTheme();
+  const { user } = useAuth();
+  
+  const [settings, setSettings] = useState(() => {
+    // Sync theme from context on initialization
+    const syncedTheme = syncThemeFromContext();
+    return {
+      fontSize: localStorage.getItem('fontSize') || 'medium',
+      defaultView: localStorage.getItem('defaultView') || 'calendar',
+      taskCompletionSound: localStorage.getItem('taskCompletionSound') !== 'false',
+      showWeekNumbers: localStorage.getItem('showWeekNumbers') === 'true',
+      theme: mode // Track theme in local settings state
+    };
   });
 
   const [hasChanges, setHasChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  // Track theme changes from ThemeContext
+  useEffect(() => {
+    if (settings.theme !== mode) {
+      setSettings(prev => ({ ...prev, theme: mode }));
+      setHasChanges(true);
+      setSaveStatus('idle');
+    }
+  }, [mode, settings.theme]);
 
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({
@@ -178,16 +197,16 @@ const GeneralSettings: React.FC = () => {
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
-      // Save to localStorage
+      // Save non-theme settings to localStorage
       Object.entries(settings).forEach(([key, value]) => {
-        localStorage.setItem(key, String(value));
+        if (key !== 'theme') { // Theme handled separately
+          localStorage.setItem(key, String(value));
+        }
       });
 
-      // Apply theme immediately
-      if (settings.theme !== 'auto') {
-        document.documentElement.setAttribute('data-theme', settings.theme);
-      } else {
-        document.documentElement.removeAttribute('data-theme');
+      // Save theme through settings service (syncs with both systems)
+      if (settings.theme) {
+        await updateTheme(settings.theme as 'light' | 'dark' | 'auto', user?.id);
       }
 
       setHasChanges(false);
@@ -204,15 +223,22 @@ const GeneralSettings: React.FC = () => {
 
   const handleReset = () => {
     const defaultSettings = {
-      theme: 'auto',
       fontSize: 'medium',
       defaultView: 'calendar',
       taskCompletionSound: true,
-      showWeekNumbers: false
+      showWeekNumbers: false,
+      theme: 'auto' as 'light' | 'dark' | 'auto'
     };
     setSettings(defaultSettings);
+    setMode('auto'); // Reset theme to auto
     setHasChanges(true);
     setSaveStatus('idle');
+  };
+
+  // Custom theme change handler that updates both ThemeContext and local state
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'auto') => {
+    setMode(newTheme); // Update ThemeContext (triggers useEffect above)
+    // useEffect will handle updating local state and hasChanges
   };
 
   return (
@@ -225,61 +251,89 @@ const GeneralSettings: React.FC = () => {
       </div>
 
       {/* App Theme */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-3">🎨 Appearance</h3>
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">🎨 Appearance</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
-            <select 
-              value={settings.theme}
-              onChange={(e) => handleSettingChange('theme', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="auto">Auto (System)</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">Choose your preferred color scheme</p>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Theme</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleThemeChange('light')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
+                  mode === 'light'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                ☀️ Light
+              </button>
+              <button
+                onClick={() => handleThemeChange('dark')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
+                  mode === 'dark'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                🌙 Dark
+              </button>
+              <button
+                onClick={() => handleThemeChange('auto')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
+                  mode === 'auto'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                🔄 Auto
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {mode === 'auto' 
+                ? `Currently: ${isDark ? 'Dark' : 'Light'} (follows system preference)`
+                : `Always ${mode} mode`
+              }
+            </p>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Font Size</label>
             <select 
               value={settings.fontSize}
               onChange={(e) => handleSettingChange('fontSize', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="small">Small</option>
               <option value="medium">Medium</option>
               <option value="large">Large</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">Adjust text size for better readability</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Adjust text size for better readability</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Default View</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Default View</label>
             <select 
               value={settings.defaultView}
               onChange={(e) => handleSettingChange('defaultView', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="calendar">Calendar View</option>
               <option value="tasks">Task List</option>
               <option value="dashboard">Dashboard</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">Choose which view opens by default</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Choose which view opens by default</p>
           </div>
         </div>
       </div>
 
       {/* User Experience */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-3">✨ User Experience</h3>
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">✨ User Experience</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-gray-900">Task Completion Sound</p>
-              <p className="text-sm text-gray-600">Play sound when marking tasks complete</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Task Completion Sound</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Play sound when marking tasks complete</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input 
@@ -294,8 +348,8 @@ const GeneralSettings: React.FC = () => {
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-gray-900">Show Week Numbers</p>
-              <p className="text-sm text-gray-600">Display week numbers in calendar view</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Show Week Numbers</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Display week numbers in calendar view</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input 
@@ -312,7 +366,7 @@ const GeneralSettings: React.FC = () => {
 
 
       {/* Action Buttons */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
@@ -320,8 +374,8 @@ const GeneralSettings: React.FC = () => {
               disabled={!hasChanges || saveStatus === 'saving'}
               className={`px-6 py-2 rounded-md font-medium transition-all duration-200 ${
                 hasChanges && saveStatus !== 'saving'
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm dark:bg-blue-700 dark:hover:bg-blue-600'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               }`}
             >
               {saveStatus === 'saving' ? (
@@ -336,7 +390,7 @@ const GeneralSettings: React.FC = () => {
 
             <button
               onClick={handleReset}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium transition-colors"
             >
               Reset to Defaults
             </button>
@@ -344,19 +398,19 @@ const GeneralSettings: React.FC = () => {
 
           <div className="text-sm">
             {saveStatus === 'saved' && (
-              <span className="text-green-600 flex items-center">
+              <span className="text-green-600 dark:text-green-400 flex items-center">
                 <span className="mr-2">✅</span>
                 Settings saved successfully!
               </span>
             )}
             {saveStatus === 'error' && (
-              <span className="text-red-600 flex items-center">
+              <span className="text-red-600 dark:text-red-400 flex items-center">
                 <span className="mr-2">❌</span>
                 Failed to save settings
               </span>
             )}
             {hasChanges && saveStatus === 'idle' && (
-              <span className="text-orange-600 flex items-center">
+              <span className="text-orange-600 dark:text-orange-400 flex items-center">
                 <span className="mr-2">⚠️</span>
                 You have unsaved changes
               </span>
@@ -366,14 +420,14 @@ const GeneralSettings: React.FC = () => {
       </div>
 
       {/* About */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-3">ℹ️ About</h3>
-        <div className="space-y-2 text-sm text-gray-700">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">ℹ️ About</h3>
+        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
           <p><strong>ScheduleBud</strong> - Built for students, by a student</p>
           <p>Version: 1.0.0</p>
           <p>A Notion-inspired productivity app with Canvas integration</p>
-          <div className="mt-4 pt-4 border-t border-blue-200">
-            <p className="text-xs text-gray-600">
+          <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Made with ❤️ to help students stay organized and succeed in their academic journey.
             </p>
           </div>

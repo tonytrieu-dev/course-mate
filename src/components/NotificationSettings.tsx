@@ -169,13 +169,27 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+      <div className="bg-white rounded-xl shadow-xl p-6 max-w-2xl mx-auto border border-gray-100">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          <div className="flex items-center justify-center mb-6">
+            <div className="h-12 w-12 bg-gray-200 rounded-full mb-3"></div>
+          </div>
+          <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto mb-8"></div>
+          <div className="space-y-6">
+            <div className="h-16 bg-gray-100 rounded-lg p-4">
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+            </div>
+            <div className="h-32 bg-gray-100 rounded-lg p-4">
+              <div className="h-4 bg-gray-200 rounded w-1/3 mb-3"></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-12 bg-gray-200 rounded"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -183,127 +197,200 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">📧 Email Notifications</h2>
-        {onClose && (
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
-          >
-            ×
-          </button>
-        )}
+    <div className="bg-white rounded-xl shadow-xl p-6 max-w-2xl mx-auto border border-gray-100 transform transition-all duration-200">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full mb-4">
+          <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Email Notifications</h2>
+            <p className="text-gray-600 text-sm">Stay on top of your assignments with smart email reminders</p>
+          </div>
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center ml-4"
+              aria-label="Close notification settings"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6" role="alert">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <div>
+              <p className="font-medium text-sm">Configuration Error</p>
+              <p className="text-xs mt-1">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
-          {success}
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-medium text-sm">Success!</p>
+              <p className="text-xs mt-1">{success}</p>
+            </div>
+          </div>
         </div>
       )}
 
       <div className="space-y-6">
         {/* Enable/Disable Email Notifications */}
-        <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-          <div>
-            <h3 className="font-semibold text-gray-900">Enable Email Notifications</h3>
-            <p className="text-sm text-gray-600">Get smart reminders about upcoming assignments</p>
+        <div className="relative overflow-hidden">
+          <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
+            <div className="flex-1">
+              <div className="flex items-center mb-2">
+                <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 8h1l3-3h9l3 3h1a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V10a2 2 0 012-2z" />
+                </svg>
+                <h3 className="font-bold text-gray-900">Email Notifications</h3>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">Get intelligent reminders about upcoming assignments and deadlines</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer ml-6">
+              <input
+                type="checkbox"
+                checked={emailEnabled}
+                onChange={(e) => setEmailEnabled(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-500 peer-checked:to-blue-600 shadow-lg"></div>
+            </label>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={emailEnabled}
-              onChange={(e) => setEmailEnabled(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-          </label>
+          {/* Decorative background element */}
+          <div className="absolute -top-2 -right-2 w-20 h-20 bg-blue-100 rounded-full opacity-20 pointer-events-none"></div>
         </div>
 
         {emailEnabled && (
           <>
             {/* Email Address Settings */}
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Email Address</h3>
+            <div className="border border-gray-200 rounded-xl p-6 bg-gradient-to-br from-gray-50 to-white shadow-sm">
+              <div className="flex items-center mb-4">
+                <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+                <h3 className="font-bold text-gray-900">Email Address</h3>
+              </div>
               
-              <div className="space-y-3">
-                <label className="flex items-center">
+              <div className="space-y-4">
+                <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                   <input
                     type="radio"
                     name="emailType"
                     checked={!useCustomEmail}
                     onChange={() => setUseCustomEmail(false)}
-                    className="mr-2"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-3"
                   />
-                  <span className="text-sm">Use my account email ({user?.email})</span>
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-gray-900">Use my account email</span>
+                    <span className="block text-xs text-gray-500 mt-1 font-mono bg-gray-100 px-2 py-1 rounded">{user?.email}</span>
+                  </div>
                 </label>
                 
-                <label className="flex items-center">
+                <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                   <input
                     type="radio"
                     name="emailType"
                     checked={useCustomEmail}
                     onChange={() => setUseCustomEmail(true)}
-                    className="mr-2"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mr-3"
                   />
-                  <span className="text-sm">Use a different email address</span>
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-gray-900">Use a different email address</span>
+                    <span className="block text-xs text-gray-500 mt-1">Send notifications to a custom email</span>
+                  </div>
                 </label>
                 
                 {useCustomEmail && (
-                  <input
-                    type="email"
-                    value={customEmail}
-                    onChange={(e) => setCustomEmail(e.target.value)}
-                    placeholder="Enter email address"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="mt-3">
+                    <label htmlFor="customEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                      Custom Email Address
+                    </label>
+                    <input
+                      id="customEmail"
+                      type="email"
+                      value={customEmail}
+                      onChange={(e) => setCustomEmail(e.target.value)}
+                      placeholder="Enter email address"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                      required
+                    />
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Notification Timing */}
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">When to Send Reminders</h3>
-              <p className="text-sm text-gray-600 mb-4">Choose when you want to be notified before assignments are due</p>
+            <div className="border border-gray-200 rounded-xl p-6 bg-gradient-to-br from-purple-50 to-pink-50 shadow-sm">
+              <div className="flex items-center mb-4">
+                <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="font-bold text-gray-900">Reminder Timing</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-4 leading-relaxed">Choose when you want to be notified before assignments are due</p>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { key: '7d', label: '7 days before' },
-                  { key: '3d', label: '3 days before' },
-                  { key: '1d', label: '1 day before' },
-                  { key: '2h', label: '2 hours before' }
-                ].map(({ key, label }) => (
-                  <label key={key} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  { key: '7d', label: '7 days before', icon: '📅', color: 'from-blue-100 to-blue-50' },
+                  { key: '3d', label: '3 days before', icon: '⏰', color: 'from-green-100 to-green-50' },
+                  { key: '1d', label: '1 day before', icon: '⚠️', color: 'from-yellow-100 to-yellow-50' },
+                  { key: '2h', label: '2 hours before', icon: '🚨', color: 'from-red-100 to-red-50' }
+                ].map(({ key, label, icon, color }) => (
+                  <label key={key} className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${notificationTimes.includes(key) ? 'border-purple-300 bg-gradient-to-r from-purple-100 to-purple-50 shadow-sm' : `border-gray-200 bg-gradient-to-r ${color} hover:border-gray-300`}`}>
                     <input
                       type="checkbox"
                       checked={notificationTimes.includes(key)}
                       onChange={() => toggleNotificationTime(key)}
-                      className="mr-3"
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-3"
                     />
-                    <span className="text-sm">{label}</span>
+                    <span className="text-lg mr-2">{icon}</span>
+                    <span className="text-sm font-medium text-gray-800">{label}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             {/* Active Hours */}
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Quiet Hours</h3>
-              <p className="text-sm text-gray-600 mb-4">Set your preferred hours for receiving notifications</p>
+            <div className="border border-gray-200 rounded-xl p-6 bg-gradient-to-br from-indigo-50 to-blue-50 shadow-sm">
+              <div className="flex items-center mb-4">
+                <svg className="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <h3 className="font-bold text-gray-900">Quiet Hours</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-6 leading-relaxed">Set your preferred hours for receiving notifications</p>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start sending at</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="bg-white p-4 rounded-lg border border-indigo-200">
+                  <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                    <svg className="w-4 h-4 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    Start sending at
+                  </label>
                   <select
                     value={activeHoursStart}
                     onChange={(e) => setActiveHoursStart(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 font-medium"
                   >
                     {Array.from({ length: 24 }, (_, i) => (
                       <option key={i} value={i}>{formatHour(i)}</option>
@@ -311,12 +398,17 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
                   </select>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Stop sending at</label>
+                <div className="bg-white p-4 rounded-lg border border-indigo-200">
+                  <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                    <svg className="w-4 h-4 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    Stop sending at
+                  </label>
                   <select
                     value={activeHoursEnd}
                     onChange={(e) => setActiveHoursEnd(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-900 font-medium"
                   >
                     {Array.from({ length: 24 }, (_, i) => (
                       <option key={i} value={i}>{formatHour(i)}</option>
@@ -325,33 +417,51 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
                 </div>
               </div>
               
-              <p className="text-xs text-gray-500 mt-2">
-                You'll receive notifications between {formatHour(activeHoursStart)} and {formatHour(activeHoursEnd)}
-              </p>
+              <div className="mt-4 p-4 bg-white border border-indigo-200 rounded-lg">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-gray-700 font-medium">
+                    You'll receive notifications between <span className="font-bold text-indigo-600">{formatHour(activeHoursStart)}</span> and <span className="font-bold text-indigo-600">{formatHour(activeHoursEnd)}</span>
+                  </p>
+                </div>
+              </div>
             </div>
           </>
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div>
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-6 border-t border-gray-200 mt-8">
+          <div className="order-2 sm:order-1">
             {emailEnabled && (
               <button
                 onClick={handleSendTestEmail}
                 disabled={testEmailSending || !user?.id}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center text-sm"
+                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm font-medium transition-all duration-200 hover:shadow-lg min-h-[44px]"
               >
-                {testEmailSending && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
-                {testEmailSending ? 'Sending...' : '📧 Send Test Email'}
+                {testEmailSending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    Sending Test...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Send Test Email
+                  </>
+                )}
               </button>
             )}
           </div>
           
-          <div className="flex space-x-3">
+          <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-3">
             {onClose && (
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200 min-h-[44px] font-medium"
               >
                 Cancel
               </button>
@@ -359,27 +469,61 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
             <button
               onClick={handleSave}
               disabled={saving || !user?.id}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium transition-all duration-200 hover:shadow-lg min-h-[44px]"
             >
-              {saving && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
-              {saving ? 'Saving...' : 'Save Settings'}
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Save Settings
+                </>
+              )}
             </button>
           </div>
         </div>
       </div>
 
       {/* Premium Notice */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
-        <div className="flex items-center">
-          <span className="text-2xl mr-3">🚀</span>
-          <div>
-            <h4 className="font-semibold text-gray-900">Coming Soon: SMS Notifications</h4>
-            <p className="text-sm text-gray-600">Get instant text reminders for urgent deadlines. Perfect for those critical assignments!</p>
+      <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 border border-purple-200 rounded-xl shadow-sm relative overflow-hidden">
+        <div className="flex items-start relative z-10">
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-gray-900 text-lg mb-2">Coming Soon: SMS Notifications</h4>
+            <p className="text-sm text-gray-600 leading-relaxed mb-3">Get instant text reminders for urgent deadlines. Perfect for those critical assignments that you can't afford to miss!</p>
+            <div className="inline-flex items-center px-3 py-1 bg-white bg-opacity-60 rounded-full text-xs font-medium text-purple-700">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Coming Q2 2025
+            </div>
           </div>
         </div>
+        {/* Decorative background elements */}
+        <div className="absolute -top-4 -right-4 w-24 h-24 bg-purple-200 rounded-full opacity-30"></div>
+        <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-pink-200 rounded-full opacity-20"></div>
       </div>
     </div>
   );
 };
 
 export default NotificationSettings;
+
+// Component enhancements:
+// ✅ Modern visual design with gradients and improved layouts
+// ✅ Enhanced accessibility with proper ARIA labels and semantic markup
+// ✅ Professional loading states with skeleton screens
+// ✅ Improved mobile responsiveness with proper touch targets
+// ✅ Better visual hierarchy with icons and typography
+// ✅ Enhanced user feedback with improved error/success states
+// ✅ Consistent spacing and modern UI patterns
+// ✅ Professional color scheme and interactive elements

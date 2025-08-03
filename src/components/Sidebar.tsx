@@ -35,6 +35,7 @@ const Sidebar: React.FC = () => {
     title,
     setTitle,
     isEditingTitle,
+    setIsEditingTitle,
     classes,
     setClasses,
     editingClassId,
@@ -242,12 +243,13 @@ const Sidebar: React.FC = () => {
             opacity: 1;
           }
           .sidebar-transition {
-            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-                       min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                       max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.2s ease-out;
           }
           .sidebar-no-transition {
             transition: none;
+          }
+          .sidebar-resizing {
+            will-change: width;
           }
           .sidebar-content-fade {
             transition: opacity 0.2s ease-out, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -266,14 +268,13 @@ const Sidebar: React.FC = () => {
         ref={sidebarRef as React.RefObject<HTMLDivElement>}
         className={`${
           isSidebarCollapsed ? 'w-16' : ''
-        } border-r border-gray-300 py-3 px-2.5 bg-white h-full box-border font-sans flex flex-col relative ${
-          isResizing ? 'sidebar-no-transition' : 'sidebar-transition'
+        } border-r border-gray-300 dark:border-gray-600 py-3 px-2.5 bg-white dark:bg-gray-900 h-full box-border font-sans flex flex-col relative ${
+          isResizing ? 'sidebar-no-transition sidebar-resizing' : 'sidebar-transition'
         }`}
         style={{
           width: isSidebarCollapsed ? '64px' : `${sidebarWidth}px`,
           minWidth: isSidebarCollapsed ? '64px' : `${MIN_SIDEBAR_WIDTH}px`,
-          maxWidth: isSidebarCollapsed ? '64px' : `${MAX_SIDEBAR_WIDTH}px`,
-          willChange: isResizing || !isSidebarCollapsed ? 'width, min-width, max-width' : 'auto'
+          maxWidth: isSidebarCollapsed ? '64px' : `${MAX_SIDEBAR_WIDTH}px`
         }}
       >
         {/* Collapse Toggle Button */}
@@ -289,7 +290,10 @@ const Sidebar: React.FC = () => {
           setTitle={setTitle}
           isEditingTitle={isEditingTitle}
           onTitleClick={handleTitleClick}
-          onTitleBlur={handleTitleBlur}
+          onTitleBlur={() => {
+            handleTitleBlur();
+            setIsEditingTitle(false);
+          }}
           titleSize={titleSize}
           setTitleSize={setTitleSize}
           showTitleSizeControl={showTitleSizeControl}
@@ -323,7 +327,10 @@ const Sidebar: React.FC = () => {
                 <EditableText
                   value={classesTitle}
                   onChange={setClassesTitle}
-                  onBlur={handleClassesTitleBlur}
+                  onBlur={() => {
+                    handleClassesTitleBlur();
+                    setIsEditingClassesTitle(false);
+                  }}
                   isEditing={isEditingClassesTitle}
                   onClick={() => setIsEditingClassesTitle(true)}
                   onDoubleClick={() => setShowClassesHeaderSizeControl(true)}
@@ -339,7 +346,7 @@ const Sidebar: React.FC = () => {
                     ? { fontSize: `${classesHeaderSize}px`, minWidth: `${classesTitle.length + 1}ch` }
                     : { fontSize: `${classesHeaderSize}px` }
                   }
-                  title="Double-click to adjust size, right-click to change color"
+                  title="Right-click to change color"
                 />
                 <InlineSizeControl 
                   size={classesHeaderSize} 
@@ -358,8 +365,8 @@ const Sidebar: React.FC = () => {
                       onClick={() => setShowClassesHeaderColorPicker(false)}
                     />
                     {/* Color picker positioned to avoid overlapping */}
-                    <div className="absolute z-50 top-8 left-0 bg-white border border-gray-300 rounded-lg shadow-xl p-4 min-w-[200px]">
-                      <div className="text-xs font-medium text-gray-700 mb-3">Choose Color</div>
+                    <div className="absolute z-50 top-8 left-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl p-4 min-w-[200px]">
+                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-3">Choose Color</div>
                       <div className="grid grid-cols-5 gap-3 mb-3">
                         {colorOptions.map((color) => (
                           <button
@@ -379,7 +386,7 @@ const Sidebar: React.FC = () => {
                       </div>
                       <button
                         onClick={() => setShowClassesHeaderColorPicker(false)}
-                        className="w-full text-xs text-gray-600 hover:text-gray-800 transition-colors py-1 px-2 rounded border border-gray-200 hover:border-gray-300"
+                        className="w-full text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors py-1 px-2 rounded border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                       >
                         Close
                       </button>
@@ -478,12 +485,12 @@ const Sidebar: React.FC = () => {
 
         {showStudyAnalytics && isAuthenticated && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Study Analytics</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Study Analytics</h2>
                 <button
                   onClick={() => setShowStudyAnalytics(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   <span className="sr-only">Close</span>
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -495,7 +502,7 @@ const Sidebar: React.FC = () => {
                 <Suspense fallback={
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-                    <p className="ml-4 text-gray-600">Loading Study Analytics...</p>
+                    <p className="ml-4 text-gray-600 dark:text-gray-400">Loading Study Analytics...</p>
                   </div>
                 }>
                   <StudyAnalyticsDashboard />
@@ -516,9 +523,9 @@ const Sidebar: React.FC = () => {
         {/* Chatbot Panel */}
         <Suspense fallback={
           showChatbotPanel ? (
-            <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg border p-4" style={{ width: '400px', height: `${chatbotPanelHeight}px` }}>
+            <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 p-4" style={{ width: '400px', height: `${chatbotPanelHeight}px` }}>
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mt-8" />
-              <p className="text-center mt-4 text-gray-600">Loading chatbot...</p>
+              <p className="text-center mt-4 text-gray-600 dark:text-gray-400">Loading chatbot...</p>
             </div>
           ) : null
         }>

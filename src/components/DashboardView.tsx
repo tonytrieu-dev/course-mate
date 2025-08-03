@@ -263,7 +263,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
           </div>
         </div>
       );
@@ -287,26 +287,26 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     onClick?: () => void;
   }> = ({ title, value, subtitle, color = 'blue', onClick }) => (
     <div 
-      className={`bg-white rounded-xl shadow-md p-4 sm:p-6 transition-smooth ${onClick ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] min-h-[88px] touch-manipulation' : 'min-h-[88px]'}`}
+      className={`bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 sm:p-6 transition-smooth ${onClick ? 'cursor-pointer hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] min-h-[88px] touch-manipulation' : 'min-h-[88px]'}`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className={`text-2xl sm:text-3xl font-bold text-${color}-600 mt-2`}>{value}</p>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</p>
+          <p className={`text-2xl sm:text-3xl font-bold text-${color}-600 dark:text-${color}-400 mt-2`}>{value}</p>
+          {subtitle && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-gray-50 min-h-full p-4 sm:p-6">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-full p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Overview of your tasks and productivity</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Overview of your tasks and productivity</p>
         </div>
 
         {/* Overview Stats */}
@@ -338,12 +338,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Upcoming Tasks */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Upcoming Tasks</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Upcoming Tasks</h2>
               <button
                 onClick={onSwitchToTasks}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
               >
                 View All
               </button>
@@ -351,13 +351,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             
             {upcomingTasks.length === 0 ? (
               <div className="text-center py-8">
-                <div className="text-gray-400 mb-4">
+                <div className="text-gray-400 dark:text-gray-500 mb-4">
                   <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
                 </div>
-                <p className="text-gray-500">No upcoming tasks</p>
-                <p className="text-gray-400 text-sm mt-1">You're all caught up!</p>
+                <p className="text-gray-500 dark:text-gray-400">No upcoming tasks</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">You're all caught up!</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -369,15 +369,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <div
                       key={task.id}
-                      className={`p-4 rounded-lg border-l-4 ${style.border} bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors`}
+                      className={`p-4 rounded-lg border-l-4 ${style.border} bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors`}
                       onClick={() => onTaskEdit?.(task)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 truncate">
+                          <h3 className="font-semibold text-gray-900 dark:text-white truncate">
                             {task.title}
                           </h3>
-                          <div className="mt-1 flex items-center gap-4 text-sm text-gray-600">
+                          <div className="mt-1 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
                             <span>{className}</span>
                             {dueDate && (
                               <span>
@@ -396,11 +396,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Overdue Tasks */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Overdue Tasks</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Overdue Tasks</h2>
               {overdueTasks.length > 0 && (
-                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                <span className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
                   {overdueTasks.length}
                 </span>
               )}
@@ -408,13 +408,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             
             {overdueTasks.length === 0 ? (
               <div className="text-center py-8">
-                <div className="text-green-400 mb-4">
+                <div className="text-green-400 dark:text-green-500 mb-4">
                   <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
                 </div>
-                <p className="text-gray-500">No overdue tasks</p>
-                <p className="text-gray-400 text-sm mt-1">Great job staying on track!</p>
+                <p className="text-gray-500 dark:text-gray-400">No overdue tasks</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Great job staying on track!</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -426,15 +426,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                   return (
                     <div
                       key={task.id}
-                      className={`p-4 rounded-lg border-l-4 border-red-400 bg-red-50 cursor-pointer hover:bg-red-100 transition-colors`}
+                      className={`p-4 rounded-lg border-l-4 border-red-400 bg-red-50 dark:bg-red-900/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors`}
                       onClick={() => onTaskEdit?.(task)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-red-900 truncate">
+                          <h3 className="font-semibold text-red-900 dark:text-red-200 truncate">
                             {task.title}
                           </h3>
-                          <div className="mt-1 flex items-center gap-4 text-sm text-red-700">
+                          <div className="mt-1 flex items-center gap-4 text-sm text-red-700 dark:text-red-300">
                             <span>{className}</span>
                             {dueDate && (
                               <span>
@@ -455,24 +455,24 @@ const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Class Performance */}
         {classStats.length > 0 && (
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Performance by Class</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Performance by Class</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {classStats.map((stat) => (
-                <div key={stat.id} className="p-4 bg-gray-50 rounded-lg">
+                <div key={stat.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900 truncate flex-1 mr-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white truncate flex-1 mr-2">
                       {stat.name}
                     </h3>
                     <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                      stat.completionRate >= 80 ? 'bg-green-100 text-green-800' :
-                      stat.completionRate >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      stat.completionRate >= 80 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                      stat.completionRate >= 60 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
+                      'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                     }`}>
                       {stat.completionRate}%
                     </span>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                     <div className="flex justify-between">
                       <span>Total Tasks:</span>
                       <span className="font-medium">{stat.totalTasks}</span>
@@ -506,45 +506,45 @@ const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Task Type Breakdown */}
         {taskTypeStats.length > 0 && (
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Task Type Breakdown</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Task Type Breakdown</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {taskTypeStats.map((stat) => (
-                <div key={stat.id} className="p-4 bg-gray-50 rounded-lg">
+                <div key={stat.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2 flex-1 mr-2">
                       <div
                         className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: stat.color }}
                       ></div>
-                      <h3 className="font-semibold text-gray-900 truncate">
+                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">
                         {stat.name}
                       </h3>
                     </div>
                     <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                      stat.completionRate >= 80 ? 'bg-green-100 text-green-800' :
-                      stat.completionRate >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      stat.completionRate >= 80 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                      stat.completionRate >= 60 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' :
+                      'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                     }`}>
                       {stat.completionRate}%
                     </span>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                     <div className="flex justify-between">
                       <span>Total Tasks:</span>
                       <span className="font-medium">{stat.totalTasks}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Completed:</span>
-                      <span className="font-medium text-green-600">{stat.completedTasks}</span>
+                      <span className="font-medium text-green-600 dark:text-green-400">{stat.completedTasks}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Pending:</span>
-                      <span className="font-medium text-blue-600">{stat.pendingTasks}</span>
+                      <span className="font-medium text-blue-600 dark:text-blue-400">{stat.pendingTasks}</span>
                     </div>
                   </div>
                   <div className="mt-3">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                       <div
                         className="h-2 rounded-full"
                         style={{ 

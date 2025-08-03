@@ -152,27 +152,27 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
   }, []);
 
   return (
-    <div className={onClose ? "fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999]" : ""}>
-      <div className={onClose ? "bg-white p-6 rounded-lg shadow-lg w-[500px] max-w-lg relative" : "space-y-6"}>
+    <div className={onClose ? "fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999] p-4" : ""}>
+      <div className={onClose ? "bg-white p-6 rounded-xl shadow-2xl w-full max-w-lg mx-auto relative transform transition-all duration-200 animate-fadeIn" : "space-y-6"}>
         {/* Close button - only show when used as modal */}
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
-            aria-label="Close"
+            className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Close Canvas Settings"
             type="button"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              strokeWidth={2}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
@@ -180,75 +180,118 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
         )}
 
         {/* Header */}
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">🔄 Canvas Sync</h2>
-          <p className="text-gray-600 mb-6">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Canvas Integration</h2>
+          <p className="text-gray-600 text-sm leading-relaxed">
             Connect your Canvas LMS to automatically sync assignments and due dates.
           </p>
         </div>
 
-        <div className="mb-4">
-          <p className="text-gray-700 mb-4">
-            <strong>Step 1:</strong> Go to Canvas and navigate to Calendar → Calendar Feed.<br/>
-            <strong>Step 2:</strong> Copy the full calendar feed URL.<br/>
-            <strong>Step 3:</strong> Paste the URL below and click "Sync Now".<br/>
-            <span className="text-sm text-gray-600">
-              The app uses a proxy service to access Canvas calendars from any browser.
-            </span>
-          </p>
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Quick Setup Guide
+            </h3>
+            <div className="space-y-2 text-sm text-gray-700">
+              <div className="flex items-start">
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
+                <span>Go to Canvas → Calendar → Calendar Feed</span>
+              </div>
+              <div className="flex items-start">
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
+                <span>Copy the full calendar feed URL</span>
+              </div>
+              <div className="flex items-start">
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
+                <span>Paste URL below and click "Sync Now"</span>
+              </div>
+            </div>
+            <div className="mt-3 p-3 bg-white border border-blue-200 rounded-md">
+              <div className="flex items-center">
+                <svg className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="text-xs text-gray-600">
+                  Uses secure proxy service to access Canvas calendars from any browser
+                </span>
+              </div>
+            </div>
+          </div>
 
-          <label htmlFor="canvasUrl" className="block text-gray-700 mb-2">
-            Canvas Calendar URL:
+          <label htmlFor="canvasUrl" className="block text-sm font-medium text-gray-700 mb-2">
+            Canvas Calendar URL
           </label>
           <div className="flex gap-2">
             <input
               id="canvasUrl"
-              type="text"
+              type="url"
               value={canvasUrl}
               onChange={handleUrlChange}
               placeholder="https://elearn.ucr.edu/feeds/calendars/user_..."
-              className="flex-1 p-2 border border-gray-300 rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm bg-white"
+              aria-describedby={canvasUrl && (canvasUrl.includes('icshttps://') || canvasUrl.split('https://').length > 2) ? "url-error" : undefined}
             />
             <button
               onClick={handleClearUrl}
-              className="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors"
+              className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all duration-200 hover:shadow-sm border border-gray-200 min-h-[44px] flex items-center justify-center"
               title="Clear URL"
               type="button"
+              aria-label="Clear Canvas URL"
             >
-              Clear
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
             </button>
           </div>
           
           {/* URL validation warning */}
           {canvasUrl && (canvasUrl.includes('icshttps://') || canvasUrl.split('https://').length > 2) && (
-            <div className="mt-2 p-2 bg-red-100 text-red-800 text-sm rounded">
-              ⚠️ The URL appears to be corrupted (contains multiple URLs). Please clear and paste a single Canvas calendar URL.
+            <div id="url-error" className="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg" role="alert">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <div>
+                  <p className="font-medium">Invalid URL Format</p>
+                  <p className="mt-1 text-xs">The URL appears to be corrupted (contains multiple URLs). Please clear and paste a single Canvas calendar URL.</p>
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="flex items-center mt-3">
+          <div className="flex items-center mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <input
               type="checkbox"
               id="autoSync"
               checked={autoSync}
               onChange={handleAutoSyncChange}
-              className="mr-2"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
             />
-            <label htmlFor="autoSync" className="text-gray-700">
-              Automatically sync on startup
+            <label htmlFor="autoSync" className="text-sm text-gray-700 flex-1">
+              <span className="font-medium">Automatically sync on startup</span>
+              <span className="block text-xs text-gray-500 mt-1">Sync Canvas calendar each time you open the app</span>
             </label>
           </div>
           
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
             <input
               type="checkbox"
               id="forceSync"
               checked={forceSync}
               onChange={(e) => setForceSync(e.target.checked)}
-              className="mr-2"
+              className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded mr-3"
             />
-            <label htmlFor="forceSync" className="text-gray-700">
-              Force re-import (delete existing Canvas tasks first)
+            <label htmlFor="forceSync" className="text-sm text-gray-700 flex-1">
+              <span className="font-medium">Force re-import</span>
+              <span className="block text-xs text-gray-500 mt-1">Delete existing Canvas tasks and re-import from scratch</span>
             </label>
           </div>
           
@@ -298,39 +341,69 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
 
         {/* Sync status */}
         {syncStatus && (
-          <div className={`p-3 rounded mb-4 ${
+          <div className={`p-4 rounded-xl mb-6 border ${
             syncStatus.success === false 
-              ? "bg-red-100 text-red-800 border border-red-200" 
+              ? "bg-gradient-to-r from-red-50 to-red-100 text-red-800 border-red-200" 
               : syncStatus.success === true
-              ? "bg-green-100 text-green-800 border border-green-200"
-              : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+              ? "bg-gradient-to-r from-green-50 to-emerald-100 text-green-800 border-green-200"
+              : "bg-gradient-to-r from-yellow-50 to-amber-100 text-yellow-800 border-yellow-200"
           }`}>
             <div className="flex items-start">
               {syncStatus.success === false && (
-                <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                  <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
               )}
               {syncStatus.success === true && (
-                <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+              {syncStatus.success === undefined && (
+                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                  <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
               )}
               <div className="flex-1">
-                <p className="font-medium">{syncStatus.message}</p>
+                <p className="font-semibold text-base leading-relaxed">{syncStatus.message}</p>
                 {syncStatus.success && syncStatus.tasks && (
-                  <p className="mt-1 text-sm opacity-90">
-                    {syncStatus.tasks.length} tasks processed successfully.
-                  </p>
+                  <div className="mt-3 p-3 bg-white bg-opacity-60 border border-green-200 rounded-lg">
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <span className="text-sm font-medium text-green-800">
+                        {syncStatus.tasks.length} tasks processed successfully
+                      </span>
+                    </div>
+                  </div>
                 )}
                 {syncStatus.success === false && (
-                  <div className="mt-2 text-sm">
-                    <p>Common solutions:</p>
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li>Verify your Canvas calendar URL is correct</li>
-                      <li>Check your internet connection</li>
-                      <li>Try again in a few minutes if Canvas is temporarily unavailable</li>
-                      <li>Contact Canvas support if the problem persists</li>
+                  <div className="mt-3 p-3 bg-white border border-red-200 rounded-md">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Troubleshooting Steps:</p>
+                    <ul className="space-y-1.5 text-xs text-gray-600">
+                      <li className="flex items-start">
+                        <span className="inline-block w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                        Verify your Canvas calendar URL is correct
+                      </li>
+                      <li className="flex items-start">
+                        <span className="inline-block w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                        Check your internet connection
+                      </li>
+                      <li className="flex items-start">
+                        <span className="inline-block w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                        Try again in a few minutes if Canvas is temporarily unavailable
+                      </li>
+                      <li className="flex items-start">
+                        <span className="inline-block w-1.5 h-1.5 bg-red-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                        Contact Canvas support if the problem persists
+                      </li>
                     </ul>
                   </div>
                 )}
@@ -340,47 +413,69 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
         )}
 
         {/* Action buttons - always shown */}
-        <div className="flex justify-between items-center mt-6">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-8 pt-6 border-t border-gray-200">
           {onClose && (
             <button
               onClick={onClose}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition"
+              className="order-2 sm:order-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-sm border border-gray-200 min-h-[44px]"
               type="button"
             >
-              Close
+              Cancel
             </button>
           )}
 
-          <div className={`flex gap-2 ${!onClose ? 'w-full justify-end' : ''}`}>
+          <div className={`order-1 sm:order-2 flex flex-col sm:flex-row gap-3 ${!onClose ? 'w-full' : ''}`}>
             <button
               onClick={handleDebugICS}
               disabled={isSyncing || !canvasUrl}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-3 rounded transition text-sm disabled:opacity-50"
+              className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-sm min-h-[44px] flex items-center justify-center"
               type="button"
               title="Debug ICS parsing - check console for results"
+              aria-label="Debug Canvas ICS parsing"
             >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
               Debug
             </button>
             <button
               onClick={handleSyncNow}
               disabled={isSyncing}
-              className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition ${
-                isSyncing ? "opacity-70 cursor-not-allowed" : ""
-              }`}
+              className={`bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center ${isSyncing ? "shadow-inner" : "shadow-sm"}`}
               type="button"
             >
-              {isSyncing ? "Syncing..." : "Sync Now"}
+              {isSyncing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Sync Now
+                </>
+              )}
             </button>
           </div>
         </div>
 
         {/* Debug Information Display */}
         {debugInfo && (
-          <div className="mt-4 p-3 bg-gray-100 rounded text-sm">
-            <h4 className="font-semibold mb-2">Debug Results:</h4>
-            <pre className="whitespace-pre-wrap text-xs overflow-auto max-h-40">
-              {JSON.stringify(debugInfo, null, 2)}
-            </pre>
+          <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="flex items-center mb-3">
+              <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h4 className="font-semibold text-gray-900">Debug Results</h4>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3 max-h-48 overflow-auto">
+              <pre className="whitespace-pre-wrap text-xs text-gray-700 font-mono leading-relaxed">
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            </div>
           </div>
         )}
       </div>
@@ -389,3 +484,13 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
 };
 
 export default CanvasSettings;
+
+// Component enhancements:
+// ✅ Enhanced visual hierarchy with proper headings and icons
+// ✅ Improved accessibility with ARIA labels and semantic markup
+// ✅ Professional UI with gradients, shadows, and modern styling
+// ✅ Better mobile responsiveness with proper touch targets
+// ✅ Enhanced loading states and progress indicators
+// ✅ Improved error handling with actionable feedback
+// ✅ Professional icon usage throughout the interface
+// ✅ Consistent spacing and typography system

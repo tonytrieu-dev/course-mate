@@ -148,10 +148,10 @@ const EventCard: React.FC<EventCardProps> = React.memo(({
       <div className={`font-semibold text-xs sm:text-sm ${style.text} truncate pr-7 sm:pr-8`}>
         {task.title}
       </div>
-      <div className="text-xs text-gray-600 truncate pr-7 sm:pr-8">
+      <div className="text-xs text-gray-600 dark:text-gray-300 truncate pr-7 sm:pr-8">
         {className}
       </div>
-      <div className="text-xs text-gray-500 truncate pr-7 sm:pr-8">
+      <div className="text-xs text-gray-500 dark:text-gray-400 truncate pr-7 sm:pr-8">
         {typeName}{timeDisplay}
       </div>
     </div>
@@ -228,7 +228,7 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
         {!showAllTasks && hiddenTasksCount > 0 && (
           <button
             onClick={handleShowMore}
-            className="w-full text-xs text-blue-600 hover:text-blue-800 py-2 mt-1 rounded hover:bg-blue-50 transition-colors min-h-[32px] touch-manipulation"
+            className="w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 py-2 mt-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors min-h-[32px] touch-manipulation"
             aria-label={`Show ${hiddenTasksCount} more tasks`}
           >
             +{hiddenTasksCount} more
@@ -324,7 +324,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
         <div className="relative">
           <button
             onClick={() => setShowDatePicker(!showDatePicker)}
-            className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded hover:bg-gray-100 min-h-[44px] touch-manipulation"
+            className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 min-h-[44px] touch-manipulation"
             type="button"
             aria-label={`${monthName} ${year}, click to change date`}
             aria-expanded={showDatePicker}
@@ -342,17 +342,17 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
           {/* Combined Date Picker */}
           {showDatePicker && (
             <div 
-              className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-80 max-w-[90vw] max-h-96 overflow-y-auto"
+              className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 w-80 max-w-[90vw] max-h-96 overflow-y-auto"
               role="dialog"
               aria-labelledby="date-picker-title"
               aria-modal="false"
             >
               <div className="p-4">
-                <h3 id="date-picker-title" className="text-sm font-semibold text-gray-700 mb-3">Select Month and Year</h3>
+                <h3 id="date-picker-title" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Select Month and Year</h3>
                 
                 {/* Year Selection */}
                 <div className="mb-4">
-                  <label className="block text-xs text-gray-600 mb-2">Year</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2">Year</label>
                   <div className="grid grid-cols-3 gap-1 max-h-32 overflow-y-auto">
                     {years.map((yearOption) => (
                       <button
@@ -360,8 +360,8 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
                         onClick={() => handleDateChange(currentDate.getMonth(), yearOption)}
                         className={`px-3 py-2 text-sm rounded transition-colors duration-200 min-h-[40px] touch-manipulation ${
                           yearOption === currentDate.getFullYear() 
-                            ? 'bg-blue-100 text-blue-800 font-semibold' 
-                            : 'text-gray-700 hover:bg-blue-50'
+                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold' 
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900'
                         }`}
                         type="button"
                       >
@@ -373,7 +373,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
                 
                 {/* Month Selection */}
                 <div>
-                  <label className="block text-xs text-gray-600 mb-2">Month</label>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2">Month</label>
                   <div className="grid grid-cols-3 gap-1">
                     {months.map((month, index) => (
                       <button
@@ -381,8 +381,8 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
                         onClick={() => handleDateChange(index, currentDate.getFullYear())}
                         className={`px-3 py-2 text-sm rounded transition-colors duration-200 min-h-[40px] touch-manipulation ${
                           index === currentDate.getMonth() 
-                            ? 'bg-blue-100 text-blue-800 font-semibold' 
-                            : 'text-gray-700 hover:bg-blue-50'
+                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold' 
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900'
                         }`}
                         type="button"
                       >
@@ -429,7 +429,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
       <div className="flex flex-col sm:flex-row justify-center sm:justify-end items-center gap-3 sm:gap-4">
         {/* View toggle buttons */}
         <div 
-          className="flex bg-gray-100 rounded-lg p-1 gap-0.5 sm:gap-1 w-full sm:w-auto max-w-xs sm:max-w-none"
+          className="flex bg-gray-100 rounded-lg p-1 gap-2 sm:gap-3 w-full sm:w-auto max-w-xs sm:max-w-none"
           role="group"
           aria-label="Calendar view options"
         >
@@ -448,7 +448,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
         </div>
         
         {/* Navigation arrows */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onPrevious}
             className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors duration-200 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] touch-manipulation"
@@ -550,7 +550,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading your calendar...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your calendar...</p>
           </div>
         </div>
       );
@@ -766,7 +766,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       <div className="overflow-x-auto -mx-2 sm:mx-0">
         <div className="grid grid-cols-7 gap-0.5 sm:gap-1 min-w-[320px] w-full px-2 sm:px-0">
           {getWeekdayHeaders().map((day) => (
-            <div key={day} className="text-center font-bold text-gray-700 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
+            <div key={day} className="text-center font-bold text-gray-700 dark:text-gray-300 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
               <span className="hidden sm:inline">{day}</span>
               <span className="sm:hidden">{day.slice(0, 2)}</span>
             </div>
@@ -841,7 +841,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       <div className="overflow-x-auto -mx-2 sm:mx-0">
         <div className="grid grid-cols-7 gap-0.5 sm:gap-1 min-w-[320px] w-full px-2 sm:px-0">
           {getWeekdayHeaders().map((day) => (
-            <div key={day} className="text-center font-bold text-gray-700 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
+            <div key={day} className="text-center font-bold text-gray-700 dark:text-gray-300 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
               <span className="hidden sm:inline">{day}</span>
               <span className="sm:hidden">{day.slice(0, 2)}</span>
             </div>
@@ -915,7 +915,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-2 sm:p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-2 sm:p-4">
       <CalendarHeader
         currentDate={currentDate}
         onDateChange={setCurrentDate}
@@ -931,9 +931,9 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
 
       <Suspense fallback={
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto" />
-            <p className="text-center mt-4 text-gray-600">Loading task editor...</p>
+            <p className="text-center mt-4 text-gray-600 dark:text-gray-400">Loading task editor...</p>
           </div>
         </div>
       }>
