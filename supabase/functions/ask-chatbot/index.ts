@@ -210,20 +210,144 @@ Deno.serve(async (req) => {
       hasMentions: mentionContext?.hasMentions || false
     });
 
-    // If no documents AND no conversation history, return the "no documents" message
-    if (!hasRelevantDocuments && !hasConversation) {
-      const noDocsMessage = targetClassIds.length > 1 
-        ? `I don't have any documents to reference for the classes you mentioned (${contextSummary}). Please upload course materials for these classes first.`
-        : targetClassIds.length === 1
-        ? "I don't have any documents to reference for this class yet. Please upload some course materials first."
-        : "Please select a class or use @ClassName to specify which class to ask about.";
+    // AUTO-EMBEDDING: Check if files exist but embeddings are missing
+    if (!hasRelevantDocuments && !hasConversation && targetClassIds.length > 0) {
+      console.log('No documents found, checking for files without embeddings...');
+      
+      // Check if any uploaded files exist for these classes
+      const { data: classFiles, error: filesError } = await supabaseAdmin
+        .from('class_files')
+        .select('id, name, path, class_id, type')
+        .in('class_id', targetClassIds)
+        .order('created_at', { ascending: false });
+      
+      if (filesError) {
+        console.error('Error checking class_files:', filesError);
+      } else if (classFiles && classFiles.length > 0) {
+        console.log(`Found ${classFiles.length} uploaded files without embeddings. Auto-triggering embedding process...`);
         
-      console.log('No matching documents and no conversation history for classes:', targetClassIds);
-      return new Response(JSON.stringify({ 
-        answer: noDocsMessage
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+        // Auto-trigger embedding for all files
+        const embeddingPromises = classFiles.map(async (file) => {
+          try {
+            console.log(`Auto-embedding file: ${file.name} (ID: ${file.id})`);
+            
+            const embeddingResponse = await fetch(`${supabaseUrl}/functions/v1/embed-file`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${supabaseServiceKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ record: file }),
+            });
+            
+            if (!embeddingResponse.ok) {
+              const errorText = await embeddingResponse.text();
+              console.error(`Failed to embed file ${file.name}:`, errorText);
+              return { success: false, file: file.name, error: errorText };
+            }
+            
+            const result = await embeddingResponse.json();
+            console.log(`Successfully auto-embedded: ${file.name}`);
+            return { success: true, file: file.name, result };
+          } catch (error) {
+            console.error(`Error auto-embedding file ${file.name}:`, error);
+            return { success: false, file: file.name, error: error.message };
+          }
+        });
+        
+        // Wait for all embeddings to complete
+        const embeddingResults = await Promise.allSettled(embeddingPromises);
+        const successfulEmbeddings = embeddingResults.filter(result => 
+          result.status === 'fulfilled' && result.value.success
+        ).length;
+        
+        console.log(`Auto-embedding completed: ${successfulEmbeddings}/${classFiles.length} files successfully embedded`);
+        
+        // If at least one file was successfully embedded, retry the document search
+        if (successfulEmbeddings > 0) {
+          console.log('Retrying document search after auto-embedding...');
+          
+          // Re-run the document search for all target classes
+          if (targetClassIds.length === 1) {
+            // Single class retry
+            const { data: retryDocuments, error: retryError } = await supabaseAdmin.rpc('match_documents', {
+              class_id_filter: targetClassIds[0],
+              match_count: 5,
+              match_threshold: 0.5,
+              query_embedding: queryEmbedding,
+            });
+
+            if (!retryError && retryDocuments && retryDocuments.length > 0) {
+              allDocuments = retryDocuments;
+              contextText = retryDocuments.map((doc: Document) => doc.content).join("\n\n---\n\n");
+              console.log(`Retry successful: Found ${retryDocuments.length} documents after auto-embedding`);
+            }
+          } else {
+            // Multiple classes retry
+            const retryClassDocuments: { [classId: string]: Document[] } = {};
+            let retryTotalDocuments = 0;
+            
+            for (const classId of targetClassIds) {
+              const { data: retryDocuments, error: retryError } = await supabaseAdmin.rpc('match_documents', {
+                class_id_filter: classId,
+                match_count: 3,
+                match_threshold: 0.5,
+                query_embedding: queryEmbedding,
+              });
+
+              if (!retryError && retryDocuments && retryDocuments.length > 0) {
+                retryClassDocuments[classId] = retryDocuments;
+                retryTotalDocuments += retryDocuments.length;
+              }
+            }
+            
+            if (retryTotalDocuments > 0) {
+              const retryContextParts: string[] = [];
+              for (const [classId, documents] of Object.entries(retryClassDocuments)) {
+                if (documents.length > 0) {
+                  const classContext = documents.map((doc: Document) => doc.content).join("\n\n");
+                  retryContextParts.push(`Documents from class ${classId}:\n${classContext}`);
+                }
+              }
+              
+              contextText = retryContextParts.join("\n\n---\n\n");
+              allDocuments = Object.values(retryClassDocuments).flat();
+              console.log(`Retry successful: Found ${retryTotalDocuments} documents from ${targetClassIds.length} classes after auto-embedding`);
+            }
+          }
+          
+          // Update relevant documents status for continuation of the flow
+          hasRelevantDocuments = allDocuments && allDocuments.length > 0;
+        }
+        
+        // If we still don't have documents after auto-embedding, inform the user
+        if (!hasRelevantDocuments) {
+          const autoEmbedMessage = successfulEmbeddings > 0
+            ? `I processed ${successfulEmbeddings} file(s) for your class(es), but couldn't find content relevant to your question. The files may not contain information about "${query}". Try asking about topics specifically covered in your uploaded materials.`
+            : `I found ${classFiles.length} uploaded file(s) for your class(es), but encountered issues processing them for search. Please try re-uploading your course materials or contact support if the problem persists.`;
+            
+          console.log('Auto-embedding completed but no relevant documents found');
+          return new Response(JSON.stringify({ 
+            answer: autoEmbedMessage
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        // No files exist - original "no documents" flow
+        const noDocsMessage = targetClassIds.length > 1 
+          ? `I don't have any documents to reference for the classes you mentioned (${contextSummary}). Please upload course materials for these classes first.`
+          : targetClassIds.length === 1
+          ? "I don't have any documents to reference for this class yet. Please upload some course materials first."
+          : "Please select a class or use @ClassName to specify which class to ask about.";
+          
+        console.log('No matching documents, no conversation history, and no uploaded files for classes:', targetClassIds);
+        return new Response(JSON.stringify({ 
+          answer: noDocsMessage
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // SECTION 3: GENERATE A RESPONSE WITH GOOGLE GEMINI

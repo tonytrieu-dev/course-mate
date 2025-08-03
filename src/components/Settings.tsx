@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import NotificationSettings from './NotificationSettings';
 import CanvasSettings from './CanvasSettings';
 import StudyScheduleOptimizer from './StudyScheduleOptimizer';
+import { StudyScheduleProvider } from '../contexts/StudyScheduleContext';
 import type { User } from '@supabase/supabase-js';
 import type { ClassWithRelations } from '../types/database';
 
@@ -124,24 +125,6 @@ const Settings: React.FC<SettingsProps> = ({
               ))}
             </nav>
 
-            {/* Quick Actions - hide on mobile */}
-            <div className="hidden sm:block mt-8 p-3 bg-white rounded-lg border border-gray-200">
-              <h3 className="font-medium text-gray-900 mb-2">Quick Actions</h3>
-              <div className="space-y-2 text-sm">
-                <button 
-                  onClick={() => setActiveTab('canvas')}
-                  className="text-blue-600 hover:text-blue-700 block"
-                >
-                  🔄 Sync Canvas now
-                </button>
-                <button 
-                  onClick={() => setActiveTab('notifications')}
-                  className="text-green-600 hover:text-green-700 block"
-                >
-                  📧 Test notifications
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Content Area */}
@@ -156,13 +139,15 @@ const Settings: React.FC<SettingsProps> = ({
       
       {/* Study Schedule Optimizer Modal */}
       {showStudySchedule && user && (
-        <StudyScheduleOptimizer
-          user={user}
-          classes={classes}
-          useSupabase={useSupabase}
-          isVisible={showStudySchedule}
-          onClose={() => setShowStudySchedule(false)}
-        />
+        <StudyScheduleProvider user={user} classes={classes} useSupabase={useSupabase}>
+          <StudyScheduleOptimizer
+            user={user}
+            classes={classes}
+            useSupabase={useSupabase}
+            isVisible={showStudySchedule}
+            onClose={() => setShowStudySchedule(false)}
+          />
+        </StudyScheduleProvider>
       )}
     </div>
   );

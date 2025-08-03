@@ -129,29 +129,29 @@ const EventCard: React.FC<EventCardProps> = React.memo(({
 
   return (
     <div
-      className={`${style.bg} ${style.border} rounded-md p-2 sm:p-3 mb-1 shadow-sm cursor-pointer group relative hover:shadow-md transition-all duration-200 ease-in-out touch-manipulation min-h-[44px] flex flex-col justify-center`}
+      className={`${style.bg} ${style.border} rounded-md p-1.5 sm:p-3 mb-1 shadow-sm cursor-pointer group relative hover:shadow-md transition-all duration-200 ease-in-out touch-manipulation min-h-[40px] sm:min-h-[44px] flex flex-col justify-center`}
       onClick={handleClick}
       title={`${task.title} - ${className}`}
     >
-      {/* Edit button */}
+      {/* Edit button - always visible on mobile for better accessibility */}
       <button
-        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity p-2 rounded hover:bg-white/50 min-h-[32px] min-w-[32px] touch-manipulation"
+        className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 sm:p-2 rounded hover:bg-white/50 min-h-[28px] min-w-[28px] sm:min-h-[32px] sm:min-w-[32px] touch-manipulation"
         onClick={handleEdit}
         aria-label="Edit task"
         type="button"
       >
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3 sm:w-4 sm:h-4">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H7v-3a2 2 0 01.586-1.414z" />
         </svg>
       </button>
       
-      <div className={`font-semibold text-xs ${style.text} truncate`}>
+      <div className={`font-semibold text-xs sm:text-sm ${style.text} truncate pr-7 sm:pr-8`}>
         {task.title}
       </div>
-      <div className="text-xs text-gray-600 truncate">
+      <div className="text-xs text-gray-600 truncate pr-7 sm:pr-8">
         {className}
       </div>
-      <div className="text-xs text-gray-500 truncate">
+      <div className="text-xs text-gray-500 truncate pr-7 sm:pr-8">
         {typeName}{timeDisplay}
       </div>
     </div>
@@ -426,10 +426,10 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
       </div>
       
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
         {/* View toggle buttons */}
         <div 
-          className="flex bg-gray-100 rounded-lg p-1 gap-1 w-full sm:w-auto"
+          className="flex bg-gray-100 rounded-lg p-1 gap-0.5 sm:gap-1 w-full sm:w-auto max-w-xs sm:max-w-none"
           role="group"
           aria-label="Calendar view options"
         >
@@ -437,7 +437,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
             <button
               key={option.key}
               onClick={() => onViewChange(option.key)}
-              className={`${getViewButtonClasses(view === option.key)} flex-1 sm:flex-none px-3 py-2 text-sm font-medium min-h-[44px] touch-manipulation`}
+              className={`${getViewButtonClasses(view === option.key)} flex-1 sm:flex-none px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[40px] sm:min-h-[44px] touch-manipulation`}
               type="button"
               aria-pressed={view === option.key}
               aria-label={`Switch to ${option.label.toLowerCase()} view`}
@@ -448,24 +448,24 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
         </div>
         
         {/* Navigation arrows */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={onPrevious}
-            className="p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 min-h-[44px] min-w-[44px] touch-manipulation"
+            className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors duration-200 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] touch-manipulation"
             aria-label="Previous period"
             type="button"
           >
-            <svg className="w-5 h-5 text-gray-600 hover:text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <button
             onClick={onNext}
-            className="p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 min-h-[44px] min-w-[44px] touch-manipulation"
+            className="p-2 sm:p-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors duration-200 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] touch-manipulation"
             aria-label="Next period"
             type="button"
           >
-            <svg className="w-5 h-5 text-gray-600 hover:text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 hover:text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -736,7 +736,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
 
     // Empty cells for days before first of month
     for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="h-24 sm:h-32 md:h-40 lg:h-44"></div>);
+      days.push(<div key={`empty-${i}`} className="h-20 sm:h-24 md:h-32 lg:h-40"></div>);
     }
 
     // Days of month
@@ -763,12 +763,12 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
 
     return (
-      <div className="overflow-x-auto">
-        <div className="grid grid-cols-7 gap-0.5 min-w-[280px] w-full">
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 min-w-[320px] w-full px-2 sm:px-0">
           {getWeekdayHeaders().map((day) => (
             <div key={day} className="text-center font-bold text-gray-700 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
               <span className="hidden sm:inline">{day}</span>
-              <span className="sm:hidden">{day.slice(0, 1)}</span>
+              <span className="sm:hidden">{day.slice(0, 2)}</span>
             </div>
           ))}
           {days}
@@ -838,12 +838,12 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
 
     return (
-      <div className="overflow-x-auto">
-        <div className="grid grid-cols-7 gap-0.5 min-w-[280px] w-full">
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 min-w-[320px] w-full px-2 sm:px-0">
           {getWeekdayHeaders().map((day) => (
             <div key={day} className="text-center font-bold text-gray-700 py-1 sm:py-2 text-xs sm:text-sm md:text-base">
               <span className="hidden sm:inline">{day}</span>
-              <span className="sm:hidden">{day.slice(0, 1)}</span>
+              <span className="sm:hidden">{day.slice(0, 2)}</span>
             </div>
           ))}
           {days}
@@ -915,7 +915,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4">
+    <div className="bg-white rounded-xl shadow-md p-2 sm:p-4">
       <CalendarHeader
         currentDate={currentDate}
         onDateChange={setCurrentDate}

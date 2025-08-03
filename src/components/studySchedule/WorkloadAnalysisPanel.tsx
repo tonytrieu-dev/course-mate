@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { WorkloadAnalysis, StudyScheduleFeatureLimits } from '../../types/studySchedule';
 import type { ClassWithRelations } from '../../types/database';
 
@@ -13,34 +13,40 @@ const WorkloadAnalysisPanel: React.FC<WorkloadAnalysisPanelProps> = ({
   classes,
   featureLimits
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   // Get class name from ID
   const getClassName = (classId: string) => {
     return classes.find(c => c.id === classId)?.name || classId;
   };
   
-  // Calculate stress level color
-  const getStressLevelColor = (level: number) => {
-    if (level <= 3) return 'text-green-600 bg-green-100';
-    if (level <= 6) return 'text-yellow-600 bg-yellow-100';
-    if (level <= 8) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
-  };
-  
-  const getStressLevelText = (level: number) => {
-    if (level <= 3) return 'Low';
-    if (level <= 6) return 'Moderate';
-    if (level <= 8) return 'High';
-    return 'Very High';
-  };
   
   return (
-    <div className="bg-white border-b border-gray-200 p-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-        <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        Workload Analysis
-      </h3>
+    <div className="bg-white border-b border-gray-200">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <h3 className="text-lg font-semibold text-gray-900">Workload Analysis</h3>
+          </div>
+          <svg 
+            className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+      
+      {isExpanded && (
+        <div className="px-4 pb-4">
       
       {/* Overall Metrics */}
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -62,29 +68,6 @@ const WorkloadAnalysisPanel: React.FC<WorkloadAnalysisPanelProps> = ({
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="text-2xl font-bold text-gray-900">{Math.round(analysis.recommended_daily_hours * 10) / 10}</div>
           <div className="text-sm text-gray-600">Daily Hours</div>
-        </div>
-      </div>
-      
-      {/* Stress Level Indicator */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Stress Level</span>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            getStressLevelColor(analysis.stress_level_prediction)
-          }`}>
-            {getStressLevelText(analysis.stress_level_prediction)} ({analysis.stress_level_prediction}/10)
-          </span>
-        </div>
-        
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className={`h-2 rounded-full transition-all duration-300 ${
-              analysis.stress_level_prediction <= 3 ? 'bg-green-500' :
-              analysis.stress_level_prediction <= 6 ? 'bg-yellow-500' :
-              analysis.stress_level_prediction <= 8 ? 'bg-orange-500' : 'bg-red-500'
-            }`}
-            style={{ width: `${(analysis.stress_level_prediction / 10) * 100}%` }}
-          ></div>
         </div>
       </div>
       
@@ -181,15 +164,13 @@ const WorkloadAnalysisPanel: React.FC<WorkloadAnalysisPanelProps> = ({
           <span>Analysis Date:</span>
           <span>{new Date(analysis.analysis_date).toLocaleDateString()}</span>
         </div>
-        <div className="flex items-center justify-between mb-1">
-          <span>AI Model:</span>
-          <span>{analysis.ai_model_version}</span>
-        </div>
         <div className="flex items-center justify-between">
           <span>Canvas Sync:</span>
           <span>{new Date(analysis.canvas_sync_date).toLocaleDateString()}</span>
         </div>
       </div>
+        </div>
+      )}
     </div>
   );
 };

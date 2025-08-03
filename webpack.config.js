@@ -28,6 +28,10 @@ module.exports = {
         test: /\.mjs$/,
         include: /node_modules/,
         type: 'javascript/auto'
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader']
       }
     ]
   },

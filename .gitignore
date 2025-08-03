@@ -64,3 +64,7 @@ PLANNING.md
 PRD.md
 NORTHFLANK_DEPLOYMENT.md
 OAUTH_SETUP.md
+BUNDLE_ANALYSIS_REPORT.md
+MOBILE_AUDIT_REPORT.md
+CLAUDE-md-monitoring-template.md
+claude-size-monitor.js

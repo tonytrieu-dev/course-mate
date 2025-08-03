@@ -43,6 +43,8 @@ const ScheduleConfigurationPanel: React.FC<ScheduleConfigurationPanelProps> = ({
   });
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [isGenerateExpanded, setIsGenerateExpanded] = useState(true);
+  const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   
   // Study profile editing state
   const [editingProfile, setEditingProfile] = useState(false);
@@ -161,8 +163,26 @@ const ScheduleConfigurationPanel: React.FC<ScheduleConfigurationPanelProps> = ({
   return (
     <div className="flex-1 overflow-auto">
       {/* Schedule Generation */}
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Generate Schedule</h3>
+      <div className="border-b border-gray-200">
+        <button
+          onClick={() => setIsGenerateExpanded(!isGenerateExpanded)}
+          className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Generate Schedule</h3>
+            <svg 
+              className={`w-5 h-5 text-gray-500 transition-transform ${isGenerateExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+        
+        {isGenerateExpanded && (
+          <div className="px-4 pb-4">
         
         {/* Date Range */}
         <div className="mb-4">
@@ -316,32 +336,55 @@ const ScheduleConfigurationPanel: React.FC<ScheduleConfigurationPanelProps> = ({
             )}
           </div>
         )}
+          </div>
+        )}
       </div>
       
       {/* Study Profile Settings */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Study Profile</h3>
-          <button
-            onClick={editingProfile ? saveProfileChanges : startEditingProfile}
-            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-              editingProfile
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            {editingProfile ? 'Save' : 'Edit'}
-          </button>
-        </div>
+      <div className="border-b border-gray-200">
+        <button
+          onClick={() => setIsProfileExpanded(!isProfileExpanded)}
+          className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Study Profile</h3>
+            <svg 
+              className={`w-5 h-5 text-gray-500 transition-transform ${isProfileExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
         
-        {editingProfile ? (
-          <StudyProfileEditor
-            profile={profileForm}
-            onChange={setProfileForm}
-            onCancel={() => setEditingProfile(false)}
-          />
-        ) : (
-          <StudyProfileDisplay profile={studyProfile} />
+        {isProfileExpanded && (
+          <div className="px-4 pb-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-gray-600">Configure your study preferences</span>
+              <button
+                onClick={editingProfile ? saveProfileChanges : startEditingProfile}
+                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                  editingProfile
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {editingProfile ? 'Save' : 'Edit'}
+              </button>
+            </div>
+            
+            {editingProfile ? (
+              <StudyProfileEditor
+                profile={profileForm}
+                onChange={setProfileForm}
+                onCancel={() => setEditingProfile(false)}
+              />
+            ) : (
+              <StudyProfileDisplay profile={studyProfile} />
+            )}
+          </div>
         )}
       </div>
     </div>

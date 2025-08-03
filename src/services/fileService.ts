@@ -319,6 +319,21 @@ export const fileService = {
       });
     }
 
+    // Delete from documents table (embeddings) first
+    const fileName = filePath.split('/').pop();
+    const { error: documentsError } = await supabase
+      .from("documents")
+      .delete()
+      .eq("class_id", classId)
+      .eq("file_name", fileName);
+
+    if (documentsError) {
+      throw errorHandler.data.saveFailed({
+        operation: 'deleteFile - documents deletion',
+        originalError: documentsError.message
+      });
+    }
+
     // Delete from database
     const { error: fileDbError } = await supabase
       .from("class_files")
@@ -368,6 +383,21 @@ export const fileService = {
       throw errorHandler.data.saveFailed({
         operation: 'deleteSyllabus - storage deletion',
         originalError: storageError.message
+      });
+    }
+
+    // Delete from documents table (embeddings) first
+    const fileName = syllabusPath.split('/').pop();
+    const { error: documentsError } = await supabase
+      .from("documents")
+      .delete()
+      .eq("class_id", classId)
+      .eq("file_name", fileName);
+
+    if (documentsError) {
+      throw errorHandler.data.saveFailed({
+        operation: 'deleteSyllabus - documents deletion',
+        originalError: documentsError.message
       });
     }
 

@@ -3,16 +3,26 @@ import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { SubscriptionProvider } from "../contexts/SubscriptionContext";
 import { features } from "../utils/buildConfig";
 import ErrorBoundary from "./ErrorBoundary";
+import {
+  SidebarLoadingFallback,
+  CalendarLoadingFallback,
+  TaskViewLoadingFallback,
+  DashboardLoadingFallback,
+  GradeDashboardLoadingFallback,
+  AuthLoadingFallback
+} from "./LoadingFallbacks";
 
-// Lazy load heavy components for better initial load performance with proper TypeScript typing
-const Sidebar = lazy(() => import("./Sidebar"));
-const SimpleCalendar = lazy(() => import("./SimpleCalendar"));
-const TaskView = lazy(() => import("./TaskView"));
-const DashboardView = lazy(() => import("./DashboardView"));
-const LoginComponent = lazy(() => import("./LoginComponent"));
-const GradeDashboard = lazy(() => import("./GradeDashboard"));
-const GradeEntry = lazy(() => import("./GradeEntry"));
-const LandingPage = lazy(() => import("./LandingPage"));
+// Lazy load components using optimized lazy loading system
+import {
+  LazySidebar as Sidebar,
+  LazySimpleCalendar as SimpleCalendar,
+  LazyTaskView as TaskView,
+  LazyDashboardView as DashboardView,
+  LazyLoginComponent as LoginComponent,
+  LazyGradeDashboard as GradeDashboard,
+  LazyGradeEntry as GradeEntry,
+  LazyLandingPage as LandingPage
+} from "./LazyComponents";
 
 // Define view types - now includes app views and calendar views
 type AppViewType = "dashboard" | "tasks" | "calendar" | "grades";
@@ -25,26 +35,23 @@ interface LoadingSpinnerProps {
   'aria-label'?: string;
 }
 
-// Loading spinner component
+// Simple loading spinner component
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
   message = "Loading...", 
   size = "medium",
   "aria-label": ariaLabel 
 }) => {
   const sizeClasses = {
-    small: "h-6 w-6",
-    medium: "h-12 w-12", 
-    large: "h-16 w-16"
+    small: "h-16 w-16",
+    medium: "h-20 w-20", 
+    large: "h-24 w-24"
   };
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center animate-fadeIn">
       <div className="text-center" role="status" aria-live="polite">
-        <div 
-          className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-blue-600 mx-auto`} 
-          aria-hidden="true"
-        />
-        <p className="mt-4 text-gray-600">
+        <div className={`animate-spin rounded-full border-b-2 border-blue-600 mx-auto ${sizeClasses[size]}`} />
+        <p className="mt-6 text-gray-600 text-lg">
           <span className="sr-only">{ariaLabel || "Loading"}:</span> {message}
         </p>
       </div>
@@ -85,10 +92,10 @@ const CalendarApp: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-50 animate-fadeIn">
         <LoadingSpinner 
           message="Loading your calendar..." 
-          size="large"
+          size="small"
           aria-label="Loading application" 
         />
       </div>
@@ -101,7 +108,7 @@ const CalendarApp: React.FC = () => {
       <div className="flex items-center justify-center h-screen">
         <LoadingSpinner 
           message="Loading..." 
-          size="large"
+          size="small"
           aria-label="Loading landing page" 
         />
       </div>
@@ -115,27 +122,14 @@ const CalendarApp: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    const loginFallback: ReactNode = (
-      <div className="flex items-center justify-center h-screen">
-        <div role="status" aria-label="Loading">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" aria-hidden="true" />
-          <span className="sr-only">Loading login component...</span>
-        </div>
-      </div>
-    );
-
     return (
-      <Suspense fallback={loginFallback}>
+      <Suspense fallback={<AuthLoadingFallback />}>
         <LoginComponent />
       </Suspense>
     );
   }
 
-  const sidebarFallback: ReactNode = (
-    <div className="w-64 bg-gray-800 animate-pulse" role="status" aria-label="Loading sidebar">
-      <span className="sr-only">Loading sidebar...</span>
-    </div>
-  );
+  const sidebarFallback: ReactNode = <SidebarLoadingFallback />;
 
   const sidebarErrorFallback: ReactNode = (
     <div className="w-64 bg-red-50 border-r border-red-200 flex items-center justify-center">
@@ -143,30 +137,53 @@ const CalendarApp: React.FC = () => {
     </div>
   );
 
-  const calendarFallback: ReactNode = (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-    </div>
-  );
-
   return (
-    <div className="flex h-screen overflow-hidden">
-      <ErrorBoundary 
-        name="Sidebar" 
-        fallback={sidebarErrorFallback}
-      >
-        <Suspense fallback={sidebarFallback}>
-          <Sidebar />
-        </Suspense>
-      </ErrorBoundary>
+    <div className="flex h-screen overflow-hidden bg-gray-100">
+      {/* Mobile Sidebar Overlay */}
+      <div className={`lg:hidden fixed inset-0 z-50 ${isNavCollapsed ? 'hidden' : 'block'}`}>
+        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsNavCollapsed(true)} />
+        <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw]">
+          <ErrorBoundary 
+            name="Sidebar" 
+            fallback={sidebarErrorFallback}
+          >
+            <Suspense fallback={sidebarFallback}>
+              <Sidebar />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <ErrorBoundary 
+          name="Sidebar" 
+          fallback={sidebarErrorFallback}
+        >
+          <Suspense fallback={sidebarFallback}>
+            <Sidebar />
+          </Suspense>
+        </ErrorBoundary>
+      </div>
       
       <div className="flex-1 bg-gray-100 overflow-auto box-border min-w-0">
         {/* Main Navigation Header */}
         <div className={`bg-white border-b border-gray-200 transition-all duration-300 ease-in-out ${
-          isNavCollapsed ? 'h-0 overflow-hidden border-b-0' : 'px-4 sm:px-6 py-3'
+          isNavCollapsed ? 'h-0 overflow-hidden border-b-0' : 'px-2 sm:px-4 lg:px-6 py-3'
         }`}>
-          <div className="flex justify-center items-center">
-            <nav className="flex space-x-1">
+          <div className="flex justify-between lg:justify-center items-center">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsNavCollapsed(false)}
+              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              aria-label="Open sidebar"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <nav className="flex space-x-0.5 sm:space-x-1 overflow-x-auto scrollbar-hide">
               {[
                 { id: 'dashboard', label: 'Dashboard', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z' },
                 { id: 'calendar', label: 'Calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
@@ -176,19 +193,23 @@ const CalendarApp: React.FC = () => {
                 <button
                   key={nav.id}
                   onClick={() => setAppView(nav.id as AppViewType)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
                     appView === nav.id
                       ? 'bg-blue-100 text-blue-700'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={nav.icon} />
                   </svg>
-                  {nav.label}
+                  <span className="hidden sm:inline">{nav.label}</span>
+                  <span className="sm:hidden">{nav.label.charAt(0)}</span>
                 </button>
               ))}
             </nav>
+
+            {/* Right spacer for mobile */}
+            <div className="lg:hidden w-2" />
           </div>
         </div>
 
@@ -213,31 +234,38 @@ const CalendarApp: React.FC = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="p-2 sm:p-4 lg:p-5">
+        <div className="p-1 sm:p-2 md:p-4 lg:p-5">
           <ErrorBoundary name={`${appView}View`} showDetails={false}>
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-              </div>
-            }>
-              {appView === 'dashboard' && (
-                <DashboardView
+            {appView === 'dashboard' && (
+              <Suspense fallback={<DashboardLoadingFallback />}>
+                <div className="animate-fadeIn">
+                  <DashboardView
                   onSwitchToTasks={() => setAppView('tasks')}
                   onSwitchToCalendar={() => setAppView('calendar')}
                   onSwitchToGrades={() => setAppView('grades')}
                 />
-              )}
-              {appView === 'tasks' && (
-                <TaskView />
-              )}
-              {appView === 'calendar' && (
-                <SimpleCalendar 
-                  view={calendarView} 
-                  onViewChange={setCalendarView}
-                />
-              )}
-              {appView === 'grades' && (
-                <div className="space-y-4">
+                </div>
+              </Suspense>
+            )}
+            {appView === 'tasks' && (
+              <Suspense fallback={<TaskViewLoadingFallback />}>
+                <div className="animate-fadeIn">
+                  <TaskView />
+                </div>
+              </Suspense>
+            )}
+            {appView === 'calendar' && (
+              <Suspense fallback={<CalendarLoadingFallback />}>
+                <div className="animate-fadeIn">
+                  <SimpleCalendar 
+                    view={calendarView} 
+                    onViewChange={setCalendarView}
+                  />
+                </div>
+              </Suspense>
+            )}
+            {appView === 'grades' && (
+                <div className="space-y-4 animate-fadeIn">
                   {/* Grade View Toggle */}
                   <div className="bg-white rounded-lg shadow p-4">
                     <div className="flex gap-2">
@@ -266,21 +294,28 @@ const CalendarApp: React.FC = () => {
 
                   {/* Grade Content */}
                   {gradeView === 'dashboard' && (
-                    <GradeDashboard 
-                      onSwitchToGradeEntry={() => setGradeView('entry')}
-                    />
+                    <Suspense fallback={<GradeDashboardLoadingFallback />}>
+                      <div className="animate-scaleIn">
+                        <GradeDashboard 
+                          onSwitchToGradeEntry={() => setGradeView('entry')}
+                        />
+                      </div>
+                    </Suspense>
                   )}
                   {gradeView === 'entry' && (
-                    <GradeEntry 
-                      onGradeAdded={() => {
-                        // Refresh dashboard and switch to it
-                        setGradeView('dashboard');
-                      }}
-                    />
+                    <Suspense fallback={<GradeDashboardLoadingFallback />}>
+                      <div className="animate-scaleIn">
+                        <GradeEntry 
+                          onGradeAdded={() => {
+                            // Refresh dashboard and switch to it
+                            setGradeView('dashboard');
+                          }}
+                        />
+                      </div>
+                    </Suspense>
                   )}
                 </div>
               )}
-            </Suspense>
           </ErrorBoundary>
         </div>
       </div>

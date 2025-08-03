@@ -226,7 +226,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
   return (
     <div
       ref={chatbotRef}
-      className="fixed bg-white border border-gray-300 rounded-lg shadow-lg z-50 flex flex-col"
+      className="fixed bg-white border border-gray-300 rounded-lg shadow-lg z-50 flex flex-col animate-scaleIn"
       role="dialog"
       aria-label="Class Chatbot"
       aria-modal="true"

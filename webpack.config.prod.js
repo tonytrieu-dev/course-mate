@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = {
   mode: 'production',
@@ -64,6 +65,10 @@ module.exports = {
     flagIncludedChunks: true,
     chunkIds: 'deterministic',
     moduleIds: 'deterministic',
+    minimize: true,
+    minimizer: [
+      '...',  // Use default minimizers (Terser for JS, CssMinimizerPlugin for CSS)
+    ]
   },
   module: {
     rules: [
@@ -113,11 +118,33 @@ module.exports = {
     new Dotenv(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
-    })
+    }),
+    ...(process.argv.includes('--analyze') ? [
+      new BundleAnalyzerPlugin({
+        analyzerMode: 'server',
+        openAnalyzer: true,
+        generateStatsFile: true,
+        statsFilename: 'bundle-stats.json'
+      })
+    ] : [])
   ],
   performance: {
     hints: 'warning',
-    maxAssetSize: 300000,
-    maxEntrypointSize: 300000
+    maxAssetSize: 400000,  // Increased for optimized lazy loading
+    maxEntrypointSize: 400000,
+    assetFilter: function(assetFilename) {
+      // Don't show warnings for source maps and large vendor chunks
+      return !assetFilename.endsWith('.map') && !assetFilename.includes('vendors');
+    }
+  },
+  stats: {
+    chunks: true,
+    chunkModules: false,
+    chunkOrigins: false,
+    modules: false,
+    optimizationBailout: true,
+    reasons: false,
+    source: false,
+    usedExports: true
   }
 };

@@ -232,17 +232,8 @@ export const StudyScheduleOptimizer: React.FC<StudyScheduleOptimizerProps> = ({
           {/* Left Sidebar - Configuration and Analysis */}
           <div className={`${showConfiguration ? 'w-1/3' : 'w-16'} border-r border-gray-200 transition-all duration-300 overflow-hidden`}>
             {showConfiguration ? (
-              <div className="h-full flex flex-col">
-                {/* Workload Analysis */}
-                {workloadAnalysis && (
-                  <WorkloadAnalysisPanel
-                    analysis={workloadAnalysis}
-                    classes={classes}
-                    featureLimits={featureLimits}
-                  />
-                )}
-                
-                {/* Schedule Configuration */}
+              <div className="h-full overflow-y-auto">
+                {/* Schedule Configuration - Moved to top */}
                 <ScheduleConfigurationPanel
                   studyProfile={studyProfile}
                   onProfileUpdate={updateStudyProfile}
@@ -251,6 +242,15 @@ export const StudyScheduleOptimizer: React.FC<StudyScheduleOptimizerProps> = ({
                   featureLimits={featureLimits}
                   classes={classes}
                 />
+                
+                {/* Workload Analysis */}
+                {workloadAnalysis && (
+                  <WorkloadAnalysisPanel
+                    analysis={workloadAnalysis}
+                    classes={classes}
+                    featureLimits={featureLimits}
+                  />
+                )}
                 
                 {/* Premium Upgrade Prompt */}
                 {!featureLimits.ai_recommendations_enabled && (
@@ -274,7 +274,7 @@ export const StudyScheduleOptimizer: React.FC<StudyScheduleOptimizerProps> = ({
           </div>
           
           {/* Main Calendar View */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col overflow-hidden">
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
@@ -324,7 +324,7 @@ export const StudyScheduleOptimizer: React.FC<StudyScheduleOptimizerProps> = ({
           
           {/* Right Sidebar - Session Details */}
           {uiState.selectedSession && (
-            <div className="w-1/3 border-l border-gray-200">
+            <div className="w-1/3 border-l border-gray-200 overflow-y-auto">
               <StudySessionDetails
                 session={uiState.selectedSession}
                 onUpdate={updateSessionStatus}

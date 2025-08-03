@@ -124,7 +124,7 @@ export const StudySessionTracker: React.FC<StudySessionTrackerProps> = ({
   }
 
   return (
-    <div className={`study-session-tracker ${className}`}>
+    <div className={`study-session-tracker animate-fadeIn ${className}`}>
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex justify-between items-start">

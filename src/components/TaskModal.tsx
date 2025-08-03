@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, KeyboardEvent } from "react";
+import React, { useRef, useEffect, useCallback, KeyboardEvent, useState } from "react";
 import type { User } from '@supabase/supabase-js';
 import type { ClassWithRelations, TaskType, TaskWithMeta } from "../types/database";
 import { useTaskForm } from "../hooks/useTaskForm";
@@ -27,7 +27,7 @@ export interface TaskData {
 interface TaskModalProps {
   showModal: boolean;
   onClose: () => void;
-  onSubmit: (task: TaskData) => void;
+  onSubmit: (task: TaskData) => Promise<void>;
   onDelete?: () => void;
   editingTask: TaskWithMeta | null;
   selectedDate: Date | null;
@@ -54,6 +54,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   user
 }) => {
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Task form management
   const {
@@ -95,6 +96,25 @@ const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [onClose]);
 
+  // Enhanced submit handler with loading state
+  const handleAsyncSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      // Use the form validation from useTaskForm
+      handleSubmit(e, async (taskData) => {
+        await onSubmit(taskData);
+      });
+    } catch (error) {
+      console.error('Error submitting task:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [handleSubmit, onSubmit, isSubmitting]);
+
   // Focus title input when modal opens
   useEffect(() => {
     if (showModal && titleInputRef.current) {
@@ -106,7 +126,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-2 sm:p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start sm:items-center z-50 p-1 sm:p-4 overflow-y-auto"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       role="dialog"
@@ -116,7 +136,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
       data-testid="modal-backdrop"
     >
       <div 
-        className="bg-white p-4 sm:p-6 rounded-lg w-full max-w-sm sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
+        className="bg-white p-3 sm:p-4 md:p-6 rounded-t-lg sm:rounded-lg w-full max-w-lg sm:max-w-2xl max-h-[100vh] sm:max-h-[95vh] overflow-y-auto mt-auto sm:mt-0 shadow-xl animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 
@@ -132,7 +152,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
           Date: {modalDateDisplay}
         </p>
 
-        <form onSubmit={(e) => handleSubmit(e, onSubmit)} className="space-y-3 sm:space-y-4">
+        <form onSubmit={handleAsyncSubmit} className="space-y-3 sm:space-y-4">
           <TaskFormFields
             task={task}
             onInputChange={handleInputChange}
@@ -230,10 +250,17 @@ const TaskModal: React.FC<TaskModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-h-[44px] touch-manipulation"
+                disabled={isSubmitting}
+                className={`flex-1 sm:flex-initial px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-h-[44px] touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
                 aria-label={editingTask ? "Update task with current information" : "Create new task with entered information"}
               >
-                {editingTask ? "Update Task" : "Add Task"}
+                {isSubmitting && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {isSubmitting 
+                  ? (editingTask ? "Updating..." : "Creating...")
+                  : (editingTask ? "Update Task" : "Add Task")
+                }
               </button>
             </div>
           </div>

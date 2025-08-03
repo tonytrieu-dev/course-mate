@@ -381,7 +381,12 @@ const Sidebar: React.FC = () => {
               </div>
             </div>
           }>
-            <Settings onClose={() => setShowSettings(false)} />
+            <Settings 
+              onClose={() => setShowSettings(false)}
+              user={user}
+              classes={classes}
+              useSupabase={isAuthenticated}
+            />
           </Suspense>
         )}
 

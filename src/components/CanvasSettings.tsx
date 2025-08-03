@@ -21,6 +21,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
   );
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncProgress, setSyncProgress] = useState<string>('');
   const [autoSync, setAutoSync] = useState<boolean>(() => 
     localStorage.getItem("canvas_auto_sync") === "true"
   );
@@ -99,22 +100,39 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
     localStorage.setItem("canvas_auto_sync", autoSync.toString());
 
     setIsSyncing(true);
+    setSyncProgress('Connecting to Canvas...');
     setSyncStatus({ message: "Syncing with Canvas..." });
 
     try {
+      // Simulate progress updates
+      setSyncProgress('Fetching calendar data...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user, forceSync);
+      
+      setSyncProgress('Processing events...');
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       setSyncStatus(result);
+      
       // Reset force sync after use
       setForceSync(false);
       // Update calendar sync timestamp to trigger calendar refresh
       if (result.success) {
+        setSyncProgress('Sync completed successfully!');
         setLastCalendarSyncTimestamp(Date.now());
+        
+        // Auto-clear progress after success
+        setTimeout(() => {
+          setSyncProgress('');
+        }, 2000);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncProgress('');
       setSyncStatus({
         success: false,
-        message: `Error syncing: ${errorMessage}`
+        message: `Canvas sync failed: ${errorMessage}. Please check your URL and internet connection.`
       });
     } finally {
       setIsSyncing(false);
@@ -265,32 +283,75 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {syncStatus && (
-          <div className={`p-3 rounded mb-4 ${
-            syncStatus.success 
-              ? "bg-green-100 text-green-800" 
-              : "bg-yellow-100 text-yellow-800"
-          }`}>
-            {syncStatus.message}
-            {syncStatus.success && syncStatus.tasks && (
-              <p className="mt-1 text-sm">
-                {syncStatus.tasks.length} tasks imported successfully.
-              </p>
-            )}
+        {/* Progress indicator */}
+        {isSyncing && syncProgress && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+              <span className="text-blue-800 text-sm font-medium">{syncProgress}</span>
+            </div>
+            <div className="mt-2 bg-blue-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+            </div>
           </div>
         )}
 
-        {onClose && (
-          <div className="flex justify-between items-center mt-6">
+        {/* Sync status */}
+        {syncStatus && (
+          <div className={`p-3 rounded mb-4 ${
+            syncStatus.success === false 
+              ? "bg-red-100 text-red-800 border border-red-200" 
+              : syncStatus.success === true
+              ? "bg-green-100 text-green-800 border border-green-200"
+              : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+          }`}>
+            <div className="flex items-start">
+              {syncStatus.success === false && (
+                <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              )}
+              {syncStatus.success === true && (
+                <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              )}
+              <div className="flex-1">
+                <p className="font-medium">{syncStatus.message}</p>
+                {syncStatus.success && syncStatus.tasks && (
+                  <p className="mt-1 text-sm opacity-90">
+                    {syncStatus.tasks.length} tasks processed successfully.
+                  </p>
+                )}
+                {syncStatus.success === false && (
+                  <div className="mt-2 text-sm">
+                    <p>Common solutions:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>Verify your Canvas calendar URL is correct</li>
+                      <li>Check your internet connection</li>
+                      <li>Try again in a few minutes if Canvas is temporarily unavailable</li>
+                      <li>Contact Canvas support if the problem persists</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons - always shown */}
+        <div className="flex justify-between items-center mt-6">
+          {onClose && (
             <button
               onClick={onClose}
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition"
               type="button"
             >
               Close
-          </button>
+            </button>
+          )}
 
-          <div className="flex gap-2">
+          <div className={`flex gap-2 ${!onClose ? 'w-full justify-end' : ''}`}>
             <button
               onClick={handleDebugICS}
               disabled={isSyncing || !canvasUrl}
@@ -311,8 +372,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               {isSyncing ? "Syncing..." : "Sync Now"}
             </button>
           </div>
-          </div>
-        )}
+        </div>
 
         {/* Debug Information Display */}
         {debugInfo && (
