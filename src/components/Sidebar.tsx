@@ -94,6 +94,36 @@ const Sidebar: React.FC = () => {
     classesHeader: 20,
     className: 14
   });
+
+  // Color state management
+  const [titleColor, setTitleColor] = React.useState(() => {
+    return localStorage.getItem('titleColor') || 'blue';
+  });
+  const [classesHeaderColor, setClassesHeaderColor] = React.useState(() => {
+    return localStorage.getItem('classesHeaderColor') || 'yellow';
+  });
+  const [showTitleColorPicker, setShowTitleColorPicker] = React.useState(false);
+  const [showClassesHeaderColorPicker, setShowClassesHeaderColorPicker] = React.useState(false);
+
+  // Standard color options
+  const colorOptions = [
+    { name: 'blue', class: 'text-blue-700', hoverClass: 'hover:text-blue-800' },
+    { name: 'red', class: 'text-red-700', hoverClass: 'hover:text-red-800' },
+    { name: 'green', class: 'text-green-700', hoverClass: 'hover:text-green-800' },
+    { name: 'yellow', class: 'text-yellow-600', hoverClass: 'hover:text-yellow-700' },
+    { name: 'purple', class: 'text-purple-700', hoverClass: 'hover:text-purple-800' },
+    { name: 'pink', class: 'text-pink-700', hoverClass: 'hover:text-pink-800' },
+    { name: 'indigo', class: 'text-indigo-700', hoverClass: 'hover:text-indigo-800' },
+    { name: 'gray', class: 'text-gray-700', hoverClass: 'hover:text-gray-800' },
+    { name: 'orange', class: 'text-orange-700', hoverClass: 'hover:text-orange-800' },
+    { name: 'teal', class: 'text-teal-700', hoverClass: 'hover:text-teal-800' }
+  ];
+
+  // Get color classes for a given color name
+  const getColorClasses = (colorName: string) => {
+    const color = colorOptions.find(c => c.name === colorName);
+    return color || colorOptions[0]; // Default to blue if not found
+  };
   
   // Resizable sidebar hook
   const { 
@@ -144,6 +174,15 @@ const Sidebar: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('classNameFontSize', classNameSize.toString());
   }, [classNameSize]);
+
+  // Save color preferences
+  useEffect(() => {
+    localStorage.setItem('titleColor', titleColor);
+  }, [titleColor]);
+
+  useEffect(() => {
+    localStorage.setItem('classesHeaderColor', classesHeaderColor);
+  }, [classesHeaderColor]);
 
   // Enhanced sidebar toggle handler with improved timing
   const handleEnhancedSidebarToggle = () => {
@@ -257,6 +296,12 @@ const Sidebar: React.FC = () => {
           setShowTitleSizeControl={setShowTitleSizeControl}
           isSidebarCollapsed={isSidebarCollapsed}
           onSidebarToggle={() => setIsSidebarCollapsed(false)}
+          titleColor={titleColor}
+          setTitleColor={setTitleColor}
+          showTitleColorPicker={showTitleColorPicker}
+          setShowTitleColorPicker={setShowTitleColorPicker}
+          colorOptions={colorOptions}
+          getColorClasses={getColorClasses}
         />
 
         {/* Empty space to push content down */}
@@ -282,15 +327,19 @@ const Sidebar: React.FC = () => {
                   isEditing={isEditingClassesTitle}
                   onClick={() => setIsEditingClassesTitle(true)}
                   onDoubleClick={() => setShowClassesHeaderSizeControl(true)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setShowClassesHeaderColorPicker(true);
+                  }}
                   className={isEditingClassesTitle
-                    ? "text-yellow-500 font-medium normal-case bg-transparent outline-none min-w-0 max-w-full inline-block"
-                    : "text-yellow-500 font-medium normal-case cursor-pointer transition-all duration-200 hover:text-yellow-600 inline-block"
+                    ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none min-w-0 max-w-full inline-block`
+                    : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} inline-block`
                   }
                   style={isEditingClassesTitle 
                     ? { fontSize: `${classesHeaderSize}px`, minWidth: `${classesTitle.length + 1}ch` }
                     : { fontSize: `${classesHeaderSize}px` }
                   }
-                  title="Double-click to adjust size"
+                  title="Double-click to adjust size, right-click to change color"
                 />
                 <InlineSizeControl 
                   size={classesHeaderSize} 
@@ -300,6 +349,32 @@ const Sidebar: React.FC = () => {
                   show={showClassesHeaderSizeControl} 
                   setShow={setShowClassesHeaderSizeControl} 
                 />
+                {/* Classes Header Color Picker */}
+                {showClassesHeaderColorPicker && (
+                  <div className="absolute z-50 mt-8 bg-white border border-gray-300 rounded-lg shadow-lg p-3">
+                    <div className="grid grid-cols-5 gap-2 mb-2">
+                      {colorOptions.map((color) => (
+                        <button
+                          key={color.name}
+                          onClick={() => {
+                            setClassesHeaderColor(color.name);
+                            setShowClassesHeaderColorPicker(false);
+                          }}
+                          className={`w-6 h-6 rounded-full border-2 ${color.class.replace('text-', 'bg-')} ${
+                            classesHeaderColor === color.name ? 'border-gray-800' : 'border-gray-300'
+                          } hover:scale-110 transition-transform`}
+                          title={color.name}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setShowClassesHeaderColorPicker(false)}
+                      className="w-full text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}

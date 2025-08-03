@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, memo, ReactNode } from "react";
+import React, { useState, useEffect, Suspense, lazy, memo, ReactNode, useCallback } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { SubscriptionProvider } from "../contexts/SubscriptionContext";
 import { features } from "../utils/buildConfig";
@@ -28,6 +28,13 @@ import {
 type AppViewType = "dashboard" | "tasks" | "calendar" | "grades";
 type CalendarViewType = "month" | "week" | "day";
 
+// Navigation item interface
+interface NavigationItem {
+  id: AppViewType;
+  label: string;
+  icon: string;
+}
+
 // Loading component interface
 interface LoadingSpinnerProps {
   message?: string;
@@ -42,16 +49,16 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   "aria-label": ariaLabel 
 }) => {
   const sizeClasses = {
-    small: "h-16 w-16",
-    medium: "h-20 w-20", 
-    large: "h-24 w-24"
+    small: "h-6 w-6",
+    medium: "h-8 w-8", 
+    large: "h-12 w-12"
   };
 
   return (
     <div className="flex items-center justify-center animate-fadeIn">
       <div className="text-center" role="status" aria-live="polite">
         <div className={`animate-spin rounded-full border-b-2 border-blue-600 mx-auto ${sizeClasses[size]}`} />
-        <p className="mt-6 text-gray-600 text-lg">
+        <p className="mt-4 text-gray-600">
           <span className="sr-only">{ariaLabel || "Loading"}:</span> {message}
         </p>
       </div>
@@ -65,7 +72,100 @@ const CalendarApp: React.FC = () => {
   const [gradeView, setGradeView] = useState<'dashboard' | 'entry'>('dashboard');
   const [isNavCollapsed, setIsNavCollapsed] = useState<boolean>(false);
   const [showLanding, setShowLanding] = useState<boolean>(true);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<number | null>(null);
   const { user, isAuthenticated, logout, loading } = useAuth();
+
+  // Default navigation items
+  const defaultNavItems: NavigationItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z' },
+    { id: 'calendar', label: 'Calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { id: 'tasks', label: 'Tasks', icon: 'M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' },
+    { id: 'grades', label: 'Grades', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' }
+  ];
+
+  // Load navigation order from localStorage or use default
+  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('schedulebudNavOrder');
+      if (saved) {
+        const savedOrder = JSON.parse(saved) as string[];
+        // Reorder default items based on saved order
+        const reordered = savedOrder.map(id => 
+          defaultNavItems.find(item => item.id === id)
+        ).filter((item): item is NavigationItem => item !== undefined);
+        
+        // Add any missing items to the end
+        const missingItems = defaultNavItems.filter(item => 
+          !savedOrder.includes(item.id)
+        );
+        
+        return [...reordered, ...missingItems];
+      }
+    } catch (error) {
+      console.warn('Failed to load navigation order from localStorage:', error);
+    }
+    return defaultNavItems;
+  });
+
+  // Save navigation order to localStorage
+  const saveNavigationOrder = useCallback((items: NavigationItem[]) => {
+    try {
+      const order = items.map(item => item.id);
+      localStorage.setItem('schedulebudNavOrder', JSON.stringify(order));
+    } catch (error) {
+      console.warn('Failed to save navigation order to localStorage:', error);
+    }
+  }, []);
+
+  // Drag and drop handlers
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Add visual feedback
+    e.currentTarget.classList.add('opacity-50');
+  }, []);
+
+  const handleDragEnd = useCallback((e: React.DragEvent) => {
+    e.currentTarget.classList.remove('opacity-50');
+    setDraggedItem(null);
+    setDragOverItem(null);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverItem(index);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    // Only clear if we're actually leaving the element
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverItem(null);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedItem === null || draggedItem === dropIndex) {
+      setDragOverItem(null);
+      return;
+    }
+
+    const newItems = [...navigationItems];
+    const draggedNavItem = newItems[draggedItem];
+    
+    // Remove dragged item
+    newItems.splice(draggedItem, 1);
+    
+    // Insert at new position
+    newItems.splice(dropIndex, 0, draggedNavItem);
+    
+    setNavigationItems(newItems);
+    saveNavigationOrder(newItems);
+    setDragOverItem(null);
+  }, [draggedItem, navigationItems, saveNavigationOrder]);
 
   // Handle URL state for landing page
   useEffect(() => {
@@ -95,7 +195,7 @@ const CalendarApp: React.FC = () => {
       <div className="flex items-center justify-center h-screen bg-gray-50 animate-fadeIn">
         <LoadingSpinner 
           message="Loading your calendar..." 
-          size="small"
+          size="medium"
           aria-label="Loading application" 
         />
       </div>
@@ -183,22 +283,37 @@ const CalendarApp: React.FC = () => {
               </svg>
             </button>
 
-            <nav className="flex space-x-0.5 sm:space-x-1 overflow-x-auto scrollbar-hide">
-              {[
-                { id: 'dashboard', label: 'Dashboard', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z' },
-                { id: 'calendar', label: 'Calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-                { id: 'tasks', label: 'Tasks', icon: 'M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' },
-                { id: 'grades', label: 'Grades', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' }
-              ].map((nav) => (
+            <nav className="flex space-x-0.5 sm:space-x-1">
+              {navigationItems.map((nav, index) => (
                 <button
                   key={nav.id}
-                  onClick={() => setAppView(nav.id as AppViewType)}
-                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-smooth flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onClick={() => setAppView(nav.id)}
+                  className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-smooth flex items-center gap-1 sm:gap-2 whitespace-nowrap cursor-move select-none ${
                     appView === nav.id
                       ? 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-sm hover:scale-105 active:scale-95'
+                  } ${
+                    dragOverItem === index && draggedItem !== index
+                      ? 'border-2 border-blue-400 border-dashed'
+                      : ''
                   }`}
+                  title={`${nav.label} - Drag to reorder`}
                 >
+                  {/* Drag handle indicator */}
+                  <svg className="w-3 h-3 text-gray-400 opacity-60 mr-1" fill="currentColor" viewBox="0 0 6 10">
+                    <circle cx="2" cy="2" r="1"/>
+                    <circle cx="2" cy="5" r="1"/>
+                    <circle cx="2" cy="8" r="1"/>
+                    <circle cx="4" cy="2" r="1"/>
+                    <circle cx="4" cy="5" r="1"/>
+                    <circle cx="4" cy="8" r="1"/>
+                  </svg>
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={nav.icon} />
                   </svg>

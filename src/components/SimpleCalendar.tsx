@@ -420,13 +420,13 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
 
   return (
     <div className="flex flex-col space-y-4 mb-6">
-      {/* Title with clickable month/year dials for month view */}
+      {/* Title with clickable month/year dials - centered */}
       <div className="flex justify-center">
         {renderDateTitle()}
       </div>
       
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+      {/* Controls - right aligned */}
+      <div className="flex flex-col sm:flex-row justify-center sm:justify-end items-center gap-3 sm:gap-4">
         {/* View toggle buttons */}
         <div 
           className="flex bg-gray-100 rounded-lg p-1 gap-0.5 sm:gap-1 w-full sm:w-auto max-w-xs sm:max-w-none"
@@ -547,9 +547,9 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
   if (!authState.isValid) {
     if (authState.reason === 'loading') {
       return (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading your calendar...</p>
           </div>
         </div>
@@ -932,7 +932,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       <Suspense fallback={
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto" />
             <p className="text-center mt-4 text-gray-600">Loading task editor...</p>
           </div>
         </div>

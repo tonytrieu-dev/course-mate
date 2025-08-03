@@ -149,9 +149,55 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.totalTasks - a.totalTasks); // Sort by task count
   }, [tasks, classes]);
 
+  // Standardized color palette for task types
+  const getStandardizedColor = (originalColor: string, typeName: string, index: number): string => {
+    const standardColors = [
+      '#3B82F6', // Blue - Professional, calm
+      '#10B981', // Green - Success, growth
+      '#F59E0B', // Amber - Warning, attention
+      '#EF4444', // Red - Urgent, important
+      '#8B5CF6', // Purple (better) - Creative, unique
+      '#06B6D4', // Cyan - Fresh, modern
+      '#EC4899', // Pink - Engaging, friendly
+      '#84CC16', // Lime - Energy, positive
+      '#6366F1', // Indigo - Professional, trustworthy
+      '#F97316'  // Orange - Energetic, warm
+    ];
+    
+    // Force standardized colors based on task type name for consistency
+    const typeColorMap: Record<string, string> = {
+      'homework': '#3B82F6',    // Blue
+      'assignment': '#3B82F6',  // Blue
+      'exam': '#EF4444',        // Red
+      'final': '#EF4444',       // Red
+      'midterm': '#F59E0B',     // Amber
+      'mid term': '#F59E0B',    // Amber  
+      'quiz': '#10B981',        // Green
+      'project': '#8B5CF6',     // Purple
+      'lab': '#06B6D4',         // Cyan
+      'payment': '#84CC16',     // Lime
+      'presentation': '#EC4899', // Pink
+      'paper': '#6366F1'        // Indigo
+    };
+    
+    // Check if we have a specific color for this type name
+    const lowerTypeName = typeName.toLowerCase();
+    if (typeColorMap[lowerTypeName]) {
+      return typeColorMap[lowerTypeName];
+    }
+    
+    // Replace any ugly/problematic colors
+    if (originalColor === '#8b5cf6' || originalColor === '#8B5CF6') {
+      return '#F59E0B'; // Use amber instead of purple for better visibility
+    }
+    
+    // Use standardized palette for any remaining types
+    return standardColors[index % standardColors.length];
+  };
+
   // Calculate task type statistics
   const taskTypeStats = useMemo((): TaskTypeStats[] => {
-    return taskTypes.map(type => {
+    return taskTypes.map((type, index) => {
       const typeTasks = tasks.filter(task => task.type === type.id);
       const totalTasks = typeTasks.length;
       const completedTasks = typeTasks.filter(task => task.completed).length;
@@ -161,7 +207,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       return {
         id: type.id,
         name: type.name || 'Unnamed Type',
-        color: type.color || '#3B82F6',
+        color: getStandardizedColor(type.color || '#3B82F6', type.name || 'Unnamed Type', index),
         totalTasks,
         completedTasks,
         pendingTasks,
@@ -246,7 +292,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{label}</p>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
           <p className={`text-2xl sm:text-3xl font-bold text-${color}-600 mt-2`}>{value}</p>
           {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
         </div>

@@ -192,7 +192,7 @@ export const StudyAnalyticsLoadingFallback: React.FC = () => (
 // Generic Small Component Loading
 export const SmallComponentLoadingFallback: React.FC = () => (
   <div className="flex items-center justify-center p-4" role="status" aria-label="Loading">
-    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
     <span className="sr-only">Loading...</span>
   </div>
 );
