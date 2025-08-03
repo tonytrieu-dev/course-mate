@@ -195,7 +195,7 @@ Deno.serve(async (req) => {
     };
 
     // Calculate document relevance confidence
-    const hasRelevantDocuments = allDocuments && allDocuments.length > 0;
+    let hasRelevantDocuments = allDocuments && allDocuments.length > 0;
     const hasConversation = conversationHistory && conversationHistory.length > 0;
     const isFollowUp = isFollowUpQuestion(query, hasConversation);
     
