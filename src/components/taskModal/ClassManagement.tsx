@@ -56,14 +56,14 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
           Class {taskClasses.length > 0 && "*"}
         </label>
         <div className="flex space-x-2">
           <button
             type="button"
             onClick={() => setShowClassInput(!showClassInput)}
-            className="text-xs text-blue-600 hover:text-blue-800"
+            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
           >
             + Add
           </button>
@@ -71,7 +71,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
             <button
               type="button"
               onClick={() => setShowClassManagement(!showClassManagement)}
-              className="text-xs text-gray-600 hover:text-gray-800"
+              className="text-xs text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
             >
               Manage
             </button>
@@ -80,14 +80,14 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
       </div>
 
       {showClassInput && (
-        <div className="mb-2 p-3 bg-gray-50 rounded-md">
+        <div className="mb-2 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-md">
           <div className="flex space-x-2">
             <input
               type="text"
               value={newClassName}
               onChange={(e) => setNewClassName(e.target.value)}
               placeholder="Enter class name..."
-              className="flex-1 p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="flex-1 p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
             <button
               type="button"
@@ -112,7 +112,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
             <button
               type="button"
               onClick={() => setShowClassInput(false)}
-              className="px-3 py-2 bg-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-400"
+              className="px-3 py-2 bg-gray-300 dark:bg-slate-600/50 text-gray-700 dark:text-slate-200 text-sm rounded-md hover:bg-gray-400 dark:hover:bg-slate-600/70"
             >
               Cancel
             </button>
@@ -124,7 +124,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
         <select
           value={task.class}
           onChange={(e) => onInputChange("class", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="w-full p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-gray-900 dark:text-slate-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           required
         >
           <option value="">Select a class...</option>
@@ -135,29 +135,29 @@ const ClassManagement: React.FC<ClassManagementProps> = ({
           ))}
         </select>
       ) : (
-        <p className="text-sm text-gray-500 italic">
+        <p className="text-sm text-gray-500 dark:text-slate-400 italic">
           No taskClasses available. Add one above.
         </p>
       )}
 
       {showClassManagement && taskClasses.length > 0 && (
-        <div className="mt-2 p-3 bg-gray-50 rounded-md">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Manage Classes</h4>
+        <div className="mt-2 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-md">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Manage Classes</h4>
           <div className="space-y-1 max-h-32 overflow-y-auto">
             {taskClasses.map((cls) => (
               <div
                 key={cls.id}
                 className={`flex items-center justify-between p-2 rounded text-sm ${
-                  hoveredClassId === cls.id ? 'bg-gray-200' : 'bg-white'
+                  hoveredClassId === cls.id ? 'bg-gray-200 dark:bg-slate-600/50' : 'bg-white dark:bg-slate-700/50'
                 }`}
                 onMouseEnter={() => setHoveredClassId(cls.id)}
                 onMouseLeave={() => setHoveredClassId(null)}
               >
-                <span>{cls.name}</span>
+                <span className="text-gray-900 dark:text-slate-100">{cls.name}</span>
                 <button
                   type="button"
                   onClick={() => onDeleteClass(cls.id)}
-                  className="text-red-500 hover:text-red-700 text-xs"
+                  className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs"
                 >
                   Delete
                 </button>

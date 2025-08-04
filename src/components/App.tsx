@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy, memo, ReactNode, useCallback } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { SubscriptionProvider } from "../contexts/SubscriptionContext";
-import { ThemeProvider } from "../contexts/ThemeContext";
+import { SimpleThemeProvider } from "../contexts/ThemeContext";
 import { features } from "../utils/buildConfig";
 import ErrorBoundary from "./ErrorBoundary";
 import { getSettingsWithSync, updateNavigationOrder, updateSelectedView } from "../services/settings/settingsOperations";
@@ -494,7 +494,7 @@ const CalendarApp: React.FC = () => {
 
         {/* Main Content Area */}
         <div 
-          className={`p-1 sm:p-2 md:p-4 lg:p-5 ${isNavCollapsed ? 'pt-8 sm:pt-10 md:pt-12' : ''}`}
+          className={`p-1 sm:p-2 md:p-4 lg:p-5 ${isNavCollapsed ? 'pt-8 sm:pt-10 md:pt-12' : 'pt-4 sm:pt-6 md:pt-8'}`}
           onClick={() => {
             // Exit reorder mode when clicking in main content area
             if (isReorderMode) {
@@ -625,7 +625,7 @@ const App: React.FC<AppProps> = ({ children }) => {
       showDetails={true}
       fallback={appErrorFallback}
     >
-      <ThemeProvider>
+      <SimpleThemeProvider>
         <AuthProvider>
           {features.subscriptions ? (
             <SubscriptionProvider>
@@ -639,7 +639,7 @@ const App: React.FC<AppProps> = ({ children }) => {
             </>
           )}
         </AuthProvider>
-      </ThemeProvider>
+      </SimpleThemeProvider>
     </ErrorBoundary>
   );
 };

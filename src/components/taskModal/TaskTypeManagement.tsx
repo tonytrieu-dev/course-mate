@@ -77,14 +77,14 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
           Task Type {taskTypes.length > 0 && "*"}
         </label>
         <div className="flex space-x-2">
           <button
             type="button"
             onClick={() => setShowTypeInput(!showTypeInput)}
-            className="text-xs text-blue-600 hover:text-blue-800"
+            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
           >
             + Add
           </button>
@@ -92,7 +92,7 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
             <button
               type="button"
               onClick={() => setShowTypeManagement(!showTypeManagement)}
-              className="text-xs text-gray-600 hover:text-gray-800"
+              className="text-xs text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
             >
               Manage
             </button>
@@ -101,17 +101,17 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
       </div>
 
       {showTypeInput && (
-        <div className="mb-2 p-3 bg-gray-50 rounded-md">
+        <div className="mb-2 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-md">
           <div className="space-y-2">
             <input
               type="text"
               value={newTypeName}
               onChange={(e) => setNewTypeName(e.target.value)}
               placeholder="Enter task type name..."
-              className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Color:</label>
+              <label className="block text-xs text-gray-600 dark:text-slate-400 mb-1">Color:</label>
               <div className="flex space-x-1">
                 {colorOptions.map((color) => (
                   <button
@@ -137,7 +137,7 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
               <button
                 type="button"
                 onClick={() => setShowTypeInput(false)}
-                className="px-3 py-2 bg-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-400"
+                className="px-3 py-2 bg-gray-300 dark:bg-slate-600/50 text-gray-700 dark:text-slate-200 text-sm rounded-md hover:bg-gray-400 dark:hover:bg-slate-600/70"
               >
                 Cancel
               </button>
@@ -150,7 +150,7 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
         <select
           value={task.type}
           onChange={(e) => onInputChange("type", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="w-full p-2 border border-gray-300 dark:border-slate-600/50 bg-white dark:bg-slate-700/50 text-gray-900 dark:text-slate-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           required
         >
           <option value="">Select a task type...</option>
@@ -161,20 +161,20 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
           ))}
         </select>
       ) : (
-        <p className="text-sm text-gray-500 italic">
+        <p className="text-sm text-gray-500 dark:text-slate-400 italic">
           No task types available. Add one above.
         </p>
       )}
 
       {showTypeManagement && taskTypes.length > 0 && (
-        <div className="mt-2 p-3 bg-gray-50 rounded-md">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Manage Task Types</h4>
+        <div className="mt-2 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-md">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Manage Task Types</h4>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {taskTypes.map((type) => (
               <div
                 key={type.id}
                 className={`p-2 rounded text-sm ${
-                  hoveredTypeId === type.id ? 'bg-gray-200' : 'bg-white'
+                  hoveredTypeId === type.id ? 'bg-gray-200 dark:bg-slate-600/50' : 'bg-white dark:bg-slate-700/50'
                 }`}
                 onMouseEnter={() => setHoveredTypeId(type.id)}
                 onMouseLeave={() => setHoveredTypeId(null)}
@@ -182,26 +182,26 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
                 {editingTypeId === type.id ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{type.name}</span>
+                      <span className="font-medium text-gray-900 dark:text-slate-100">{type.name}</span>
                       <div className="flex space-x-2">
                         <button
                           type="button"
                           onClick={() => onUpdateTaskType(type.id, editingTypeColor, editingTypeCompletedColor)}
-                          className="text-blue-600 hover:text-blue-800 text-xs"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xs"
                         >
                           Save
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingTypeId(null)}
-                          className="text-gray-600 hover:text-gray-800 text-xs"
+                          className="text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 text-xs"
                         >
                           Cancel
                         </button>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">Task Color:</label>
+                      <label className="block text-xs text-gray-600 dark:text-slate-400 mb-1">Task Color:</label>
                       <div className="flex space-x-1">
                         {colorOptions.map((color) => (
                           <button
@@ -217,7 +217,7 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-600 mb-1">Completed Task Color:</label>
+                      <label className="block text-xs text-gray-600 dark:text-slate-400 mb-1">Completed Task Color:</label>
                       <div className="flex space-x-1">
                         {colorOptions.map((color) => (
                           <button
@@ -239,7 +239,7 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
                       <div
                         className={`w-3 h-3 rounded-full bg-${type.color || 'blue'}-100 border border-${type.color || 'blue'}-500`}
                       />
-                      <span>{type.name}</span>
+                      <span className="text-gray-900 dark:text-slate-100">{type.name}</span>
                     </div>
                     <div className="flex space-x-2">
                       <button
@@ -249,14 +249,14 @@ const TaskTypeManagement: React.FC<TaskTypeManagementProps> = ({
                           setEditingTypeColor(type.color || 'blue');
                           setEditingTypeCompletedColor(type.completedColor || 'green');
                         }}
-                        className="text-blue-600 hover:text-blue-800 text-xs"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xs"
                       >
                         Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => onDeleteTaskType(type.id)}
-                        className="text-red-500 hover:text-red-700 text-xs"
+                        className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs"
                       >
                         Delete
                       </button>

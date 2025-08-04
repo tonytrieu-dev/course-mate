@@ -44,32 +44,32 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
   ];
 
   return (
-    <div className="border-t border-gray-200 dark:border-slate-700/50 bg-gradient-to-b from-gray-50/50 to-white dark:from-slate-800/50 dark:to-slate-900/95">
+    <div className="px-2 mb-8">
       {/* Expanded sidebar controls */}
       {!isSidebarCollapsed && (
-        <div className="px-3 pt-6 pb-3 space-y-2">
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800/50 dark:to-slate-900/50 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-slate-700/50 space-y-1">
           {controlButtons.map((button) => (
             <button
               key={button.id}
               onClick={button.onClick}
-              className="w-full flex items-center p-3 rounded-xl transition-all duration-200 group
+              className="w-full flex items-center p-2.5 rounded-lg transition-all duration-200 group
                          hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 
                          dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20
                          hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]
                          focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2
                          border border-transparent hover:border-blue-100 dark:hover:border-blue-800
-                         min-h-[54px] touch-manipulation"
+                         min-h-[44px] touch-manipulation"
               type="button"
               aria-label={button.ariaLabel}
               title={button.description}
             >
               <div className="flex items-center space-x-3 w-full">
-                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 
-                               dark:from-slate-700 dark:to-slate-600
+                <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 
+                               dark:from-slate-800/80 dark:to-slate-900/90
                                rounded-lg flex items-center justify-center group-hover:from-blue-100 
                                group-hover:to-indigo-100 dark:group-hover:from-blue-800/30 
                                dark:group-hover:to-indigo-800/30 transition-all duration-200 group-hover:scale-110">
-                  <span className="text-lg transition-transform duration-200 group-hover:scale-110">
+                  <span className="text-sm transition-transform duration-200 group-hover:scale-110">
                     {button.icon}
                   </span>
                 </div>
@@ -100,7 +100,7 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
               <button
                 onClick={button.onClick}
                 className="relative w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 
-                           dark:from-slate-700 dark:to-slate-600
+                           dark:from-slate-800/80 dark:to-slate-900/90
                            hover:from-blue-100 hover:to-indigo-100 
                            dark:hover:from-blue-800/30 dark:hover:to-indigo-800/30 rounded-xl
                            flex items-center justify-center transition-all duration-200 

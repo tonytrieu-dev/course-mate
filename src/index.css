@@ -156,6 +156,27 @@ body {
   animation: skeleton 1.5s infinite;
 }
 
+/* Text selection styling for light and dark modes */
+::selection {
+  background-color: #dbeafe;
+  color: #1e293b;
+}
+
+::-moz-selection {
+  background-color: #dbeafe;
+  color: #1e293b;
+}
+
+.dark ::selection {
+  background-color: #475569;
+  color: #f1f5f9;
+}
+
+.dark ::-moz-selection {
+  background-color: #475569;
+  color: #f1f5f9;
+}
+
 /* Smooth transitions */
 .transition-smooth {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

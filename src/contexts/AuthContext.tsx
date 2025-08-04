@@ -11,6 +11,7 @@ import { syncData, downloadDataFromSupabase } from "../services/syncService";
 import { errorHandler } from "../utils/errorHandler";
 import { logger } from "../utils/logger";
 import { handleAuthError, withSyncOperation } from "../utils/authHelpers";
+import { syncThemeFromSupabase } from "../services/settings/settingsOperations";
 
 // OAuth provider type
 type AuthProvider = 'google' | 'github' | 'discord';
@@ -64,6 +65,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             logger.debug("User found, starting sync...");
             setSyncing(true);
             try {
+              // Sync theme from Supabase first (non-blocking)
+              try {
+                await syncThemeFromSupabase(currentUser.id);
+                logger.debug("Theme sync completed");
+              } catch (themeError) {
+                logger.warn("Theme sync failed, continuing with data sync:", themeError);
+              }
+              
               await syncData(currentUser.id);
               logger.debug("Sync completed successfully");
             } catch (syncError) {
@@ -128,6 +137,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { user: authUser } = await signIn(email, password);
         setUser(authUser);
         if (authUser) {
+          // Sync theme from Supabase on login (non-blocking)
+          try {
+            await syncThemeFromSupabase(authUser.id);
+            logger.debug("Theme synced on login");
+          } catch (themeError) {
+            logger.warn("Theme sync failed on login:", themeError);
+          }
+          
           await downloadDataFromSupabase(authUser.id);
           return true;
         }

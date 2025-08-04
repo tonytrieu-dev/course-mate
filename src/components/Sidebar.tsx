@@ -114,18 +114,18 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [showTitleColorPicker, setShowTitleColorPicker] = React.useState(false);
   const [showClassesHeaderColorPicker, setShowClassesHeaderColorPicker] = React.useState(false);
 
-  // Standard color options
+  // Standard color options with dark mode support
   const colorOptions = [
-    { name: 'blue', class: 'text-blue-700', hoverClass: 'hover:text-blue-800' },
-    { name: 'red', class: 'text-red-700', hoverClass: 'hover:text-red-800' },
-    { name: 'green', class: 'text-green-700', hoverClass: 'hover:text-green-800' },
-    { name: 'yellow', class: 'text-yellow-600', hoverClass: 'hover:text-yellow-700' },
-    { name: 'purple', class: 'text-purple-700', hoverClass: 'hover:text-purple-800' },
-    { name: 'pink', class: 'text-pink-700', hoverClass: 'hover:text-pink-800' },
-    { name: 'indigo', class: 'text-indigo-700', hoverClass: 'hover:text-indigo-800' },
-    { name: 'gray', class: 'text-gray-700', hoverClass: 'hover:text-gray-800' },
-    { name: 'orange', class: 'text-orange-700', hoverClass: 'hover:text-orange-800' },
-    { name: 'teal', class: 'text-teal-700', hoverClass: 'hover:text-teal-800' }
+    { name: 'blue', class: 'text-blue-700 dark:text-blue-400', hoverClass: 'hover:text-blue-800 dark:hover:text-blue-300' },
+    { name: 'red', class: 'text-red-700 dark:text-red-400', hoverClass: 'hover:text-red-800 dark:hover:text-red-300' },
+    { name: 'green', class: 'text-green-700 dark:text-green-400', hoverClass: 'hover:text-green-800 dark:hover:text-green-300' },
+    { name: 'yellow', class: 'text-yellow-600 dark:text-yellow-400', hoverClass: 'hover:text-yellow-700 dark:hover:text-yellow-300' },
+    { name: 'purple', class: 'text-purple-700 dark:text-purple-400', hoverClass: 'hover:text-purple-800 dark:hover:text-purple-300' },
+    { name: 'pink', class: 'text-pink-700 dark:text-pink-400', hoverClass: 'hover:text-pink-800 dark:hover:text-pink-300' },
+    { name: 'indigo', class: 'text-indigo-700 dark:text-indigo-400', hoverClass: 'hover:text-indigo-800 dark:hover:text-indigo-300' },
+    { name: 'gray', class: 'text-gray-700 dark:text-gray-400', hoverClass: 'hover:text-gray-800 dark:hover:text-gray-300' },
+    { name: 'orange', class: 'text-orange-700 dark:text-orange-400', hoverClass: 'hover:text-orange-800 dark:hover:text-orange-300' },
+    { name: 'teal', class: 'text-teal-700 dark:text-teal-400', hoverClass: 'hover:text-teal-800 dark:hover:text-teal-300' }
   ];
 
   // Get color classes for a given color name
@@ -327,7 +327,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Classes Section */}
         <div
-          className={`relative flex-1 min-h-0 overflow-y-auto ${
+          className={`relative flex-1 min-h-0 overflow-y-auto pb-6 ${
             isResizing ? 'pointer-events-none' : ''
           }`}
           onMouseEnter={() => setIsHoveringClassArea(true)}
@@ -338,30 +338,38 @@ const Sidebar: React.FC<SidebarProps> = ({
               isSidebarCollapsed ? 'collapsed' : 'expanded'
             }`}>
               <div className="flex items-center">
-                <EditableText
-                  value={classesTitle}
-                  onChange={setClassesTitle}
-                  onBlur={() => {
-                    handleClassesTitleBlur();
-                    setIsEditingClassesTitle(false);
-                  }}
-                  isEditing={isEditingClassesTitle}
-                  onClick={() => setIsEditingClassesTitle(true)}
-                  onDoubleClick={() => setShowClassesHeaderSizeControl(true)}
+                <div 
+                  className="relative inline-block"
                   onContextMenu={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Right-click detected on wrapper'); // Debug log
+                    console.log('Setting showClassesHeaderColorPicker to true');
                     setShowClassesHeaderColorPicker(true);
+                    console.log('showClassesHeaderColorPicker should now be:', true);
                   }}
-                  className={isEditingClassesTitle
-                    ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none min-w-0 max-w-full inline-block`
-                    : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} inline-block`
-                  }
-                  style={isEditingClassesTitle 
-                    ? { fontSize: `${classesHeaderSize}px`, minWidth: `${classesTitle.length + 1}ch` }
-                    : { fontSize: `${classesHeaderSize}px` }
-                  }
-                  title="Left-click to edit, Right-click to change color"
-                />
+                >
+                  <EditableText
+                    value={classesTitle}
+                    onChange={setClassesTitle}
+                    onBlur={() => {
+                      handleClassesTitleBlur();
+                      setIsEditingClassesTitle(false);
+                    }}
+                    isEditing={isEditingClassesTitle}
+                    onClick={() => setIsEditingClassesTitle(true)}
+                    onDoubleClick={() => setShowClassesHeaderSizeControl(true)}
+                    className={isEditingClassesTitle
+                      ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none min-w-0 max-w-full inline-block`
+                      : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} inline-block`
+                    }
+                    style={isEditingClassesTitle 
+                      ? { fontSize: `${classesHeaderSize}px`, minWidth: `${classesTitle.length + 1}ch` }
+                      : { fontSize: `${classesHeaderSize}px` }
+                    }
+                    title="Left-click to edit, Right-click to change color"
+                  />
+                </div>
                 <InlineSizeControl 
                   size={classesHeaderSize} 
                   setSize={setClassesHeaderSize} 
@@ -370,18 +378,24 @@ const Sidebar: React.FC<SidebarProps> = ({
                   show={showClassesHeaderSizeControl} 
                   setShow={setShowClassesHeaderSizeControl} 
                 />
-                {/* Classes Header Color Picker */}
+                {/* Ultra-Compact Classes Header Color Picker */}
                 {showClassesHeaderColorPicker && (
                   <>
-                    {/* Backdrop to prevent interaction with content below */}
+                    {/* Enhanced backdrop */}
                     <div 
-                      className="fixed inset-0 z-40 bg-black bg-opacity-25"
+                      className="fixed inset-0 z-40 bg-black/30 dark:bg-black/50 backdrop-blur-sm"
                       onClick={() => setShowClassesHeaderColorPicker(false)}
+                      aria-label="Close color picker"
                     />
-                    {/* Color picker positioned to avoid overlapping */}
-                    <div className="absolute z-50 top-8 left-0 bg-white dark:bg-slate-800/90 dark:backdrop-blur-md border border-gray-300 dark:border-slate-600/50 rounded-lg shadow-xl dark:shadow-slate-900/40 p-4 min-w-[200px]">
-                      <div className="text-xs font-medium text-gray-700 dark:text-slate-300 mb-3">Choose Color</div>
-                      <div className="grid grid-cols-5 gap-3 mb-3">
+                    {/* Ultra-compact color picker positioned to the right of text */}
+                    <div className="absolute z-50 left-full ml-3 top-0 bg-slate-800/95 backdrop-blur-lg 
+                                   border border-slate-600/50 rounded-lg shadow-xl p-3 
+                                   w-[140px] animate-fadeIn">
+                      {/* Minimal header */}
+                      <div className="text-xs font-medium text-slate-200 mb-2 text-center">Color</div>
+                      
+                      {/* Ultra-compact 2-row grid */}
+                      <div className="grid grid-cols-5 gap-1.5 mb-2">
                         {colorOptions.map((color) => (
                           <button
                             key={color.name}
@@ -389,18 +403,31 @@ const Sidebar: React.FC<SidebarProps> = ({
                               setClassesHeaderColor(color.name);
                               setShowClassesHeaderColorPicker(false);
                             }}
-                            className={`w-7 h-7 rounded-full border-2 ${color.class.replace('text-', 'bg-')} ${
+                            className={`w-5 h-5 rounded border ${color.class.replace('text-', 'bg-')} 
+                                       transition-all duration-150 hover:scale-110 active:scale-95
+                                       focus:outline-none focus:ring-1 focus:ring-blue-400 focus:ring-offset-1
+                                       shadow-sm ${
                               classesHeaderColor === color.name 
-                                ? 'border-gray-800 ring-2 ring-gray-300' 
-                                : 'border-gray-300 hover:border-gray-500'
-                            } hover:scale-110 transition-all duration-200 shadow-sm`}
+                                ? 'border-slate-200 ring-1 ring-blue-400 scale-110' 
+                                : 'border-slate-500 hover:border-slate-400'
+                            }`}
                             title={color.name.charAt(0).toUpperCase() + color.name.slice(1)}
-                          />
+                          >
+                            {classesHeaderColor === color.name && (
+                              <svg className="w-2.5 h-2.5 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
                         ))}
                       </div>
+                      
+                      {/* Minimal close button */}
                       <button
                         onClick={() => setShowClassesHeaderColorPicker(false)}
-                        className="w-full text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors py-1 px-2 rounded border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+                        className="w-full text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 
+                                  hover:text-slate-200 transition-all duration-150 py-1.5 rounded 
+                                  focus:outline-none focus:ring-1 focus:ring-blue-400"
                       >
                         Close
                       </button>
@@ -440,8 +467,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           onShowStudyAnalytics={() => setShowStudyAnalytics(true)}
         />
 
-        {/* Auth Controls */}
-        <div className="px-2 mt-auto mb-8 flex-shrink-0">
+        {/* Auth Controls - minimal gap */}
+        <div className="px-2 mt-1 mb-3 flex-shrink-0">
           <Suspense fallback={
             <div className="animate-pulse bg-gray-200 dark:bg-slate-700 h-10 rounded" />
           }>

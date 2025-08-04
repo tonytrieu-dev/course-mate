@@ -9,6 +9,7 @@ interface EditableTextProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChan
   isEditing: boolean;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onContextMenu?: (e: React.MouseEvent<HTMLDivElement>) => void;
   className?: string;
   style?: CSSProperties;
   elementType?: string;
@@ -30,6 +31,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   isEditing,
   onClick,
   onDoubleClick,
+  onContextMenu,
   className = "",
   style = {},
   elementType,
@@ -189,6 +191,7 @@ const EditableText: React.FC<EditableTextProps> = ({
           onInput={handleInput}
           onBlur={onBlur}
           onKeyDown={handleKeyDown}
+          onContextMenu={onContextMenu}
           className={`
             ${className}
             ${!isValid ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'focus:border-blue-500 focus:ring-blue-500'}
@@ -238,11 +241,12 @@ const EditableText: React.FC<EditableTextProps> = ({
       className={`
         ${className}
         group relative
-        ${onClick ? 'cursor-pointer hover:bg-gray-50 transition-colors duration-200' : ''}
+        ${onClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-colors duration-200' : ''}
       `}
       style={style}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
       title={title || 'Click to edit'}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}

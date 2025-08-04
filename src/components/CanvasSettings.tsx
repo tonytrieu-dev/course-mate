@@ -153,12 +153,12 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
 
   return (
     <div className={onClose ? "fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999] p-4" : ""}>
-      <div className={onClose ? "bg-white p-6 rounded-xl shadow-2xl w-full max-w-lg mx-auto relative transform transition-all duration-200 animate-fadeIn" : "space-y-6"}>
+      <div className={onClose ? "bg-white dark:bg-slate-800/95 p-6 rounded-xl shadow-2xl dark:shadow-slate-900/40 border border-gray-100 dark:border-slate-700/50 w-full max-w-lg mx-auto relative transform transition-all duration-200 animate-fadeIn" : "space-y-6"}>
         {/* Close button - only show when used as modal */}
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="absolute top-4 right-4 p-1 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Close Canvas Settings"
             type="button"
           >
@@ -181,52 +181,52 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
 
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full mb-4">
             <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Canvas Integration</h2>
-          <p className="text-gray-600 text-sm leading-relaxed">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Canvas Integration</h2>
+          <p className="text-gray-600 dark:text-slate-400 text-sm leading-relaxed">
             Connect your Canvas LMS to automatically sync assignments and due dates.
           </p>
         </div>
 
         <div className="mb-6">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg p-4 mb-4">
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
               <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Quick Setup Guide
             </h3>
-            <div className="space-y-2 text-sm text-gray-700">
+            <div className="space-y-2 text-sm text-gray-700 dark:text-slate-300">
               <div className="flex items-start">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
                 <span>Go to Canvas → Calendar → Calendar Feed</span>
               </div>
               <div className="flex items-start">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
                 <span>Copy the full calendar feed URL</span>
               </div>
               <div className="flex items-start">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
                 <span>Paste URL below and click "Sync Now"</span>
               </div>
             </div>
-            <div className="mt-3 p-3 bg-white border border-blue-200 rounded-md">
+            <div className="mt-3 p-3 bg-white dark:bg-slate-800/50 border border-blue-200 dark:border-blue-700/50 rounded-md">
               <div className="flex items-center">
                 <svg className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <span className="text-xs text-gray-600">
+                <span className="text-xs text-gray-600 dark:text-slate-400">
                   Uses secure proxy service to access Canvas calendars from any browser
                 </span>
               </div>
             </div>
           </div>
 
-          <label htmlFor="canvasUrl" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="canvasUrl" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
             Canvas Calendar URL
           </label>
           <div className="flex gap-2">
@@ -236,12 +236,12 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               value={canvasUrl}
               onChange={handleUrlChange}
               placeholder="https://elearn.ucr.edu/feeds/calendars/user_..."
-              className="flex-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm bg-white"
+              className="flex-1 p-3 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
               aria-describedby={canvasUrl && (canvasUrl.includes('icshttps://') || canvasUrl.split('https://').length > 2) ? "url-error" : undefined}
             />
             <button
               onClick={handleClearUrl}
-              className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-all duration-200 hover:shadow-sm border border-gray-200 min-h-[44px] flex items-center justify-center"
+              className="px-4 py-3 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-600 dark:text-slate-300 rounded-lg transition-all duration-200 hover:shadow-sm border border-gray-200 dark:border-slate-600 min-h-[44px] flex items-center justify-center"
               title="Clear URL"
               type="button"
               aria-label="Clear Canvas URL"
@@ -267,7 +267,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
             </div>
           )}
 
-          <div className="flex items-center mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center mt-4 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700/50">
             <input
               type="checkbox"
               id="autoSync"
@@ -275,13 +275,13 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               onChange={handleAutoSyncChange}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
             />
-            <label htmlFor="autoSync" className="text-sm text-gray-700 flex-1">
+            <label htmlFor="autoSync" className="text-sm text-gray-700 dark:text-slate-300 flex-1">
               <span className="font-medium">Automatically sync on startup</span>
-              <span className="block text-xs text-gray-500 mt-1">Sync Canvas calendar each time you open the app</span>
+              <span className="block text-xs text-gray-500 dark:text-slate-400 mt-1">Sync Canvas calendar each time you open the app</span>
             </label>
           </div>
           
-          <div className="flex items-center mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="flex items-center mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800/50">
             <input
               type="checkbox"
               id="forceSync"
@@ -289,19 +289,19 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               onChange={(e) => setForceSync(e.target.checked)}
               className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded mr-3"
             />
-            <label htmlFor="forceSync" className="text-sm text-gray-700 flex-1">
+            <label htmlFor="forceSync" className="text-sm text-gray-700 dark:text-slate-300 flex-1">
               <span className="font-medium">Force re-import</span>
-              <span className="block text-xs text-gray-500 mt-1">Delete existing Canvas tasks and re-import from scratch</span>
+              <span className="block text-xs text-gray-500 dark:text-slate-400 mt-1">Delete existing Canvas tasks and re-import from scratch</span>
             </label>
           </div>
           
           {forceSync && (
-            <div className="mt-2 p-2 bg-yellow-100 text-yellow-800 text-sm rounded">
+            <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-sm rounded">
               ⚠️ Warning: This will delete all existing Canvas tasks and re-import them from scratch.
             </div>
           )}
 
-          <div className="flex items-center mt-3 pt-3 border-t border-gray-200">
+          <div className="flex items-center mt-3 pt-3 border-t border-gray-200 dark:border-slate-700/50">
             <input
               type="checkbox"
               id="classNamingStyle"
@@ -309,12 +309,12 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               onChange={handleClassNamingStyleChange}
               className="mr-2"
             />
-            <label htmlFor="classNamingStyle" className="text-gray-700">
+            <label htmlFor="classNamingStyle" className="text-gray-700 dark:text-slate-300">
               Use descriptive class names (e.g., "Computer Science 100" instead of "CS100")
             </label>
           </div>
           
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-2 text-sm text-gray-600 dark:text-slate-400">
             <div className="flex justify-between">
               <span>Technical style:</span>
               <span className="font-mono">UGRD198G, EE123</span>
@@ -328,13 +328,13 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
 
         {/* Progress indicator */}
         {isSyncing && syncProgress && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg">
             <div className="flex items-center">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-              <span className="text-blue-800 text-sm font-medium">{syncProgress}</span>
+              <span className="text-blue-800 dark:text-blue-300 text-sm font-medium">{syncProgress}</span>
             </div>
-            <div className="mt-2 bg-blue-200 rounded-full h-2">
-              <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+            <div className="mt-2 bg-blue-200 dark:bg-blue-800/50 rounded-full h-2">
+              <div className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
             </div>
           </div>
         )}
@@ -413,11 +413,11 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
         )}
 
         {/* Action buttons - always shown */}
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-8 pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700/50">
           {onClose && (
             <button
               onClick={onClose}
-              className="order-2 sm:order-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-sm border border-gray-200 min-h-[44px]"
+              className="order-2 sm:order-1 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-300 font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-sm border border-gray-200 dark:border-slate-600 min-h-[44px]"
               type="button"
             >
               Cancel
@@ -464,15 +464,15 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
 
         {/* Debug Information Display */}
         {debugInfo && (
-          <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-xl">
             <div className="flex items-center mb-3">
               <svg className="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <h4 className="font-semibold text-gray-900">Debug Results</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-slate-100">Debug Results</h4>
             </div>
-            <div className="bg-white border border-gray-200 rounded-lg p-3 max-h-48 overflow-auto">
-              <pre className="whitespace-pre-wrap text-xs text-gray-700 font-mono leading-relaxed">
+            <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-3 max-h-48 overflow-auto">
+              <pre className="whitespace-pre-wrap text-xs text-gray-700 dark:text-slate-300 font-mono leading-relaxed">
                 {JSON.stringify(debugInfo, null, 2)}
               </pre>
             </div>

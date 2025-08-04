@@ -195,14 +195,11 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  // Track theme changes from ThemeContext
+  // Sync settings.theme with current ThemeContext mode on component mount only
   useEffect(() => {
-    if (settings.theme !== mode) {
-      setSettings(prev => ({ ...prev, theme: mode }));
-      setHasChanges(true);
-      setSaveStatus('idle');
-    }
-  }, [mode, settings.theme]);
+    // Only sync on initial mount, don't track changes after that
+    setSettings(prev => ({ ...prev, theme: mode }));
+  }, []); // Empty dependency array - only run on mount
 
 
   const handleSettingChange = (key: string, value: any) => {
@@ -234,9 +231,10 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         }
       });
 
-      // Save theme through settings service (syncs with both systems)
+      // Save theme through settings service and update ThemeContext
       if (settings.theme) {
         await updateTheme(settings.theme as 'light' | 'dark' | 'auto', user?.id);
+        setMode(settings.theme as 'light' | 'dark' | 'auto'); // Apply theme change to ThemeContext
       }
 
       // Apply navigation bar setting only when saving
@@ -264,16 +262,18 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
       theme: 'auto' as 'light' | 'dark' | 'auto'
     };
     setSettings(defaultSettings);
-    setMode('auto'); // Reset theme to auto
+    // Don't apply theme change immediately - let user save first
     // Don't apply navigation change immediately - let user save first
     setHasChanges(true);
     setSaveStatus('idle');
   };
 
-  // Custom theme change handler that updates both ThemeContext and local state
+  // Theme change handler that only updates local state (preview only)
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'auto') => {
-    setMode(newTheme); // Update ThemeContext (triggers useEffect above)
-    // useEffect will handle updating local state and hasChanges
+    setSettings(prev => ({ ...prev, theme: newTheme }));
+    setHasChanges(true);
+    setSaveStatus('idle');
+    // Don't call setMode here - only update local state for preview
   };
 
   return (
@@ -295,7 +295,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
               <button
                 onClick={() => handleThemeChange('light')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
-                  mode === 'light'
+                  settings.theme === 'light'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
@@ -305,7 +305,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
               <button
                 onClick={() => handleThemeChange('dark')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
-                  mode === 'dark'
+                  settings.theme === 'dark'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
@@ -315,7 +315,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
               <button
                 onClick={() => handleThemeChange('auto')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
-                  mode === 'auto'
+                  settings.theme === 'auto'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
@@ -324,10 +324,15 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {mode === 'auto' 
+              {settings.theme === 'auto' 
                 ? `Currently: ${isDark ? 'Dark' : 'Light'} (follows system preference)`
-                : `Always ${mode} mode`
+                : `Always ${settings.theme} mode`
               }
+              {hasChanges && settings.theme !== mode && (
+                <span className="block text-orange-600 dark:text-orange-400 text-xs mt-1">
+                  Preview only - click "Save Changes" to apply
+                </span>
+              )}
             </p>
           </div>
           
@@ -530,28 +535,32 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">📅 Study Schedule Optimizer</h2>
-        <p className="text-gray-600 mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-4">📅 Study Schedule Optimizer</h2>
+        <p className="text-gray-600 dark:text-slate-400 mb-6">
           AI-powered study scheduling that optimizes your learning based on Canvas workload and personal preferences.
         </p>
       </div>
 
       {/* Status Card */}
       <div className={`border rounded-lg p-6 ${
-        isReady ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'
+        isReady 
+          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50' 
+          : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/50'
       }`}>
         <div className="flex items-center space-x-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-            isReady ? 'bg-green-100' : 'bg-orange-100'
+            isReady ? 'bg-green-100 dark:bg-green-800/50' : 'bg-orange-100 dark:bg-orange-800/50'
           }`}>
             {isReady ? '✅' : '⚠️'}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100">
               {isReady ? 'Ready to Optimize' : 'Setup Required'}
             </h3>
             <p className={`text-sm ${
-              isReady ? 'text-green-700' : 'text-orange-700'
+              isReady 
+                ? 'text-green-700 dark:text-green-300' 
+                : 'text-orange-700 dark:text-orange-300'
             }`}>
               {isReady 
                 ? `${classes.length} classes detected. You can start generating study schedules.`
@@ -685,27 +694,27 @@ const StudyScheduleSettings: React.FC<StudyScheduleSettingsProps> = ({
 
       {/* Usage Stats */}
       {isReady && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-gray-900 mb-3">📈 Quick Stats</h3>
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg p-6">
+          <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3">📈 Quick Stats</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-blue-600">{classes.length}</div>
-              <div className="text-sm text-gray-600">Classes</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">Classes</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-green-600">0</div>
-              <div className="text-sm text-gray-600">Sessions Completed</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">Sessions Completed</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600">0h</div>
-              <div className="text-sm text-gray-600">Study Hours</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">Study Hours</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-orange-600">0%</div>
-              <div className="text-sm text-gray-600">Retention Rate</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">Retention Rate</div>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-4 text-center">
+          <p className="text-xs text-gray-500 dark:text-slate-500 mt-4 text-center">
             Stats will update as you use the study schedule optimizer
           </p>
         </div>

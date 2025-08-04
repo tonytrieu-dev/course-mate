@@ -88,7 +88,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
             />
           </div>
           <div>
-            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               End Date
             </label>
             <input
@@ -101,7 +101,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
             />
           </div>
           <div>
-            <label htmlFor="end-time" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="end-time" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               End Time
             </label>
             <input
@@ -118,7 +118,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
         <fieldset className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <legend className="sr-only">Single due date task timing</legend>
           <div>
-            <label htmlFor="due-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="due-date" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Due Date
             </label>
             <input
@@ -131,7 +131,7 @@ const TaskFormFields: React.FC<TaskFormFieldsProps> = ({
             />
           </div>
           <div>
-            <label htmlFor="due-time" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="due-time" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
               Due Time
             </label>
             <input

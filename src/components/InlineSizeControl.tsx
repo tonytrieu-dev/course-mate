@@ -19,11 +19,19 @@ const InlineSizeControl: React.FC<InlineSizeControlProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleDecrease = useCallback(() => {
+  const handleDecrease = useCallback((e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setSize(Math.max(minSize, size - 2));
   }, [setSize, minSize, size]);
 
-  const handleIncrease = useCallback(() => {
+  const handleIncrease = useCallback((e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setSize(Math.min(maxSize, size + 2));
   }, [setSize, maxSize, size]);
 
@@ -33,12 +41,16 @@ const InlineSizeControl: React.FC<InlineSizeControlProps> = ({
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
       handleClose();
     } else if (e.key === 'ArrowLeft' || e.key === '-') {
       e.preventDefault();
+      e.stopPropagation();
       handleDecrease();
     } else if (e.key === 'ArrowRight' || e.key === '+' || e.key === '=') {
       e.preventDefault();
+      e.stopPropagation();
       handleIncrease();
     }
   }, [handleClose, handleDecrease, handleIncrease]);
@@ -59,8 +71,15 @@ const InlineSizeControl: React.FC<InlineSizeControlProps> = ({
     };
 
     if (show) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      // Use a slight delay to avoid race conditions with button clicks
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
     }
     return undefined; // Explicit return for all code paths
   }, [show, setShow]);
@@ -74,19 +93,12 @@ const InlineSizeControl: React.FC<InlineSizeControlProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="absolute top-1/2 -translate-y-1/2 right-2 z-50 flex items-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg px-2 py-1.5 space-x-1.5 
-                 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 animate-fadeIn"
+      className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 flex items-center bg-white dark:bg-slate-800/95 border border-gray-200 dark:border-slate-600/50 rounded-lg shadow-lg px-2 py-1.5 space-x-1.5 
+                 backdrop-blur-sm animate-fadeIn"
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="toolbar"
       aria-label={`Font size control. Current size: ${size}px. Use arrow keys or +/- to adjust.`}
-      style={{
-        position: 'absolute',
-        top: '50%',
-        right: '8px',
-        transform: 'translateY(-50%)',
-        zIndex: 50
-      }}
     >
       {/* Size decrease button */}
       <button

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { calculateFullGPA, calculateWhatIfScenario } from '../services/grade/gpaService';
 import { getClassWithGrades } from '../services/grade/gradeOperations';
+import GradeAnalyticsModal from './GradeAnalyticsModal';
+import AssignmentImportModal from './AssignmentImportModal';
 import type { 
   GPACalculation, 
   ClassWithGrades, 
@@ -20,6 +22,9 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
   const [whatIfScenario, setWhatIfScenario] = useState<WhatIfScenario | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
+  const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
 
   // Load GPA data
   const loadGpaData = useCallback(async () => {
@@ -81,6 +86,15 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
     setWhatIfScenario(null);
   }, []);
 
+  const handleImportComplete = useCallback((message: string) => {
+    setImportMessage(message);
+    setImportModalOpen(false);
+    // Reload data after import
+    loadGpaData();
+    // Clear message after 5 seconds
+    setTimeout(() => setImportMessage(null), 5000);
+  }, [loadGpaData]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -111,6 +125,26 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
 
   return (
     <div className="space-y-6">
+      {/* Import Success Message */}
+      {importMessage && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/50 rounded-lg p-4">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-600 dark:text-green-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="text-green-800 dark:text-green-300 font-medium">{importMessage}</span>
+            <button
+              onClick={() => setImportMessage(null)}
+              className="ml-auto text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* GPA Overview */}
       <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow p-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Grade Dashboard</h2>
@@ -320,7 +354,7 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
           </button>
 
           <button
-            onClick={() => {/* TODO: Implement grade import */}}
+            onClick={() => setImportModalOpen(true)}
             className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
           >
             <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-lg backdrop-blur-sm">
@@ -329,13 +363,13 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
               </svg>
             </div>
             <div className="text-left">
-              <div className="font-medium text-gray-900 dark:text-white">Import Grades</div>
-              <div className="text-sm text-gray-600 dark:text-slate-400">Upload from CSV or gradebook</div>
+              <div className="font-medium text-gray-900 dark:text-white">Import Assignments</div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">From syllabus or Canvas</div>
             </div>
           </button>
 
           <button
-            onClick={() => {/* TODO: Implement analytics view */}}
+            onClick={() => setAnalyticsModalOpen(true)}
             className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
           >
             <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-lg backdrop-blur-sm">
@@ -350,6 +384,18 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
           </button>
         </div>
       </div>
+
+      {/* Modals */}
+      <GradeAnalyticsModal
+        isOpen={analyticsModalOpen}
+        onClose={() => setAnalyticsModalOpen(false)}
+      />
+      
+      <AssignmentImportModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onImportComplete={handleImportComplete}
+      />
     </div>
   );
 };

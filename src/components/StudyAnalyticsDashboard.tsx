@@ -75,9 +75,8 @@ const StudyAnalyticsDashboard: React.FC<StudyAnalyticsDashboardProps> = ({
 
   return (
     <div className={`study-analytics-dashboard ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Study Analytics</h2>
+      {/* Time Period Selector */}
+      <div className="flex justify-end mb-6">
         <select
           value={selectedPeriod}
           onChange={(e) => setSelectedPeriod(Number(e.target.value))}

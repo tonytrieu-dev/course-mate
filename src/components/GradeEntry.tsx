@@ -251,20 +251,20 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white dark:bg-slate-800/95 rounded-lg shadow dark:shadow-slate-900/20 dark:border dark:border-slate-700/50">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Grade Entry</h2>
-          <p className="text-sm text-gray-600 mt-1">Add assignments, grades, and manage your grade categories</p>
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700/50">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Grade Entry</h2>
+          <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">Add assignments, grades, and manage your grade categories</p>
         </div>
 
         {/* Class Selection */}
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Class</label>
+        <div className="px-6 py-4 bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700/50">
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Select Class</label>
           <select
             value={selectedClassId}
             onChange={(e) => setSelectedClassId(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
           >
             <option value="">Select a class...</option>
             {classes.map(cls => (
@@ -276,7 +276,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
         {selectedClassId && (
           <>
             {/* Tab Navigation */}
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700/50">
               <nav className="flex space-x-8">
                 {[
                   { id: 'assignment', label: 'Add Assignment & Grade', icon: '📝' },
@@ -288,8 +288,8 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
                       activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                        : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'
                     }`}
                   >
                     <span>{tab.icon}</span>
@@ -306,10 +306,10 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Assignment Details */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium text-gray-900">Assignment Details</h3>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">Assignment Details</h3>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                           Assignment Name *
                         </label>
                         <input
@@ -317,20 +317,20 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                           required
                           value={assignmentForm.name}
                           onChange={(e) => setAssignmentForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                           placeholder="Homework 1, Midterm Exam, etc."
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                           Category *
                         </label>
                         <select
                           required
                           value={assignmentForm.categoryId}
                           onChange={(e) => setAssignmentForm(prev => ({ ...prev, categoryId: e.target.value }))}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                         >
                           <option value="">Select category...</option>
                           {categories.map(category => (
@@ -340,7 +340,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                           ))}
                         </select>
                         {categories.length === 0 && (
-                          <p className="text-sm text-orange-600 mt-1">
+                          <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
                             No categories found. Create one in the Categories tab first.
                           </p>
                         )}
@@ -348,7 +348,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Points Possible *
                           </label>
                           <input
@@ -358,20 +358,20 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                             step="0.1"
                             value={assignmentForm.pointsPossible}
                             onChange={(e) => setAssignmentForm(prev => ({ ...prev, pointsPossible: e.target.value }))}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                             placeholder="100"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Due Date
                           </label>
                           <input
                             type="date"
                             value={assignmentForm.dueDate}
                             onChange={(e) => setAssignmentForm(prev => ({ ...prev, dueDate: e.target.value }))}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                           />
                         </div>
                       </div>
@@ -382,21 +382,21 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                             type="checkbox"
                             checked={assignmentForm.isExtraCredit}
                             onChange={(e) => setAssignmentForm(prev => ({ ...prev, isExtraCredit: e.target.checked }))}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="rounded border-gray-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-slate-700"
                           />
-                          <span className="text-sm font-medium text-gray-700">Extra Credit</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">Extra Credit</span>
                         </label>
                       </div>
                     </div>
 
                     {/* Grade Details */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium text-gray-900">Grade (Optional)</h3>
-                      <p className="text-sm text-gray-600">Leave blank if not graded yet</p>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">Grade (Optional)</h3>
+                      <p className="text-sm text-gray-600 dark:text-slate-400">Leave blank if not graded yet</p>
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Points Earned
                           </label>
                           <input
@@ -414,13 +414,13 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                                   ''
                               }));
                             }}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                             placeholder="85"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Percentage
                           </label>
                           <input
@@ -439,20 +439,20 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                                   ''
                               }));
                             }}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                             placeholder="85.0"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                           Letter Grade
                         </label>
                         <select
                           value={gradeForm.letterGrade}
                           onChange={(e) => setGradeForm(prev => ({ ...prev, letterGrade: e.target.value }))}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                         >
                           <option value="">Auto-calculate</option>
                           <option value="A+">A+</option>
@@ -472,25 +472,25 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                           Feedback
                         </label>
                         <textarea
                           value={gradeForm.feedback}
                           onChange={(e) => setGradeForm(prev => ({ ...prev, feedback: e.target.value }))}
                           rows={3}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                           placeholder="Teacher comments or notes..."
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200">
+                  <div className="pt-4 border-t border-gray-200 dark:border-slate-700/50">
                     <button
                       type="submit"
                       disabled={loading || !assignmentForm.name || !assignmentForm.categoryId || !assignmentForm.pointsPossible}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-slate-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                     >
                       {loading ? 'Adding...' : 'Add Assignment'}
                     </button>
@@ -502,41 +502,41 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
               {activeTab === 'category' && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Current Categories</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">Current Categories</h3>
                     {categories.length > 0 ? (
                       <div className="space-y-2">
                         {categories.map(category => (
-                          <div key={category.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                          <div key={category.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-slate-700/50 rounded-lg bg-white dark:bg-slate-800/50">
                             <div className="flex items-center gap-3">
                               <div 
                                 className="w-4 h-4 rounded-full" 
                                 style={{ backgroundColor: category.color }}
                               />
-                              <span className="font-medium">{category.name}</span>
-                              <span className="text-sm text-gray-600">({category.weight}%)</span>
+                              <span className="font-medium text-gray-900 dark:text-slate-100">{category.name}</span>
+                              <span className="text-sm text-gray-600 dark:text-slate-400">({category.weight}%)</span>
                               {category.drop_lowest && category.drop_lowest > 0 && (
-                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                                <span className="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded">
                                   Drop {category.drop_lowest} lowest
                                 </span>
                               )}
                             </div>
                           </div>
                         ))}
-                        <div className="text-sm text-gray-600 mt-2">
+                        <div className="text-sm text-gray-600 dark:text-slate-400 mt-2">
                           Total weight: {categories.reduce((sum, cat) => sum + cat.weight, 0)}%
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-600">No categories created yet.</p>
+                      <p className="text-gray-600 dark:text-slate-400">No categories created yet.</p>
                     )}
                   </div>
 
-                  <div className="border-t border-gray-200 pt-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Category</h3>
+                  <div className="border-t border-gray-200 dark:border-slate-700/50 pt-6">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">Add New Category</h3>
                     <form onSubmit={handleSubmitCategory} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Category Name *
                           </label>
                           <input
@@ -544,13 +544,13 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                             required
                             value={categoryForm.name}
                             onChange={(e) => setCategoryForm(prev => ({ ...prev, name: e.target.value }))}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                             placeholder="Homework, Exams, Projects, etc."
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Weight (%) *
                           </label>
                           <input
@@ -560,13 +560,13 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                             max="100"
                             value={categoryForm.weight}
                             onChange={(e) => setCategoryForm(prev => ({ ...prev, weight: e.target.value }))}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                             placeholder="30"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Drop Lowest (optional)
                           </label>
                           <input
@@ -574,20 +574,20 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                             min="0"
                             value={categoryForm.dropLowest}
                             onChange={(e) => setCategoryForm(prev => ({ ...prev, dropLowest: e.target.value }))}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                             placeholder="0"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                             Color
                           </label>
                           <input
                             type="color"
                             value={categoryForm.color}
                             onChange={(e) => setCategoryForm(prev => ({ ...prev, color: e.target.value }))}
-                            className="w-full h-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full h-10 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                           />
                         </div>
                       </div>
@@ -595,7 +595,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                       <button
                         type="submit"
                         disabled={loading || !categoryForm.name || !categoryForm.weight}
-                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 dark:disabled:bg-slate-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                       >
                         {loading ? 'Adding...' : 'Add Category'}
                       </button>
@@ -607,16 +607,16 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
               {/* Class Setup Tab */}
               {activeTab === 'class-setup' && (
                 <form onSubmit={handleSubmitClassSetup} className="space-y-6">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">
                     Class Setup for {selectedClass?.name}
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-slate-400">
                     Configure credit hours and semester information for GPA calculation.
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                         Credit Hours *
                       </label>
                       <input
@@ -627,19 +627,19 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                         step="0.5"
                         value={classSetupForm.creditHours}
                         onChange={(e) => setClassSetupForm(prev => ({ ...prev, creditHours: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                         Semester *
                       </label>
                       <select
                         required
                         value={classSetupForm.semester}
                         onChange={(e) => setClassSetupForm(prev => ({ ...prev, semester: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       >
                         <option value="Spring">Spring</option>
                         <option value="Summer">Summer</option>
@@ -649,7 +649,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
                         Year *
                       </label>
                       <input
@@ -659,7 +659,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                         max="2030"
                         value={classSetupForm.year}
                         onChange={(e) => setClassSetupForm(prev => ({ ...prev, year: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       />
                     </div>
                   </div>
@@ -667,7 +667,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                   <button
                     type="submit"
                     disabled={loading}
-                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 dark:disabled:bg-slate-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                   >
                     {loading ? 'Saving...' : 'Save Class Setup'}
                   </button>
@@ -679,8 +679,8 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
 
         {!selectedClassId && classes.length === 0 && (
           <div className="px-6 py-12 text-center">
-            <p className="text-gray-600 mb-4">No classes found. Create a class first to start tracking grades.</p>
-            <button className="text-blue-600 hover:text-blue-800 font-medium">
+            <p className="text-gray-600 dark:text-slate-400 mb-4">No classes found. Create a class first to start tracking grades.</p>
+            <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
               Create Your First Class
             </button>
           </div>

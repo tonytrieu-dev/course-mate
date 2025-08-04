@@ -171,22 +171,57 @@ export const getThemeFromSettings = (): 'light' | 'dark' | 'auto' => {
   return settings.theme || 'auto';
 };
 
+/**
+ * Load user's theme from Supabase on login/initialization
+ */
+export const syncThemeFromSupabase = async (userId: string): Promise<'light' | 'dark' | 'auto'> => {
+  try {
+    // Get settings from Supabase
+    const settings = await getSettingsWithSync(userId);
+    const supabaseTheme = settings.theme || 'auto';
+    
+    // Get current localStorage theme
+    const localTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'auto' || 'auto';
+    
+    // If themes differ, Supabase takes precedence (cross-device sync)
+    if (supabaseTheme !== localTheme) {
+      try {
+        localStorage.setItem('theme', supabaseTheme);
+      } catch (error) {
+        console.warn('Failed to update localStorage theme:', error);
+      }
+    }
+    
+    return supabaseTheme;
+  } catch (error) {
+    console.warn('Failed to sync theme from Supabase, using local:', error);
+    return localStorage.getItem('theme') as 'light' | 'dark' | 'auto' || 'auto';
+  }
+};
+
 export const updateTheme = async (theme: 'light' | 'dark' | 'auto', userId?: string): Promise<void> => {
-  // Update both the settings system and ThemeContext localStorage
-  const currentSettings = await getSettingsWithSync(userId);
-  const updatedSettings = {
-    ...currentSettings,
-    theme
-  };
-  
-  // Save to settings system
-  await updateSettingsWithSync(updatedSettings, userId);
-  
-  // Also save to ThemeContext localStorage key for compatibility
+  // Always update localStorage first (immediate UI response)
   try {
     localStorage.setItem('theme', theme);
   } catch (error) {
     console.warn('Failed to save theme to localStorage:', error);
+  }
+  
+  // If user is authenticated, sync to Supabase
+  if (userId) {
+    try {
+      const currentSettings = await getSettingsWithSync(userId);
+      const updatedSettings = {
+        ...currentSettings,
+        theme
+      };
+      
+      // Save to settings system (background sync)
+      await updateSettingsWithSync(updatedSettings, userId);
+    } catch (error) {
+      console.warn('Failed to sync theme to Supabase:', error);
+      // Don't throw error - localStorage update succeeded
+    }
   }
 };
 

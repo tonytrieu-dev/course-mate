@@ -7,7 +7,7 @@ export const getDayCellClasses = (isCurrentMonth: boolean, isToday: boolean): st
   if (!isCurrentMonth) {
     baseClasses += " bg-gray-50 dark:bg-slate-900/50 text-gray-400 dark:text-slate-500";
   } else if (isToday) {
-    baseClasses += " bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-400/50 rounded-lg shadow-sm";
+    baseClasses += " bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-300 border-2 dark:border-2 rounded-lg shadow-sm";
   } else {
     baseClasses += " hover:bg-blue-50 dark:hover:bg-slate-700/30 active:bg-blue-100 dark:active:bg-slate-600/50";
   }
