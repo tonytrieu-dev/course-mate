@@ -4,6 +4,7 @@ import type {
   GradeInsert,
   ClassGpaInfoInsert 
 } from '../../types/database';
+import { logger } from '../../utils/logger';
 import {
   addGradeCategory,
   addAssignment,
@@ -28,7 +29,7 @@ export const setupSampleGradeData = async (
   useSupabase = false
 ) => {
   try {
-    console.log(`Setting up sample grade data for ${className}...`);
+    logger.info(`Setting up sample grade data for ${className}...`);
 
     // Initialize GPA settings
     await initializeGpaSettings(userId, useSupabase);
@@ -117,16 +118,16 @@ export const setupSampleGradeData = async (
       }
     }
 
-    console.log(`✅ Sample grade data created for ${className}`);
+    logger.info(`✅ Sample grade data created for ${className}`);
     
     // Calculate and display current GPA
     const gpaData = await calculateFullGPA(userId, useSupabase);
-    console.log(`📊 Current GPA: ${gpaData.currentGPA}`);
+    logger.info(`📊 Current GPA: ${gpaData.currentGPA}`);
     
     // Get class with grades to show current performance
     const classWithGrades = await getClassWithGrades(classId, userId, useSupabase);
     if (classWithGrades) {
-      console.log(`📋 ${className} current grade: ${classWithGrades.currentGrade?.toFixed(1)}% (${classWithGrades.currentLetterGrade})`);
+      logger.info(`📋 ${className} current grade: ${classWithGrades.currentGrade?.toFixed(1)}% (${classWithGrades.currentLetterGrade})`);
     }
 
     return {
@@ -150,21 +151,21 @@ export const setupSampleGradeData = async (
  */
 export const demoWhatIfScenarios = async (userId: string, useSupabase = false) => {
   try {
-    console.log('🎯 Demo: What-If Scenarios');
+    logger.info('🎯 Demo: What-If Scenarios');
 
     // Get current GPA
     const currentGPA = await calculateFullGPA(userId, useSupabase);
-    console.log(`Current GPA: ${currentGPA.currentGPA}`);
+    logger.info(`Current GPA: ${currentGPA.currentGPA}`);
 
     // Example: What if I get an A on my final exam?
     // This would need actual assignment IDs from the database
-    console.log('\n📈 What-if scenarios:');
-    console.log('1. "What if I get 95% on my final exam?"');
-    console.log('2. "What grade do I need on the final to get an A in the class?"');
-    console.log('3. "How would dropping this class affect my GPA?"');
+    logger.info('\n📈 What-if scenarios:');
+    logger.info('1. "What if I get 95% on my final exam?"');
+    logger.info('2. "What grade do I need on the final to get an A in the class?"');
+    logger.info('3. "How would dropping this class affect my GPA?"');
     
     // Note: Actual implementation would require real assignment IDs
-    console.log('\n💡 Use the interactive grade sliders in the dashboard to test scenarios!');
+    logger.info('\n💡 Use the interactive grade sliders in the dashboard to test scenarios!');
 
     return currentGPA;
   } catch (error) {

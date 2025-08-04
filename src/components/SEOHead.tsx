@@ -65,7 +65,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
             // Custom analytics tracking
             window.schedulebudAnalytics = {
               track: function(event, properties) {
-                console.log('Analytics Event:', event, properties);
+                if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+                  console.log('Analytics Event:', event, properties);
+                }
                 // Add your analytics service integration here
                 // Examples: Mixpanel, Amplitude, Segment, etc.
               }

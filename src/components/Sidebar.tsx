@@ -29,11 +29,13 @@ const DEFAULT_SIDEBAR_WIDTH = 256;
 interface SidebarProps {
   isNavCollapsed?: boolean;
   setIsNavCollapsed?: (collapsed: boolean) => void;
+  onTasksRefresh?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
   isNavCollapsed = false, 
-  setIsNavCollapsed = () => {} 
+  setIsNavCollapsed = () => {},
+  onTasksRefresh
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
   
@@ -343,10 +345,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onContextMenu={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Right-click detected on wrapper'); // Debug log
-                    console.log('Setting showClassesHeaderColorPicker to true');
                     setShowClassesHeaderColorPicker(true);
-                    console.log('showClassesHeaderColorPicker should now be:', true);
                   }}
                 >
                   <EditableText
@@ -508,6 +507,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClose={() => setShowSyllabusModal(false)}
           onSyllabusUpdate={handleSyllabusUpdate}
           onFileUpdate={handleFileUpdate}
+          onTasksRefresh={onTasksRefresh}
         />
       </Suspense>
 

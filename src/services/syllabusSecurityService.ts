@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
 const SECURITY_CONFIG = {
   BUCKET_NAME: 'secure-syllabi', // Dedicated secure bucket for syllabus uploads
   MAX_FILE_SIZE: '10MB',
-  ALLOWED_MIME_TYPES: ['application/pdf'],
+  ALLOWED_MIME_TYPES: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
   MAX_UPLOADS_PER_HOUR: 10,
   MAX_UPLOADS_PER_DAY: 50,
   MAX_TOTAL_STORAGE_MB: 100,
@@ -164,7 +164,7 @@ export class SyllabusSecurityService {
 
     // MIME type validation
     if (!SECURITY_CONFIG.ALLOWED_MIME_TYPES.includes(file.type as any)) {
-      errors.push(`File type '${file.type}' is not allowed. Only PDF files are permitted.`);
+      errors.push(`File type '${file.type}' is not allowed. Only PDF and DOCX files are permitted.`);
     }
 
     // Filename security validation

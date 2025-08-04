@@ -1,11 +1,13 @@
 # Dependencies
 node_modules/
+package-lock.json
 
 # Build outputs
 build/
 build/bundle.js
 build/node_modules_ws_browser_js.bundle.js
 .node_modules_ws_browser_js
+tsconfig.tsbuildinfo
 
 # Claude Code assistant files
 CLAUDE.md
@@ -73,3 +75,5 @@ supabase/create-user-settings-table.sql
 supabase/SECURITY_FIXES.md
 supabase_schema.sql
 apply-security-fixes.sh
+SMART_UPLOAD_STAR_RESPONSE.md
+CLAUDE_HISTORY.md

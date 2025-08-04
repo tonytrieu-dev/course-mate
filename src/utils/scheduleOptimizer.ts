@@ -154,7 +154,7 @@ export class ScheduleOptimizer {
       
       // Get available study times for this day
       const dayPreferences = studyProfile.preferred_study_times.filter(
-        pref => pref.day_of_week === dayOfWeek
+        (pref: any) => pref.day_of_week === dayOfWeek
       );
       
       for (const pref of dayPreferences) {
@@ -178,7 +178,9 @@ export class ScheduleOptimizer {
           sessions.push(session);
           
           // Update concept tracking
-          conceptLastStudied.set(sessionContent.classId, currentDate);
+          if (sessionContent && typeof sessionContent === 'object' && 'classId' in sessionContent) {
+            conceptLastStudied.set((sessionContent as any).classId, currentDate);
+          }
         }
       }
     }
@@ -213,21 +215,23 @@ export class ScheduleOptimizer {
     for (let day = 0; day < context.totalDays; day++) {
       const currentDate = new Date(startDate.getTime() + (day * 24 * 60 * 60 * 1000));
       const dayOfWeek = currentDate.getDay();
-      const allocation = dailyAllocations[day];
+      const allocation = dailyAllocations[day] as any;
       
-      if (!allocation || allocation.length === 0) continue;
+      if (!allocation || !Array.isArray(allocation) || allocation.length === 0) continue;
+      
+      const allocationArray = allocation as any[];
       
       // Get available study times for this day
       const dayPreferences = studyProfile.preferred_study_times.filter(
-        pref => pref.day_of_week === dayOfWeek
+        (pref: any) => pref.day_of_week === dayOfWeek
       );
       
       // Distribute allocated tasks across available time slots
       let allocationIndex = 0;
       for (const pref of dayPreferences) {
-        if (allocationIndex >= allocation.length) break;
+        if (allocationIndex >= allocationArray.length) break;
         
-        const taskAllocation = allocation[allocationIndex];
+        const taskAllocation = allocationArray[allocationIndex];
         const session = this.createTaskBasedSession(
           currentDate,
           pref,
@@ -271,7 +275,7 @@ export class ScheduleOptimizer {
       
       // Get available study times for this day
       const dayPreferences = studyProfile.preferred_study_times.filter(
-        pref => pref.day_of_week === dayOfWeek
+        (pref: any) => pref.day_of_week === dayOfWeek
       );
       
       let remainingHours = adjustedTargetHours;
@@ -330,7 +334,7 @@ export class ScheduleOptimizer {
       
       // Get available study times for this day
       const dayPreferences = studyProfile.preferred_study_times.filter(
-        pref => pref.day_of_week === dayOfWeek
+        (pref: any) => pref.day_of_week === dayOfWeek
       );
       
       for (const pref of dayPreferences) {
@@ -392,8 +396,8 @@ export class ScheduleOptimizer {
       
       // Get available study times for this day (prioritize high-productivity times for difficult subjects)
       const dayPreferences = studyProfile.preferred_study_times
-        .filter(pref => pref.day_of_week === dayOfWeek)
-        .sort((a, b) => b.productivity_score - a.productivity_score);
+        .filter((pref: any) => pref.day_of_week === dayOfWeek)
+        .sort((a: any, b: any) => b.productivity_score - a.productivity_score);
       
       let difficultyIndex = 0;
       

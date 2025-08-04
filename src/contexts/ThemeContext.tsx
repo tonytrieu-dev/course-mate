@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { updateTheme } from '../services/settings/settingsOperations';
 import { supabase } from '../services/supabaseClient';
+import { logger } from '../utils/logger';
 
 type ThemeMode = 'light' | 'dark' | 'auto';
 
@@ -116,12 +117,12 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
                 const newTheme = newSettings?.settings?.theme;
                 
                 if (newTheme && newTheme !== mode) {
-                  console.log('Theme updated from another device:', newTheme);
+                  logger.info('Theme updated from another device:', { newTheme });
                   localStorage.setItem('theme', newTheme);
                   setModeState(newTheme);
                 }
               } catch (error) {
-                console.warn('Failed to process real-time theme update:', error);
+                logger.warn('Failed to process real-time theme update:', { error });
               }
             }
           )

@@ -110,8 +110,10 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Get Supabase config from existing client
-      console.log('Supabase URL:', supabaseConfig.url);
-      console.log('Has Supabase Key:', !!supabaseConfig.key);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Supabase URL:', supabaseConfig.url);
+        console.log('Has Supabase Key:', !!supabaseConfig.key);
+      }
       
       if (!supabaseConfig.url || !supabaseConfig.key) {
         throw new Error('Supabase configuration missing. Please check your .env file has REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY set.');

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { features } from '../utils/buildConfig';
+import { logger } from '../utils/logger';
 
 // Subscription types for TypeScript
 interface SubscriptionPlan {
@@ -74,7 +75,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     // Actions (no-op in personal mode)
     upgradeSubscription: async (planId: string) => {
       if (features.isPersonalMode) {
-        console.log('Upgrade not needed in personal mode - all features are already unlimited');
+        logger.info('Upgrade not needed in personal mode - all features are already unlimited');
         return;
       }
       
@@ -84,7 +85,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     
     cancelSubscription: async () => {
       if (features.isPersonalMode) {
-        console.log('Cannot cancel personal mode - it\'s always active');
+        logger.info('Cannot cancel personal mode - it\'s always active');
         return;
       }
       

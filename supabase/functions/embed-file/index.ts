@@ -112,11 +112,19 @@ function validatePDFContent(content: string, fileName: string): { isValid: boole
 
 // Determine bucket based on file type/path
 function getBucketName(filePath: string): string {
+  console.log('🔍 Bucket selection debug:', {
+    filePath,
+    containsSyllabi: filePath?.includes('/syllabi/'),
+    containsSyllabus: filePath?.toLowerCase().includes('syllabus'),
+  });
+  
   // If the path contains 'syllabi' or looks like a syllabus, use secure bucket
   if (filePath.includes('/syllabi/') || filePath.toLowerCase().includes('syllabus')) {
+    console.log('✅ Selected bucket: secure-syllabi');
     return 'secure-syllabi';
   }
   // Otherwise use regular bucket
+  console.log('📁 Selected bucket: class-materials');
   return 'class-materials';
 }
 
@@ -213,6 +221,16 @@ Deno.serve(async (req) => {
       // Use sanitized content
       content = validation.sanitizedContent;
       
+      // Debug: Log content extraction status
+      console.log('PDF content extraction status:', {
+        fileName: file.name,
+        originalTextLength: text?.length || 0,
+        sanitizedContentLength: validation.sanitizedContent?.length || 0,
+        contentAssigned: !!content,
+        contentType: typeof content,
+        contentPreview: content ? content.substring(0, 100) + '...' : 'NO CONTENT'
+      });
+      
       // Log warnings if any
       if (validation.warnings.length > 0) {
         logSecurityEvent('warn', 'PDF content validation warnings', {
@@ -260,7 +278,7 @@ Deno.serve(async (req) => {
     // Chunk the content into smaller pieces using security configuration
     const chunkSize = SECURITY_CONFIG.MAX_CHUNK_SIZE;
     const overlapSize = Math.floor(chunkSize * 0.1); // 10% overlap
-    const chunks = [];
+    const chunks: string[] = [];
     
     for (let i = 0; i < content.length; i += chunkSize - overlapSize) {
       const chunk = content.slice(i, i + chunkSize);
@@ -320,8 +338,8 @@ Deno.serve(async (req) => {
         throw new Error(`Failed to get embedding from Hugging Face: ${response?.status} ${errorBody}`);
       }
 
-      const embedding = await response.json();
-      console.log(`Generated embedding for chunk ${i + 1}, dimension: ${embedding?.length}`);
+      const embedding: number[] = await response.json();
+      console.log(`Generated embedding for chunk ${i + 1}, dimension: ${embedding?.length || 0}`);
       
       // Store the document chunk and its embedding
       const insertData = {
@@ -335,7 +353,7 @@ Deno.serve(async (req) => {
         class_id: insertData.class_id,
         file_name: insertData.file_name,
         content_length: insertData.content.length,
-        embedding_dimension: insertData.embedding?.length
+        embedding_dimension: embedding?.length || 0
       });
       
       const { data: insertedDoc, error: insertError } = await supabaseAdmin
@@ -361,11 +379,69 @@ Deno.serve(async (req) => {
     });
     
     console.log('Successfully processed all chunks for file:', file.name);
-    return new Response(JSON.stringify({ 
+    
+    // Debug: Log content status before return
+    console.log('Content status before return:', {
+      fileName: file.name,
+      contentExists: !!content,
+      contentType: typeof content,
+      contentLength: content?.length || 0,
+      contentPreview: content ? content.substring(0, 100) + '...' : 'NO CONTENT',
+      chunksLength: chunks.length
+    });
+    
+    // Store extracted text in a temporary extraction record for retrieval
+    let extractedTextId = null;
+    if (content && content.length > 0) {
+      try {
+        const { data: extractionRecord, error: insertError } = await supabaseAdmin
+          .from('document_extractions')
+          .insert({
+            file_id: file.id,
+            extracted_text: content,
+            extraction_date: new Date().toISOString(),
+            content_length: content.length
+          })
+          .select('id')
+          .single();
+
+        if (insertError) {
+          console.error('Failed to store extracted text:', insertError);
+          // Continue without storing - will include text in response as fallback
+        } else {
+          extractedTextId = extractionRecord.id;
+          console.log('Stored extracted text with ID:', extractedTextId);
+        }
+      } catch (storageError) {
+        console.error('Error storing extracted text:', storageError);
+        // Continue without storing - will include text in response as fallback
+      }
+    }
+
+    // Create response - include extractedText directly if storage failed, otherwise reference
+    const response = {
       success: true, 
       message: `Successfully embedded ${chunks.length} chunks for ${file.name}`,
-      securityStatus: 'validated'
-    }), { 
+      securityStatus: 'validated',
+      extractedText: extractedTextId ? null : content, // Include text only if storage failed
+      extractedTextId: extractedTextId, // Reference to stored text
+      contentLength: content.length,
+      chunksProcessed: chunks.length
+    };
+    
+    // Debug: Log response before sending
+    console.log('Response object before JSON.stringify:', {
+      fileName: file.name,
+      responseKeys: Object.keys(response),
+      hasExtractedText: 'extractedText' in response,
+      extractedTextValue: response.extractedText ? 'INCLUDED_DIRECTLY' : 'STORED_SEPARATELY',
+      extractedTextId: extractedTextId,
+      extractedTextType: typeof response.extractedText,
+      extractedTextLength: response.extractedText?.length || 0,
+      usingStoredReference: !!extractedTextId
+    });
+    
+    return new Response(JSON.stringify(response), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });
   } catch (err) {

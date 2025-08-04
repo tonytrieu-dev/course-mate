@@ -10,6 +10,7 @@ interface SyllabusModalProps {
   onClose: () => void;
   onSyllabusUpdate: (syllabusRecord: ClassSyllabus | null) => void;
   onFileUpdate: (fileRecord: ClassFile | null, remainingFiles?: ClassFile[]) => void;
+  onTasksRefresh?: () => void;
 }
 
 const SyllabusModal: React.FC<SyllabusModalProps> = ({ 
@@ -17,7 +18,8 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
   selectedClass, 
   onClose, 
   onSyllabusUpdate, 
-  onFileUpdate 
+  onFileUpdate,
+  onTasksRefresh
 }) => {
   const [showAiUpload, setShowAiUpload] = useState(false);
   
@@ -79,34 +81,42 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
 
   const handleTasksGenerated = useCallback((taskCount: number) => {
     // Handle successful task generation
-    console.log(`Successfully generated ${taskCount} tasks from syllabus`);
-    setShowAiUpload(false); // Close the modal
-    // You might want to trigger a refresh of the task list here
-    // or show a notification to the user
-  }, []);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Successfully generated ${taskCount} tasks from syllabus`);
+    }
+    
+    // Trigger task refresh to show new tasks in the UI
+    if (onTasksRefresh) {
+      onTasksRefresh();
+    }
+    
+    // Note: We don't immediately close the modal here anymore
+    // The SyllabusUploadModal will handle showing success confirmation
+    // and provide user control over when to close
+  }, [onTasksRefresh]);
 
   if (!show || !selectedClass) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999]">
-      <div className="bg-white p-5 rounded-xl shadow-2xl w-[600px] max-w-[90%] max-h-[90vh] overflow-auto relative z-[10000]">
-        <h2 className="text-blue-600 mt-0 font-bold text-xl">
+      <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-2xl w-[600px] max-w-[90%] max-h-[90vh] overflow-auto relative z-[10000]">
+        <h2 className="text-blue-600 dark:text-blue-400 mt-0 font-bold text-xl">
           {selectedClass.name}
         </h2>
 
         <div className="mb-5 mt-6">
-          <h3 className="font-bold text-lg mb-2">Upload syllabus</h3>
+          <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">Upload syllabus</h3>
           
           {/* AI-Powered Upload Option */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-700 dark:to-slate-600 border border-blue-200 dark:border-slate-500 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <svg className="h-6 w-6 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-6 w-6 text-purple-600 dark:text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
                 <div>
-                  <h4 className="font-medium text-gray-900">Smart Upload with AI Task Generation</h4>
-                  <p className="text-sm text-gray-600">Upload your syllabus and automatically generate tasks from assignments and due dates</p>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Smart Upload with AI Task Generation</h4>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">Upload your syllabus and automatically generate tasks from assignments and due dates</p>
                 </div>
               </div>
               <button
@@ -123,7 +133,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
 
           {/* Regular Upload Option */}
           <details className="mb-4">
-            <summary className="cursor-pointer text-gray-700 hover:text-gray-900 font-medium flex items-center">
+            <summary className="cursor-pointer text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white font-medium flex items-center">
               <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
@@ -132,31 +142,31 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
             
             <div className="mt-3">
               {!selectedClass.syllabus ? (
-                <div className="border-2 border-dashed border-gray-300 p-5 text-center mb-5">
-                  <p>
+                <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 p-5 text-center mb-5 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                  <p className="text-gray-700 dark:text-slate-300">
                     Drag and drop a syllabus file here, or click to select one
                   </p>
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
                     onChange={handleSyllabusUpload}
-                    className="block mx-auto my-2.5"
+                    className="block mx-auto my-2.5 text-gray-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 dark:file:bg-slate-600 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-slate-500"
                   />
                   {isUploading && (
                     <div className="text-center my-2">
-                      <p className="text-blue-600">Uploading syllabus...</p>
-                      <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
+                      <p className="text-blue-600 dark:text-blue-400">Uploading syllabus...</p>
+                      <div className="animate-pulse mt-1 h-1 bg-blue-600 dark:bg-blue-400 rounded"></div>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="mb-5">
-                  <div className="flex justify-between items-center p-2.5 bg-gray-100 rounded mb-2.5">
-                    <div>
+                  <div className="flex justify-between items-center p-2.5 bg-gray-100 dark:bg-slate-700 rounded mb-2.5">
+                    <div className="text-gray-900 dark:text-white">
                       <strong>Current Syllabus:</strong>{" "}
                       {selectedClass.syllabus.name}
                       {selectedClass.syllabus.size && (
-                        <span className="ml-2.5 text-gray-500">
+                        <span className="ml-2.5 text-gray-500 dark:text-slate-400">
                           ({Math.round(selectedClass.syllabus.size / 1024)} KB)
                         </span>
                       )}
@@ -164,7 +174,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                   </div>
 
                   {selectedClass.syllabus && (
-                    <div className="mt-3 mb-3 p-4 bg-gray-50 rounded">
+                    <div className="mt-3 mb-3 p-4 bg-gray-50 dark:bg-slate-700 rounded">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <svg
@@ -180,7 +190,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                             />
                           </svg>
                           <span 
-                            className="text-blue-600 cursor-pointer hover:text-blue-800 hover:underline"
+                            className="text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                             onClick={handleSyllabusClick}
                             title="Click to open syllabus"
                           >
@@ -189,7 +199,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                         </div>
                         <button
                           onClick={handleDeleteSyllabus}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-red-500 hover:text-red-700 dark:hover:text-red-400"
                           type="button"
                         >
                           Delete
@@ -198,19 +208,19 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                     </div>
                   )}
 
-                  <p className="mt-4">
+                  <p className="mt-4 text-gray-700 dark:text-slate-300">
                     Upload a new syllabus to replace the current one:
                   </p>
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
                     onChange={handleSyllabusUpload}
-                    className="block my-2.5"
+                    className="block my-2.5 text-gray-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 dark:file:bg-slate-600 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-slate-500"
                   />
                   {isUploading && (
                     <div className="text-center my-2">
-                      <p className="text-blue-600">Uploading syllabus...</p>
-                      <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
+                      <p className="text-blue-600 dark:text-blue-400">Uploading syllabus...</p>
+                      <div className="animate-pulse mt-1 h-1 bg-blue-600 dark:bg-blue-400 rounded"></div>
                     </div>
                   )}
                 </div>
@@ -220,36 +230,86 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
         </div>
 
         <div className="mb-5">
-          <h3 className="font-bold text-lg mb-2">Class files</h3>
+          <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white">Class files</h3>
 
-          <div className="border-2 border-dashed border-gray-300 p-5 text-center mb-5">
-            <p>
-              Upload lecture notes, assignments, and other course materials
-            </p>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip"
-              onChange={handleFileUpload}
-              className="block mx-auto my-2.5"
-            />
-            {isUploadingFile && (
-              <div className="text-center my-2">
-                <p className="text-blue-600">Uploading file...</p>
-                <div className="animate-pulse mt-1 h-1 bg-blue-600 rounded"></div>
+          {/* Modern Upload Zone */}
+          <div className="relative group">
+            <div className="border border-blue-200 dark:border-slate-500 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700 dark:to-slate-600 rounded-xl p-8 text-center transition-all duration-200 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-gray-50 dark:hover:from-slate-600 dark:hover:to-slate-700">
+              
+              {/* Upload Icon */}
+              <div className="mb-4">
+                <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400 group-hover:text-blue-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
               </div>
-            )}
+
+              {/* Upload Text */}
+              <div className="mb-4">
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Upload course materials
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-slate-300">
+                  Lecture notes, assignments, presentations, and other course materials
+                </p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                  PDF, DOC, PPT, XLS, JPG, PNG, ZIP files supported
+                </p>
+              </div>
+
+              {/* Modern File Input */}
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg cursor-pointer transition-colors duration-200 shadow-sm"
+                >
+                  <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Choose Files
+                </label>
+              </div>
+
+              {/* Upload Progress */}
+              {isUploadingFile && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-center mb-2">
+                    <svg className="animate-spin h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-blue-600 dark:text-blue-400 font-medium">Uploading file...</p>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-2">
+                    <div className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {selectedClass.files && selectedClass.files.length > 0 ? (
-            <div>
-              <h4 className="font-semibold mb-2">Uploaded files</h4>
-              <ul className="divide-y divide-gray-200">
+          {/* File List */}
+          {selectedClass.files && selectedClass.files.length > 0 && (
+            <div className="mt-6">
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white flex items-center">
+                <svg className="h-5 w-5 mr-2 text-gray-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Uploaded files ({selectedClass.files.length})
+              </h4>
+              <div className="space-y-2">
                 {selectedClass.files.map((file, index) => (
-                  <li key={file.id || index} className="py-3 flex justify-between items-center">
-                    <div className="flex items-center">
+                  <div key={file.id || index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors duration-150">
+                    <div className="flex items-center flex-1 min-w-0">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-blue-500 mr-2"
+                        className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3 flex-shrink-0"
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -259,39 +319,42 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span 
-                        className="text-blue-600 cursor-pointer hover:text-blue-800 hover:underline"
-                        onClick={() => handleFileClick(file.path)}
-                        title="Click to open file"
-                      >
-                        {file.name || 'No filename found'}
-                      </span>
-                      {file.size && (
-                        <span className="ml-2 text-gray-500 text-sm">
-                          ({Math.round(file.size / 1024)} KB)
+                      <div className="flex-1 min-w-0">
+                        <span 
+                          className="text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium block truncate"
+                          onClick={() => handleFileClick(file.path)}
+                          title="Click to open file"
+                        >
+                          {file.name || 'No filename found'}
                         </span>
-                      )}
+                        {file.size && (
+                          <span className="text-xs text-gray-500 dark:text-slate-400">
+                            {Math.round(file.size / 1024)} KB
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <button
                       onClick={() => handleDeleteFile(file.path, index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="ml-3 p-2 text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-150 flex-shrink-0"
                       type="button"
+                      title="Delete file"
                     >
-                      Delete
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                     </button>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-500 text-center">No files uploaded yet</p>
           )}
         </div>
 
-        <div className="flex justify-between mt-5">
+        <div className="flex justify-between mt-6 pt-4 border-t border-gray-200 dark:border-slate-600">
           <button
             onClick={onClose}
-            className="bg-gray-100 border border-gray-300 py-2 px-4 rounded cursor-pointer hover:bg-gray-200 transition-colors"
+            className="bg-gray-100 dark:bg-slate-600 border border-gray-300 dark:border-slate-500 text-gray-700 dark:text-slate-300 py-2 px-6 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-500 transition-colors duration-200 font-medium"
             type="button"
           >
             Close
@@ -299,7 +362,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
 
           <button
             onClick={onClose}
-            className="bg-blue-600 text-white border-none py-2 px-4 rounded cursor-pointer hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white border-none py-2 px-6 rounded-lg cursor-pointer transition-colors duration-200 font-medium shadow-sm"
             type="button"
           >
             Done

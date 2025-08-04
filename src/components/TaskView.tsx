@@ -8,6 +8,9 @@ import { validateAuthState } from "../utils/authHelpers";
 import classService from "../services/classService";
 import { logger } from "../utils/logger";
 import type { TaskData } from "./TaskModal";
+import TaskFilter from "./TaskFilter";
+import { FilterService, FilterCriteria, SearchResult } from "../services/filterService";
+import type { Task, Class } from "../types/index";
 
 // Lazy load TaskModal for better performance
 const TaskModal = lazy(() => import("./TaskModal"));
@@ -30,7 +33,11 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<TaskWithMeta[]>([]);
   
-  // Filter and sort state
+  // New advanced filtering state
+  const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>({});
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  
+  // Legacy filter and sort state (keep for backward compatibility)
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [sortType, setSortType] = useState<SortType>('dueDate');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -80,101 +87,147 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
     return unsubscribe;
   }, [isAuthenticated, user]);
 
-  // Filter and sort tasks
+  // Convert TaskWithMeta to Task interface for FilterService
+  const convertToTask = useCallback((taskWithMeta: TaskWithMeta): Task => {
+    return {
+      id: taskWithMeta.id,
+      user_id: taskWithMeta.user_id || user?.id || '',
+      title: taskWithMeta.title || '',
+      completed: taskWithMeta.completed || false,
+      class: taskWithMeta.class,
+      type: taskWithMeta.type,
+      date: taskWithMeta.date,
+      isDuration: taskWithMeta.isDuration,
+      dueDate: taskWithMeta.dueDate,
+      dueTime: taskWithMeta.dueTime,
+      startDate: taskWithMeta.startDate,
+      startTime: taskWithMeta.startTime,
+      endDate: taskWithMeta.endDate,
+      endTime: taskWithMeta.endTime,
+      priority: taskWithMeta.priority,
+      canvas_uid: taskWithMeta.canvas_uid,
+      created_at: taskWithMeta.created_at || new Date().toISOString(),
+      updated_at: taskWithMeta.updated_at
+    };
+  }, [user]);
+
+  // Convert ClassWithRelations to Class interface for FilterService
+  const convertToClass = useCallback((classWithRelations: ClassWithRelations): Class => {
+    return {
+      id: classWithRelations.id,
+      user_id: classWithRelations.user_id || user?.id || '',
+      name: classWithRelations.name,
+      istaskclass: classWithRelations.isTaskClass,
+      created_at: classWithRelations.created_at || new Date().toISOString(),
+      updated_at: classWithRelations.updated_at
+    };
+  }, [user]);
+
+  // New advanced filtering with FilterService
   useEffect(() => {
-    let filtered = [...tasks];
-    const today = new Date();
-    const todayStr = formatDateForInput(today);
-    const weekFromToday = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const weekFromTodayStr = formatDateForInput(weekFromToday);
-
-    // Apply filters
-    switch (filterType) {
-      case 'pending':
-        filtered = filtered.filter(task => !task.completed);
-        break;
-      case 'completed':
-        filtered = filtered.filter(task => task.completed);
-        break;
-      case 'overdue':
-        filtered = filtered.filter(task => {
-          if (task.completed) return false;
-          const dueDate = task.dueDate || task.date;
-          return dueDate && dueDate < todayStr;
-        });
-        break;
-      case 'today':
-        filtered = filtered.filter(task => {
-          const dueDate = task.dueDate || task.date;
-          return dueDate === todayStr;
-        });
-        break;
-      case 'thisWeek':
-        filtered = filtered.filter(task => {
-          const dueDate = task.dueDate || task.date;
-          return dueDate && dueDate >= todayStr && dueDate <= weekFromTodayStr;
-        });
-        break;
-      default:
-        // 'all' - no additional filtering
-        break;
+    if (tasks.length === 0) {
+      setFilteredTasks([]);
+      setSearchResults([]);
+      return;
     }
 
-    // Apply search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(task =>
-        task.title?.toLowerCase().includes(query) ||
-        classes.find(c => c.id === task.class)?.name?.toLowerCase().includes(query) ||
-        taskTypes.find(t => t.id === task.type)?.name?.toLowerCase().includes(query)
-      );
-    }
+    try {
+      // Convert data to FilterService compatible format
+      const convertedTasks = tasks.map(convertToTask);
+      const convertedClasses = classes.map(convertToClass);
 
-    // Apply class filter
-    if (selectedClass !== 'all') {
-      filtered = filtered.filter(task => task.class === selectedClass);
-    }
+      // Apply filtering using FilterService
+      let filteredResults: TaskWithMeta[] = [];
 
-    // Apply task type filter
-    if (selectedTaskType !== 'all') {
-      filtered = filtered.filter(task => task.type === selectedTaskType);
-    }
+      if (filterCriteria.searchText && filterCriteria.searchText.trim()) {
+        // Use full-text search with relevance scoring
+        const searchResults = FilterService.searchTasks(
+          convertedTasks,
+          filterCriteria.searchText,
+          convertedClasses,
+          taskTypes
+        );
+        
+        // Apply additional filters to search results
+        const additionalCriteria = { ...filterCriteria };
+        delete additionalCriteria.searchText; // Remove search text from additional filtering
+        
+        const filteredSearchTasks = FilterService.filterTasks(
+          searchResults.map(result => result.task),
+          additionalCriteria,
+          convertedClasses,
+          taskTypes
+        );
 
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let compareValue = 0;
-      
-      switch (sortType) {
-        case 'dueDate': {
-          const aDate = a.dueDate || a.date || '';
-          const bDate = b.dueDate || b.date || '';
-          compareValue = aDate.localeCompare(bDate);
-          break;
-        }
-        case 'created': {
-          const aCreated = a.created_at || '';
-          const bCreated = b.created_at || '';
-          compareValue = aCreated.localeCompare(bCreated);
-          break;
-        }
-        case 'title':
-          compareValue = (a.title || '').localeCompare(b.title || '');
-          break;
-        case 'class': {
-          const aClassName = classes.find(c => c.id === a.class)?.name || '';
-          const bClassName = classes.find(c => c.id === b.class)?.name || '';
-          compareValue = aClassName.localeCompare(bClassName);
-          break;
-        }
-        default:
-          compareValue = 0;
+        // Map back to TaskWithMeta and maintain relevance order
+        filteredResults = searchResults
+          .filter(result => filteredSearchTasks.some(task => task.id === result.task.id))
+          .map(result => tasks.find(task => task.id === result.task.id)!)
+          .filter(Boolean);
+
+        setSearchResults(searchResults);
+      } else {
+        // Standard filtering without search
+        const filtered = FilterService.filterTasks(
+          convertedTasks,
+          filterCriteria,
+          convertedClasses,
+          taskTypes
+        );
+
+        // Map back to TaskWithMeta
+        filteredResults = filtered
+          .map(task => tasks.find(t => t.id === task.id)!)
+          .filter(Boolean);
+
+        setSearchResults([]);
       }
-      
-      return sortOrder === 'asc' ? compareValue : -compareValue;
-    });
 
-    setFilteredTasks(filtered);
-  }, [tasks, filterType, sortType, sortOrder, searchQuery, selectedClass, selectedTaskType, classes, taskTypes]);
+      // Apply legacy sorting (keep existing sorting logic)
+      filteredResults.sort((a, b) => {
+        let compareValue = 0;
+        
+        switch (sortType) {
+          case 'dueDate': {
+            const aDate = a.dueDate || a.date || '';
+            const bDate = b.dueDate || b.date || '';
+            compareValue = aDate.localeCompare(bDate);
+            break;
+          }
+          case 'created': {
+            const aCreated = a.created_at || '';
+            const bCreated = b.created_at || '';
+            compareValue = aCreated.localeCompare(bCreated);
+            break;
+          }
+          case 'title':
+            compareValue = (a.title || '').localeCompare(b.title || '');
+            break;
+          case 'class': {
+            const aClassName = classes.find(c => c.id === a.class)?.name || '';
+            const bClassName = classes.find(c => c.id === b.class)?.name || '';
+            compareValue = aClassName.localeCompare(bClassName);
+            break;
+          }
+          default:
+            compareValue = 0;
+        }
+        
+        return sortOrder === 'asc' ? compareValue : -compareValue;
+      });
+
+      setFilteredTasks(filteredResults);
+    } catch (error) {
+      logger.error('Error applying advanced filters', error);
+      // Fallback to unfiltered tasks
+      setFilteredTasks([...tasks]);
+    }
+  }, [tasks, filterCriteria, sortType, sortOrder, classes, taskTypes, convertToTask, convertToClass]);
+
+  // Handle filter changes from TaskFilter component
+  const handleFilterChange = useCallback((criteria: FilterCriteria) => {
+    setFilterCriteria(criteria);
+  }, []);
 
   // Validate auth state
   const authState = validateAuthState(user, isAuthenticated, loading);
@@ -394,66 +447,18 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
         </button>
       </div>
 
-      {/* Filters and Search */}
+      {/* Advanced Filtering and Search */}
+      <TaskFilter
+        onFilterChange={handleFilterChange}
+        classes={classes.map(convertToClass)}
+        taskTypes={taskTypes}
+        initialCriteria={filterCriteria}
+        taskCount={tasks.length}
+        filteredCount={filteredTasks.length}
+      />
+
+      {/* Sort Controls */}
       <div className="bg-gray-50 dark:bg-slate-700/50 backdrop-blur-sm rounded-lg p-4 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {/* Search */}
-          <div>
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation bg-white dark:bg-slate-700/50 backdrop-blur-sm text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-400"
-            />
-          </div>
-
-          {/* Filter Type */}
-          <div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as FilterType)}
-              className="w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation bg-white dark:bg-slate-700/50 backdrop-blur-sm text-gray-900 dark:text-slate-100"
-            >
-              <option value="all">All Tasks</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="overdue">Overdue</option>
-              <option value="today">Due Today</option>
-              <option value="thisWeek">This Week</option>
-            </select>
-          </div>
-
-          {/* Class Filter */}
-          <div>
-            <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation bg-white dark:bg-slate-700/50 backdrop-blur-sm text-gray-900 dark:text-slate-100"
-            >
-              <option value="all">All Classes</option>
-              {classes.map(cls => (
-                <option key={cls.id} value={cls.id}>{cls.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Task Type Filter */}
-          <div>
-            <select
-              value={selectedTaskType}
-              onChange={(e) => setSelectedTaskType(e.target.value)}
-              className="w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation bg-white dark:bg-slate-700/50 backdrop-blur-sm text-gray-900 dark:text-slate-100"
-            >
-              <option value="all">All Types</option>
-              {taskTypes.map(type => (
-                <option key={type.id} value={type.id}>{type.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Sort Controls */}
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600 dark:text-slate-400">Sort by:</span>
@@ -479,6 +484,13 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
                 d={sortOrder === 'asc' ? "M8 9l4-4 4 4m0 6l-4 4-4-4" : "M16 15l-4 4-4-4m0-6l4-4 4 4"} />
             </svg>
           </button>
+
+          {/* Search Results Info */}
+          {searchResults.length > 0 && (
+            <div className="text-sm text-gray-500 dark:text-slate-400 ml-auto">
+              Results sorted by relevance
+            </div>
+          )}
         </div>
       </div>
 

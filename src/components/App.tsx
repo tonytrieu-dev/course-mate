@@ -5,6 +5,7 @@ import { SimpleThemeProvider } from "../contexts/ThemeContext";
 import { features } from "../utils/buildConfig";
 import ErrorBoundary from "./ErrorBoundary";
 import { getSettingsWithSync, updateNavigationOrder, updateSelectedView } from "../services/settings/settingsOperations";
+import { SyllabusSecurityService } from "../services/syllabusSecurityService";
 import {
   SidebarLoadingFallback,
   CalendarLoadingFallback,
@@ -80,7 +81,7 @@ const CalendarApp: React.FC = () => {
   const [isReorderMode, setIsReorderMode] = useState<boolean>(false);
   const [reorderTimer, setReorderTimer] = useState<NodeJS.Timeout | null>(null);
   const [settingsLoaded, setSettingsLoaded] = useState<boolean>(false);
-  const { user, isAuthenticated, logout, loading } = useAuth();
+  const { user, isAuthenticated, logout, loading, setLastCalendarSyncTimestamp } = useAuth();
 
   // Default navigation items
   const defaultNavItems: NavigationItem[] = [
@@ -92,6 +93,13 @@ const CalendarApp: React.FC = () => {
 
   // Navigation items state - will be populated from settings
   const [navigationItems, setNavigationItems] = useState<NavigationItem[]>(defaultNavItems);
+
+  // Task refresh callback - triggers refresh of all task-related views
+  const refreshTasks = useCallback(() => {
+    // Trigger auth context to reload data by updating the timestamp
+    // This will cause all components that depend on lastCalendarSyncTimestamp to refresh
+    setLastCalendarSyncTimestamp(Date.now());
+  }, [setLastCalendarSyncTimestamp]);
 
   // Save navigation order with cross-device sync
   const saveNavigationOrder = useCallback(async (items: NavigationItem[]) => {
@@ -109,6 +117,15 @@ const CalendarApp: React.FC = () => {
     
     const loadSettings = async () => {
       try {
+        // Initialize secure storage bucket for syllabus uploads
+        if (user) {
+          try {
+            await SyllabusSecurityService.initializeBucketSecurity();
+          } catch (error) {
+            console.warn('Failed to initialize secure bucket (will try again later):', error);
+          }
+        }
+
         const settings = await getSettingsWithSync(user?.id);
         
         // Apply navigation order if available
@@ -158,7 +175,6 @@ const CalendarApp: React.FC = () => {
 
   // iOS-style reorder mode activation
   const enterReorderMode = useCallback(() => {
-    console.log('Entering reorder mode'); // Debug log to track when this is called
     setIsReorderMode(true);
     // Auto-exit reorder mode after 10 seconds of inactivity
     if (reorderTimer) clearTimeout(reorderTimer);
@@ -353,6 +369,7 @@ const CalendarApp: React.FC = () => {
               <Sidebar 
                 isNavCollapsed={isNavCollapsed}
                 setIsNavCollapsed={setIsNavCollapsed}
+                onTasksRefresh={refreshTasks}
               />
             </Suspense>
           </ErrorBoundary>
@@ -369,6 +386,7 @@ const CalendarApp: React.FC = () => {
             <Sidebar 
               isNavCollapsed={isNavCollapsed}
               setIsNavCollapsed={setIsNavCollapsed}
+              onTasksRefresh={refreshTasks}
             />
           </Suspense>
         </ErrorBoundary>

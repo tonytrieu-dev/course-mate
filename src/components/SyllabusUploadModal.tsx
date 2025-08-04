@@ -143,8 +143,19 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
       setCurrentStep('generate');
       setGeneration({ isGenerating: true, tasksGenerated: 0, averageConfidence: 0, warnings: [], isComplete: false });
 
-      // Read file content for task generation
-      const fileText = await selectedFile.text();
+      // Use extracted text from the upload result (already processed by embed-file function)
+      const fileText = uploadedSyllabus.extractedText;
+      
+      // Validate that text was successfully extracted
+      if (!fileText || fileText.length < 50) {
+        throw new Error('Failed to extract text from PDF. The file may be corrupted or contain no readable text.');
+      }
+      
+      logger.info('Using extracted text for task generation', {
+        fileName: selectedFile.name,
+        textLength: fileText.length
+      });
+      
       setUploadProgress(60);
 
       // Generate tasks using AI
@@ -185,13 +196,48 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
       });
 
     } catch (error) {
-      logger.error('Syllabus upload and task generation failed', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      logger.error('Syllabus upload and task generation failed', {
+        error: errorMessage,
+        fileName: selectedFile.name,
+        classId,
+        currentStep,
+        uploadProgress
+      });
+      
+      // Reset states
       setCurrentStep('select');
+      setUploadProgress(0);
+      setGeneration({ 
+        isGenerating: false, 
+        tasksGenerated: 0, 
+        averageConfidence: 0, 
+        warnings: [], 
+        isComplete: false 
+      });
+      
+      // Provide specific error messages based on error type
+      let userFriendlyError = 'Upload failed: ';
+      
+      if (errorMessage.includes('Failed to extract text')) {
+        userFriendlyError += 'Could not read the PDF file. Please ensure it contains readable text and try again.';
+      } else if (errorMessage.includes('Gemini API')) {
+        userFriendlyError += 'AI task generation temporarily unavailable. Please try again later.';
+      } else if (errorMessage.includes('authentication') || errorMessage.includes('unauthorized')) {
+        userFriendlyError += 'Authentication error. Please refresh the page and try again.';
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+        userFriendlyError += 'Network error. Please check your connection and try again.';
+      } else if (errorMessage.includes('rate limit')) {
+        userFriendlyError += 'Too many requests. Please wait a moment and try again.';
+      } else {
+        userFriendlyError += errorMessage;
+      }
+      
       setValidation({
         ...validation,
-        errors: [...validation.errors, 'Upload failed: ' + (error instanceof Error ? error.message : String(error))]
+        errors: [...validation.errors, userFriendlyError]
       });
-      setUploadProgress(0);
     }
   }, [selectedFile, user, validation.isValid, classId, className, onTasksGenerated]);
 
@@ -218,8 +264,8 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10010] p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative z-[10011]">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-xl">
           <div className="flex justify-between items-center">
@@ -239,7 +285,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
 
         {/* Progress Indicator */}
         <div className="px-6 py-4 border-b">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-slate-300 mb-2">
             <span className={currentStep === 'select' ? 'text-blue-600 font-medium' : ''}>
               1. Select File
             </span>
@@ -258,7 +304,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
           </div>
           
           {uploadProgress > 0 && (
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-2">
               <div
                 className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
@@ -273,11 +319,11 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
           {currentStep === 'select' && (
             <div className="text-center">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-blue-500 transition-colors">
-                <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Upload PDF Syllabus</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">Upload PDF Syllabus</h3>
+                <p className="text-gray-600 dark:text-slate-300 mb-4">
                   Select a PDF syllabus file to automatically extract assignments, exams, and due dates
                 </p>
                 <input
@@ -294,7 +340,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
                 >
                   Choose PDF File
                 </label>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-2">
                   Maximum file size: 10MB • PDF format only
                 </p>
               </div>
@@ -316,20 +362,20 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 )}
-                <h3 className="text-lg font-medium">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">
                   {validation.isValidating ? 'Validating file...' : validation.isValid ? 'File validated successfully' : 'Validation failed'}
                 </h3>
               </div>
 
               {selectedFile && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 mb-4">
                   <div className="flex items-center">
                     <svg className="h-8 w-8 text-red-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                     </svg>
                     <div>
                       <p className="font-medium">{selectedFile.name}</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-slate-300">
                         {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
@@ -365,7 +411,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
               <div className="flex space-x-3">
                 <button
                   onClick={handleStartOver}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-slate-100 transition-colors"
                 >
                   Choose Different File
                 </button>
@@ -389,7 +435,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">Uploading syllabus...</h3>
-              <p className="text-gray-600">Securely uploading your file to our protected storage</p>
+              <p className="text-gray-600 dark:text-slate-300">Securely uploading your file to our protected storage</p>
             </div>
           )}
 
@@ -402,37 +448,40 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
                 </svg>
               </div>
               <h3 className="text-lg font-medium mb-2">Generating tasks with AI...</h3>
-              <p className="text-gray-600">Analyzing syllabus content and extracting assignments, exams, and due dates</p>
+              <p className="text-gray-600 dark:text-slate-300">Analyzing syllabus content and extracting assignments, exams, and due dates</p>
             </div>
           )}
 
           {/* Step 5: Complete */}
           {currentStep === 'complete' && (
             <div className="text-center">
-              <svg className="h-16 w-16 text-green-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-20 w-20 text-green-600 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <h3 className="text-2xl font-bold text-green-600 mb-2">Tasks Generated Successfully!</h3>
+              <h3 className="text-3xl font-bold text-green-600 mb-3">🎉 Tasks Generated Successfully!</h3>
+              <p className="text-lg text-gray-700 dark:text-slate-300 mb-6">
+                Your syllabus has been processed and {generation.tasksGenerated} new tasks have been added to your calendar and task list.
+              </p>
               
-              <div className="bg-green-50 rounded-lg p-6 mb-6">
-                <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl p-6 mb-6 border border-green-200 dark:border-green-700/50">
+                <div className="grid grid-cols-2 gap-6 text-center">
                   <div>
-                    <div className="text-3xl font-bold text-green-600">{generation.tasksGenerated}</div>
-                    <div className="text-sm text-gray-600">Tasks Created</div>
+                    <div className="text-4xl font-bold text-green-600 mb-1">{generation.tasksGenerated}</div>
+                    <div className="text-sm font-medium text-gray-600 dark:text-slate-300">Tasks Created</div>
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-green-600">
+                    <div className="text-4xl font-bold text-blue-600 mb-1">
                       {Math.round(generation.averageConfidence * 100)}%
                     </div>
-                    <div className="text-sm text-gray-600">Avg Confidence</div>
+                    <div className="text-sm font-medium text-gray-600 dark:text-slate-300">AI Confidence</div>
                   </div>
                 </div>
               </div>
 
               {generation.warnings.length > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-left">
-                  <h4 className="text-yellow-800 font-medium mb-2">Processing Notes:</h4>
-                  <ul className="text-yellow-700 text-sm space-y-1">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-4 mb-6 text-left">
+                  <h4 className="text-yellow-800 dark:text-yellow-200 font-medium mb-2">Processing Notes:</h4>
+                  <ul className="text-yellow-700 dark:text-yellow-300 text-sm space-y-1">
                     {generation.warnings.map((warning, index) => (
                       <li key={index}>• {warning}</li>
                     ))}
@@ -440,18 +489,25 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
                 </div>
               )}
 
-              <div className="flex space-x-3 justify-center">
-                <button
-                  onClick={handleStartOver}
-                  className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  Upload Another Syllabus
-                </button>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-200 dark:border-blue-700/50">
+                <p className="text-blue-800 dark:text-blue-200 text-sm">
+                  ✅ Your tasks are now available in the Calendar and Tasks views. 
+                  They've been automatically refreshed to show your new assignments.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={handleClose}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-green-700 transition-all duration-200 font-semibold text-lg shadow-lg"
                 >
-                  View Tasks
+                  View My New Tasks
+                </button>
+                <button
+                  onClick={handleStartOver}
+                  className="px-6 py-3 text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-slate-100 transition-colors border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
+                >
+                  Upload Another Syllabus
                 </button>
               </div>
             </div>

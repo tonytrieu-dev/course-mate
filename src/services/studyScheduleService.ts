@@ -235,7 +235,7 @@ export class StudyScheduleService {
     // Calculate workload metrics for each class
     const classWorkloads: ClassWorkload[] = [];
     
-    for (const [classId, data] of classWorkloadMap) {
+    for (const [classId, data] of Array.from(classWorkloadMap.entries())) {
       const { tasks: classTasks, class: classInfo } = data;
       
       // Calculate estimated hours using AI or heuristics
@@ -245,12 +245,12 @@ export class StudyScheduleService {
       const now = new Date();
       const sevenDaysFromNow = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
       const criticalDeadlines = classTasks
-        .filter(task => {
+        .filter((task: any) => {
           if (!task.dueDate) return false;
           const dueDate = new Date(task.dueDate);
           return dueDate >= now && dueDate <= sevenDaysFromNow;
         })
-        .map(task => new Date(task.dueDate!));
+        .map((task: any) => new Date(task.dueDate!));
       
       // Calculate priority score based on deadlines and difficulty
       const priorityScore = this.calculatePriorityScore(classTasks);
@@ -302,7 +302,7 @@ export class StudyScheduleService {
         type: task.type,
         dueDate: task.dueDate,
         class: task.class,
-        description: task.description?.substring(0, 200) // Limit description length
+        description: (task as any).description?.substring(0, 200) // Limit description length
       }));
       
       const prompt = `
@@ -644,8 +644,8 @@ Respond only with valid JSON, no additional text.`;
     // Simple heuristic-based hour estimation
     return tasks.reduce((total, task) => {
       const baseHours = this.getBaseHoursForTaskType(task.type || 'assignment');
-      const complexityMultiplier = task.description?.length ? 
-        Math.min(2, 1 + (task.description.length / 1000)) : 1;
+      const complexityMultiplier = (task as any).description?.length ? 
+        Math.min(2, 1 + ((task as any).description.length / 1000)) : 1;
       return total + (baseHours * complexityMultiplier);
     }, 0);
   }

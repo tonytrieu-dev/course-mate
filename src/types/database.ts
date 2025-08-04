@@ -69,6 +69,7 @@ export interface ClassWithRelations extends Omit<Class, 'istaskclass'> {
 // Extended Task interface with calendar-specific properties
 export interface TaskWithMeta extends Task {
   // Additional calendar-specific properties
+  description?: string;
   class?: string;
   isDuration?: boolean;
   startTime?: string;

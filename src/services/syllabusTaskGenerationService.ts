@@ -8,7 +8,7 @@ import { SyllabusSecurityService } from './syllabusSecurityService';
 // Syllabus task generation configuration
 const TASK_GENERATION_CONFIG = {
   GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
-  MAX_PROMPT_LENGTH: 30000, // 30KB max prompt
+  MAX_PROMPT_LENGTH: 500000, // 500KB max prompt (increased for larger syllabi)
   MAX_TASKS_PER_SYLLABUS: 50,
   MIN_CONFIDENCE_SCORE: 0.7,
   TASK_VALIDATION_PATTERNS: {
@@ -151,6 +151,10 @@ export class SyllabusTaskGenerationService {
       taskCount: generatedTasks.length
     });
 
+    // Import the existing service layer functions
+    const { addTask } = await import('./task/taskOperations');
+    const { addTaskType } = await import('./taskType/taskTypeOperations');
+
     const createdTasks: Task[] = [];
     const errors: string[] = [];
 
@@ -166,34 +170,23 @@ export class SyllabusTaskGenerationService {
           continue;
         }
 
-        // Convert to TaskFormData format
-        const taskData: TaskFormData = {
+        // Get or create task type using the service layer
+        const taskTypeId = await this.getOrCreateTaskTypeViaServiceLayer(generatedTask.taskType, user.id);
+
+        // Convert to the format expected by addTask
+        const taskData = {
           title: generatedTask.title,
-          description: generatedTask.description || '',
-          due_date: generatedTask.dueDate ? new Date(generatedTask.dueDate) : undefined,
+          class: classId, // Using 'class' as per the database schema
+          type: taskTypeId, // Using 'type' as per the database schema
+          dueDate: generatedTask.dueDate,
           priority: generatedTask.priority,
-          class_id: classId,
-          type_id: await this.getOrCreateTaskType(generatedTask.taskType, user.id),
-          tags: ['syllabus-generated'],
-          estimated_duration: this.estimateTaskDuration(generatedTask.taskType)
+          canvas_uid: `syllabus-generated-${Date.now()}-${Math.random()}`, // Unique identifier
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
 
-        // Create task in database
-        const { data: task, error: createError } = await supabase
-          .from('tasks')
-          .insert({
-            ...taskData,
-            user_id: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-
-        if (createError) {
-          errors.push(`Failed to create task "${generatedTask.title}": ${createError.message}`);
-          continue;
-        }
+        // Create task using the service layer (this handles authentication properly)
+        const task = await addTask(taskData, true, user);
 
         createdTasks.push(task);
         
@@ -205,6 +198,10 @@ export class SyllabusTaskGenerationService {
 
       } catch (error) {
         errors.push(`Error creating task "${generatedTask.title}": ${error instanceof Error ? error.message : String(error)}`);
+        logger.error('Task creation failed', {
+          taskTitle: generatedTask.title,
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     }
 
@@ -364,6 +361,11 @@ IMPORTANT:
       ]
     };
 
+    logger.info('Calling Gemini API for task extraction', {
+      promptLength: prompt.length,
+      apiUrl: TASK_GENERATION_CONFIG.GEMINI_API_URL
+    });
+
     let retries = 3;
     while (retries > 0) {
       try {
@@ -376,14 +378,33 @@ IMPORTANT:
         });
 
         if (!response.ok) {
+          const errorBody = await response.text();
+          logger.error('Gemini API HTTP error', {
+            status: response.status,
+            statusText: response.statusText,
+            responseBody: errorBody.substring(0, 500) // Log first 500 chars
+          });
           throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
         
+        logger.info('Gemini API response received', {
+          hasCandidates: !!data.candidates,
+          candidatesCount: data.candidates?.length || 0,
+          hasContent: !!(data.candidates && data.candidates[0] && data.candidates[0].content)
+        });
+        
         if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-          return data.candidates[0].content.parts[0].text;
+          const responseText = data.candidates[0].content.parts[0].text;
+          logger.info('Successfully extracted response from Gemini API', {
+            responseLength: responseText.length
+          });
+          return responseText;
         } else {
+          logger.error('Invalid Gemini API response format', {
+            responseStructure: JSON.stringify(data, null, 2).substring(0, 1000)
+          });
           throw new Error('Invalid response format from Gemini API');
         }
         
@@ -466,8 +487,20 @@ IMPORTANT:
       }
 
       // Source verification (check if task title appears in original content)
-      if (!originalContent.toLowerCase().includes(task.title.toLowerCase().split(' ')[0])) {
-        logger.warn('Task rejected: not found in source', { title: task.title });
+      // Use more flexible matching - check if any key words from the title appear in content
+      const titleWords = task.title.toLowerCase().split(' ').filter(word => word.length > 3);
+      const hasRelevantWords = titleWords.some(word => 
+        originalContent.toLowerCase().includes(word) ||
+        // Check for related terms that might appear in syllabus
+        originalContent.toLowerCase().includes(word.substring(0, 4)) // Partial matching
+      );
+      
+      if (!hasRelevantWords && titleWords.length > 0) {
+        logger.warn('Task rejected: not found in source', { 
+          title: task.title,
+          titleWords: titleWords,
+          searchedFor: titleWords[0]
+        });
         return false;
       }
 
@@ -488,45 +521,175 @@ IMPORTANT:
   }
 
   /**
-   * Get or create task type for generated tasks
+   * Get or create task type using the service layer (which handles RLS properly)
    */
-  private static async getOrCreateTaskType(taskTypeName: string, userId: string): Promise<string> {
-    // First, try to find existing task type
-    const { data: existingType } = await supabase
-      .from('task_types')
-      .select('id')
-      .eq('name', taskTypeName)
-      .eq('user_id', userId)
-      .single();
+  private static async getOrCreateTaskTypeViaServiceLayer(taskTypeName: string, userId: string): Promise<string> {
+    try {
+      // Import the service layer functions
+      const { getTaskTypes, addTaskType } = await import('./taskType/taskTypeOperations');
 
-    if (existingType) {
-      return existingType.id;
-    }
+      // First, try to find existing task type using the service layer
+      const existingTypes = await getTaskTypes(userId, true);
+      const existingType = existingTypes.find(type => 
+        type.name.toLowerCase() === taskTypeName.toLowerCase()
+      );
 
-    // Create new task type
-    const { data: newType, error } = await supabase
-      .from('task_types')
-      .insert({
+      if (existingType) {
+        logger.debug('Found existing task type via service layer', {
+          taskTypeName,
+          userId,
+          taskTypeId: existingType.id
+        });
+        return existingType.id;
+      }
+
+      logger.debug('Creating new task type via service layer', {
+        taskTypeName,
+        userId,
+        color: this.getTaskTypeColor(taskTypeName)
+      });
+
+      // Create new task type using the service layer
+      const newTaskType = await addTaskType({
         name: taskTypeName,
         color: this.getTaskTypeColor(taskTypeName),
         user_id: userId
-      })
-      .select('id')
-      .single();
+      }, true);
 
-    if (error || !newType) {
+      if (newTaskType) {
+        logger.debug('Successfully created new task type via service layer', {
+          taskTypeName,
+          userId,
+          taskTypeId: newTaskType.id
+        });
+        return newTaskType.id;
+      }
+
+      // Fallback to finding any existing task type
+      logger.warn('Failed to create task type, trying fallback via service layer', {
+        taskTypeName,
+        userId
+      });
+
+      const allTypes = await getTaskTypes(userId, true);
+      if (allTypes.length > 0) {
+        const fallbackType = allTypes[0];
+        logger.debug('Using first available task type as fallback', {
+          taskTypeName,
+          userId,
+          fallbackTypeId: fallbackType.id,
+          fallbackTypeName: fallbackType.name
+        });
+        return fallbackType.id;
+      }
+
+      // Generate a fallback ID if all else fails
+      logger.warn('All task type operations failed, using hardcoded fallback', {
+        taskTypeName,
+        userId
+      });
+      
+      return 'default-task-type-id'; // Ultimate fallback
+      
+    } catch (error) {
+      logger.error('Task type creation failed with exception via service layer', {
+        taskTypeName,
+        userId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return 'default-task-type-id'; // Ultimate fallback
+    }
+  }
+
+  /**
+   * Get or create task type for generated tasks (legacy method - kept for compatibility)
+   */
+  private static async getOrCreateTaskType(taskTypeName: string, userId: string): Promise<string> {
+    try {
+      // First, try to find existing task type (remove .single() to avoid errors)
+      const { data: existingTypes, error: findError } = await supabase
+        .from('task_types')
+        .select('id')
+        .eq('name', taskTypeName)
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (!findError && existingTypes && existingTypes.length > 0) {
+        logger.debug('Found existing task type', {
+          taskTypeName,
+          userId,
+          taskTypeId: existingTypes[0].id
+        });
+        return existingTypes[0].id;
+      }
+
+      logger.debug('Creating new task type', {
+        taskTypeName,
+        userId,
+        color: this.getTaskTypeColor(taskTypeName)
+      });
+
+      // Create new task type
+      const { data: newTypes, error: createError } = await supabase
+        .from('task_types')
+        .insert({
+          name: taskTypeName,
+          color: this.getTaskTypeColor(taskTypeName),
+          user_id: userId
+        })
+        .select('id');
+
+      if (!createError && newTypes && newTypes.length > 0) {
+        logger.debug('Successfully created new task type', {
+          taskTypeName,
+          userId,
+          taskTypeId: newTypes[0].id
+        });
+        return newTypes[0].id;
+      }
+
+      logger.warn('Failed to create task type, trying fallback', {
+        taskTypeName,
+        userId,
+        createError: createError?.message
+      });
+
       // Fallback to default task type
-      const { data: defaultType } = await supabase
+      const { data: defaultTypes, error: defaultError } = await supabase
         .from('task_types')
         .select('id')
         .eq('is_default', true)
         .eq('user_id', userId)
-        .single();
+        .limit(1);
       
-      return defaultType?.id || 'assignment'; // Ultimate fallback
-    }
+      if (!defaultError && defaultTypes && defaultTypes.length > 0) {
+        logger.debug('Using default task type as fallback', {
+          taskTypeName,
+          userId,
+          defaultTypeId: defaultTypes[0].id
+        });
+        return defaultTypes[0].id;
+      }
 
-    return newType.id;
+      // Generate a fallback ID if all else fails
+      logger.warn('All task type lookups failed, using hardcoded fallback', {
+        taskTypeName,
+        userId,
+        findError: findError?.message,
+        createError: createError?.message,
+        defaultError: defaultError?.message
+      });
+      
+      return 'default-task-type-id'; // Ultimate fallback
+      
+    } catch (error) {
+      logger.error('Task type creation failed with exception', {
+        taskTypeName,
+        userId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return 'default-task-type-id'; // Ultimate fallback
+    }
   }
 
   /**

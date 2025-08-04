@@ -222,10 +222,10 @@ export class StudySessionService {
 
       existing.totalTime += session.duration_minutes || 0;
       existing.sessionCount += 1;
-      if (session.effectiveness_rating !== null) {
+      if (session.effectiveness_rating !== null && session.effectiveness_rating !== undefined) {
         existing.effectivenessRatings.push(session.effectiveness_rating);
       }
-      if (session.retention_test_score !== null) {
+      if (session.retention_test_score !== null && session.retention_test_score !== undefined) {
         existing.retentionScores.push(session.retention_test_score);
       }
       if (new Date(session.start_time) > new Date(existing.lastStudied)) {
@@ -278,7 +278,7 @@ export class StudySessionService {
       const existing = weeklyData.get(weekKey) || { totalMinutes: 0, sessionCount: 0, effectivenessRatings: [] };
       existing.totalMinutes += session.duration_minutes || 0;
       existing.sessionCount += 1;
-      if (session.effectiveness_rating !== null) {
+      if (session.effectiveness_rating !== null && session.effectiveness_rating !== undefined) {
         existing.effectivenessRatings.push(session.effectiveness_rating);
       }
 

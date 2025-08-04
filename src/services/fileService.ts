@@ -32,8 +32,12 @@ interface ClassFilesData {
   files: ClassFile[];
 }
 
+interface SyllabusUploadResult extends ClassSyllabus {
+  extractedText: string;
+}
+
 export const fileService = {
-  async uploadSyllabus(file: File, classData: ClassData): Promise<ClassSyllabus> {
+  async uploadSyllabus(file: File, classData: ClassData): Promise<SyllabusUploadResult> {
     logger.debug('Syllabus upload started', {
       fileName: file?.name,
       fileSize: file?.size,
@@ -151,8 +155,7 @@ export const fileService = {
         cacheControl: "3600",
         upsert: true,
         contentType: file.type || 'application/pdf',
-        // @ts-ignore - Supabase types don't include fileMetadata
-        fileMetadata: { owner: user.id },
+        metadata: { owner: user.id },
       });
 
     if (error) {
@@ -191,12 +194,21 @@ export const fileService = {
       });
     }
 
-    // Delete existing syllabus if any
-    if (classData.syllabus?.path) {
-      await supabase
-        .from("class_syllabi")
-        .delete()
-        .eq("class_id", classData.id);
+    // Delete existing syllabus if any (always check, regardless of classData.syllabus)
+    const { error: deleteError } = await supabase
+      .from("class_syllabi")
+      .delete()
+      .eq("class_id", classData.id);
+    
+    if (deleteError) {
+      logger.debug('No existing syllabus to delete or delete failed', {
+        classId: classData.id,
+        error: deleteError.message
+      });
+    } else {
+      logger.debug('Existing syllabus deleted successfully', {
+        classId: classData.id
+      });
     }
 
     // Insert new syllabus record
@@ -214,31 +226,20 @@ export const fileService = {
       .single();
 
     if (insertError) {
-      console.error('Syllabus database insert failed:', {
-        error: insertError,
-        errorCode: insertError.code,
-        errorMessage: insertError.message,
-        errorDetails: insertError.details,
-        errorHint: insertError.hint,
-        insertData: {
-          class_id: classData.id,
-          name: file.name,
-          path: fileName,
-          type: file.type,
-          size: file.size,
-          owner: user.id,
-        },
-        file: {
-          name: file.name,
-          size: file.size,
-          type: file.type
-        },
-        classData: {
-          id: classData.id,
-          name: classData.name
-        },
-        user: user?.id,
-        fileName: fileName
+      console.error('Syllabus database insert failed:', insertError);
+      console.error('Insert error details:', {
+        code: insertError.code,
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint
+      });
+      console.error('Attempted insert data:', {
+        class_id: classData.id,
+        name: file.name,
+        path: fileName,
+        type: file.type,
+        size: file.size,
+        owner: user.id,
       });
       
       throw errorHandler.data.saveFailed({
@@ -248,16 +249,233 @@ export const fileService = {
       });
     }
 
-    // Invoke embed-file function
-    const { error: functionError } = await supabase.functions.invoke('embed-file', {
-      body: { record: syllabusRecord },
-    });
+    // Call embed-file function to extract text and create embeddings
+    let extractedText = '';
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      logger.info('Calling embed-file function', {
+        fileName: file.name,
+        syllabusRecordId: syllabusRecord.id,
+        sessionExists: !!session?.access_token
+      });
+      
+      const { data: embedResult, error: functionError } = await supabase.functions.invoke('embed-file', {
+        body: { record: syllabusRecord },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
 
-    if (functionError) {
-      console.error('Error invoking embed-file function for syllabus:', functionError);
+      // Log the raw Supabase function response structure
+      logger.info('Raw Supabase function invoke response', {
+        fileName: file.name,
+        hasEmbedResult: !!embedResult,
+        embedResultType: typeof embedResult,
+        embedResultKeys: embedResult ? Object.keys(embedResult) : 'none',
+        embedResultKeysDetailed: embedResult ? Object.keys(embedResult).map(key => ({
+          key,
+          type: typeof embedResult[key],
+          hasValue: !!embedResult[key],
+          isString: typeof embedResult[key] === 'string',
+          length: typeof embedResult[key] === 'string' ? embedResult[key].length : 'N/A'
+        })) : 'none',
+        hasFunctionError: !!functionError,
+        functionErrorType: typeof functionError
+      });
+
+      // Debug: Log the raw response with full structure
+      logger.info('Embed-file function raw response', {
+        fileName: file.name,
+        hasData: !!embedResult,
+        hasError: !!functionError,
+        errorMessage: functionError?.message,
+        dataType: typeof embedResult,
+        dataKeys: embedResult ? Object.keys(embedResult) : 'none',
+        fullResponse: embedResult, // Log the complete response structure
+        extractedTextDirect: embedResult?.extractedText,
+        extractedTextLength: embedResult?.extractedText?.length
+      });
+
+      if (functionError) {
+        logger.warn('Embed-file function failed', {
+          error: functionError.message,
+          fileName: file.name
+        });
+      } else {
+        // Enhanced text extraction with comprehensive search
+        logger.warn('Embed-file function succeeded but extractedText not found at root level', {
+          fileName: file.name,
+          embedResult: embedResult,
+          hasExtractedText: 'extractedText' in (embedResult || {}),
+          extractedTextValue: embedResult?.extractedText,
+          extractedTextType: typeof embedResult?.extractedText,
+          extractedTextLength: embedResult?.extractedText?.length || 'N/A'
+        });
+        
+        // Log detailed edge function response analysis
+        logger.info('Edge function response analysis', {
+          fileName: file.name,
+          // Success response properties
+          hasSuccess: 'success' in embedResult,
+          successValue: embedResult.success,
+          hasMessage: 'message' in embedResult,
+          messageValue: embedResult.message,
+          hasSecurityStatus: 'securityStatus' in embedResult,
+          securityStatusValue: embedResult.securityStatus,
+          hasExtractedText: 'extractedText' in embedResult,
+          extractedTextType: typeof embedResult.extractedText,
+          extractedTextLength: embedResult.extractedText?.length,
+          hasContentLength: 'contentLength' in embedResult,
+          contentLengthValue: embedResult.contentLength,
+          hasChunksProcessed: 'chunksProcessed' in embedResult,
+          chunksProcessedValue: embedResult.chunksProcessed,
+          // Error response properties
+          hasError: 'error' in embedResult,
+          errorValue: embedResult.error,
+          hasWarnings: 'warnings' in embedResult,
+          warningsValue: embedResult.warnings,
+          hasDetails: 'details' in embedResult,
+          detailsValue: embedResult.details
+        });
+
+        // Check if this is an error response from the edge function
+        if (embedResult.error) {
+          logger.error('Edge function returned error response', {
+            fileName: file.name,
+            error: embedResult.error,
+            warnings: embedResult.warnings,
+            details: embedResult.details
+          });
+          // Continue to fallback since edge function failed
+        }
+
+        // Handle extracted text - either direct or stored reference
+        if (embedResult.extractedTextId) {
+          // Text was stored separately due to size limits - retrieve it
+          logger.info('Extracted text stored separately, retrieving', {
+            fileName: file.name,
+            extractedTextId: embedResult.extractedTextId,
+            contentLength: embedResult.contentLength
+          });
+
+          try {
+            const { data: extractionRecord, error: retrievalError } = await supabase
+              .from('document_extractions')
+              .select('extracted_text')
+              .eq('id', embedResult.extractedTextId)
+              .single();
+
+            if (retrievalError) {
+              logger.error('Failed to retrieve stored extracted text', {
+                fileName: file.name,
+                extractedTextId: embedResult.extractedTextId,
+                error: retrievalError.message
+              });
+            } else if (extractionRecord?.extracted_text) {
+              extractedText = extractionRecord.extracted_text;
+              logger.info('Successfully retrieved stored extracted text', {
+                fileName: file.name,
+                textLength: extractedText.length,
+                source: 'stored reference retrieval'
+              });
+            }
+          } catch (retrievalException) {
+            logger.error('Exception retrieving stored extracted text', {
+              fileName: file.name,
+              error: retrievalException instanceof Error ? retrievalException.message : String(retrievalException)
+            });
+          }
+        }
+
+        // If no stored reference or retrieval failed, try comprehensive search for direct text
+        if (!extractedText && embedResult && typeof embedResult === 'object') {
+          const possibleTextSources = [
+            // Direct access (expected from edge function)
+            embedResult.extractedText,
+            // Nested in common response patterns
+            embedResult.data?.extractedText,
+            embedResult.result?.extractedText,
+            embedResult.body?.extractedText,
+            embedResult.response?.extractedText,
+            // Alternative property names
+            embedResult.text,
+            embedResult.content,
+            embedResult.documentText,
+            embedResult.pdfText,
+            // Deeply nested patterns
+            embedResult.data?.text,
+            embedResult.data?.content,
+            embedResult.result?.text,
+            embedResult.result?.content
+          ];
+          
+          for (const textSource of possibleTextSources) {
+            if (textSource && typeof textSource === 'string' && textSource.length > 50) {
+              extractedText = textSource;
+              logger.info('Found extracted text in response structure', {
+                fileName: file.name,
+                textLength: extractedText.length,
+                foundAt: 'alternative location'
+              });
+              break;
+            }
+          }
+        }
+        
+        // If we found text, log success and continue
+        if (extractedText) {
+          logger.info('Document embedding and text extraction completed successfully', {
+            fileName: file.name,
+            textLength: extractedText.length,
+            chunksProcessed: embedResult?.chunksProcessed,
+            method: 'edge function with comprehensive search',
+            source: 'embed-file edge function'
+          });
+        } else {
+          // Only attempt fallback if no text was found from edge function
+          logger.warn('No text extracted from embed-file function, attempting fallback', {
+            fileName: file.name,
+            embedResult: embedResult
+          });
+          
+          // If still no text extracted, try direct PDF extraction as fallback
+          if (file.type === 'application/pdf') {
+            logger.info('Attempting direct PDF text extraction fallback', {
+              fileName: file.name
+            });
+          
+          try {
+            extractedText = await this.extractPDFTextFallback(file);
+            if (extractedText && extractedText.length > 50) {
+              logger.info('PDF text extraction completed via fallback', {
+                fileName: file.name,
+                textLength: extractedText.length,
+                source: 'local PDF extraction fallback',
+                method: 'fallback due to edge function text extraction failure'
+              });
+            }
+          } catch (fallbackError) {
+            logger.warn('Fallback PDF extraction failed', {
+              fileName: file.name,
+              error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+            });
+          }
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Embed-file function failed with exception', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        fileName: file.name
+      });
     }
 
-    return syllabusRecord;
+    // Return both the syllabus record and extracted text
+    return {
+      ...syllabusRecord,
+      extractedText: extractedText
+    };
   },
 
   async uploadClassFile(file: File, classData: ClassData): Promise<ClassFile> {
@@ -282,8 +500,7 @@ export const fileService = {
         cacheControl: "3600",
         upsert: true,
         contentType: file.type || 'application/octet-stream',
-        // @ts-ignore - Supabase types don't include fileMetadata
-        fileMetadata: { owner: user.id },
+        metadata: { owner: user.id },
       });
 
     if (error) {
@@ -534,12 +751,31 @@ export const fileService = {
       });
     }
 
+    // Determine which bucket to use based on file path
+    // Syllabus files are stored in secure-syllabi bucket, others in class-materials
+    const isSyllabusFile = filePath.includes('syllabus') || filePath.includes('Syllabus');
+    const bucketName = isSyllabusFile ? SYLLABUS_SECURITY_CONFIG.BUCKET_NAME : "class-materials";
+
+    logger.debug('Downloading file', {
+      filePath,
+      bucketName,
+      isSyllabusFile,
+      userId: userData.user.id
+    });
+
     // Get signed URL for download
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from("class-materials")
+      .from(bucketName)
       .createSignedUrl(filePath, 3600); // 1 hour expiry for download
 
     if (signedUrlError) {
+      logger.error('Failed to create signed URL for download', {
+        filePath,
+        bucketName,
+        error: signedUrlError.message,
+        userId: userData.user.id
+      });
+      
       throw errorHandler.data.loadFailed({
         operation: 'downloadFile - signed URL creation',
         originalError: signedUrlError.message
@@ -547,12 +783,79 @@ export const fileService = {
     }
 
     if (!signedUrlData?.signedUrl) {
+      logger.error('No signed URL returned for download', {
+        filePath,
+        bucketName,
+        userId: userData.user.id
+      });
+      
       throw errorHandler.data.loadFailed({
         operation: 'downloadFile - no signed URL returned',
         originalError: 'Failed to generate download URL'
       });
     }
 
+    logger.debug('Successfully created download URL', {
+      filePath,
+      bucketName,
+      userId: userData.user.id
+    });
+
     return signedUrlData.signedUrl;
+  },
+
+  /**
+   * Fallback PDF text extraction using PDF.js when Edge Function fails
+   */
+  async extractPDFTextFallback(file: File): Promise<string> {
+    const pdfjsLib = await import('pdfjs-dist');
+    
+    // Set up PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    
+    try {
+      // Convert file to array buffer
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      
+      // Load PDF document
+      const pdf = await pdfjsLib.getDocument(uint8Array).promise;
+      let fullText = '';
+      
+      // Extract text from each page
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Combine text items into a single string
+        const pageText = textContent.items
+          .filter((item: any) => item.str)
+          .map((item: any) => item.str)
+          .join(' ');
+        
+        fullText += pageText + '\n';
+      }
+      
+      // Clean up the text
+      const cleanedText = fullText
+        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+        .replace(/\n\s*\n/g, '\n') // Remove empty lines
+        .trim();
+      
+      logger.info('PDF text extraction completed via fallback', {
+        fileName: file.name,
+        totalPages: pdf.numPages,
+        extractedLength: cleanedText.length
+      });
+      
+      return cleanedText;
+      
+    } catch (error) {
+      logger.error('Fallback PDF text extraction failed', {
+        fileName: file.name,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 };
