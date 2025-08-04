@@ -287,6 +287,49 @@ body {
   background: #94a3b8;
 }
 
+/* Cross-browser scrollbar utilities for calendar day cells */
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox */
+}
+
+.scrollbar-track-transparent {
+  scrollbar-color: transparent transparent; /* Firefox */
+}
+
+.scrollbar-thumb-transparent {
+  scrollbar-color: transparent transparent; /* Firefox */
+}
+
+.scrollbar-thumb-gray-400 {
+  scrollbar-color: rgb(156 163 175) transparent; /* Firefox */
+}
+
+.dark .scrollbar-thumb-gray-500 {
+  scrollbar-color: rgb(107 114 128) transparent; /* Firefox dark mode */
+}
+
+/* WebKit browsers (Chrome, Safari, Edge, Brave) */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thumb-transparent::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.hover\:scrollbar-thumb-gray-400:hover::-webkit-scrollbar-thumb {
+  background: rgb(156 163 175);
+}
+
+.dark .hover\:scrollbar-thumb-gray-500:hover::-webkit-scrollbar-thumb {
+  background: rgb(107 114 128);
+}
+
 /* Smooth fade-in animation for dynamic elements */
 @keyframes fadeIn {
   from {
@@ -384,6 +427,60 @@ body {
 @media (prefers-color-scheme: dark) {
   .dark-mode-ready {
     color-scheme: dark;
+  }
+}
+
+/* Cross-browser compatibility utilities */
+
+/* Safari/Edge-safe backdrop-filter with fallbacks */
+.safe-backdrop-blur {
+  /* Fallback background for browsers without backdrop-filter support */
+  background-color: rgba(255, 255, 255, 0.9);
+  /* Standard backdrop-filter */
+  backdrop-filter: blur(4px);
+  /* WebKit prefix for older Safari versions */
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.dark .safe-backdrop-blur {
+  background-color: rgba(30, 41, 59, 0.9);
+}
+
+/* Safari-safe date input styling */
+input[type="date"] {
+  /* Fix for Safari appearance */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Ensure proper sizing in Safari */
+  min-width: 0;
+  /* iOS Safari font size to prevent zoom */
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  input[type="date"] {
+    /* Prevent zoom on iOS Safari */
+    font-size: 16px;
+    transform: scale(1);
+  }
+}
+
+/* Edge-specific fixes */
+@supports (-ms-ime-align: auto) or (-ms-accelerator: true) {
+  /* Edge-specific styles if needed */
+  .edge-fix {
+    /* Fix for Edge rendering issues */
+    transform: translateZ(0);
+  }
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) and (not (overflow: -webkit-marquee)) and (not (-ms-ime-align: auto)) {
+  /* Safari-only styles */
+  .safari-fix {
+    /* Fix for Safari backdrop-filter performance */
+    will-change: backdrop-filter;
   }
 }
 

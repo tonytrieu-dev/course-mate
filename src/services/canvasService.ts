@@ -21,22 +21,21 @@ export const debugICSParsing = async (icsUrl: string): Promise<{ success: boolea
   try {
     logger.debug('[debugICSParsing] Testing ICS URL:', icsUrl);
     
-    // Try to fetch using the same method as the main function
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icsUrl)}`;
+    // Try to fetch using the same method as the main function (use corsproxy.io)
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(icsUrl)}`;
     const response = await fetch(proxyUrl);
     
     if (!response.ok) {
       return { success: false, error: `HTTP ${response.status}: ${response.statusText}` };
     }
     
-    const proxyData = await response.json();
-    const rawContent = proxyData.contents;
+    const rawContent = await response.text();
     
     if (!rawContent) {
       return { success: false, error: 'No content received from proxy' };
     }
     
-    // Handle base64-encoded ICS data
+    // Handle base64-encoded ICS data (corsproxy.io returns raw content, so this is less likely)
     let icsContent = rawContent;
     let isBase64 = false;
     if (rawContent.startsWith('data:text/calendar') && rawContent.includes('base64,')) {
@@ -96,8 +95,18 @@ interface ProxyService {
   supportsHttps: boolean;
 }
 
-// Secure multi-proxy configuration
+// Secure multi-proxy configuration optimized for US student market
 const CORS_PROXY_SERVICES: ProxyService[] = [
+  {
+    name: 'corsproxy.io',
+    url: (targetUrl: string) => `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+    responseAdapter: async (response: Response) => {
+      // corsproxy.io returns raw content
+      return await response.text();
+    },
+    securityLevel: 'high',
+    supportsHttps: true
+  },
   {
     name: 'allorigins.win',
     url: (targetUrl: string) => `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
@@ -119,26 +128,6 @@ const CORS_PROXY_SERVICES: ProxyService[] = [
       return await response.text();
     },
     securityLevel: 'high',
-    supportsHttps: true
-  },
-  {
-    name: 'corsproxy.io',
-    url: (targetUrl: string) => `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-    responseAdapter: async (response: Response) => {
-      // corsproxy.io returns raw content
-      return await response.text();
-    },
-    securityLevel: 'high',
-    supportsHttps: true
-  },
-  {
-    name: 'api.codetabs.com',
-    url: (targetUrl: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
-    responseAdapter: async (response: Response) => {
-      // codetabs returns raw content
-      return await response.text();
-    },
-    securityLevel: 'medium',
     supportsHttps: true
   }
 ];

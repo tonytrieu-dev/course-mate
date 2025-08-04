@@ -88,10 +88,18 @@ export const useResizable = (
         }
         
         // Save to localStorage with a slight delay to avoid blocking
+        // Safari-compatible requestIdleCallback with fallback
         if (storageKey) {
-          requestIdleCallback(() => {
+          const saveToStorage = () => {
             localStorage.setItem(storageKey, width.toString());
-          }, { timeout: 100 });
+          };
+          
+          if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(saveToStorage, { timeout: 100 });
+          } else {
+            // Safari fallback: use setTimeout with minimal delay
+            setTimeout(saveToStorage, 16); // ~1 frame at 60fps
+          }
         }
       }
     };
