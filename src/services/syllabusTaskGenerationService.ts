@@ -46,6 +46,8 @@ interface GeneratedTask {
   taskType: string;
   priority: 'low' | 'medium' | 'high';
   confidenceScore: number;
+  courseCode?: string;
+  courseName?: string;
   sourceText?: string;
 }
 
@@ -138,15 +140,15 @@ export class SyllabusTaskGenerationService {
   }
 
   /**
-   * Create actual tasks in the database from generated tasks
+   * Create actual tasks in the database from generated tasks with automatic class assignment
    */
   static async createTasksFromGenerated(
     generatedTasks: GeneratedTask[],
-    classId: string,
+    fallbackClassId: string,
     user: User
   ): Promise<Task[]> {
-    logger.info('Creating tasks from generated content', {
-      classId,
+    logger.info('Creating tasks from generated content with automatic class assignment', {
+      fallbackClassId,
       userId: user.id,
       taskCount: generatedTasks.length
     });
@@ -173,10 +175,13 @@ export class SyllabusTaskGenerationService {
         // Get or create task type using the service layer
         const taskTypeId = await this.getOrCreateTaskTypeViaServiceLayer(generatedTask.taskType, user.id);
 
+        // Determine the appropriate class for this task based on AI-detected course information
+        const assignedClassId = await this.determineTaskClass(generatedTask, fallbackClassId, user);
+
         // Convert to the format expected by addTask
         const taskData = {
           title: generatedTask.title,
-          class: classId, // Using 'class' as per the database schema
+          class: assignedClassId, // Using automatically determined class
           type: taskTypeId, // Using 'type' as per the database schema
           dueDate: generatedTask.dueDate,
           priority: generatedTask.priority,
@@ -190,9 +195,11 @@ export class SyllabusTaskGenerationService {
 
         createdTasks.push(task);
         
-        logger.debug('Task created from syllabus', {
+        logger.debug('Task created from syllabus with auto-assigned class', {
           taskId: task.id,
           title: task.title,
+          assignedClass: assignedClassId,
+          detectedCourse: generatedTask.courseCode || generatedTask.courseName || 'none',
           confidence: generatedTask.confidenceScore
         });
 
@@ -207,7 +214,7 @@ export class SyllabusTaskGenerationService {
 
     if (errors.length > 0) {
       logger.warn('Some tasks failed to create', {
-        classId,
+        fallbackClassId,
         userId: user.id,
         errors,
         successfulTasks: createdTasks.length
@@ -215,7 +222,7 @@ export class SyllabusTaskGenerationService {
     }
 
     logger.info('Task creation completed', {
-      classId,
+      fallbackClassId,
       userId: user.id,
       totalGenerated: generatedTasks.length,
       successfullyCreated: createdTasks.length,
@@ -223,6 +230,225 @@ export class SyllabusTaskGenerationService {
     });
 
     return createdTasks;
+  }
+
+  /**
+   * Determine the appropriate class for a task based on AI-detected course information
+   * This mimics the Canvas import automatic class assignment functionality
+   */
+  private static async determineTaskClass(
+    generatedTask: GeneratedTask,
+    fallbackClassId: string,
+    user: User
+  ): Promise<string> {
+    try {
+      // Import class operations
+      const { getClasses, addClass } = await import('./class/classOperations');
+      const { getSettings } = await import('./settings/settingsOperations');
+      
+      // If no course information was detected by AI, use fallback class
+      if (!generatedTask.courseCode && !generatedTask.courseName) {
+        logger.debug('No course information detected, using fallback class', {
+          taskTitle: generatedTask.title,
+          fallbackClassId
+        });
+        return fallbackClassId;
+      }
+
+      // Get existing classes for the user
+      const existingClasses = await getClasses(user.id, true);
+      
+      // Try to find existing class based on detected course information
+      const detectedCourseCode = generatedTask.courseCode?.toLowerCase();
+      const detectedCourseName = generatedTask.courseName?.toLowerCase();
+      
+      logger.debug('Searching for matching class', {
+        taskTitle: generatedTask.title,
+        detectedCourseCode,
+        detectedCourseName,
+        existingClassCount: existingClasses.length
+      });
+
+      // Enhanced class matching logic (similar to Canvas import)
+      const matchingClass = existingClasses.find(cls => {
+        const classId = cls.id.toLowerCase();
+        const className = cls.name.toLowerCase();
+        
+        // Direct course code match
+        if (detectedCourseCode && classId === detectedCourseCode) {
+          logger.debug('Found direct course code match', {
+            taskTitle: generatedTask.title,
+            matchedClass: cls.name,
+            classId: cls.id
+          });
+          return true;
+        }
+        
+        // Course code in class name
+        if (detectedCourseCode && className.includes(detectedCourseCode)) {
+          logger.debug('Found course code in class name', {
+            taskTitle: generatedTask.title,
+            matchedClass: cls.name,
+            classId: cls.id
+          });
+          return true;
+        }
+        
+        // Course name match
+        if (detectedCourseName && className.includes(detectedCourseName)) {
+          logger.debug('Found course name match', {
+            taskTitle: generatedTask.title,
+            matchedClass: cls.name,
+            classId: cls.id
+          });
+          return true;
+        }
+        
+        // Try subject matching (e.g., CS101 matches Computer Science)
+        if (detectedCourseCode) {
+          const subjectMatch = detectedCourseCode.match(/([a-z]+)(\d+)/);
+          if (subjectMatch) {
+            const [, subject] = subjectMatch;
+            const subjectMappings: { [key: string]: string[] } = {
+              'cs': ['computer', 'computing'],
+              'math': ['mathematics', 'math'],
+              'ee': ['electrical', 'engineering'],
+              'me': ['mechanical', 'engineering'],
+              'ce': ['computer', 'civil', 'engineering'],
+              'phys': ['physics', 'physical'],
+              'chem': ['chemistry', 'chemical'],
+              'biol': ['biology', 'biological'],
+              'psyc': ['psychology', 'psychological'],
+              'econ': ['economics', 'economic'],
+              'engl': ['english', 'literature'],
+              'hist': ['history', 'historical']
+            };
+            
+            const relatedTerms = subjectMappings[subject] || [subject];
+            if (relatedTerms.some(term => className.includes(term))) {
+              logger.debug('Found subject match', {
+                taskTitle: generatedTask.title,
+                subject,
+                relatedTerms,
+                matchedClass: cls.name,
+                classId: cls.id
+              });
+              return true;
+            }
+          }
+        }
+        
+        return false;
+      });
+
+      if (matchingClass) {
+        logger.debug('Using existing matching class', {
+          taskTitle: generatedTask.title,
+          matchedClass: matchingClass.name,
+          classId: matchingClass.id
+        });
+        return matchingClass.id;
+      }
+
+      // No existing class found, create a new one based on detected course information
+      const settings = getSettings();
+      const useDescriptiveNames = settings.classNamingStyle === 'descriptive';
+      
+      let newClassName: string;
+      let newClassId: string;
+      
+      if (detectedCourseCode && detectedCourseName) {
+        // We have both code and name
+        newClassName = useDescriptiveNames ? detectedCourseName : detectedCourseCode.toUpperCase();
+        newClassId = detectedCourseCode.toLowerCase();
+      } else if (detectedCourseCode) {
+        // Only have course code
+        newClassName = useDescriptiveNames ? this.generateUserFriendlyClassName(detectedCourseCode) : detectedCourseCode.toUpperCase();
+        newClassId = detectedCourseCode.toLowerCase();
+      } else if (detectedCourseName) {
+        // Only have course name
+        newClassName = detectedCourseName;
+        newClassId = detectedCourseName.toLowerCase().replace(/\s+/g, '');
+      } else {
+        // Fallback to default class
+        return fallbackClassId;
+      }
+
+      // Create the new class
+      logger.debug('Creating new class for detected course', {
+        taskTitle: generatedTask.title,
+        newClassName,
+        newClassId,
+        detectedCourseCode,
+        detectedCourseName,
+        useDescriptiveNames
+      });
+
+      await addClass({
+        id: newClassId,
+        name: newClassName,
+        user_id: user.id,
+        istaskclass: true, // Mark as task class since it's from AI-generated content
+        created_at: new Date().toISOString()
+      }, true);
+
+      logger.debug('Successfully created new class for AI-detected course', {
+        taskTitle: generatedTask.title,
+        createdClass: newClassName,
+        classId: newClassId
+      });
+
+      return newClassId;
+
+    } catch (error) {
+      logger.error('Error determining task class, using fallback', {
+        taskTitle: generatedTask.title,
+        fallbackClassId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return fallbackClassId;
+    }
+  }
+
+  /**
+   * Generate user-friendly class name from course code (similar to Canvas import)
+   */
+  private static generateUserFriendlyClassName(courseCode: string): string {
+    // Remove common prefixes and clean up codes
+    const cleanCode = courseCode.replace(/^(canvas|task)_?/i, '').toUpperCase();
+    
+    // Pattern matching for common course formats  
+    if (cleanCode.match(/^[A-Z]{2,4}\d+[A-Z]*$/)) {
+      // Format like EE123, CS100, MATH120
+      const subject = cleanCode.match(/^[A-Z]{2,4}/)?.[0] || '';
+      const number = cleanCode.replace(/^[A-Z]{2,4}/, '');
+      
+      // Common subject mappings
+      const subjectNames: { [key: string]: string } = {
+        'EE': 'Electrical Engineering',
+        'CS': 'Computer Science', 
+        'MATH': 'Mathematics',
+        'PHYS': 'Physics',
+        'CHEM': 'Chemistry',
+        'BIOL': 'Biology',
+        'ENGL': 'English',
+        'HIST': 'History',
+        'PSYC': 'Psychology',
+        'ECON': 'Economics',
+        'POLI': 'Political Science',
+        'PHIL': 'Philosophy',
+        'ANTH': 'Anthropology',
+        'SOCI': 'Sociology',
+        'ME': 'Mechanical Engineering',
+        'CE': 'Civil Engineering'
+      };
+      
+      const fullSubjectName = subjectNames[subject] || subject;
+      return `${fullSubjectName} ${number}`;
+    }
+    
+    // Fallback: capitalize and format nicely
+    return cleanCode.replace(/([A-Z])(\d)/g, '$1 $2').replace(/_/g, ' ');
   }
 
   /**
@@ -284,7 +510,7 @@ export class SyllabusTaskGenerationService {
   }
 
   /**
-   * Build optimized prompt for Gemini API task extraction
+   * Build optimized prompt for Gemini API task extraction with class detection
    */
   private static buildTaskExtractionPrompt(syllabusContent: string): string {
     return `
@@ -299,6 +525,7 @@ EXTRACTION REQUIREMENTS:
 3. Classify task types accurately (assignment, exam, quiz, project, reading, discussion, lab)
 4. Assign priority based on task importance (low, medium, high)
 5. Provide confidence score (0.0-1.0) for each extracted task
+6. IDENTIFY COURSE/CLASS INFORMATION for each task from course codes, department names, or subject areas mentioned in the syllabus
 
 OUTPUT FORMAT (JSON only):
 {
@@ -310,16 +537,26 @@ OUTPUT FORMAT (JSON only):
       "taskType": "assignment|exam|quiz|project|reading|discussion|lab",
       "priority": "low|medium|high",
       "confidenceScore": 0.95,
+      "courseCode": "Course code or identifier if found (e.g., CS101, MATH120, EE123)",
+      "courseName": "Full course name if available (e.g., Computer Science, Mathematics, Electrical Engineering)",
       "sourceText": "Original text excerpt"
     }
   ]
 }
+
+COURSE/CLASS DETECTION GUIDELINES:
+- Look for course codes like CS101, MATH120, EE123, PSYC100, etc.
+- Extract department names like Computer Science, Mathematics, Psychology, etc.
+- Find subject areas mentioned in headers, titles, or course descriptions
+- If multiple courses are mentioned, assign each task to the most relevant course
+- If no specific course code is found, use the general subject area (e.g., "Science", "Math", "English")
 
 IMPORTANT:
 - Only extract tasks explicitly mentioned in the syllabus
 - Do not infer or create tasks not directly stated
 - Confidence score should reflect certainty of extraction
 - Exclude general course information (policies, grading scales, etc.)
+- Always try to identify course/class information for proper organization
 - Maximum ${TASK_GENERATION_CONFIG.MAX_TASKS_PER_SYLLABUS} tasks
 `;
   }

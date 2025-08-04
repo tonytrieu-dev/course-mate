@@ -50,13 +50,13 @@ const EventCard: React.FC<EventCardProps> = React.memo(({
 
   return (
     <div
-      className={`${style.bg} ${style.border} rounded-md p-1.5 sm:p-3 mb-1 shadow-sm cursor-pointer group relative hover:shadow-md transition-all duration-200 ease-in-out touch-manipulation min-h-[40px] sm:min-h-[44px] flex flex-col justify-center`}
+      className={`${style.bg} ${style.border} rounded-md p-1 sm:p-2 mb-0.5 shadow-sm cursor-pointer group relative hover:shadow-md transition-all duration-200 ease-in-out touch-manipulation min-h-[32px] sm:min-h-[36px] flex flex-col justify-center`}
       onClick={handleClick}
       title={`${task.title} - ${className}`}
     >
       {/* Edit button - always visible on mobile for better accessibility */}
       <button
-        className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 sm:p-2 rounded hover:bg-white/50 min-h-[28px] min-w-[28px] sm:min-h-[32px] sm:min-w-[32px] touch-manipulation"
+        className="absolute top-0.5 right-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-0.5 sm:p-1 rounded hover:bg-white/50 min-h-[24px] min-w-[24px] sm:min-h-[28px] sm:min-w-[28px] touch-manipulation"
         onClick={handleEdit}
         aria-label="Edit task"
         type="button"
@@ -66,13 +66,13 @@ const EventCard: React.FC<EventCardProps> = React.memo(({
         </svg>
       </button>
       
-      <div className={`font-semibold text-xs sm:text-sm ${style.text} truncate pr-7 sm:pr-8`}>
+      <div className={`font-semibold text-xs ${style.text} truncate pr-6 sm:pr-7`}>
         {task.title}
       </div>
-      <div className="text-xs text-gray-600 dark:text-gray-800 truncate pr-7 sm:pr-8">
+      <div className="text-xs text-gray-600 dark:text-gray-800 truncate pr-6 sm:pr-7 leading-tight">
         {className}
       </div>
-      <div className="text-xs text-gray-500 dark:text-gray-700 truncate pr-7 sm:pr-8">
+      <div className="text-xs text-gray-500 dark:text-gray-700 truncate pr-6 sm:pr-7 leading-tight">
         {typeName}{timeDisplay}
       </div>
     </div>

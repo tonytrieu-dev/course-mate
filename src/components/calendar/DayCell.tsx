@@ -67,8 +67,20 @@ const DayCell: React.FC<DayCellProps> = React.memo(({
         {day}
       </div>
       
-      {/* Events container */}
-      <div className="mt-8 overflow-y-auto flex-1">
+      {/* Events container - hover-only scrollbar */}
+      <div 
+        className="mt-8 overflow-y-hidden hover:overflow-y-auto flex-1 scroll-smooth transition-all duration-200"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'transparent transparent'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.scrollbarColor = 'rgb(156 163 175) transparent';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.scrollbarColor = 'transparent transparent';
+        }}
+      >
         {visibleTasks.map((task) => (
           <EventCard
             key={task.id}
