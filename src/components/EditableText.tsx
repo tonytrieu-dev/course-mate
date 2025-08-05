@@ -202,8 +202,9 @@ const EditableText: React.FC<EditableTextProps> = ({
             ...style,
             minHeight: multiline ? '3rem' : 'auto',
             resize: multiline ? 'vertical' : 'none',
-            whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
-            wordBreak: multiline ? 'break-word' : 'normal'
+            whiteSpace: multiline ? 'pre-wrap' : 'normal',
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word'
           }}
           data-placeholder={placeholder}
           role="textbox"
@@ -243,7 +244,12 @@ const EditableText: React.FC<EditableTextProps> = ({
         group relative
         ${onClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-colors duration-200' : ''}
       `}
-      style={style}
+      style={{
+        ...style,
+        // Apply proper text wrapping in non-editing mode
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word'
+      }}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
@@ -269,7 +275,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   );
 };
 
-// Memoize the component to prevent unnecessary re-renders
+// Simple memo to prevent unnecessary re-renders
 export default React.memo(EditableText);
 
 // Component enhancements:

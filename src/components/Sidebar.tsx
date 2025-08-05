@@ -110,7 +110,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
   // Font size state management for classes header
   const [classesHeaderSize, setClassesHeaderSize] = React.useState(() => getFontSize('classes-header'));
 
-  // Listen for font size changes from keyboard shortcuts
+  // Listen for font size changes and update immediately
   useEffect(() => {
     const handleFontSizeChange = (event: CustomEvent) => {
       if (event.detail.elementType === 'classes-header') {
@@ -124,11 +124,13 @@ const SidebarInner: React.FC<SidebarProps> = ({
     };
   }, []);
 
-  // Update font size if it changes in context
+  // Keep local state in sync with context - check on every render
+  const contextFontSize = getFontSize('classes-header');
   useEffect(() => {
-    const currentFontSize = getFontSize('classes-header');
-    setClassesHeaderSize(currentFontSize);
-  }, [getFontSize]);
+    if (contextFontSize !== classesHeaderSize) {
+      setClassesHeaderSize(contextFontSize);
+    }
+  }, [contextFontSize, classesHeaderSize]);
 
   // Standard color options with dark mode support
   const colorOptions = [
@@ -251,14 +253,13 @@ const SidebarInner: React.FC<SidebarProps> = ({
             opacity: 0.8;
           }
           .resize-handle.active {
-            background-color: #3B82F6 !important;
+            background-color: #6B7280 !important;
             transform: scaleX(1.2);
-            box-shadow: 0 0 0 1px #3B82F6;
             opacity: 1;
           }
           .resize-indicator {
             width: 2px;
-            background-color: #3B82F6;
+            background-color: #6B7280;
             opacity: 0;
             transition: opacity 0.15s ease;
           }
@@ -304,6 +305,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
           isSidebarCollapsed={isSidebarCollapsed}
           onToggle={handleEnhancedSidebarToggle}
           sidebarWidth={sidebarWidth}
+          isResizing={isResizing}
         />
         
         {/* Title Section */}
@@ -340,10 +342,11 @@ const SidebarInner: React.FC<SidebarProps> = ({
           {!isSidebarCollapsed && (
             <div className={`mb-4 px-8 sidebar-content-fade ${
               isSidebarCollapsed ? 'collapsed' : 'expanded'
-            }`}>
-              <div className="flex items-center">
+            }`} style={{ maxWidth: '100%', overflow: 'hidden' }}>
+              <div className="flex items-center max-w-full">
                 <div 
-                  className="relative inline-block"
+                  className="relative min-w-0 flex-shrink"
+                  style={{ maxWidth: '100%' }}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -351,6 +354,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
                   }}
                 >
                   <EditableText
+                    key={`classes-header-${classesHeaderSize}-${isEditingClassesTitle}`} // Force re-render on font size or edit state change
                     value={classesTitle}
                     onChange={setClassesTitle}
                     onBlur={() => {
@@ -360,13 +364,15 @@ const SidebarInner: React.FC<SidebarProps> = ({
                     isEditing={isEditingClassesTitle}
                     onClick={() => setIsEditingClassesTitle(true)}
                     className={isEditingClassesTitle
-                      ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none min-w-0 max-w-full inline-block`
-                      : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} inline-block`
+                      ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none block break-words`
+                      : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} block break-words`
                     }
-                    style={isEditingClassesTitle 
-                      ? { fontSize: `${classesHeaderSize}px`, minWidth: `${classesTitle.length + 1}ch` }
-                      : { fontSize: `${classesHeaderSize}px` }
-                    }
+                    style={{ 
+                      fontSize: `${classesHeaderSize}px`,
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      hyphens: 'auto'
+                    }}
                     title="Left-click to edit, Right-click to change color • Focus and use Ctrl+Plus/Minus to resize"
                     data-element-type="classes-header"
                     tabIndex={0}

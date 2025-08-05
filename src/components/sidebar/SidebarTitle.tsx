@@ -79,7 +79,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
               }}
               className={isEditingTitle 
                 ? `text-4xl font-bold w-[90%] p-1 ${getColorClasses(titleColor).class} mt-0 mb-3 font-inherit 
-                   outline-none ring-2 ring-blue-500 ring-offset-2 rounded-md bg-white/90 backdrop-blur-sm`
+                   outline-none ring-2 ring-blue-500 ring-offset-2 rounded-md bg-transparent`
                 : `${getColorClasses(titleColor).class} cursor-pointer leading-tight font-inherit font-bold 
                    transition-all duration-300 ${getColorClasses(titleColor).hoverClass} inline-block
                    hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 

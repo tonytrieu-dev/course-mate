@@ -4,12 +4,14 @@ interface SidebarToggleButtonProps {
   isSidebarCollapsed: boolean;
   onToggle: () => void;
   sidebarWidth?: number;
+  isResizing?: boolean;
 }
 
 const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
   isSidebarCollapsed,
   onToggle,
   sidebarWidth = 256,
+  isResizing = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -27,8 +29,25 @@ const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      const threshold = isSidebarCollapsed ? 50 : sidebarWidth + 50;
-      setIsVisible(e.clientX < threshold);
+      // Don't show during resize to prevent interference
+      // Check both the prop and the body class for immediate feedback
+      if (isResizing || document.body.classList.contains('sidebar-resizing')) {
+        setIsVisible(false);
+        return;
+      }
+      
+      // Much more precise hover detection
+      if (isSidebarCollapsed) {
+        // When collapsed, show when within 50px of left edge
+        setIsVisible(e.clientX < 50);
+      } else {
+        // When expanded, only show when near the actual button position
+        // Button is 32px wide, positioned at `right: 12px`
+        // So button spans from (sidebarWidth - 44) to (sidebarWidth - 12)
+        const buttonLeft = sidebarWidth - 50; // Add 6px buffer on left
+        const buttonRight = sidebarWidth + 10; // Add 22px buffer on right
+        setIsVisible(e.clientX >= buttonLeft && e.clientX <= buttonRight);
+      }
     };
 
     const handleMouseLeave = () => {
@@ -44,7 +63,7 @@ const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [isSidebarCollapsed, sidebarWidth, isTouchDevice]);
+  }, [isSidebarCollapsed, sidebarWidth, isTouchDevice, isResizing]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {

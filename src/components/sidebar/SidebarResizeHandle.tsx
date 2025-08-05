@@ -49,7 +49,7 @@ const SidebarResizeHandle: React.FC<SidebarResizeHandleProps> = ({
   return (
     <div
       ref={handleRef}
-      className="absolute top-0 right-0 h-full w-1 cursor-ew-resize bg-transparent hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-150"
+      className="absolute top-0 right-0 h-full w-1 cursor-ew-resize bg-transparent"
       style={{
         // Position exactly at the right edge, no overflow
         right: 0,
