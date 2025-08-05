@@ -127,7 +127,13 @@ export const useResizable = (
   }, [isResizing, width, minWidth, maxWidth, storageKey]);
 
   const startResize = useCallback((e: React.MouseEvent) => {
+    // Complete event isolation
     e.preventDefault();
+    e.stopPropagation();
+    
+    // Additional safety: only proceed if this is a left mouse button click
+    if (e.button !== 0) return;
+    
     // Capture starting position and width for accurate delta calculation
     startXRef.current = e.clientX;
     startWidthRef.current = width;

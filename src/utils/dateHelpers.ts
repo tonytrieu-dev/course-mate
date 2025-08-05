@@ -1,4 +1,11 @@
 // Date formatting and manipulation utilities
+import { 
+  getCurrentAcademicTerm, 
+  getTermDateRange, 
+  getAcademicYear,
+  type AcademicSystem,
+  type AcademicTerm 
+} from './academicTermHelpers';
 
 export type CalendarView = "month" | "week" | "day";
 
@@ -90,10 +97,10 @@ export const getCalendarTitle = (currentDate: Date, view: CalendarView): string 
     endOfWeek.setDate(startOfWeek.getDate() + 6);
 
     return `${startOfWeek.toLocaleDateString("en-US", {
-      month: "short",
+      month: "long",
       day: "numeric",
     })} - ${endOfWeek.toLocaleDateString("en-US", {
-      month: "short",
+      month: "long",
       day: "numeric",
       year: "numeric",
     })}`;
@@ -105,4 +112,57 @@ export const getCalendarTitle = (currentDate: Date, view: CalendarView): string 
       year: "numeric",
     });
   }
+};
+
+// Academic term related date functions
+
+/**
+ * Get current academic term and year
+ */
+export const getCurrentAcademicTermInfo = (
+  academicSystem: AcademicSystem = 'semester',
+  date: Date = new Date()
+): { term: AcademicTerm; year: number } => {
+  return {
+    term: getCurrentAcademicTerm(academicSystem, date),
+    year: getAcademicYear(date)
+  };
+};
+
+/**
+ * Check if a date falls within a specific academic term
+ */
+export const isDateInAcademicTerm = (
+  date: Date,
+  term: AcademicTerm,
+  year: number,
+  academicSystem?: AcademicSystem
+): boolean => {
+  try {
+    const { startDate, endDate } = getTermDateRange(term, year, academicSystem);
+    return date >= startDate && date <= endDate;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Get academic term for a specific date
+ */
+export const getAcademicTermForDate = (
+  date: Date,
+  academicSystem: AcademicSystem = 'semester'
+): AcademicTerm => {
+  return getCurrentAcademicTerm(academicSystem, date);
+};
+
+/**
+ * Format academic term with year for display
+ */
+export const formatAcademicTerm = (
+  term: AcademicTerm,
+  year: number,
+  includeYear = true
+): string => {
+  return includeYear ? `${term} ${year}` : term;
 };

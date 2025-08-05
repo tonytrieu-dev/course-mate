@@ -2,14 +2,14 @@
 
 // Get day cell classes for calendar - responsive and touch-friendly with enhanced dark mode
 export const getDayCellClasses = (isCurrentMonth: boolean, isToday: boolean): string => {
-  let baseClasses = "flex flex-col justify-start p-1 sm:p-2 border border-gray-200 dark:border-slate-600/50 h-20 sm:h-24 md:h-32 lg:h-40 relative cursor-pointer transition-all duration-200 ease-in-out touch-manipulation bg-white dark:bg-slate-800/30";
+  let baseClasses = "flex flex-col justify-start p-1 sm:p-2 border-2 h-20 sm:h-24 md:h-32 lg:h-40 relative cursor-pointer transition-all duration-200 ease-in-out touch-manipulation";
   
   if (!isCurrentMonth) {
-    baseClasses += " bg-gray-50 dark:bg-slate-900/50 text-gray-400 dark:text-slate-500";
+    baseClasses += " bg-gray-50 dark:bg-slate-900/50 text-gray-400 dark:text-slate-500 border-gray-200 dark:border-slate-600";
   } else if (isToday) {
-    baseClasses += " bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-300 border-2 dark:border-2 rounded-lg shadow-sm";
+    baseClasses += " bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-300 border-3 dark:border-3 rounded-lg shadow-sm";
   } else {
-    baseClasses += " hover:bg-blue-50 dark:hover:bg-slate-700/30 active:bg-blue-100 dark:active:bg-slate-600/50";
+    baseClasses += " bg-white dark:bg-slate-800/30 border-gray-300 dark:border-slate-500 hover:bg-blue-50 dark:hover:bg-slate-700/30 active:bg-blue-100 dark:active:bg-slate-600/50 hover:border-gray-400 dark:hover:border-slate-400";
   }
   
   return baseClasses;

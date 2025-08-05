@@ -10,6 +10,7 @@ export interface GeneralSettingsState {
   showWeekNumbers: boolean;
   showNavigationBar: boolean;
   theme: 'light' | 'dark' | 'auto';
+  academicSystem: 'semester' | 'quarter';
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';

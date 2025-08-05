@@ -10,13 +10,16 @@ import {
 } from '../services/grade/gradeOperations';
 import { updateClassGpaInfo, initializeGpaSettings } from '../services/grade/gpaService';
 import { getClasses } from '../services/class/classOperations';
+import { getAvailableTerms, getCurrentAcademicTerm, type AcademicSystem } from '../utils/academicTermHelpers';
+import { storage } from '../utils/storage';
 import type { 
   Class, 
   GradeCategory, 
   AssignmentInsert, 
   GradeInsert,
   GradeCategoryInsert,
-  ClassGpaInfoInsert
+  ClassGpaInfoInsert,
+  AppSettings
 } from '../types/database';
 
 interface GradeEntryProps {
@@ -59,6 +62,9 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
     color: '#6b7280'
   });
 
+  // Academic system preference
+  const [academicSystem, setAcademicSystem] = useState<AcademicSystem>('semester');
+  
   // Class setup form state
   const [classSetupForm, setClassSetupForm] = useState({
     creditHours: '3',
@@ -72,6 +78,15 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
       if (!user?.id) return;
       
       try {
+        // Load user's academic system preference
+        const generalSettings = JSON.parse(localStorage.getItem('generalSettings') || '{}');
+        const userAcademicSystem = generalSettings?.academicSystem || 'semester';
+        setAcademicSystem(userAcademicSystem);
+        
+        // Set default semester/quarter based on current academic term
+        const term = getCurrentAcademicTerm(userAcademicSystem);
+        setClassSetupForm(prev => ({ ...prev, semester: term }));
+        
         const classesData = await getClasses(user.id, isAuthenticated);
         setClasses(classesData);
         
@@ -633,7 +648,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                        Semester *
+                        {academicSystem === 'quarter' ? 'Quarter' : 'Semester'} *
                       </label>
                       <select
                         required
@@ -641,10 +656,9 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
                         onChange={(e) => setClassSetupForm(prev => ({ ...prev, semester: e.target.value }))}
                         className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
                       >
-                        <option value="Spring">Spring</option>
-                        <option value="Summer">Summer</option>
-                        <option value="Fall">Fall</option>
-                        <option value="Winter">Winter</option>
+                        {getAvailableTerms(academicSystem).map(term => (
+                          <option key={term} value={term}>{term}</option>
+                        ))}
                       </select>
                     </div>
 

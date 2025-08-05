@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import EditableText from '../EditableText';
-import InlineSizeControl from '../InlineSizeControl';
+import { useTextFormatting } from '../../contexts/TextFormattingContext';
 
 interface ColorOption {
   name: string;
@@ -14,10 +14,6 @@ interface SidebarTitleProps {
   isEditingTitle: boolean;
   onTitleClick: () => void;
   onTitleBlur: () => void;
-  titleSize: number;
-  setTitleSize: (size: number) => void;
-  showTitleSizeControl: boolean;
-  setShowTitleSizeControl: (show: boolean) => void;
   isSidebarCollapsed: boolean;
   onSidebarToggle: () => void;
   titleColor: string;
@@ -34,10 +30,6 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
   isEditingTitle,
   onTitleClick,
   onTitleBlur,
-  titleSize,
-  setTitleSize,
-  showTitleSizeControl,
-  setShowTitleSizeControl,
   isSidebarCollapsed,
   onSidebarToggle,
   titleColor,
@@ -47,6 +39,28 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
   colorOptions,
   getColorClasses,
 }) => {
+  const { getFontSize } = useTextFormatting();
+  const [titleSize, setTitleSize] = useState(() => getFontSize('sidebar-title'));
+
+  // Listen for font size changes from keyboard shortcuts
+  useEffect(() => {
+    const handleFontSizeChange = (event: CustomEvent) => {
+      if (event.detail.elementType === 'sidebar-title') {
+        setTitleSize(event.detail.fontSize);
+      }
+    };
+
+    window.addEventListener('fontSizeChanged', handleFontSizeChange as EventListener);
+    return () => {
+      window.removeEventListener('fontSizeChanged', handleFontSizeChange as EventListener);
+    };
+  }, []);
+
+  // Update font size if it changes in context
+  useEffect(() => {
+    const currentFontSize = getFontSize('sidebar-title');
+    setTitleSize(currentFontSize);
+  }, [getFontSize]);
   return (
     <div className="pt-16">
       {!isSidebarCollapsed && (
@@ -59,7 +73,6 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
               onBlur={onTitleBlur}
               isEditing={isEditingTitle}
               onClick={onTitleClick}
-              onDoubleClick={() => setShowTitleSizeControl(true)}
               onContextMenu={(e) => {
                 e.preventDefault();
                 setShowTitleColorPicker(true);
@@ -73,25 +86,14 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
                    focus:ring-offset-2 rounded-md px-2 py-1 hover:shadow-lg hover:bg-white/20 backdrop-blur-sm`
               }
               style={{ fontSize: `${titleSize}px` }}
-              title="Click to edit • Right-click for color options"
+              title="Click to edit • Right-click for color options • Focus and use Ctrl+Plus/Minus to resize"
               tabIndex={0}
               role="heading"
               aria-level={1}
-              aria-label={`Application title: ${title}. Click to edit, right-click to change color.`}
+              aria-label={`Application title: ${title}. Click to edit, right-click to change color, focus and use Ctrl+Plus/Minus to resize.`}
+              data-element-type="sidebar-title"
             />
             
-          </div>
-
-          {/* Enhanced size control with better positioning */}
-          <div className="flex justify-center mt-2">
-            <InlineSizeControl 
-              size={titleSize} 
-              setSize={setTitleSize} 
-              minSize={24} 
-              maxSize={72} 
-              show={showTitleSizeControl} 
-              setShow={setShowTitleSizeControl} 
-            />
           </div>
 
           {/* Ultra-Compact Title Color Picker */}

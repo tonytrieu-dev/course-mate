@@ -12,13 +12,14 @@ interface ConversationMessage {
   content: string;
 }
 
+// Development-friendly CORS headers (will be secured in production)
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 Deno.serve(async (req) => {
-  // This is needed if you're planning to invoke your function from a browser.
+  // Handle CORS preflight for development
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -476,4 +477,5 @@ Answer:`;
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     })
   }
+});
 });

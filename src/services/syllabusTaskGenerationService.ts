@@ -94,14 +94,20 @@ export class SyllabusTaskGenerationService {
         );
       }
 
-      // Generate AI prompt for task extraction
-      const prompt = this.buildTaskExtractionPrompt(syllabusContent);
+      // Get class information for context
+      const { getClasses } = await import('./class/classOperations');
+      const classes = await getClasses(user.id);
+      const classInfo = classes.find(c => c.id === classId);
       
-      // Call Gemini API for task generation
-      const geminiResponse = await this.callGeminiAPI(prompt);
+      // Call AI Analysis Edge Function for task generation
+      const aiResponse = await this.callAIAnalysis({
+        syllabusText: syllabusContent,
+        className: classInfo?.name || 'Unknown Class',
+        courseName: classInfo?.name || 'Unknown Course'
+      });
       
       // Parse and validate generated tasks
-      const parsedTasks = this.parseGeminiResponse(geminiResponse);
+      const parsedTasks = this.parseGeminiResponse(aiResponse);
       
       // Validate each generated task
       const validatedTasks = this.validateGeneratedTasks(parsedTasks, syllabusContent);
@@ -562,95 +568,59 @@ IMPORTANT:
   }
 
   /**
-   * Call Gemini API with error handling and retries
+   * Call AI Analysis Edge Function for secure task generation
    */
-  private static async callGeminiAPI(prompt: string): Promise<any> {
-    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-    
-    if (!apiKey) {
-      throw errorHandler.createError('Gemini API key not configured', 'MISSING_API_KEY', {
-        service: 'Gemini',
-        operation: 'syllabus task generation'
-      });
-    }
-
-    const requestBody = {
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }],
-      generationConfig: {
-        temperature: 0.1, // Low temperature for precise extraction
-        topK: 1,
-        topP: 0.8,
-        maxOutputTokens: 8192,
-      },
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH", 
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        }
-      ]
-    };
-
-    logger.info('Calling Gemini API for task extraction', {
-      promptLength: prompt.length,
-      apiUrl: TASK_GENERATION_CONFIG.GEMINI_API_URL
+  private static async callAIAnalysis(syllabusData: { syllabusText: string; className: string; courseName: string }): Promise<any> {
+    logger.info('Calling AI Analysis Edge Function for task extraction', {
+      syllabusLength: syllabusData.syllabusText.length,
+      className: syllabusData.className
     });
 
     let retries = 3;
     while (retries > 0) {
       try {
-        const response = await fetch(`${TASK_GENERATION_CONFIG.GEMINI_API_URL}?key=${apiKey}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody)
+        const { data, error } = await supabase.functions.invoke('ai-analysis', {
+          body: {
+            type: 'syllabus_tasks',
+            data: syllabusData,
+            config: {
+              temperature: 0.1,
+              topK: 1,
+              topP: 0.8,
+              maxOutputTokens: 8192,
+            }
+          }
         });
 
-        if (!response.ok) {
-          const errorBody = await response.text();
-          logger.error('Gemini API HTTP error', {
-            status: response.status,
-            statusText: response.statusText,
-            responseBody: errorBody.substring(0, 500) // Log first 500 chars
-          });
-          throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+        if (error) {
+          logger.error('AI Analysis Edge Function error', error);
+          throw new Error(`AI Analysis error: ${error.message}`);
         }
 
-        const data = await response.json();
+        if (!data || !data.result) {
+          throw new Error('Invalid response from AI Analysis service');
+        }
+
+        logger.info('AI Analysis response received', {
+          hasResult: !!data.result,
+          resultType: typeof data.result
+        });
+
+        // Return the result directly - it should already be the task extraction text
+        const responseText = typeof data.result === 'string' ? data.result : JSON.stringify(data.result);
         
-        logger.info('Gemini API response received', {
-          hasCandidates: !!data.candidates,
-          candidatesCount: data.candidates?.length || 0,
-          hasContent: !!(data.candidates && data.candidates[0] && data.candidates[0].content)
+        logger.info('Successfully extracted response from AI Analysis', {
+          responseLength: responseText.length
         });
         
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-          const responseText = data.candidates[0].content.parts[0].text;
-          logger.info('Successfully extracted response from Gemini API', {
-            responseLength: responseText.length
-          });
-          return responseText;
-        } else {
-          logger.error('Invalid Gemini API response format', {
-            responseStructure: JSON.stringify(data, null, 2).substring(0, 1000)
-          });
-          throw new Error('Invalid response format from Gemini API');
-        }
+        return responseText;
         
       } catch (error) {
         retries--;
         if (retries === 0) {
-          logger.error('Gemini API call failed after retries', { error: error instanceof Error ? error.message : String(error) });
-          throw errorHandler.createError('Gemini API call failed', 'API_CALL_FAILED', {
-            service: 'Gemini API',
+          logger.error('AI Analysis call failed after retries', { error: error instanceof Error ? error.message : String(error) });
+          throw errorHandler.createError('AI Analysis call failed', 'AI_ANALYSIS_FAILED', {
+            service: 'AI Analysis Edge Function',
             operation: 'task extraction',
             originalError: error instanceof Error ? error.message : String(error)
           });

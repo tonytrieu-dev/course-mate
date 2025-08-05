@@ -8,12 +8,15 @@ import type {
   ClassGradeInfo,
   WhatIfScenario,
   GradeChange,
-  ClassWithGrades
+  ClassWithGrades,
+  AppSettings
 } from '../../types/database';
 import { supabase } from '../supabaseClient';
 import { logger } from '../../utils/logger';
 import { getClassWithGrades } from './gradeOperations';
 import { getClasses } from '../class/classOperations';
+import { getCurrentAcademicTermInfo } from '../../utils/dateHelpers';
+import type { AcademicSystem } from '../../utils/academicTermHelpers';
 
 // Default GPA settings for 4.0 scale
 const DEFAULT_GPA_SETTINGS: Omit<GpaSettingsInsert, 'user_id'> = {
@@ -236,7 +239,8 @@ export const calculateClassCurrentGrade = (classWithGrades: ClassWithGrades): nu
 
 export const calculateFullGPA = async (
   userId: string, 
-  useSupabase = false
+  useSupabase = false,
+  academicSystem: AcademicSystem = 'semester'
 ): Promise<GPACalculation> => {
   try {
     // Get GPA settings
@@ -252,9 +256,8 @@ export const calculateFullGPA = async (
     let currentSemesterQualityPoints = 0;
     let currentSemesterCreditHours = 0;
     
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-    const currentSemester = currentMonth >= 8 ? 'Fall' : currentMonth >= 1 ? 'Spring' : 'Winter';
+    // Get current academic term info using the new helpers
+    const { term: currentTerm, year: currentYear } = getCurrentAcademicTermInfo(academicSystem);
 
     for (const classInfo of classes) {
       const gpaInfo = classGpaInfos.find(info => info.class_id === classInfo.id);
@@ -286,8 +289,8 @@ export const calculateFullGPA = async (
       totalQualityPoints += qualityPoints;
       totalCreditHours += gpaInfo.credit_hours;
 
-      // Track current semester
-      if (gpaInfo.year === currentYear && gpaInfo.semester === currentSemester) {
+      // Track current term (semester or quarter)
+      if (gpaInfo.year === currentYear && gpaInfo.semester === currentTerm) {
         currentSemesterQualityPoints += qualityPoints;
         currentSemesterCreditHours += gpaInfo.credit_hours;
       }

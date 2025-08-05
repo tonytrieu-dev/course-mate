@@ -100,7 +100,7 @@ export const addTask = async (
 
         const { data: existingTasks, error: existingTaskError } = await supabase
           .from("tasks")
-          .select("*")
+          .select("*") // Select all fields to match Task type
           .eq("user_id", userToUse.id)
           .eq("canvas_uid", canvasUIDString)
           .limit(1);

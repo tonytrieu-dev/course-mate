@@ -35,6 +35,56 @@ interface UseChatbotReturn {
   setIsProcessingMention: (processing: boolean) => void;
 }
 
+/**
+ * Custom hook for managing AI chatbot functionality in ScheduleBud.
+ * 
+ * This hook provides comprehensive chatbot capabilities including:
+ * - Real-time conversation management with chat history
+ * - Integration with Google Gemini AI via Supabase Edge Functions
+ * - Smart mention system for referencing classes (@ClassName)
+ * - Context-aware responses using document embeddings
+ * - Optimized performance with debounced input handling
+ * - Automatic scrolling and UI state management
+ * 
+ * The chatbot can answer questions about:
+ * - Academic tasks and assignments
+ * - Study strategies and time management  
+ * - Class-specific content from uploaded syllabi
+ * - General productivity and organization tips
+ * 
+ * @param props - Configuration object for the chatbot hook
+ * @param props.selectedClass - Currently selected class for context
+ * @param props.classes - Array of user's classes for mention functionality
+ * 
+ * @returns Object containing:
+ * - Chat state variables (chatQuery, chatHistory, isChatLoading)
+ * - Event handlers for user interaction
+ * - Utility functions for chat management
+ * - Mention system integration
+ * 
+ * @example
+ * ```tsx
+ * const {
+ *   chatQuery,
+ *   chatHistory, 
+ *   isChatLoading,
+ *   handleAskChatbot,
+ *   handleInputChange,
+ *   clearChatHistory,
+ *   mentionHook
+ * } = useChatbot({
+ *   selectedClass: 'CS101',
+ *   classes: userClasses
+ * });
+ * 
+ * // Use in JSX
+ * <form onSubmit={handleAskChatbot}>
+ *   <div onInput={handleInputChange} contentEditable>
+ *     {chatQuery}
+ *   </div>
+ * </form>
+ * ```
+ */
 export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChatbotReturn => {
   const [chatQuery, setChatQuery] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);

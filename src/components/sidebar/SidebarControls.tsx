@@ -44,7 +44,7 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
   ];
 
   return (
-    <div className="px-2 mb-8">
+    <div className="px-2 mb-4">
       {/* Expanded sidebar controls */}
       {!isSidebarCollapsed && (
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800/50 dark:to-slate-900/50 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-slate-700/50 space-y-1">
@@ -123,13 +123,13 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
                 
                 {/* Hover tooltip */}
                 <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
-                               bg-gray-900 text-white text-xs rounded-lg px-3 py-2 
+                               bg-gray-900 dark:bg-slate-800 text-white text-xs rounded-lg px-3 py-2 
                                opacity-0 group-hover:opacity-100 transition-opacity duration-200 
-                               pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                               pointer-events-none whitespace-nowrap z-[9999] shadow-xl border border-gray-700 dark:border-slate-600">
                   {button.label}
                   <div className="absolute right-full top-1/2 -translate-y-1/2">
                     <div className="w-0 h-0 border-t-4 border-b-4 border-r-4 
-                                    border-transparent border-r-gray-900"></div>
+                                    border-transparent border-r-gray-900 dark:border-r-slate-800"></div>
                   </div>
                 </div>
               </button>

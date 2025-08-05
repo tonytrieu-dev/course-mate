@@ -4,6 +4,7 @@ import { getTasks, getClasses, getTaskTypes } from './dataService';
 import { getLocalData, saveLocalData } from '../utils/storageHelpers';
 import { checkUserDataExists, batchUpsert } from '../utils/supabaseHelpers';
 import { errorHandler } from '../utils/errorHandler';
+import { logger } from '../utils/logger';
 
 const LAST_SYNC_KEY = 'last_sync_timestamp';
 
@@ -70,8 +71,12 @@ export const uploadLocalDataToSupabase = async (userId: string): Promise<boolean
 
     return true;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error uploading local data to Supabase: ', errorMessage);
+    const handled = errorHandler.handle(
+      error instanceof Error ? error : new Error('Unknown error'),
+      'uploadLocalDataToSupabase',
+      { userId: !!userId }
+    );
+    logger.error('Error uploading local data to Supabase', { error: handled.userMessage, context: handled.context });
     return false;
   }
 };
@@ -120,8 +125,12 @@ export const downloadDataFromSupabase = async (userId: string): Promise<boolean>
 
     return true;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error downloading data from Supabase: ', errorMessage);
+    const handled = errorHandler.handle(
+      error instanceof Error ? error : new Error('Unknown error'),
+      'downloadDataFromSupabase',
+      { userId: !!userId }
+    );
+    logger.error('Error downloading data from Supabase', { error: handled.userMessage, context: handled.context });
     return false;
   }
 };
@@ -140,8 +149,12 @@ export const syncData = async (userId: string): Promise<boolean> => {
       return await downloadDataFromSupabase(userId);
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error during sync: ', errorMessage);
+    const handled = errorHandler.handle(
+      error instanceof Error ? error : new Error('Unknown error'),
+      'syncData',
+      { userId: !!userId }
+    );
+    logger.error('Error during sync', { error: handled.userMessage, context: handled.context });
     return false;
   }
 };

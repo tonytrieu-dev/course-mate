@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 interface SidebarResizeHandleProps {
   isSidebarCollapsed: boolean;
@@ -14,54 +14,63 @@ const SidebarResizeHandle: React.FC<SidebarResizeHandleProps> = ({
   onStartResize,
 }) => {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const handleRef = useRef<HTMLDivElement>(null);
 
   // Detect touch devices for mobile optimization
   useEffect(() => {
     setIsTouchDevice(window.matchMedia('(hover: none) and (pointer: coarse)').matches);
   }, []);
 
-  if (isSidebarCollapsed) return null;
+  // Isolated event handler that prevents ALL propagation
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Completely isolate this event
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only proceed if this is exactly the handle element
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+    
+    // Call the original handler
+    onStartResize(e);
+  }, [onStartResize]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      // Could trigger a preset resize or toggle behavior
+      e.stopPropagation();
     }
-  };
+  }, []);
+
+  // Don't render if collapsed
+  if (isSidebarCollapsed) return null;
 
   return (
-    <>
-      {/* Main interaction area - invisible for clean look */}
-      <div
-        className={`fixed top-0 h-full z-50 cursor-ew-resize touch-manipulation bg-transparent
-                   ${isTouchDevice ? 'w-6' : 'w-4'}`}
-        style={{ 
-          left: `${sidebarWidth - (isTouchDevice ? 3 : 2)}px`
-        }}
-        onMouseDown={onStartResize}
-        onKeyDown={handleKeyDown}
-        tabIndex={0}
-        role="slider"
-        aria-label="Resize sidebar width"
-        aria-orientation="horizontal"
-        aria-valuemin={200}
-        aria-valuemax={600}
-        aria-valuenow={sidebarWidth}
-        title={`Resize sidebar (current width: ${sidebarWidth}px). Drag to adjust.`}
-      >
-        {/* Minimal hover area - no visual feedback for clean look */}
-        <div className="absolute inset-y-0 w-full" />
-        
-        {/* Visual grip indicator removed for cleaner look */}
-
-        {/* Touch instructions removed for clean look */}
-
-        {/* Focus indicator removed for clean look */}
-      </div>
-      
-      {/* Resize indicator removed for cleaner look */}
-
-    </>
+    <div
+      ref={handleRef}
+      className="absolute top-0 right-0 h-full w-1 cursor-ew-resize bg-transparent hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-150"
+      style={{
+        // Position exactly at the right edge, no overflow
+        right: 0,
+        width: '4px',
+        // Ensure it stays within bounds
+        zIndex: 1,
+      }}
+      onMouseDown={handleMouseDown}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1} // Remove from tab order to avoid focus issues
+      role="separator"
+      aria-label="Resize sidebar"
+      title="Drag to resize sidebar"
+      // Prevent any other interactions
+      onContextMenu={(e) => e.preventDefault()}
+      onDoubleClick={(e) => e.preventDefault()}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    />
   );
 };
 

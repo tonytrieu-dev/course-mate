@@ -261,17 +261,19 @@ const ClassList: React.FC<ClassListProps> = ({
         </button>
       )}
       {(classes.length === 0 || isHoveringClassArea) && isSidebarCollapsed && (
-        <button
-          onClick={handleAddClass}
-          className="flex justify-center items-center mt-4 mb-3 p-2.5 mx-4 text-gray-800 dark:text-slate-200 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-800/60 dark:to-slate-900/60 border border-blue-200 dark:border-slate-600/70 border-dashed rounded-xl transition-all duration-200 hover:border-blue-300 dark:hover:border-blue-800 hover:shadow-lg min-h-[44px] min-w-[44px]"
-          title="Add new class"
-          type="button"
-          aria-label="Add new class"
-        >
-          <svg className="w-4 h-4 text-gray-600 dark:text-slate-400 group-hover:text-blue-900 dark:group-hover:text-blue-300 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
+        <div className="flex justify-center w-full">
+          <button
+            onClick={handleAddClass}
+            className="flex justify-center items-center mt-3 mb-2 p-1.5 text-gray-800 dark:text-slate-200 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-800/60 dark:to-slate-900/60 border border-blue-200 dark:border-slate-600/70 border-dashed rounded-lg transition-all duration-200 hover:border-blue-300 dark:hover:border-blue-800 hover:shadow-lg min-h-[36px] min-w-[36px]"
+            title="Add new class"
+            type="button"
+            aria-label="Add new class"
+          >
+            <svg className="w-3.5 h-3.5 text-gray-600 dark:text-slate-400 group-hover:text-blue-900 dark:group-hover:text-blue-300 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
       )}
     </>
   );

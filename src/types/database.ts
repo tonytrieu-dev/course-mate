@@ -223,6 +223,7 @@ export interface AppSettings {
   theme?: 'light' | 'dark' | 'auto';
   fontSize?: number;
   classNamingStyle?: 'technical' | 'descriptive'; // 'technical' = "CS100", 'descriptive' = "Computer Science 100"
+  academicSystem?: 'semester' | 'quarter'; // Academic term system preference
   // Navigation preferences
   navigationOrder?: string[]; // Order of navigation items
   selectedView?: 'dashboard' | 'tasks' | 'calendar' | 'grades'; // Currently selected view

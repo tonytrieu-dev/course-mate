@@ -2,6 +2,8 @@ import type { AppSettings } from '../../types/database';
 import { getLocalData, saveLocalData } from "../../utils/storageHelpers";
 import { STORAGE_KEYS } from '../../types/database';
 import { supabase } from '../supabaseClient';
+import { logger } from '../../utils/logger';
+import { errorHandler } from '../../utils/errorHandler';
 
 const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;
 
@@ -65,7 +67,8 @@ export const getSettingsWithSync = async (userId?: string): Promise<AppSettings>
       return mergedSettings;
     }
   } catch (error) {
-    console.warn('Failed to load settings from Supabase, using localStorage:', error);
+    const handled = errorHandler.handle(error as Error, 'loadSettingsFromSupabase', { userId: !!userId, fallbackUsed: true });
+    logger.warn(`Failed to load settings from Supabase, using localStorage: ${handled.userMessage}`);
   }
 
   // Fallback to localStorage
@@ -91,7 +94,8 @@ export const updateSettingsWithSync = async (settings: AppSettings, userId?: str
 
     if (selectError && selectError.code !== 'PGRST116') {
       // PGRST116 means no rows found, which is fine
-      console.warn('Error checking existing settings:', selectError);
+      const handled = errorHandler.handle(selectError, 'checkExistingSettings', { userId: !!userId });
+      logger.warn(`Error checking existing settings: ${handled.userMessage}`);
       return updatedSettings;
     }
 
@@ -106,7 +110,8 @@ export const updateSettingsWithSync = async (settings: AppSettings, userId?: str
         .eq('user_id', userId);
 
       if (updateError) {
-        console.warn('Failed to update settings in Supabase:', updateError);
+        const handled = errorHandler.handle(updateError, 'updateSettingsInSupabase', { userId: !!userId });
+        logger.warn(`Failed to update settings in Supabase: ${handled.userMessage}`);
       }
     } else {
       // No record exists, insert new one
@@ -120,11 +125,13 @@ export const updateSettingsWithSync = async (settings: AppSettings, userId?: str
         });
 
       if (insertError) {
-        console.warn('Failed to insert settings into Supabase:', insertError);
+        const handled = errorHandler.handle(insertError, 'insertSettingsIntoSupabase', { userId: !!userId });
+        logger.warn(`Failed to insert settings into Supabase: ${handled.userMessage}`);
       }
     }
   } catch (error) {
-    console.warn('Error syncing settings to Supabase:', error);
+    const handled = errorHandler.handle(error as Error, 'syncSettingsToSupabase', { userId: !!userId });
+    logger.warn(`Error syncing settings to Supabase: ${handled.userMessage}`);
     // Still return the local settings since local update succeeded
   }
 
@@ -188,13 +195,15 @@ export const syncThemeFromSupabase = async (userId: string): Promise<'light' | '
       try {
         localStorage.setItem('theme', supabaseTheme);
       } catch (error) {
-        console.warn('Failed to update localStorage theme:', error);
+        const handled = errorHandler.handle(error as Error, 'updateLocalStorageTheme', { theme: supabaseTheme });
+        logger.warn(`Failed to update localStorage theme: ${handled.userMessage}`);
       }
     }
     
     return supabaseTheme;
   } catch (error) {
-    console.warn('Failed to sync theme from Supabase, using local:', error);
+    const handled = errorHandler.handle(error as Error, 'syncThemeFromSupabase', { userId: !!userId });
+    logger.warn(`Failed to sync theme from Supabase, using local: ${handled.userMessage}`);
     return localStorage.getItem('theme') as 'light' | 'dark' | 'auto' || 'auto';
   }
 };
@@ -204,7 +213,8 @@ export const updateTheme = async (theme: 'light' | 'dark' | 'auto', userId?: str
   try {
     localStorage.setItem('theme', theme);
   } catch (error) {
-    console.warn('Failed to save theme to localStorage:', error);
+    const handled = errorHandler.handle(error as Error, 'saveThemeToLocalStorage', { theme });
+    logger.warn(`Failed to save theme to localStorage: ${handled.userMessage}`);
   }
   
   // If user is authenticated, sync to Supabase
@@ -219,7 +229,8 @@ export const updateTheme = async (theme: 'light' | 'dark' | 'auto', userId?: str
       // Save to settings system (background sync)
       await updateSettingsWithSync(updatedSettings, userId);
     } catch (error) {
-      console.warn('Failed to sync theme to Supabase:', error);
+      const handled = errorHandler.handle(error as Error, 'syncThemeToSupabase', { userId: !!userId, theme });
+      logger.warn(`Failed to sync theme to Supabase: ${handled.userMessage}`);
       // Don't throw error - localStorage update succeeded
     }
   }
@@ -239,7 +250,8 @@ export const syncThemeFromContext = (): 'light' | 'dark' | 'auto' => {
       return themeFromContext as 'light' | 'dark' | 'auto';
     }
   } catch (error) {
-    console.warn('Failed to sync theme from context:', error);
+    const handled = errorHandler.handle(error as Error, 'syncThemeFromContext', { localStorage: 'access_failed' });
+    logger.warn(`Failed to sync theme from context: ${handled.userMessage}`);
   }
   return 'auto';
 };

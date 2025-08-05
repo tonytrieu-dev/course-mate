@@ -11,6 +11,7 @@ import type {
 import { supabase } from "../supabaseClient";
 import { getCurrentUser } from "../authService";
 import { logger } from "../../utils/logger";
+import { errorHandler } from "../../utils/errorHandler";
 import { getLocalData, saveLocalData } from "../../utils/storageHelpers";
 import { generateUniqueId } from "../../utils/idHelpers";
 import { STORAGE_KEYS } from '../../types/database';
@@ -34,7 +35,12 @@ export const getClasses = async (userId?: string, useSupabase = false): Promise<
         .order("created_at", { ascending: false });
 
       if (error) {
-        logger.error("Error fetching classes from Supabase:", error);
+        const handled = errorHandler.handle(
+          error,
+          'getClasses - Supabase query',
+          { userId: !!userId, tableName: 'classes', fallbackUsed: true }
+        );
+        logger.warn(`${handled.userMessage} - falling back to local data`);
         return getLocalData<ClassWithRelations[]>(CLASSES_KEY, []);
       }
       

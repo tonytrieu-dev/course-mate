@@ -13,6 +13,7 @@ import { getTasks } from './task/taskOperations';
 import { getClasses } from './class/classOperations';
 import { getTaskTypes } from './taskType/taskTypeOperations';
 import { getCurrentUser } from './authService';
+import { getTermDateRange, parseTermFromString, type AcademicTerm, type AcademicSystem } from '../utils/academicTermHelpers';
 
 // Export data structure types
 export interface ExportData {
@@ -319,24 +320,33 @@ export class ExportService {
   }
 
   /**
-   * Export semester archive (JSON + metadata)
+   * Export academic term archive (JSON + metadata) - supports both semester and quarter systems
    */
-  async exportSemesterArchive(
-    semester: string,
+  async exportTermArchive(
+    term: string,
     year: number,
+    academicSystem: AcademicSystem = 'semester',
     onProgress?: ExportProgressCallback
   ): Promise<Blob> {
     try {
-      const semesterOptions: ExportOptions = {
+      // Parse the term and get date range using the new helpers
+      const parsedTerm = parseTermFromString(term, academicSystem);
+      if (!parsedTerm) {
+        throw new Error(`Invalid term: ${term}`);
+      }
+
+      const { startDate, endDate } = getTermDateRange(parsedTerm, year, academicSystem);
+      
+      const termOptions: ExportOptions = {
         format: 'json',
-        startDate: new Date(year, semester === 'Spring' ? 0 : semester === 'Summer' ? 4 : 7, 1),
-        endDate: new Date(year, semester === 'Spring' ? 4 : semester === 'Summer' ? 7 : 11, 31),
+        startDate,
+        endDate,
         dataTypes: ['tasks', 'classes', 'grades', 'sessions']
       };
 
-      onProgress?.({ step: 'Archive Setup', progress: 5, message: `Creating ${semester} ${year} archive...` });
+      onProgress?.({ step: 'Archive Setup', progress: 5, message: `Creating ${term} ${year} archive...` });
 
-      const exportBlob = await this.exportJSON(semesterOptions, (progress) => {
+      const exportBlob = await this.exportJSON(termOptions, (progress) => {
         onProgress?.({ 
           ...progress, 
           progress: Math.floor(progress.progress * 0.9), // Scale to 90% for main export
@@ -344,13 +354,26 @@ export class ExportService {
         });
       });
 
-      onProgress?.({ step: 'Archive Complete', progress: 100, message: `${semester} ${year} archive ready!` });
+      onProgress?.({ step: 'Archive Complete', progress: 100, message: `${term} ${year} archive ready!` });
 
       return exportBlob;
     } catch (error) {
-      logger.error('Semester archive export failed', error);
-      throw errorHandler.handle(error as Error, 'exportSemesterArchive');
+      logger.error('Term archive export failed', error);
+      throw errorHandler.handle(error as Error, 'exportTermArchive');
     }
+  }
+
+  /**
+   * Export semester archive (JSON + metadata) - DEPRECATED: Use exportTermArchive instead
+   * @deprecated Use exportTermArchive for better semester/quarter support
+   */
+  async exportSemesterArchive(
+    semester: string,
+    year: number,
+    onProgress?: ExportProgressCallback
+  ): Promise<Blob> {
+    // Maintain backward compatibility by delegating to the new method
+    return this.exportTermArchive(semester, year, 'semester', onProgress);
   }
 
   /**

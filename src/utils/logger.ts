@@ -1,6 +1,8 @@
 /**
- * Centralized logging utility with configurable levels
+ * Centralized logging utility with configurable levels and Sentry integration
  */
+
+import { captureError, captureMessage, addSentryBreadcrumb } from '../config/sentry';
 
 export const LOG_LEVELS = {
   ERROR: 0,
@@ -45,24 +47,47 @@ class Logger {
   error(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.ERROR) {
       console.error(`[ERROR] ${message}`, ...args);
+      
+      // Send to Sentry in production
+      if (process.env.NODE_ENV === 'production') {
+        // If first arg is an Error object, capture it as exception
+        if (args[0] instanceof Error) {
+          captureError(args[0], { metadata: { message, args: args.slice(1) } });
+        } else {
+          captureMessage(message, 'error', { args });
+        }
+      }
     }
   }
 
   warn(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.WARN) {
       console.warn(`[WARN] ${message}`, ...args);
+      
+      // Send warnings to Sentry in production
+      if (process.env.NODE_ENV === 'production') {
+        captureMessage(message, 'warning', { args });
+      }
     }
   }
 
   info(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.INFO) {
       console.info(`[INFO] ${message}`, ...args);
+      
+      // Add as breadcrumb for context
+      addSentryBreadcrumb(message, 'user', { args });
     }
   }
 
   debug(message: string, ...args: unknown[]): void {
     if (this.level >= LOG_LEVELS.DEBUG) {
       console.log(`[DEBUG] ${message}`, ...args);
+      
+      // Add debug info as breadcrumb in development
+      if (process.env.NODE_ENV === 'development') {
+        addSentryBreadcrumb(message, 'user', { args });
+      }
     }
   }
 
@@ -84,9 +109,18 @@ class Logger {
     // Always log security events regardless of log level
     console.warn(`[SECURITY] ${message}`, securityData);
     
-    // In production, this would also send to security monitoring service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Send to security monitoring service (e.g., Sentry, DataDog)
+    // Always send security events to Sentry with high priority
+    try {
+      const severity = String(data.severity || 'medium');
+      const sentryLevel = severity === 'critical' ? 'fatal' : 
+                         severity === 'high' ? 'error' : 'warning';
+      
+      captureMessage(`[SECURITY] ${message}`, sentryLevel, securityData);
+      
+      // Add security breadcrumb for context
+      addSentryBreadcrumb(message, 'error', securityData);
+    } catch (error) {
+      console.error('Failed to send security event to Sentry:', error);
     }
   }
 

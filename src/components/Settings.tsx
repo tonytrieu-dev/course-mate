@@ -66,7 +66,6 @@ const Settings: React.FC<SettingsModalProps> = ({
             <span className="text-xl sm:text-2xl">⚙️</span>
             <div>
               <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-slate-100">Settings</h1>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 hidden sm:block">Customize your ScheduleBud experience</p>
             </div>
           </div>
           <button

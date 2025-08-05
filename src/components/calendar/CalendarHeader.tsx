@@ -152,7 +152,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
         {/* Month picker dropdown - positioned to avoid backdrop interference */}
         {showMonthPicker && (
           <div 
-            className="fixed top-28 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-2xl dark:shadow-slate-900/60 z-[9999] w-60"
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-2xl dark:shadow-slate-900/60 z-[9999] w-60"
             role="dialog"
             aria-labelledby="month-picker-title"
             aria-modal="true"
@@ -182,7 +182,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
         {/* Year picker dropdown - positioned to avoid backdrop interference */}
         {showYearPicker && (
           <div 
-            className="fixed top-28 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-2xl dark:shadow-slate-900/60 z-[9999] w-48 max-h-64"
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-2xl dark:shadow-slate-900/60 z-[9999] w-48 max-h-64"
             role="dialog"
             aria-labelledby="year-picker-title"
             aria-modal="true"

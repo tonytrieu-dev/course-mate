@@ -64,12 +64,9 @@ const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
                    ? 'opacity-90 scale-100' 
                    : 'opacity-0 scale-75 pointer-events-none'
                  }
-                 ${isSidebarCollapsed 
-                   ? 'bg-blue-600 hover:bg-blue-700 border-blue-500 hover:border-blue-600 text-white shadow-lg hover:shadow-xl' 
-                   : 'bg-white/80 dark:bg-slate-800/60 hover:bg-white/90 dark:hover:bg-slate-700/70 border-gray-300 dark:border-slate-600/50 hover:border-gray-400 dark:hover:border-slate-500/50 text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-300 shadow-md hover:shadow-lg'
-                 }
+                 bg-white/80 dark:bg-slate-800/60 hover:bg-white/90 dark:hover:bg-slate-700/70 border-gray-300 dark:border-slate-600/50 hover:border-gray-400 dark:hover:border-slate-500/50 text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-300 shadow-md hover:shadow-lg
                  hover:scale-110 active:scale-95
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+                 focus:outline-none`}
       title={isSidebarCollapsed ? "Expand sidebar (⌘⇧E)" : "Collapse sidebar (⌘⇧E)"}
       aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       type="button"
@@ -116,13 +113,9 @@ const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
       </svg>
 
       {/* Interactive state indicators */}
-      <div className={`absolute inset-0 rounded-xl transition-all duration-300
-                      ${isSidebarCollapsed 
-                        ? 'bg-gradient-to-r from-blue-400/0 via-blue-300/20 to-blue-400/0' 
-                        : 'bg-gradient-to-r from-gray-200/0 via-gray-100/30 to-gray-200/0 dark:from-slate-600/0 dark:via-slate-500/20 dark:to-slate-600/0'
-                      }
-                      opacity-0 group-hover:opacity-100`} 
-      />
+      <div className="absolute inset-0 rounded-xl transition-all duration-300
+                      bg-gradient-to-r from-gray-200/0 via-gray-100/30 to-gray-200/0 dark:from-slate-600/0 dark:via-slate-500/20 dark:to-slate-600/0
+                      opacity-0 group-hover:opacity-100" />
 
 
       {/* Mobile touch feedback */}

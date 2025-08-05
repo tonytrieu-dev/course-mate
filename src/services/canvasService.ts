@@ -653,6 +653,38 @@ export const fetchCanvasCalendar = async (
   }
 };
 
+/**
+ * Parses ICS (iCalendar) data from Canvas and converts it to CanvasEvent objects.
+ * 
+ * This function handles Canvas-specific ICS formatting issues and malformed data:
+ * - Handles folded lines (multi-line properties)
+ * - Cleans up malformed DTSTART/DTEND values
+ * - Extracts key event properties like UID, SUMMARY, DESCRIPTION
+ * - Processes Canvas URL patterns and course information
+ * - Provides comprehensive error handling and logging
+ * 
+ * @param icsData - Raw ICS calendar data string from Canvas
+ * @returns Array of parsed CanvasEvent objects
+ * 
+ * @example
+ * ```typescript
+ * const icsData = `BEGIN:VCALENDAR
+ * VERSION:2.0
+ * BEGIN:VEVENT
+ * UID:assignment_123@canvas
+ * SUMMARY:Assignment Due
+ * DTSTART:20240315T100000Z
+ * END:VEVENT
+ * END:VCALENDAR`;
+ * 
+ * const events = parseICS(icsData);
+ * console.log(events.length); // 1
+ * ```
+ * 
+ * @throws {Error} When ICS data is malformed or cannot be parsed
+ * 
+ * @internal This is an internal Canvas service function
+ */
 function parseICS(icsData: string): CanvasEvent[] {
   const events: CanvasEvent[] = [];
   

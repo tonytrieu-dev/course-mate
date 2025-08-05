@@ -15,34 +15,9 @@ import { getTasks } from './dataService';
 import { getClasses } from './class/classOperations';
 import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
+import { supabase } from './supabaseClient';
 
-// Google Gemini integration for AI analysis
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
-
-interface GeminiAnalysisRequest {
-  contents: [{
-    parts: [{
-      text: string;
-    }];
-  }];
-  generationConfig: {
-    temperature: number;
-    topK: number;
-    topP: number;
-    maxOutputTokens: number;
-  };
-}
-
-interface GeminiResponse {
-  candidates: [{
-    content: {
-      parts: [{
-        text: string;
-      }];
-    };
-  }];
-}
+// AI Analysis via secure Edge Function
 
 /**
  * AI-powered workload analysis service
@@ -290,11 +265,6 @@ export class StudyScheduleService {
     deadlineConflicts: number;
     burnoutRisk: number;
   }> {
-    if (!GEMINI_API_KEY) {
-      logger.warn('[StudyScheduleService] Gemini API key not configured, using fallback analysis');
-      return this.getFallbackAnalysis(tasks, classWorkloads);
-    }
-    
     try {
       // Prepare task data for AI analysis
       const taskSummary = tasks.map(task => ({
@@ -304,70 +274,36 @@ export class StudyScheduleService {
         class: task.class,
         description: (task as any).description?.substring(0, 200) // Limit description length
       }));
+
+      logger.info('[StudyScheduleService] Calling AI Analysis Edge Function for workload analysis');
       
-      const prompt = `
-As an AI study schedule optimizer, analyze this student's workload and provide recommendations:
-
-UPCOMING TASKS (${tasks.length} total):
-${JSON.stringify(taskSummary, null, 2)}
-
-CLASS WORKLOADS:
-${JSON.stringify(classWorkloads, null, 2)}
-
-Please analyze and respond with a JSON object containing:
-1. estimatedTotalHours: Total hours needed for all assignments
-2. stressLevel: Stress level prediction (1-10 scale)
-3. recommendedDailyHours: Recommended daily study hours
-4. peakWorkloadDates: Array of dates with highest workload (YYYY-MM-DD format)
-5. recommendations: Object with immediate_actions, schedule_adjustments, long_term_strategies arrays
-6. overloadRisk: Risk of being overloaded (0-1 scale)
-7. deadlineConflicts: Number of conflicting deadlines
-8. burnoutRisk: Risk of burnout (0-1 scale)
-
-Consider:
-- Assignment difficulty and time requirements
-- Deadline proximity and distribution
-- Subject matter complexity
-- Realistic study capacity for students
-- Work-life balance
-
-Respond only with valid JSON, no additional text.`;
-      
-      const requestBody: GeminiAnalysisRequest = {
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.1, // Low temperature for consistent analysis
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048
+      const { data, error } = await supabase.functions.invoke('ai-analysis', {
+        body: {
+          type: 'schedule_analysis',
+          data: {
+            tasks: taskSummary,
+            classWorkloads: classWorkloads
+          },
+          config: {
+            temperature: 0.1,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 2048
+          }
         }
-      };
-      
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
       });
-      
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+
+      if (error) {
+        logger.error('[StudyScheduleService] AI Analysis Edge Function error', error);
+        throw new Error(`AI Analysis error: ${error.message}`);
       }
-      
-      const data: GeminiResponse = await response.json();
-      const aiResponseText = data.candidates[0]?.content?.parts[0]?.text;
-      
-      if (!aiResponseText) {
-        throw new Error('No response from Gemini API');
+
+      if (!data || !data.result) {
+        throw new Error('Invalid response from AI Analysis service');
       }
-      
+
       // Parse AI response
-      const aiAnalysis = JSON.parse(aiResponseText);
+      const aiAnalysis = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
       
       logger.debug('[StudyScheduleService] AI analysis completed', {
         stressLevel: aiAnalysis.stressLevel,
@@ -399,129 +335,10 @@ Respond only with valid JSON, no additional text.`;
     predictedSuccessRate: number;
     recommendations: string[];
   }> {
-    if (!GEMINI_API_KEY) {
-      logger.warn('[StudyScheduleService] Gemini API key not configured, using fallback schedule generation');
-      return this.getFallbackSchedule(request, workloadAnalysis, studyProfile);
-    }
-    
-    try {
-      const prompt = `
-As an AI study schedule optimizer, create an optimal study schedule:
-
-OPTIMIZATION REQUEST:
-- Start Date: ${request.start_date}
-- End Date: ${request.end_date}
-- Goals: ${request.optimization_goals.join(', ')}
-- Include Classes: ${request.include_classes.length > 0 ? request.include_classes.join(', ') : 'All'}
-
-WORKLOAD ANALYSIS:
-${JSON.stringify(workloadAnalysis, null, 2)}
-
-STUDY PROFILE:
-${JSON.stringify(studyProfile, null, 2)}
-
-Create an optimal study schedule with the following JSON structure:
-{
-  "sessions": [
-    {
-      "date": "YYYY-MM-DD",
-      "start_time": "HH:MM",
-      "end_time": "HH:MM",
-      "duration_minutes": number,
-      "class_id": "string",
-      "session_type": "new_material|review|practice|exam_prep|project_work",
-      "focus_area": "string describing what to study",
-      "difficulty_level": 1-5,
-      "learning_objectives": ["objective1", "objective2"]
-    }
-  ],
-  "confidenceScore": 0-1,
-  "totalHours": number,
-  "sessionsPerWeek": number,
-  "classTimeDistribution": {"classId": hours},
-  "predictedSuccessRate": 0-1,
-  "recommendations": ["recommendation1", "recommendation2"]
-}
-
-Guidelines:
-- Respect user's preferred study times and focus duration
-- Use spaced repetition principles
-- Balance workload across subjects
-- Account for assignment deadlines
-- Include breaks and avoid overloading
-- Consider class difficulty weights
-
-Respond only with valid JSON, no additional text.`;
-      
-      const requestBody: GeminiAnalysisRequest = {
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.2,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 4096
-        }
-      };
-      
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data: GeminiResponse = await response.json();
-      const aiResponseText = data.candidates[0]?.content?.parts[0]?.text;
-      
-      if (!aiResponseText) {
-        throw new Error('No response from Gemini API');
-      }
-      
-      const aiSchedule = JSON.parse(aiResponseText);
-      
-      // Add missing fields to sessions
-      const sessions: StudySession[] = aiSchedule.sessions.map((session: any, index: number) => ({
-        id: `session_${Date.now()}_${index}`,
-        schedule_id: '', // Will be set when schedule is created
-        date: session.date,
-        start_time: session.start_time,
-        end_time: session.end_time,
-        duration_minutes: session.duration_minutes,
-        class_id: session.class_id,
-        task_ids: [], // Will be populated based on focus area
-        session_type: session.session_type,
-        focus_area: session.focus_area,
-        difficulty_level: session.difficulty_level,
-        prerequisite_concepts: [],
-        learning_objectives: session.learning_objectives || [],
-        status: 'scheduled' as const,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }));
-      
-      return {
-        sessions,
-        confidenceScore: aiSchedule.confidenceScore,
-        totalHours: aiSchedule.totalHours,
-        sessionsPerWeek: aiSchedule.sessionsPerWeek,
-        classTimeDistribution: aiSchedule.classTimeDistribution,
-        predictedSuccessRate: aiSchedule.predictedSuccessRate,
-        recommendations: aiSchedule.recommendations
-      };
-      
-    } catch (error) {
-      logger.error('[StudyScheduleService] AI schedule generation failed, using fallback', error);
-      return this.getFallbackSchedule(request, workloadAnalysis, studyProfile);
-    }
+    // Use fallback schedule generation for now
+    // TODO: Implement AI-powered schedule generation via Edge Function
+    logger.info('[StudyScheduleService] Using fallback schedule generation (secure AI implementation pending)');
+    return this.getFallbackSchedule(request, workloadAnalysis, studyProfile);
   }
   
   /**

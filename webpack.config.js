@@ -30,6 +30,16 @@ module.exports = {
         type: 'javascript/auto'
       },
       {
+        test: /\.js$/,
+        include: /node_modules\/@sentry/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
+        }
+      },
+      {
         test: /\.css$/,
         use: ['style-loader', 'css-loader', 'postcss-loader']
       }
@@ -38,7 +48,17 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs'],
     alias: {
-      'pdfjs-dist': path.resolve(__dirname, 'node_modules/pdfjs-dist')
+      'pdfjs-dist': path.resolve(__dirname, 'node_modules/pdfjs-dist'),
+      // Fix Sentry ESM module resolution issues
+      'process/browser': require.resolve('process/browser.js')
+    },
+    fallback: {
+      "process": require.resolve("process/browser"),
+      "buffer": require.resolve("buffer"),
+      "util": require.resolve("util"),
+      "os": false,
+      "path": false,
+      "fs": false
     }
   },
   devServer: {
@@ -48,11 +68,20 @@ module.exports = {
     port: 8080,
     hot: true,
     open: true,
+    // Development-friendly headers (minimal security for local dev)
+    headers: {
+      'X-Content-Type-Options': 'nosniff'
+    }
   },
   plugins: [
     new webpack.ProvidePlugin({
       process: 'process/browser',
     }),
     new Dotenv(),
+    // Fix Sentry ESM module resolution issues
+    new webpack.NormalModuleReplacementPlugin(
+      /process\/browser$/,
+      'process/browser.js'
+    )
   ],
 };

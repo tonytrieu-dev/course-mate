@@ -1,13 +1,12 @@
-import React, { useEffect, lazy, Suspense } from "react";
+import React, { useEffect, lazy, Suspense, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { TextFormattingProvider } from "../contexts/TextFormattingContext";
+import { TextFormattingProvider, useTextFormatting } from "../contexts/TextFormattingContext";
 import { useResizable } from "../hooks/useResizable";
 import { useFontSizes } from "../hooks/useLocalStorageState";
 import { useSidebarState } from "../hooks/useSidebarState";
 import { useSidebarData } from "../hooks/useSidebarData";
 import LoginComponent from "./LoginComponent";
 import EditableText from "./EditableText";
-import InlineSizeControl from "./InlineSizeControl";
 import ClassList from "./ClassList";
 import SidebarTitle from "./sidebar/SidebarTitle";
 import SidebarToggleButton from "./sidebar/SidebarToggleButton";
@@ -32,12 +31,14 @@ interface SidebarProps {
   onTasksRefresh?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ 
+// Inner Sidebar component that can use TextFormattingContext
+const SidebarInner: React.FC<SidebarProps> = ({ 
   isNavCollapsed = false, 
   setIsNavCollapsed = () => {},
   onTasksRefresh
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { getFontSize } = useTextFormatting();
   
   // Custom hooks for state management
   const sidebarState = useSidebarState();
@@ -74,10 +75,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     setChatbotPosition,
     isSidebarCollapsed,
     setIsSidebarCollapsed,
-    showTitleSizeControl,
-    setShowTitleSizeControl,
-    showClassesHeaderSizeControl,
-    setShowClassesHeaderSizeControl,
     showClassNameSizeControl,
     setShowClassNameSizeControl,
     isCanvasSyncing,
@@ -92,17 +89,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Font sizes with optimized localStorage access
   const {
     sidebar: fontSize,
-    title: titleSize,
-    classesHeader: classesHeaderSize,
     className: classNameSize,
     setSidebarSize: setFontSize,
-    setTitleSize,
-    setClassesHeaderSize,
     setClassNameSize
   } = useFontSizes({
     sidebar: 16,
-    title: 50,
-    classesHeader: 20,
     className: 14
   });
 
@@ -115,6 +106,29 @@ const Sidebar: React.FC<SidebarProps> = ({
   });
   const [showTitleColorPicker, setShowTitleColorPicker] = React.useState(false);
   const [showClassesHeaderColorPicker, setShowClassesHeaderColorPicker] = React.useState(false);
+
+  // Font size state management for classes header
+  const [classesHeaderSize, setClassesHeaderSize] = React.useState(() => getFontSize('classes-header'));
+
+  // Listen for font size changes from keyboard shortcuts
+  useEffect(() => {
+    const handleFontSizeChange = (event: CustomEvent) => {
+      if (event.detail.elementType === 'classes-header') {
+        setClassesHeaderSize(event.detail.fontSize);
+      }
+    };
+
+    window.addEventListener('fontSizeChanged', handleFontSizeChange as EventListener);
+    return () => {
+      window.removeEventListener('fontSizeChanged', handleFontSizeChange as EventListener);
+    };
+  }, []);
+
+  // Update font size if it changes in context
+  useEffect(() => {
+    const currentFontSize = getFontSize('classes-header');
+    setClassesHeaderSize(currentFontSize);
+  }, [getFontSize]);
 
   // Standard color options with dark mode support
   const colorOptions = [
@@ -173,14 +187,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     localStorage.setItem('sidebarFontSize', fontSize.toString());
   }, [fontSize]);
-
-  useEffect(() => {
-    localStorage.setItem('titleFontSize', titleSize.toString());
-  }, [titleSize]);
-
-  useEffect(() => {
-    localStorage.setItem('classesHeaderFontSize', classesHeaderSize.toString());
-  }, [classesHeaderSize]);
 
   useEffect(() => {
     localStorage.setItem('classNameFontSize', classNameSize.toString());
@@ -288,7 +294,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           isResizing 
             ? 'dark:bg-slate-900 sidebar-no-transition' // No backdrop-blur during resize for performance
             : 'dark:bg-slate-900/95 dark:backdrop-blur-sm sidebar-transition'
-        } h-full box-border font-sans flex flex-col relative`}
+        } h-full box-border font-sans flex flex-col relative z-[9998]`}
         style={{
           width: isSidebarCollapsed ? '64px' : `${sidebarWidth}px`
         }}
@@ -310,10 +316,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             handleTitleBlur();
             setIsEditingTitle(false);
           }}
-          titleSize={titleSize}
-          setTitleSize={setTitleSize}
-          showTitleSizeControl={showTitleSizeControl}
-          setShowTitleSizeControl={setShowTitleSizeControl}
           isSidebarCollapsed={isSidebarCollapsed}
           onSidebarToggle={() => setIsSidebarCollapsed(false)}
           titleColor={titleColor}
@@ -357,7 +359,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                     }}
                     isEditing={isEditingClassesTitle}
                     onClick={() => setIsEditingClassesTitle(true)}
-                    onDoubleClick={() => setShowClassesHeaderSizeControl(true)}
                     className={isEditingClassesTitle
                       ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none min-w-0 max-w-full inline-block`
                       : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} inline-block`
@@ -366,17 +367,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                       ? { fontSize: `${classesHeaderSize}px`, minWidth: `${classesTitle.length + 1}ch` }
                       : { fontSize: `${classesHeaderSize}px` }
                     }
-                    title="Left-click to edit, Right-click to change color"
+                    title="Left-click to edit, Right-click to change color • Focus and use Ctrl+Plus/Minus to resize"
+                    data-element-type="classes-header"
+                    tabIndex={0}
+                    aria-label={`Classes section header: ${classesTitle}. Click to edit, right-click to change color, focus and use Ctrl+Plus/Minus to resize.`}
                   />
                 </div>
-                <InlineSizeControl 
-                  size={classesHeaderSize} 
-                  setSize={setClassesHeaderSize} 
-                  minSize={14} 
-                  maxSize={32} 
-                  show={showClassesHeaderSizeControl} 
-                  setShow={setShowClassesHeaderSizeControl} 
-                />
                 {/* Ultra-Compact Classes Header Color Picker */}
                 {showClassesHeaderColorPicker && (
                   <>
@@ -467,7 +463,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
 
         {/* Auth Controls - minimal gap */}
-        <div className="px-2 mt-1 mb-3 flex-shrink-0">
+        <div className="px-2 mb-3 flex-shrink-0">
           <Suspense fallback={
             <div className="animate-pulse bg-gray-200 dark:bg-slate-700 h-10 rounded" />
           }>
@@ -585,6 +581,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           fontSize={fontSize}
         />
       </Suspense>
+    </TextFormattingProvider>
+  );
+};
+
+// Main Sidebar wrapper component
+const Sidebar: React.FC<SidebarProps> = (props) => {
+  return (
+    <TextFormattingProvider>
+      <SidebarInner {...props} />
     </TextFormattingProvider>
   );
 };

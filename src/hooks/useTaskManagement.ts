@@ -16,6 +16,53 @@ interface UseTaskManagementProps {
   setTask: React.Dispatch<React.SetStateAction<any>>;
 }
 
+/**
+ * Custom hook for managing tasks, classes, and task types in the ScheduleBud application.
+ * 
+ * This hook provides comprehensive functionality for:
+ * - Managing classes (add, edit, delete)
+ * - Managing task types (add, edit, delete, color customization)
+ * - Handling UI state for class and type management modals
+ * - Integration with Supabase for data persistence
+ * - Real-time updates and optimistic UI updates
+ * 
+ * @param props - Configuration object for the hook
+ * @param props.classes - Array of user's classes with relations
+ * @param props.setClasses - Function to update classes state
+ * @param props.taskTypes - Array of user's task types
+ * @param props.setTaskTypes - Function to update task types state  
+ * @param props.isAuthenticated - User authentication status
+ * @param props.user - Current authenticated user
+ * @param props.task - Current task being edited
+ * @param props.setTask - Function to update current task
+ * 
+ * @returns Object containing:
+ * - State variables for UI management
+ * - Handler functions for class operations
+ * - Handler functions for task type operations
+ * - Utility functions for validation and data management
+ * 
+ * @example
+ * ```tsx
+ * const {
+ *   showClassInput,
+ *   handleAddClass,
+ *   handleDeleteClass,
+ *   showTypeInput,
+ *   handleAddType,
+ *   editingTypeId
+ * } = useTaskManagement({
+ *   classes,
+ *   setClasses,
+ *   taskTypes,
+ *   setTaskTypes,
+ *   isAuthenticated,
+ *   user,
+ *   task,
+ *   setTask
+ * });
+ * ```
+ */
 export const useTaskManagement = ({
   classes,
   setClasses,

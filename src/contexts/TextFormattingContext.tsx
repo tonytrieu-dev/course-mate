@@ -13,6 +13,7 @@ import React, {
 interface ElementFormatting {
   bold?: boolean;
   underline?: boolean;
+  fontSize?: number;
   // Additional formatting options can be added here
 }
 
@@ -22,7 +23,15 @@ interface ElementFormattingMap {
 }
 
 // Formatting commands
-type FormattingCommand = 'bold' | 'underline' | 'fontSize';
+type FormattingCommand = 'bold' | 'underline' | 'fontSize' | 'increaseFontSize' | 'decreaseFontSize';
+
+// Font size configuration for different element types
+interface FontSizeConfig {
+  current: number;
+  min: number;
+  max: number;
+  step: number;
+}
 
 // Context type definition
 interface TextFormattingContextType {
@@ -33,6 +42,10 @@ interface TextFormattingContextType {
   restoreElementFormatting: (element: HTMLElement, elementType: string) => void;
   applyFormatting: (command: FormattingCommand, value?: string | null) => void;
   handleKeyDown: (e: KeyboardEvent) => void;
+  // Font size specific methods
+  increaseFontSize: (elementType: string) => void;
+  decreaseFontSize: (elementType: string) => void;
+  getFontSize: (elementType: string) => number;
 }
 
 // Provider props interface
@@ -63,6 +76,13 @@ export const TextFormattingProvider: React.FC<TextFormattingProviderProps> = ({ 
   
   const [activeElement, setActiveElement] = useState<HTMLElement | null>(null);
 
+  // Font size configurations for different element types
+  const fontSizeConfigs: { [key: string]: FontSizeConfig } = {
+    'sidebar-title': { current: 50, min: 24, max: 72, step: 2 },
+    'classes-header': { current: 20, min: 14, max: 32, step: 2 },
+    'class-name': { current: 14, min: 10, max: 24, step: 1 },
+  };
+
   // Save formatting to localStorage whenever it changes
   useEffect(() => {
     try {
@@ -81,6 +101,9 @@ export const TextFormattingProvider: React.FC<TextFormattingProviderProps> = ({ 
       }
       if (formatting.underline) {
         element.style.textDecoration = 'underline';
+      }
+      if (formatting.fontSize) {
+        element.style.fontSize = `${formatting.fontSize}px`;
       }
     }
   }, [elementFormatting]);
@@ -121,6 +144,64 @@ export const TextFormattingProvider: React.FC<TextFormattingProviderProps> = ({ 
     }
   }, [activeElement, elementFormatting]);
 
+  // Font size methods
+  const getFontSize = useCallback((elementType: string): number => {
+    const formatting = elementFormatting[elementType];
+    if (formatting?.fontSize) {
+      return formatting.fontSize;
+    }
+    // Return default from config or fallback
+    return fontSizeConfigs[elementType]?.current || 16;
+  }, [elementFormatting, fontSizeConfigs]);
+
+  const increaseFontSize = useCallback((elementType: string): void => {
+    const config = fontSizeConfigs[elementType];
+    if (!config) return;
+
+    const currentSize = getFontSize(elementType);
+    const newSize = Math.min(config.max, currentSize + config.step);
+    
+    if (newSize !== currentSize) {
+      const currentFormatting = elementFormatting[elementType] || {};
+      const newFormatting = { ...currentFormatting, fontSize: newSize };
+      setElementFormatting(prev => ({ ...prev, [elementType]: newFormatting }));
+      
+      // Apply to active element if it matches the type
+      if (activeElement && activeElement.getAttribute('data-element-type') === elementType) {
+        activeElement.style.fontSize = `${newSize}px`;
+      }
+      
+      // Also trigger custom event for components to listen to
+      window.dispatchEvent(new CustomEvent('fontSizeChanged', { 
+        detail: { elementType, fontSize: newSize } 
+      }));
+    }
+  }, [elementFormatting, getFontSize, fontSizeConfigs, activeElement]);
+
+  const decreaseFontSize = useCallback((elementType: string): void => {
+    const config = fontSizeConfigs[elementType];
+    if (!config) return;
+
+    const currentSize = getFontSize(elementType);
+    const newSize = Math.max(config.min, currentSize - config.step);
+    
+    if (newSize !== currentSize) {
+      const currentFormatting = elementFormatting[elementType] || {};
+      const newFormatting = { ...currentFormatting, fontSize: newSize };
+      setElementFormatting(prev => ({ ...prev, [elementType]: newFormatting }));
+      
+      // Apply to active element if it matches the type
+      if (activeElement && activeElement.getAttribute('data-element-type') === elementType) {
+        activeElement.style.fontSize = `${newSize}px`;
+      }
+      
+      // Also trigger custom event for components to listen to
+      window.dispatchEvent(new CustomEvent('fontSizeChanged', { 
+        detail: { elementType, fontSize: newSize } 
+      }));
+    }
+  }, [elementFormatting, getFontSize, fontSizeConfigs, activeElement]);
+
   const handleKeyDown = useCallback((e: KeyboardEvent): void => {
     const isCtrlPressed = e.ctrlKey || e.metaKey;
     
@@ -136,11 +217,33 @@ export const TextFormattingProvider: React.FC<TextFormattingProviderProps> = ({ 
           e.preventDefault();
           applyFormatting('underline');
           break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          // Increase font size for focused element type
+          if (activeElement) {
+            const elementType = activeElement.getAttribute('data-element-type');
+            if (elementType) {
+              increaseFontSize(elementType);
+            }
+          }
+          break;
+        case '-':
+        case '_':
+          e.preventDefault();
+          // Decrease font size for focused element type
+          if (activeElement) {
+            const elementType = activeElement.getAttribute('data-element-type');
+            if (elementType) {
+              decreaseFontSize(elementType);
+            }
+          }
+          break;
         default:
           break;
       }
     }
-  }, [applyFormatting]);
+  }, [applyFormatting, activeElement, increaseFontSize, decreaseFontSize]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -185,7 +288,10 @@ export const TextFormattingProvider: React.FC<TextFormattingProviderProps> = ({ 
     setActiveElement,
     restoreElementFormatting,
     applyFormatting,
-    handleKeyDown
+    handleKeyDown,
+    increaseFontSize,
+    decreaseFontSize,
+    getFontSize
   };
 
   return (

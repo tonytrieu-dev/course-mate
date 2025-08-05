@@ -23,7 +23,8 @@ const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
     taskCompletionSound: true,
     showWeekNumbers: false,
     showNavigationBar: true,
-    theme: 'auto'
+    theme: 'auto',
+    academicSystem: 'semester'
   });
 
   const [originalSettings, setOriginalSettings] = useState<GeneralSettingsState>(settings);
@@ -109,7 +110,8 @@ const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
       taskCompletionSound: true,
       showWeekNumbers: false,
       showNavigationBar: true,
-      theme: 'auto'
+      theme: 'auto',
+      academicSystem: 'semester'
     };
     
     setSettings(defaultSettings);

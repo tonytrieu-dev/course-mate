@@ -1,0 +1,41 @@
+Contact: security@schedulebudapp.com
+Expires: 2025-12-31T23:59:59.000Z
+Encryption: https://schedulebudapp.com/.well-known/pgp-key.txt
+Preferred-Languages: en
+Canonical: https://schedulebudapp.com/.well-known/security.txt
+Policy: https://schedulebudapp.com/security-policy
+
+# ScheduleBud Security Information
+# 
+# We take security seriously and appreciate responsible disclosure of security vulnerabilities.
+# 
+# SCOPE:
+# - schedulebudapp.com and all subdomains
+# - Mobile applications (when available)
+# - APIs and backend services
+# 
+# OUT OF SCOPE:
+# - Social engineering attacks
+# - Physical attacks
+# - Denial of service attacks
+# - Issues requiring physical access
+# 
+# GUIDELINES:
+# 1. Please provide detailed reproduction steps
+# 2. Allow reasonable time for investigation and patching
+# 3. Do not access, modify, or delete user data
+# 4. Do not disrupt service availability
+# 
+# STUDENT DATA PROTECTION:
+# As an educational app handling student data, we are committed to FERPA compliance
+# and protecting student privacy. Please be especially mindful when testing:
+# - Do not attempt to access other users' academic information
+# - Report any potential FERPA violations immediately
+# - Respect student privacy in all security research
+# 
+# RESPONSE TIME:
+# - Critical vulnerabilities: 24 hours acknowledgment, 72 hours initial response
+# - High severity: 48 hours acknowledgment, 1 week initial response  
+# - Medium/Low severity: 1 week acknowledgment, 2 weeks initial response
+# 
+# Thank you for helping keep ScheduleBud secure for students!

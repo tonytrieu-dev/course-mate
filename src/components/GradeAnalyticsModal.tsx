@@ -35,7 +35,11 @@ const GradeAnalyticsModal: React.FC<GradeAnalyticsModalProps> = ({ isOpen, onClo
       
       setLoading(true);
       try {
-        const gpaCalc = await calculateFullGPA(user.id, isAuthenticated);
+        // Get user's academic system preference
+        const generalSettings = JSON.parse(localStorage.getItem('generalSettings') || '{}');
+        const userAcademicSystem = generalSettings?.academicSystem || 'semester';
+        
+        const gpaCalc = await calculateFullGPA(user.id, isAuthenticated, userAcademicSystem);
         setGpaData(gpaCalc);
 
         // Load detailed class information

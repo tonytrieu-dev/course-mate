@@ -50,6 +50,22 @@ const UserExperienceSettings: React.FC<UserExperienceSettingsProps> = ({
           </label>
         </div>
 
+        {/* Academic System */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-gray-900 dark:text-gray-100">Academic System</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Choose between semester or quarter system for grades and scheduling</p>
+          </div>
+          <select
+            value={settings.academicSystem}
+            onChange={(e) => onSettingChange('academicSystem', e.target.value)}
+            className="px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="semester">Semester System</option>
+            <option value="quarter">Quarter System</option>
+          </select>
+        </div>
+
         {/* Show Navigation Bar */}
         <div className="flex items-center justify-between">
           <div>

@@ -352,22 +352,33 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { key: '7d', label: '7 days before', icon: '📅', color: 'from-blue-100 to-blue-50' },
-                  { key: '3d', label: '3 days before', icon: '⏰', color: 'from-green-100 to-green-50' },
-                  { key: '1d', label: '1 day before', icon: '⚠️', color: 'from-yellow-100 to-yellow-50' },
-                  { key: '2h', label: '2 hours before', icon: '🚨', color: 'from-red-100 to-red-50' }
-                ].map(({ key, label, icon, color }) => (
-                  <label key={key} className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${notificationTimes.includes(key) ? 'border-purple-300 dark:border-purple-700/50 bg-gradient-to-r from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-900/20 shadow-sm' : `border-gray-200 dark:border-slate-700/50 bg-gradient-to-r ${color} hover:border-gray-300 dark:hover:border-slate-600`}`}>
-                    <input
-                      type="checkbox"
-                      checked={notificationTimes.includes(key)}
-                      onChange={() => toggleNotificationTime(key)}
-                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-3"
-                    />
-                    <span className="text-lg mr-2">{icon}</span>
-                    <span className="text-sm font-medium text-gray-800 dark:text-slate-200">{label}</span>
-                  </label>
-                ))}
+                  { key: '7d', label: '7 days before', icon: '📅', color: 'bg-blue-100', darkColor: 'bg-blue-900/70' },
+                  { key: '3d', label: '3 days before', icon: '⏰', color: 'bg-green-100', darkColor: 'bg-emerald-900/70' },
+                  { key: '1d', label: '1 day before', icon: '⚠️', color: 'bg-yellow-100', darkColor: 'bg-amber-900/70' },
+                  { key: '2h', label: '2 hours before', icon: '🚨', color: 'bg-red-100', darkColor: 'bg-red-900/70' }
+                ].map(({ key, label, icon, color, darkColor }) => {
+                  const isSelected = notificationTimes.includes(key);
+                  const baseClasses = "flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md";
+                  const lightModeClasses = isSelected 
+                    ? "border-purple-300 bg-purple-100 shadow-sm"
+                    : `border-gray-200 ${color} hover:border-gray-300`;
+                  const darkModeClasses = isSelected
+                    ? `dark:!border-purple-400/60 dark:!bg-purple-900/80 dark:!text-slate-200 dark:shadow-lg`
+                    : `dark:!border-slate-600/40 dark:!${darkColor} dark:!text-slate-300 dark:hover:!border-slate-500/60`;
+                  
+                  return (
+                    <label key={key} className={`${baseClasses} ${lightModeClasses} ${darkModeClasses}`}>
+                      <input
+                        type="checkbox"
+                        checked={notificationTimes.includes(key)}
+                        onChange={() => toggleNotificationTime(key)}
+                        className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 dark:!border-slate-600 dark:!bg-slate-700 rounded mr-3"
+                      />
+                      <span className="text-lg mr-2">{icon}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:!text-slate-300">{label}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -491,29 +502,6 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
         </div>
       </div>
 
-      {/* Premium Notice */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800/50 rounded-xl shadow-sm relative overflow-hidden">
-        <div className="flex items-start relative z-10">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <h4 className="font-bold text-gray-900 dark:text-slate-100 text-lg mb-2">Coming Soon: SMS Notifications</h4>
-            <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed mb-3">Get instant text reminders for urgent deadlines. Perfect for those critical assignments that you can't afford to miss!</p>
-            <div className="inline-flex items-center px-3 py-1 bg-white bg-opacity-60 rounded-full text-xs font-medium text-purple-700">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Coming Q2 2025
-            </div>
-          </div>
-        </div>
-        {/* Decorative background elements */}
-        <div className="absolute -top-4 -right-4 w-24 h-24 bg-purple-200 dark:bg-purple-900/30 rounded-full opacity-30"></div>
-        <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-pink-200 dark:bg-pink-900/30 rounded-full opacity-20"></div>
-      </div>
     </div>
   );
 };

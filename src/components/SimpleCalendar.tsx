@@ -298,6 +298,8 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
           dateKey = task.dueDate;
         } else if (task.startDate) {
           dateKey = task.startDate;
+        } else if (task.date) {
+          dateKey = task.date;
         }
         
         if (dateKey) {

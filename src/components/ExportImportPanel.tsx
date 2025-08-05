@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { 
   exportService, 
   downloadBlob, 
@@ -15,6 +15,9 @@ import {
 } from '../services/importService';
 import { useAuth } from '../contexts/AuthContext';
 import { logger } from '../utils/logger';
+import { getAvailableTerms, getCurrentAcademicTerm, type AcademicSystem } from '../utils/academicTermHelpers';
+import { storage } from '../utils/storage';
+import type { AppSettings } from '../types/database';
 
 interface ExportImportPanelProps {
   onClose?: () => void;
@@ -42,6 +45,9 @@ const ExportImportPanel: React.FC<ExportImportPanelProps> = ({ onClose }) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'export' | 'import'>('export');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Academic system preference
+  const [academicSystem, setAcademicSystem] = useState<AcademicSystem>('semester');
 
   // Export state
   const [exportState, setExportState] = useState<ExportState>({
@@ -58,6 +64,17 @@ const ExportImportPanel: React.FC<ExportImportPanelProps> = ({ onClose }) => {
     semester: '',
     year: new Date().getFullYear()
   });
+
+  // Initialize academic system preference
+  useEffect(() => {
+    const generalSettings = JSON.parse(localStorage.getItem('generalSettings') || '{}');
+    const userAcademicSystem = generalSettings?.academicSystem || 'semester';
+    setAcademicSystem(userAcademicSystem);
+    
+    // Set default term based on current academic term
+    const term = getCurrentAcademicTerm(userAcademicSystem);
+    setExportOptions(prev => ({ ...prev, semester: term }));
+  }, []);
 
   // Import state
   const [importState, setImportState] = useState<ImportState>({
@@ -382,18 +399,19 @@ const ExportImportPanel: React.FC<ExportImportPanelProps> = ({ onClose }) => {
 
       {/* Semester Archive */}
       <div className="border-t pt-6 dark:border-slate-600">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">Semester Archive</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-4">
+          {academicSystem === 'quarter' ? 'Quarter' : 'Semester'} Archive
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           <select
             value={exportOptions.semester}
             onChange={(e) => setExportOptions(prev => ({ ...prev, semester: e.target.value }))}
             className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
           >
-            <option value="">Select Semester</option>
-            <option value="Spring">Spring</option>
-            <option value="Summer">Summer</option>
-            <option value="Fall">Fall</option>
-            <option value="Winter">Winter</option>
+            <option value="">Select {academicSystem === 'quarter' ? 'Quarter' : 'Semester'}</option>
+            {getAvailableTerms(academicSystem).map(term => (
+              <option key={term} value={term}>{term}</option>
+            ))}
           </select>
           
           <select
