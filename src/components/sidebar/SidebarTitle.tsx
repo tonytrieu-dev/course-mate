@@ -82,8 +82,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
                    outline-none ring-2 ring-blue-500 ring-offset-2 rounded-md bg-transparent`
                 : `${getColorClasses(titleColor).class} cursor-pointer leading-tight font-inherit font-bold 
                    transition-all duration-300 ${getColorClasses(titleColor).hoverClass} inline-block
-                   hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 
-                   focus:ring-offset-2 rounded-md px-2 py-1 hover:shadow-lg hover:bg-white/20 backdrop-blur-sm`
+                   hover:scale-105 active:scale-95 focus:outline-none rounded-md px-2 py-1 hover:shadow-lg hover:bg-white/20 backdrop-blur-sm`
               }
               style={{ fontSize: `${titleSize}px` }}
               title="Click to edit • Right-click for color options • Focus and use Ctrl+Plus/Minus to resize"
