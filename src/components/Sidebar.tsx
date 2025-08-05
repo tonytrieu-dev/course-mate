@@ -38,7 +38,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
   onTasksRefresh
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
-  const { getFontSize } = useTextFormatting();
+  const { getFontSize, elementFormatting, setElementFormatting } = useTextFormatting();
   
   // Custom hooks for state management
   const sidebarState = useSidebarState();
@@ -107,30 +107,34 @@ const SidebarInner: React.FC<SidebarProps> = ({
   const [showTitleColorPicker, setShowTitleColorPicker] = React.useState(false);
   const [showClassesHeaderColorPicker, setShowClassesHeaderColorPicker] = React.useState(false);
 
-  // Font size state management for classes header
-  const [classesHeaderSize, setClassesHeaderSize] = React.useState(() => getFontSize('classes-header'));
-
-  // Listen for font size changes and update immediately
+  // Track font size with local state that syncs with context
+  const [classesHeaderSize, setClassesHeaderSize] = React.useState(() => {
+    const formatting = elementFormatting['classes-header'];
+    return formatting?.fontSize || getFontSize('classes-header');
+  });
+  
+  // Update local state when context changes
+  useEffect(() => {
+    const formatting = elementFormatting['classes-header'];
+    const newSize = formatting?.fontSize || getFontSize('classes-header');
+    if (newSize !== classesHeaderSize) {
+      setClassesHeaderSize(newSize);
+    }
+  }, [elementFormatting, getFontSize, classesHeaderSize]);
+  
+  // Listen for font size change events
   useEffect(() => {
     const handleFontSizeChange = (event: CustomEvent) => {
       if (event.detail.elementType === 'classes-header') {
         setClassesHeaderSize(event.detail.fontSize);
       }
     };
-
+    
     window.addEventListener('fontSizeChanged', handleFontSizeChange as EventListener);
     return () => {
       window.removeEventListener('fontSizeChanged', handleFontSizeChange as EventListener);
     };
   }, []);
-
-  // Keep local state in sync with context - check on every render
-  const contextFontSize = getFontSize('classes-header');
-  useEffect(() => {
-    if (contextFontSize !== classesHeaderSize) {
-      setClassesHeaderSize(contextFontSize);
-    }
-  }, [contextFontSize, classesHeaderSize]);
 
   // Standard color options with dark mode support
   const colorOptions = [
@@ -219,7 +223,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
   };
 
   return (
-    <TextFormattingProvider>
+    <>
       <style>
         {`
           .empty-placeholder:empty::before {
@@ -354,12 +358,19 @@ const SidebarInner: React.FC<SidebarProps> = ({
                   }}
                 >
                   <EditableText
-                    key={`classes-header-${classesHeaderSize}-${isEditingClassesTitle}`} // Force re-render on font size or edit state change
+                    key={`classes-header-${classesHeaderSize}`} // Force re-render when font size changes
                     value={classesTitle}
                     onChange={setClassesTitle}
                     onBlur={() => {
                       handleClassesTitleBlur();
                       setIsEditingClassesTitle(false);
+                      // Force a re-render to pick up font size changes
+                      setTimeout(() => {
+                        setClassesHeaderSize(prev => {
+                          const formatting = elementFormatting['classes-header'];
+                          return formatting?.fontSize || getFontSize('classes-header');
+                        });
+                      }, 50);
                     }}
                     isEditing={isEditingClassesTitle}
                     onClick={() => setIsEditingClassesTitle(true)}
@@ -587,7 +598,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
           fontSize={fontSize}
         />
       </Suspense>
-    </TextFormattingProvider>
+    </>
   );
 };
 
