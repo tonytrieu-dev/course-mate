@@ -1,55 +1,60 @@
 # ScheduleBud
 
-![Beta](https://img.shields.io/badge/Status-Beta-orange) ![Development](https://img.shields.io/badge/Stage-Active%20Development-yellow) ![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue)
+![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green) ![React](https://img.shields.io/badge/React-18.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue) ![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue)
 
-> ⚠️ **BETA SOFTWARE**: This application is currently in beta/development phase. Expect bugs, incomplete features, and breaking changes. Use at your own risk and please report any issues you encounter.
+A comprehensive student productivity application designed to streamline academic workflow management. Features intelligent calendar integration, AI-powered task generation, Canvas LMS synchronization, and cross-platform compatibility - completely free for educational use.
 
-A modern React + Electron productivity application designed to help students and other busy people manage their academic workflow. Features calendar management, task tracking, Canvas LMS calendar integration, and an AI-powered academic assistant - all completely free for educational and personal use.
+> 🎓 **Built by students, for students** - Designed to eliminate the complexity of academic organization while maintaining powerful functionality.
 
-> 🎓 **Built for Education**: This app is specifically designed for students and other busy people to keep track of all the things they need to do without any cost barriers.
+## ✨ Key Features
 
-## 🚀 Features
+### 📅 **Smart Calendar System**
+- Interactive calendar with month/week/day views
+- Drag-and-drop task management
+- Canvas LMS integration with automatic task import
+- ICS calendar feed parsing with malformed data correction
+- Academic quarter and semester system support
 
-- **Calendar Management**: Interactive calendar with task and event tracking ✅ *Working*
-- **Authentication**: Secure user authentication with Supabase ✅ *Working*
-- **Canvas LMS Integration**: Sync with Canvas calendar and assignments ✅ *Working*
-- **AI Chatbot**: Intelligent assistant for academic queries 🚧 *In Development*
-- **File Management**: Upload and manage course materials ✅ *Working*
+### 🤖 **AI-Powered Academic Assistant**
+- PDF syllabus parsing and automatic task generation
+- Google Gemini-powered chatbot for academic queries
+- Smart course detection and automatic class assignment
+- Context-aware responses based on uploaded materials
 
-## 🚧 Development Status
+### 🎯 **Advanced Task Management**
+- Customizable task types with color coding
+- Priority-based organization and filtering
+- Advanced search with academic presets
+- Bulk operations and semester archiving
+- Cross-device synchronization via Supabase
 
-This application is actively being developed. Here's the current status:
+### 📊 **Grade & Analytics Dashboard**
+- GPA calculation for quarters and semesters
+- Grade trend analysis and performance insights
+- Study session tracking with effectiveness ratings
+- Workload analysis and schedule optimization
 
-### ✅ Completed Features
-- Basic React + Electron application structure
-- User authentication system with Supabase
-- Calendar interface and basic task management
-- Project structure and development environment
+### 🔧 **Modern Development Stack**
+- React 18 + TypeScript for type safety
+- Tailwind CSS with dark/light mode support
+- Supabase backend with real-time sync
+- Webpack bundling with performance optimization
+- Jest + Playwright testing suite
 
-### 🚧 In Progress
-- UI/UX polish and responsive design
-
-### 📋 Planned Features
-- Mobile app version
-- Advanced task automation
-- Collaboration features
-- Plugin system for extensibility
-- Performance optimizations
-
-## 🛠️ Setup Instructions
-
-> ⚠️ **Development Setup**: These instructions are for setting up the development environment. This is beta software, so some setup steps may change as the project evolves.
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 16+ 
-- npm or yarn
+- npm or yarn package manager
+- Supabase account (for backend services)
+- Google Gemini API key (for AI features)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd coursemate
+   cd schedulebud
    ```
 
 2. **Install dependencies**
@@ -57,118 +62,162 @@ This application is actively being developed. Here's the current status:
    npm install
    ```
 
-3. **Configure environment variables**
+3. **Environment Configuration**
    ```bash
    cp .env.example .env
    ```
-   Edit `.env` with your actual Supabase credentials:
-   ```
+   
+   Configure your environment variables:
+   ```env
    REACT_APP_SUPABASE_URL=your_supabase_url
    REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+   REACT_APP_GEMINI_API_KEY=your_gemini_api_key
    ```
 
-4. **Start development server**
+4. **Development Server**
    ```bash
-   npm start
+   npm start              # Start development server
+   npm run typecheck      # TypeScript type checking
+   npm run lint           # ESLint code quality check
    ```
 
-5. **Build for production**
+5. **Production Build**
    ```bash
-   npm run build
+   npm run build          # Production build
+   npm run analyze        # Bundle analysis
    ```
 
 ## 🔧 Development
 
-### Project Structure
+### Project Architecture
 
 ```
 src/
-├── components/      # React components
-├── contexts/        # React context providers
-├── services/        # API and business logic
-├── utils/           # Utility functions
-├── hooks/           # Custom React hooks
-└── index.js         # Application entry point
+├── components/           # React components
+│   ├── landing/         # Landing page components  
+│   ├── calendar/        # Calendar system components
+│   ├── settings/        # Settings management
+│   ├── sidebar/         # Sidebar components
+│   └── ui/             # Reusable UI components
+├── contexts/            # React context providers
+│   ├── AuthContext.tsx        # Authentication state
+│   ├── SubscriptionContext.tsx # Subscription management
+│   ├── ThemeContext.tsx       # Dark/light mode
+│   └── TextFormattingContext.tsx # Text formatting
+├── services/            # Business logic and API services
+│   ├── class/          # Class management operations
+│   ├── task/           # Task CRUD operations
+│   ├── grade/          # Grade tracking and GPA
+│   └── settings/       # Settings operations
+├── hooks/              # Custom React hooks
+├── utils/              # Utility functions and helpers
+├── types/              # TypeScript type definitions
+└── index.tsx           # Application entry point
 ```
 
-### Key Utilities
+### Core Services
 
-- **Logger** (`src/utils/logger.js`): Centralized logging with configurable levels
-- **Validation** (`src/utils/validation.js`): Input validation and sanitization
-- **Error Handler** (`src/utils/errorHandler.js`): Standardized error handling
-- **Storage** (`src/utils/storage.js`): Optimized localStorage management
+- **dataService**: Centralized CRUD operations with Supabase
+- **authService**: Authentication and user management
+- **canvasService**: Canvas LMS integration and ICS parsing
+- **syncService**: Real-time data synchronization
+- **studySessionService**: Study tracking and analytics
 
-### Scripts
+### Development Scripts
 
-- `npm start`: Development server
+```bash
+npm start              # Development server with hot reload
+npm test               # Run Jest unit tests
+npm run e2e            # Run Playwright E2E tests
+npm run lint           # ESLint code quality check
+npm run typecheck      # TypeScript type validation
+npm run build          # Production build
+npm run analyze        # Bundle size analysis
+```
 
-## 🔒 Security Features
+## 🔒 Security & Privacy
 
-- Environment variable configuration for sensitive data
-- Input validation and sanitization
-- Secure authentication flow
-- Structured error handling to prevent information leakage
-- Configurable logging levels
+- **Secure Authentication**: Supabase-powered auth with email verification
+- **API Key Protection**: Server-side AI processing to protect API keys
+- **Input Validation**: Comprehensive sanitization for all user inputs
+- **FERPA Compliance**: Privacy policy designed for educational use
+- **Data Encryption**: All data encrypted in transit and at rest
+- **CORS Security**: Multi-layer proxy system for Canvas integration
 
-## 📱 Usage
+## 📱 Usage Guide
 
-1. **Authentication**: Sign up or log in with email/password
-2. **Calendar**: View and manage tasks and events
-3. **Canvas Integration**: Connect your Canvas account for auto-sync
-4. **AI Assistant**: Chat with the AI for academic help
-5. **File Management**: Upload and organize course materials
+### Getting Started
+1. **Create Account**: Sign up with email and verify your account
+2. **Setup Profile**: Configure academic system (quarters/semesters)
+3. **Add Classes**: Create classes or import from Canvas
+4. **Canvas Integration**: Connect Canvas ICS feed for automatic task import
+5. **Smart Upload**: Upload PDF syllabi for AI-powered task generation
 
-## ⚠️ Known Issues & Limitations
-
-As this is beta software, please be aware of these current limitations:
-
-- **Performance**: App may be slower than expected; optimization is ongoing
-- **Data Persistence**: Occasional data loss may occur; backup important information
-- **Browser Compatibility**: Primarily tested on Chrome/Chromium-based browsers
-- **Canvas Integration**: Limited to calendar sync; full LMS features coming soon
-- **Mobile Support**: Not yet optimized for mobile devices
-- **Error Handling**: Some error messages may not be user-friendly
+### Core Workflows
+- **Task Management**: Create, edit, and organize academic tasks
+- **Calendar Views**: Switch between month, week, and day views
+- **Grade Tracking**: Input grades and monitor GPA trends
+- **Study Sessions**: Track study time and effectiveness
+- **AI Assistant**: Chat with AI about uploaded course materials
 
 ## 🧪 Testing
 
-⚠️ **Beta Testing Notes**: This app is in development, so expect some features to be incomplete.
+The application includes comprehensive testing:
 
-Run the application in development mode and test key features:
-- ✅ Authentication flow (completed)
-- ✅ Calendar functionality (completed)
-- ✅ Canvas integration (stable)
-- 🚧 AI chatbot responses (stable, but currently working on improving follow-up responses / questions)
-- ✅ File management (stable)
+```bash
+npm test               # Unit tests with Jest
+npm run e2e           # End-to-end tests with Playwright
+npm run e2e:ui        # Interactive test debugging
+```
+
+### Test Coverage
+- ✅ **Authentication**: Complete sign-up/login flow
+- ✅ **Calendar Operations**: Task creation, editing, deletion  
+- ✅ **Canvas Integration**: ICS parsing and task import
+- ✅ **AI Features**: PDF processing and chatbot responses
+- ✅ **Cross-Browser**: Chrome, Firefox, Safari, Edge compatibility
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **React 18** - Modern React with hooks and concurrent features
+- **TypeScript 5.8** - Type safety and enhanced developer experience  
+- **Tailwind CSS** - Utility-first styling with custom design system
+- **React Router 7** - Client-side routing and navigation
+
+### Backend & Services  
+- **Supabase** - PostgreSQL database with real-time subscriptions
+- **Google Gemini AI** - Advanced language model for academic assistance
+- **Supabase Edge Functions** - Serverless functions for AI processing
+
+### Build & Development
+- **Webpack 5** - Module bundling with optimization
+- **Babel** - JavaScript compilation and polyfills
+- **Jest + Playwright** - Unit and end-to-end testing
+- **ESLint + Prettier** - Code quality and formatting
+
+### Integrations
+- **Canvas LMS** - ICS calendar parsing and task import
+- **PDF.js** - Client-side PDF text extraction
+- **ical.js** - Calendar format parsing and processing
 
 ## 🤝 Contributing
 
-**We welcome contributions!** This project is in active development, so there are many opportunities to help:
+We welcome contributions from the academic community! Here's how you can help:
 
-### 🐛 Bug Reports
-- Report any bugs or issues you encounter
-- Include steps to reproduce and expected vs actual behavior
-- Check existing issues first to avoid duplicates
+### Getting Involved
+1. **Fork the repository** and create your feature branch
+2. **Follow TypeScript** conventions and existing code patterns  
+3. **Write tests** for new functionality using Jest/Playwright
+4. **Run quality checks** with `npm run lint` and `npm run typecheck`
+5. **Submit pull requests** with clear descriptions
 
-### 💡 Feature Requests
-- Suggest new features or improvements
-- Explain your use case and why it would be helpful
-- Keep in mind this is educational software
-
-### 🔧 Code Contributions
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Test thoroughly (especially important for beta software!)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Submit a pull request
-
-### 📝 Documentation
-- Help improve documentation and setup instructions
-- Write tutorials or guides for new users
-- Translate content for non-English speakers
-
-> **Note**: Since this is beta software, breaking changes may occur. We'll do our best to communicate these in advance.
+### Areas for Contribution
+- 🐛 **Bug fixes** - Improve stability and user experience
+- ✨ **Feature development** - Enhance academic productivity tools
+- 📚 **Documentation** - Help other students get started
+- 🧪 **Testing** - Expand test coverage and edge cases
+- 🌐 **Accessibility** - Improve WCAG compliance and usability
 
 ## 📄 License
 
