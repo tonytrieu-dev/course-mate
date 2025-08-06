@@ -2,19 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global reset for feature cards - prevent ALL underlines */
-* {
-  text-decoration-skip-ink: none;
-}
-
-/* Specific feature card text reset */
-.group .space-y-4 span,
-.group .space-y-4 div span {
-  text-decoration: none !important;
-  border-bottom: 0 !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
 
 /* Global dark mode styles with improved aesthetics */
 body {

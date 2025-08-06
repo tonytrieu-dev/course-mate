@@ -10,7 +10,7 @@ const LandingFAQ: React.FC = () => {
     },
     {
       question: "Why is it \"by a student\"?",
-      answer: "Because big companies don't understand our workflow. They don't live with the Sunday-night dread of copying assignments. I built this because I live this reality, and I'm committed to solving problems that real students face, not what a corporate team thinks we need."
+      answer: "Because big companies don't understand student workflows. They don't experience the daily frustration of manual academic busy work that steals hours from studying. I built this because I lived through these tedious tasks, and I'm committed to solving problems that real students face, not what a corporate team thinks we need."
     },
     {
       question: "What does it mean to be an early adopter?",
@@ -25,7 +25,7 @@ const LandingFAQ: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-blue-50/60 to-indigo-100/40"></div>
         {/* Light floating elements */}
         <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-blue-200/30 to-indigo-200/40 rounded-full mix-blend-multiply filter blur-2xl opacity-60"></div>
-        <div className="absolute bottom-20 left-20 w-48 h-48 bg-gradient-to-tl from-indigo-200/25 to-purple-200/35 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
+        <div className="absolute bottom-20 left-20 w-48 h-48 bg-gradient-to-tl from-indigo-200/25 to-blue-200/35 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
       </div>
       
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

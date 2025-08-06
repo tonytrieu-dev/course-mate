@@ -8,7 +8,7 @@ interface FeatureCardProps {
   imageAlt: string;
   imageSrc?: string;
   icon: React.ReactNode;
-  colorScheme: 'blue' | 'green' | 'yellow' | 'indigo' | 'red' | 'teal' | 'coral' | 'orange' | 'cyan';
+  colorScheme: 'blue' | 'green' | 'amber';
   priority?: boolean;
   priorityBadge?: string;
 }
@@ -38,87 +38,15 @@ const colorClasses = {
     textPrimary: 'text-slate-800',
     textSecondary: 'text-slate-700'
   },
-  yellow: {
-    border: 'hover:border-yellow-300/70',
-    icon: 'bg-gradient-to-br from-yellow-100/80 to-amber-200/90',
-    iconText: 'text-yellow-700',
-    title: 'group-hover:text-yellow-800',
-    subtitle: 'text-yellow-600',
-    checkmark: 'bg-yellow-100/90 text-yellow-700 border border-yellow-300/60',
-    gradient: 'from-yellow-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-yellow-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  indigo: {
-    border: 'hover:border-indigo-300/70',
-    icon: 'bg-gradient-to-br from-indigo-100/80 to-purple-200/90',
-    iconText: 'text-indigo-700',
-    title: 'group-hover:text-indigo-800',
-    subtitle: 'text-indigo-600',
-    checkmark: 'bg-indigo-100/90 text-indigo-700 border border-indigo-300/60',
-    gradient: 'from-indigo-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-indigo-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  red: {
-    border: 'hover:border-red-300/70',
-    icon: 'bg-gradient-to-br from-red-100/80 to-rose-200/90',
-    iconText: 'text-red-700',
-    title: 'group-hover:text-red-800',
-    subtitle: 'text-red-600',
-    checkmark: 'bg-red-100/90 text-red-700 border border-red-300/60',
-    gradient: 'from-red-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-red-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  teal: {
-    border: 'hover:border-teal-300/70',
-    icon: 'bg-gradient-to-br from-teal-100/80 to-cyan-200/90',
-    iconText: 'text-teal-700',
-    title: 'group-hover:text-teal-800',
-    subtitle: 'text-teal-600',
-    checkmark: 'bg-teal-100/90 text-teal-700 border border-teal-300/60',
-    gradient: 'from-teal-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-teal-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  coral: {
-    border: 'hover:border-rose-300/70',
-    icon: 'bg-gradient-to-br from-rose-100/80 to-pink-200/90',
-    iconText: 'text-rose-700',
-    title: 'group-hover:text-rose-800',
-    subtitle: 'text-rose-600',
-    checkmark: 'bg-rose-100/90 text-rose-700 border border-rose-300/60',
-    gradient: 'from-rose-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-rose-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  orange: {
-    border: 'hover:border-orange-300/70',
-    icon: 'bg-gradient-to-br from-orange-100/80 to-amber-200/90',
-    iconText: 'text-orange-700',
-    title: 'group-hover:text-orange-800',
-    subtitle: 'text-orange-600',
-    checkmark: 'bg-orange-100/90 text-orange-700 border border-orange-300/60',
-    gradient: 'from-orange-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-orange-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  cyan: {
-    border: 'hover:border-cyan-300/70',
-    icon: 'bg-gradient-to-br from-cyan-100/80 to-blue-200/90',
-    iconText: 'text-cyan-700',
-    title: 'group-hover:text-cyan-800',
-    subtitle: 'text-cyan-600',
-    checkmark: 'bg-cyan-100/90 text-cyan-700 border border-cyan-300/60',
-    gradient: 'from-cyan-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-cyan-100/80',
+  amber: {
+    border: 'hover:border-amber-300/70',
+    icon: 'bg-gradient-to-br from-amber-100/80 to-yellow-200/90',
+    iconText: 'text-amber-700',
+    title: 'group-hover:text-amber-800',
+    subtitle: 'text-amber-600',
+    checkmark: 'bg-amber-100/90 text-amber-700 border border-amber-300/60',
+    gradient: 'from-amber-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-amber-100/80',
     textPrimary: 'text-slate-800',
     textSecondary: 'text-slate-700'
   }
@@ -172,17 +100,45 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         </div>
         
         {/* Enhanced description with artistic container */}
-        <p className={`${colors.textSecondary} mb-8 leading-relaxed text-lg bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-slate-200/30`}>
+        <p className={`${colors.textSecondary} mb-6 leading-relaxed text-lg bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-slate-200/30`}>
           {description}
         </p>
+
+        {/* Simplified Demo Placeholder */}
+        <div className="mb-6 bg-gradient-to-br from-slate-100/60 to-slate-200/40 rounded-xl overflow-hidden border border-slate-300/20 relative group">
+          <div className="aspect-video bg-gradient-to-br from-slate-100 via-blue-50/80 to-indigo-50/60 flex items-center justify-center relative">
+            
+            {/* Clean Feature Icon */}
+            <div className={`w-20 h-20 ${colors.icon} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300`}>
+              <div className={`${colors.iconText}`}>
+                {icon}
+              </div>
+            </div>
+            
+            {/* Simple Play Button Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/5 group-hover:bg-transparent transition-all duration-300">
+              <div className="bg-blue-600 hover:bg-blue-700 rounded-full w-16 h-16 flex items-center justify-center shadow-xl cursor-pointer transform hover:scale-110 transition-all duration-300">
+                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            </div>
+            
+            {/* Clean Demo Badge */}
+            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-slate-700 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+              Demo Preview
+            </div>
+          </div>
+        </div>
         
         {/* Feature list with artistic enhancement */}
         <div className="space-y-4" data-feature-list="true">
           {features.map((feature, index) => (
             <div key={index} className="flex items-start group/feature" data-feature-item={index}>
-              <div className={`w-6 h-6 ${colors.checkmark} rounded-full flex items-center justify-center mr-4 mt-0.5 flex-shrink-0 group-hover/feature:scale-125 group-hover/feature:rotate-12 transition-all duration-300 shadow-lg`}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              <div className={`w-6 h-6 ${colors.checkmark} rounded-lg flex items-center justify-center mr-4 mt-0.5 flex-shrink-0 group-hover/feature:scale-125 group-hover/feature:rotate-6 transition-all duration-300 shadow-lg transform rotate-1`}>
+                {/* Handwritten-style checkmark */}
+                <svg className="w-4 h-4 transform -rotate-12" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121L9.707 19.121z" />
                 </svg>
               </div>
               <span 

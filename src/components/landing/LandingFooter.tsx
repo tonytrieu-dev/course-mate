@@ -12,8 +12,8 @@ const LandingFooter: React.FC = () => {
         
         {/* Light floating orbs */}
         <div className="absolute top-10 right-10 w-48 h-48 bg-gradient-to-br from-blue-200/40 to-indigo-300/50 rounded-full mix-blend-multiply filter blur-2xl opacity-60"></div>
-        <div className="absolute bottom-10 left-10 w-40 h-40 bg-gradient-to-tl from-indigo-200/35 to-purple-300/45 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-r from-blue-300/30 to-cyan-200/40 rounded-full mix-blend-multiply filter blur-lg opacity-40"></div>
+        <div className="absolute bottom-10 left-10 w-40 h-40 bg-gradient-to-tl from-indigo-200/35 to-blue-300/45 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-r from-blue-300/30 to-indigo-200/40 rounded-full mix-blend-multiply filter blur-lg opacity-40"></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,8 +24,8 @@ const LandingFooter: React.FC = () => {
               {getAppName()}
             </h3>
             <p className="text-slate-700 mb-6 max-w-md leading-relaxed font-medium bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-blue-200/40">
-              Built for students, by a student. Stop spending your Sunday nights copying assignments 
-              from Canvas into productivity apps. Let ScheduleBud automate the boring stuff so you can focus on what matters.
+              Stop wasting hours on manual academic busy work that steals time from learning. 
+              Let ScheduleBud automate the tedious tasks so you can focus on what actually matters.
             </p>
             <div>
               {/* Enhanced Discord Button */}

@@ -45,7 +45,7 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
               Pricing
             </a>
             <a 
-              href="#about" 
+              href="#faq" 
               className="text-slate-700 hover:text-blue-600 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-3 py-2 hover:bg-blue-50"
               onClick={() => trackEvent('nav_click', { section: 'about' })}
             >
@@ -123,7 +123,7 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 Pricing
               </a>
               <a 
-                href="#about" 
+                href="#faq" 
                 className="text-slate-700 hover:text-blue-600 hover:bg-blue-100/50 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-3 py-2"
                 onClick={() => {
                   trackEvent('nav_click', { section: 'about', device: 'mobile' });

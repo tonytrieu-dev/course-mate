@@ -20,7 +20,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
   );
 
   return (
-    <section id="pricing" className="py-32 bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-100 relative overflow-hidden">
+    <section id="pricing" className="py-32 bg-gradient-to-br from-indigo-50 via-blue-50 to-blue-100 relative overflow-hidden">
       {/* Light artistic pricing background */}
       <div className="absolute inset-0">
         {/* Primary light layers for depth */}
@@ -29,40 +29,54 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
         
         {/* Light dynamic artistic elements */}
         <div className="absolute top-20 right-20 w-80 h-80 bg-gradient-to-br from-blue-200/50 to-indigo-300/60 rounded-full mix-blend-multiply filter blur-3xl opacity-60"></div>
-        <div className="absolute bottom-32 left-20 w-96 h-96 bg-gradient-to-tl from-indigo-200/40 to-purple-300/50 rounded-full mix-blend-multiply filter blur-2xl opacity-50"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-300/40 to-cyan-200/60 rounded-full mix-blend-multiply filter blur-xl opacity-40"></div>
+        <div className="absolute bottom-32 left-20 w-96 h-96 bg-gradient-to-tl from-indigo-200/40 to-blue-300/50 rounded-full mix-blend-multiply filter blur-2xl opacity-50"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-300/40 to-indigo-200/60 rounded-full mix-blend-multiply filter blur-xl opacity-40"></div>
         
         {/* Light artistic accent lines for student energy */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-1/4 right-1/4 w-2 h-40 bg-gradient-to-b from-blue-500 to-transparent rotate-45"></div>
           <div className="absolute bottom-1/3 left-1/4 w-2 h-32 bg-gradient-to-t from-indigo-500 to-transparent -rotate-12"></div>
-          <div className="absolute top-2/3 right-1/3 w-1 h-24 bg-gradient-to-b from-cyan-500 to-transparent rotate-12"></div>
+          <div className="absolute top-2/3 right-1/3 w-1 h-24 bg-gradient-to-b from-blue-500 to-transparent rotate-12"></div>
           
           {/* Light floating particles */}
           <div className="absolute top-20 left-20 w-3 h-3 bg-blue-400 rounded-full opacity-50"></div>
           <div className="absolute bottom-20 right-20 w-2 h-2 bg-indigo-400 rounded-full opacity-60"></div>
-          <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-purple-400 rounded-full opacity-40"></div>
+          <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-indigo-400 rounded-full opacity-40"></div>
         </div>
       </div>
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20 relative z-10">
-          {/* Light artistic title treatment */}
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black mb-8 tracking-tight relative">
-            <span className="text-slate-800">Simple, </span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:via-indigo-500 hover:to-cyan-500 transition-all duration-500 drop-shadow-sm">
-              student-friendly
+          {/* Simple Value Badge */}
+          <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full text-base font-bold mb-6 shadow-lg hover:scale-105 transition-all duration-300">
+            <span className="mr-2">⚡</span>
+            <span>Simple Pricing</span>
+          </div>
+          
+          {/* Clean title focused on choice */}
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 tracking-tight relative">
+            <span className="text-slate-800">Choose Your </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:via-indigo-500 hover:to-blue-600 transition-all duration-500 drop-shadow-sm">
+              Plan
             </span>
-            <span className="text-slate-800"> pricing</span>
             
-            {/* Light artistic underline accent */}
-            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-500 rounded-full opacity-70 shadow-sm"></div>
+            {/* Handwritten-style underline */}
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 rounded-full opacity-70 shadow-sm transform -rotate-1"></div>
           </h2>
           
-          {/* Light enhanced subtitle with artistic container */}
-          <div className="max-w-3xl mx-auto">
-            <p className="text-xl md:text-2xl text-slate-700 font-medium bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-blue-300/50 shadow-2xl hover:shadow-3xl transition-all duration-300">
-              Start free, upgrade when you need more. No hidden fees, no surprises.
-            </p>
+          {/* Single powerful student message */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-300/50 shadow-xl transition-all duration-300 relative overflow-hidden">
+              {/* Coffee ring stain decoration */}
+              <div className="absolute top-2 right-4 w-8 h-8 border-2 border-amber-200/40 rounded-full opacity-40"></div>
+              
+              <div className="relative z-10">
+                <p className="text-xl md:text-2xl text-slate-700 font-medium">
+                  <span className="text-blue-700 font-bold">Honest pricing that works for everyone.</span>
+                  <br />
+                  Start free, upgrade for $5/month when you're ready for more.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -155,7 +169,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
             <div className="relative z-10">
               <div className="text-center mb-10">
                 <h3 className="text-3xl font-bold text-slate-800 mb-3">Student</h3>
-                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-800 to-cyan-700 mb-3 drop-shadow-sm">
+                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-800 to-blue-800 mb-3 drop-shadow-sm">
                   $5<span className="text-2xl">/month</span>
                 </div>
                 <p className="text-blue-800 font-semibold text-xl mb-2">Everything you need to dominate college</p>
@@ -230,17 +244,20 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
 
 
         <div className="text-center mt-16 relative z-10">
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-8 max-w-3xl mx-auto border border-blue-300/50 shadow-2xl hover:shadow-3xl transition-all duration-300">
-            <h4 className="text-2xl font-bold text-blue-800 mb-4">Why $5/month?</h4>
-            <p className="text-slate-700 text-lg leading-relaxed">
-              Because I understand the struggles of being a student. ScheduleBud keeps it affordable 
-              at just $5 - less than a coffee. You get Canvas sync, document Q&A assistant (50 queries/day), 
-              smart syllabus upload, advanced analytics, and priority support.
-            </p>
+          <div className="flex items-center justify-center gap-6 text-blue-600 text-lg font-medium">
+            <span className="flex items-center bg-white/90 px-4 py-2 rounded-full shadow-lg">
+              <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              7-day free trial
+            </span>
+            <span className="flex items-center bg-white/90 px-4 py-2 rounded-full shadow-lg">
+              <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Cancel anytime
+            </span>
           </div>
-          <p className="text-blue-600 mt-8 text-lg">
-            7-day free trial • Cancel anytime
-          </p>
         </div>
       </div>
     </section>
