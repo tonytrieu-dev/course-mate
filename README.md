@@ -4,7 +4,7 @@
 
 A comprehensive student productivity application designed to streamline academic workflow management. Features intelligent calendar integration, AI-powered task generation, Canvas LMS synchronization, and cross-platform compatibility - completely free for educational use.
 
-> 🎓 **Built by students, for students** - Designed to eliminate the complexity of academic organization while maintaining powerful functionality.
+> 🎓 **Built for students, by a student.** - Designed to eliminate the complexity of academic organization while maintaining powerful functionality.
 
 ## ✨ Key Features
 
@@ -215,4 +215,5 @@ For licensing inquiries, feature requests, or bug reports, please contact the au
 ---
 
 Made with ❤️ for the educational community
+
 
