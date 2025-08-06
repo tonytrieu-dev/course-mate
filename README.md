@@ -214,4 +214,5 @@ For licensing inquiries, feature requests, or bug reports, please contact the au
 
 ---
 
-*Made with ❤️ for the educational community*
+Made with ❤️ for the educational community
+
