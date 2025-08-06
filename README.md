@@ -6,7 +6,7 @@ A comprehensive student productivity application designed to streamline academic
 
 > 🎓 **Built for students, by a student.** - Designed to eliminate the complexity of academic organization while maintaining powerful functionality.
 
-## ✨ Key Features
+## Key Features
 
 ### 📅 **Smart Calendar System**
 - Interactive calendar with month/week/day views
@@ -214,6 +214,7 @@ For licensing inquiries, feature requests, or bug reports, please contact the au
 
 ---
 
-Made with ❤️ for the educational community
+Made with ❤️ for the educational community.
+
 
 
