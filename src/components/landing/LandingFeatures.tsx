@@ -4,9 +4,9 @@ import FeatureCard from './FeatureCard';
 const LandingFeatures: React.FC = () => {
   const features = [
     {
-      title: "Canvas Assignment Sync",
-      subtitle: "Auto-Import Your Canvas Tasks",
-      description: "Paste your Canvas calendar link and watch your assignments appear automatically. No more Sunday night copy-paste sessions. It even handles duplicate assignments and weird formatting from professors.",
+      title: "Canvas Calendar Sync",
+      subtitle: "Auto-Import Your Canvas Assignments",
+      description: "Paste your Canvas calendar link and watch your assignments appear automatically. No more Sunday night copy-paste sessions. It even handles duplicate assignments and weird formatting from professors. Takes 30 seconds instead of hours of manual copying.",
       features: [
         "Automatic Canvas assignment import",
         "Real-time sync with Canvas LMS", 
@@ -20,8 +20,8 @@ const LandingFeatures: React.FC = () => {
         </svg>
       ),
       colorScheme: 'blue' as const,
-      priority: true,
-      priorityBadge: "MVP 🔥"
+      //priority: true,
+      //priorityBadge: "MVP 🔥"
     },
     {
       title: "Smart Syllabus Upload",
@@ -151,15 +151,10 @@ const LandingFeatures: React.FC = () => {
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20 relative z-10">
-          {/* Light artistic badge */}
-          <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-bold bg-gradient-to-r from-white to-blue-100 text-blue-800 mb-8 border-2 border-blue-400/50 backdrop-blur-md shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300">
-            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span className="bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
-              Built for real student problems
-            </span>
-          </div>
+          {/* Clean section header without duplicate badge */}
+          <h3 className="text-2xl md:text-3xl font-bold text-blue-800 mb-8">
+            Built for real student problems
+          </h3>
           
           {/* Light artistic title */}
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-black mb-8 tracking-tight relative">
@@ -176,9 +171,47 @@ const LandingFeatures: React.FC = () => {
           {/* Enhanced student story with light artistic container */}
           <div className="max-w-4xl mx-auto">
             <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-2xl hover:shadow-3xl hover:bg-white/95 transition-all duration-500">
-              <span className="text-blue-700 font-bold">I'm a UCR computer engineering student</span> who got tired of the Sunday night assignment-copying ritual. 
-              These features solve the problems I actually faced – Canvas sync that works, AI that helps, and analytics that matter.
+              <span className="text-blue-700 font-bold">After countless Sunday nights copying assignments,</span> I decided to build something better. 
+              These features solve the problems I actually lived through – Canvas sync that works, AI that helps, and analytics that matter.
             </p>
+          </div>
+          
+          {/* Solution Bridge Section */}
+          <div className="max-w-5xl mx-auto mt-16">
+            <div className="bg-gradient-to-r from-blue-100/80 via-indigo-100/90 to-blue-200/80 rounded-3xl p-8 border-2 border-blue-300/60 shadow-xl relative overflow-hidden">
+              {/* Bridge artistic elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-blue-100/40 opacity-70"></div>
+              <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-blue-200/50 to-transparent rounded-full"></div>
+              <div className="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-tl from-indigo-200/60 to-transparent rounded-full"></div>
+              
+              <div className="relative z-10 text-center">
+                <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-6">
+                  Here's How{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
+                    ScheduleBud Solves This
+                  </span>
+                </h3>
+                
+                <div className="grid md:grid-cols-3 gap-6 text-left">
+                  <div className="bg-white/90 rounded-xl p-6 border border-blue-200/50 shadow-lg">
+                    <h4 className="font-bold text-slate-800 mb-2">❌ Missing Assignments</h4>
+                    <p className="text-slate-700 text-sm">→ Canvas sync automatically imports everything</p>
+                  </div>
+                  <div className="bg-white/90 rounded-xl p-6 border border-blue-200/50 shadow-lg">
+                    <h4 className="font-bold text-slate-800 mb-2">❌ Manual Data Entry</h4>
+                    <p className="text-slate-700 text-sm">→ AI reads your syllabi and creates tasks instantly</p>
+                  </div>
+                  <div className="bg-white/90 rounded-xl p-6 border border-blue-200/50 shadow-lg">
+                    <h4 className="font-bold text-slate-800 mb-2">❌ Scattered Information</h4>
+                    <p className="text-slate-700 text-sm">→ Everything unified: tasks, grades, documents, analytics</p>
+                  </div>
+                </div>
+                
+                <p className="text-lg text-slate-700 font-semibold mt-6">
+                  Each feature below directly addresses these pain points:
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -193,8 +226,8 @@ const LandingFeatures: React.FC = () => {
               imageAlt={feature.imageAlt}
               icon={feature.icon}
               colorScheme={feature.colorScheme}
-              priority={feature.priority}
-              priorityBadge={feature.priorityBadge}
+              //priority={feature.priority}
+              //priorityBadge={feature.priorityBadge}
             />
           ))}
         </div>

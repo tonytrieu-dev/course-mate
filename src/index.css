@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global reset for feature cards - prevent ALL underlines */
+* {
+  text-decoration-skip-ink: none;
+}
+
+/* Specific feature card text reset */
+.group .space-y-4 span,
+.group .space-y-4 div span {
+  text-decoration: none !important;
+  border-bottom: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Global dark mode styles with improved aesthetics */
 body {
   @apply bg-gray-50 text-gray-900 transition-colors duration-300;
@@ -597,6 +611,8 @@ input[type="date"] {
 }
 
 /* Resize handle visual indicator */
+
+/* Removed unnecessary underline fixes - the issue was the bottom accent bar, not text decoration */
 /* Mobile-specific resize handle (hidden on mobile) */
 @media (min-width: 1024px) {
   .resize-handle::after {

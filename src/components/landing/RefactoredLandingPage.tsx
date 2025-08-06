@@ -5,6 +5,7 @@ import LandingSocialProof from './LandingSocialProof';
 import LandingFeatures from './LandingFeatures';
 import LandingPricing from './LandingPricing';
 import LandingFAQ from './LandingFAQ';
+import LandingEarlyAccess from './LandingEarlyAccess';
 import LandingCTA from './LandingCTA';
 import LandingFooter from './LandingFooter';
 
@@ -33,6 +34,7 @@ const RefactoredLandingPage: React.FC<RefactoredLandingPageProps> = ({ onGetStar
       <LandingFeatures />
       <LandingPricing onGetStarted={onGetStarted} trackEvent={trackEvent} />
       <LandingFAQ />
+      <LandingEarlyAccess onGetStarted={onGetStarted} trackEvent={trackEvent} />
       <LandingCTA onGetStarted={onGetStarted} />
       <LandingFooter />
     </div>

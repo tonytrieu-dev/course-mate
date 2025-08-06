@@ -177,21 +177,24 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         </p>
         
         {/* Feature list with artistic enhancement */}
-        <div className="space-y-4">
+        <div className="space-y-4" data-feature-list="true">
           {features.map((feature, index) => (
-            <div key={index} className="flex items-start group/feature">
+            <div key={index} className="flex items-start group/feature" data-feature-item={index}>
               <div className={`w-6 h-6 ${colors.checkmark} rounded-full flex items-center justify-center mr-4 mt-0.5 flex-shrink-0 group-hover/feature:scale-125 group-hover/feature:rotate-12 transition-all duration-300 shadow-lg`}>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className={`font-semibold leading-relaxed ${colors.textSecondary} text-base group-hover/feature:text-slate-800 transition-colors duration-200`}>{feature}</span>
+              <span 
+                className={`font-semibold leading-relaxed ${colors.textSecondary} text-base flex-1 inline-block`}
+              >
+                {feature}
+              </span>
             </div>
           ))}
         </div>
         
-        {/* Artistic bottom accent with animation */}
-        <div className={`absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r ${colors.gradient} to-transparent opacity-40 group-hover:opacity-100 group-hover:h-3 transition-all duration-500`}></div>
+        {/* Artistic bottom accent with animation - moved outside of content area */}
         
         {/* Additional artistic elements */}
         <div className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-100/30 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

@@ -46,12 +46,12 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="text-center lg:text-left relative">
             {/* Artistic student badge with enhanced light theme */}
-            <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-bold bg-gradient-to-r from-white via-blue-50 to-indigo-100 text-blue-800 mb-8 border-2 border-blue-400/60 hover:scale-110 hover:rotate-1 transition-all duration-300 shadow-lg hover:shadow-2xl backdrop-blur-sm">
+            <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-bold bg-gradient-to-r from-white via-blue-50 to-indigo-100 text-blue-800 mb-8 border-2 border-blue-400/60 hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-2xl backdrop-blur-sm">
               <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 bg-clip-text text-transparent">
-                Built for students, by a student
+                Built for students, by a student.
               </span>
             </div>
             
@@ -72,10 +72,10 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
                     Stop Drowning in
                   </div>
                   <div className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-600 to-orange-500 hover:scale-110 transition-all duration-500 cursor-default leading-tight drop-shadow-sm">
-                    DEADLINES
+                    DEADLINES.
                   </div>
                   <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-700 to-blue-800 text-4xl md:text-5xl lg:text-6xl hover:scale-105 transition-transform duration-300 leading-relaxed pb-4 mt-3">
-                    Start Thriving
+                    Start Thriving!
                   </div>
                 </div>
               </h1>
@@ -86,17 +86,25 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
             
             <div className="relative">
               {/* Student-focused messaging with enhanced light design */}
-              <p className="text-lg md:text-xl text-slate-700 mb-8 leading-relaxed font-medium relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl p-8 border border-blue-200/60 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <strong className="text-slate-900">"Sunday nights copying Canvas assignments?"</strong> Been there. 
-                <strong className="text-slate-900">"Adding every exam date manually?"</strong> Done that. 
-                <br /><br />
-                <span className="text-blue-700 font-semibold">I'm a UCR computer engineering student</span> who got fed up with the chaos. 
-                ScheduleBud automatically syncs your Canvas assignments, uses AI to extract tasks from syllabi, and actually keeps you organized. 
-                <br /><br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 font-bold text-xl">
-                  No more Sunday night assignment copying sessions.
-                </span>
-              </p>
+              <div className="text-lg md:text-xl text-slate-700 mb-8 leading-relaxed font-medium relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl p-8 border border-blue-200/60 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <p className="mb-4">
+                  <strong className="text-slate-900">"Sunday nights copying Canvas assignments?"</strong> Been there. 
+                  <strong className="text-slate-900">"Adding every exam date manually?"</strong> Done that.
+                </p>
+                <p className="mb-4">
+                  <span className="text-blue-700 font-semibold">I'm a UCR computer engineering student</span> who got fed up with the chaos. 
+                  ScheduleBud automatically syncs your Canvas assignments, uses AI to extract tasks from syllabi, and actually keeps you organized.
+                </p>
+                <p className="mb-4">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600 font-bold text-xl">
+                    No more Sunday night assignment copying sessions.
+                  </span>
+                </p>
+                <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 rounded-xl p-4 mt-4">
+                  <span className="text-green-800 font-bold text-lg">⏱️ Reclaim 2-4 hours weekly</span>
+                  <span className="text-green-700"> from automated Canvas sync, AI syllabus processing, and instant document search</span>
+                </div>
+              </div>
             </div>
             
             {/* Key Benefits */}
