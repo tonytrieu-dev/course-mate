@@ -4,84 +4,171 @@ import Button from '../ui/Button';
 const LandingSocialProof: React.FC = () => {
   return (
     <>
-      {/* Problem Statement */}
-      <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Have you ever spent your Sunday nights copying Canvas assignments into a productivity app?
+      {/* Problem Statement - Light Artistic Theme */}
+      <section className="py-32 bg-gradient-to-br from-slate-50 via-blue-50/80 to-indigo-100 relative overflow-hidden">
+        {/* Light artistic background elements */}
+        <div className="absolute inset-0">
+          {/* Multi-layer light gradients for depth */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-slate-50/80 to-blue-100/70"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl from-indigo-100/50 via-blue-100/60 to-white/80"></div>
+          
+          {/* Light dynamic floating orbs */}
+          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-blue-200/50 to-indigo-300/60 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+          <div className="absolute bottom-32 right-16 w-80 h-80 bg-gradient-to-tl from-indigo-200/45 to-purple-300/55 rounded-full mix-blend-multiply filter blur-2xl opacity-60"></div>
+          <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gradient-to-r from-blue-300/40 to-cyan-200/50 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
+          
+          {/* Light artistic accent elements */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-1/4 right-1/4 w-2 h-40 bg-gradient-to-b from-blue-500 to-transparent rotate-45"></div>
+            <div className="absolute bottom-1/3 left-1/4 w-2 h-32 bg-gradient-to-t from-indigo-500 to-transparent -rotate-12"></div>
+            <div className="absolute top-2/3 right-1/3 w-1 h-24 bg-gradient-to-b from-purple-500 to-transparent rotate-12"></div>
+            
+            {/* Light floating particles */}
+            <div className="absolute top-32 left-32 w-3 h-3 bg-blue-400 rounded-full opacity-50"></div>
+            <div className="absolute bottom-32 right-32 w-2 h-2 bg-indigo-400 rounded-full opacity-60"></div>
+            <div className="absolute top-3/4 right-1/5 w-2 h-2 bg-purple-400 rounded-full opacity-40"></div>
+          </div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 mb-8 leading-tight tracking-tight">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-600 to-orange-500">
+                Sunday Night Assignment Copy-Paste Sessions
+              </span>{' '}
+              <span className="text-slate-800">Are The Worst</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              I did too. That's why I built ScheduleBud - because I was tired of the endless
-              cycle of manually managing my college assignments and academics with Notion.
-            </p>
+            <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-3xl hover:shadow-4xl transition-all duration-500 max-w-4xl mx-auto relative overflow-hidden">
+              {/* Inner artistic elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-200/30 opacity-60"></div>
+              <div className="absolute top-2 right-2 w-12 h-12 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full"></div>
+              <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-indigo-200/40 to-transparent rounded-full"></div>
+              
+              <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium relative z-10">
+                I spent way too many Sunday nights copying assignments from Canvas into Notion, trying to stay organized. It sucked. So I built ScheduleBud to automate all of that tedious work.
+              </p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-8 hover:shadow-lg transition-shadow rounded-xl">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            {/* Missing Assignments Card */}
+            <div className="text-center p-8 bg-white/90 backdrop-blur-lg rounded-3xl border border-red-200/50 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
+              {/* Card artistic elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-red-100/20 to-orange-200/30 opacity-50"></div>
+              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-red-200/30 to-transparent rounded-full"></div>
+              
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-100/80 to-red-200/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl border border-red-300/60">
+                  <svg className="w-8 h-8 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">Missing Assignments</h3>
+                <p className="text-slate-700 leading-relaxed font-medium">
+                  Got that 2 AM panic when you remember something was due today? 
+                  Canvas notifications are a mess and easy to miss.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Missing Assignments</h3>
-              <p className="text-gray-600">
-                Forgot an assignment buried in Canvas notifications? 
-                Realized at midnight that something was due today?
-              </p>
             </div>
 
-            <div className="text-center p-8 hover:shadow-lg transition-shadow rounded-xl">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                </svg>
+            {/* Manual Data Entry Card */}
+            <div className="text-center p-8 bg-white/90 backdrop-blur-lg rounded-3xl border border-blue-200/50 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
+              {/* Card artistic elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-200/30 opacity-50"></div>
+              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full"></div>
+              
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-100/80 to-blue-200/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl border border-blue-300/60">
+                  <svg className="w-8 h-8 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">Manual Data Entry</h3>
+                <p className="text-slate-700 leading-relaxed font-medium">
+                  Wasted your Sunday copying assignments one by one from Canvas? 
+                  It's mind-numbing and there has to be a better way.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Manual Data Entry</h3>
-              <p className="text-gray-600">
-                Spent your weekend manually copying every assignment 
-                and due date from Canvas into your planner?
-              </p>
             </div>
 
-            <div className="text-center p-8 hover:shadow-lg transition-shadow rounded-xl">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.239 0-4.236-.906-5.672-2.372M6.343 17.657l-.707.707A1 1 0 004.222 17.95l.707-.707m-.707-8.486l.707-.707a1 1 0 011.414 1.414l-.707.707m7.072 0l.707-.707a1 1 0 011.414 1.414l-.707.707m-.707 8.486l.707.707a1 1 0 01-1.414 1.414l-.707-.707M13 13.5V16a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2.5" />
-                </svg>
+            {/* Scattered Information Card */}
+            <div className="text-center p-8 bg-white/90 backdrop-blur-lg rounded-3xl border border-purple-200/50 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
+              {/* Card artistic elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-indigo-200/30 opacity-50"></div>
+              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-purple-200/30 to-transparent rounded-full"></div>
+              
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-100/80 to-purple-200/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl border border-purple-300/60">
+                  <svg className="w-8 h-8 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.239 0-4.236-.906-5.672-2.372M6.343 17.657l-.707.707A1 1 0 004.222 17.95l.707-.707m-.707-8.486l.707-.707a1 1 0 011.414 1.414l-.707.707m7.072 0l.707-.707a1 1 0 011.414 1.414l-.707.707m-.707 8.486l.707.707a1 1 0 01-1.414 1.414l-.707-.707M13 13.5V16a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2.5" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">Scattered Information</h3>
+                <p className="text-slate-700 leading-relaxed font-medium">
+                  Tasks scattered across apps, grades stuck in Canvas, 
+                  syllabi buried in PDFs. Nothing talks to each other.
+                </p>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Scattered Information</h3>
-              <p className="text-gray-600">
-                Tasks in your planner, grades in Canvas, study sessions 
-                in your head - nothing connects?
-              </p>
             </div>
           </div>
           
-          <div className="text-center mt-12">
-            <p className="text-lg text-gray-700 font-medium">
-              ScheduleBud fixes these problems with student-focused tools designed by someone who lives them too.
-            </p>
+          <div className="text-center mt-16">
+            <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-2xl hover:shadow-3xl transition-all duration-500 max-w-4xl mx-auto relative overflow-hidden">
+              {/* Inner artistic elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-200/30 opacity-60"></div>
+              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full"></div>
+              <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-indigo-200/40 to-transparent rounded-full"></div>
+              
+              <p className="text-lg text-slate-700 font-semibold relative z-10 leading-relaxed">
+                ScheduleBud connects all the dots: automatic Canvas sync, AI that reads your syllabi, 
+                grade tracking, and study analytics.{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 font-bold">
+                  Everything in one place, like it should be.
+                </span>
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Early Adopter Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-50 to-blue-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
-            Become a Founding Member & Help Shape the Future of ScheduleBud
+      {/* Early Adopter Section - Enhanced Light Artistic Theme */}
+      <section className="py-20 bg-gradient-to-br from-indigo-50 via-blue-100 to-purple-200 relative overflow-hidden">
+        {/* Light artistic background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-indigo-50/80 to-blue-100/70"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl from-blue-100/60 via-indigo-100/70 to-white/80"></div>
+          
+          {/* Light floating elements */}
+          <div className="absolute top-10 right-10 w-64 h-64 bg-gradient-to-br from-blue-200/40 to-indigo-300/50 rounded-full mix-blend-multiply filter blur-2xl opacity-60"></div>
+          <div className="absolute bottom-10 left-10 w-48 h-48 bg-gradient-to-tl from-indigo-200/35 to-purple-300/45 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
+        </div>
+        
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-8 tracking-tight">
+            Want to Help Build Something{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 transition-all duration-500 drop-shadow-sm">
+              Actually Useful?
+            </span>
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            ScheduleBud is brand new, and I'm looking for a handful of students to help me build the ultimate productivity tool. As an early adopter, you'll get direct access to me, your feedback will be prioritized, and you'll get the Student Plan free for a full year.
-          </p>
+          
+          <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-3xl hover:shadow-4xl transition-all duration-500 mb-10 relative overflow-hidden">
+            {/* Inner artistic elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/20 to-blue-200/30 opacity-60"></div>
+            <div className="absolute top-2 right-2 w-12 h-12 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-full"></div>
+            <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-blue-200/40 to-transparent rounded-full"></div>
+            
+            <p className="text-xl text-slate-700 leading-relaxed font-medium max-w-3xl mx-auto relative z-10">
+              ScheduleBud is still pretty new, and I'm looking for students who want to help shape it. You'll get direct access to me (I actually respond), your ideas will matter, and you'll get the paid plan free for a year while we build this together.
+            </p>
+          </div>
+          
           <Button
             text="Request Early Access"
             variant="primary"
             size="lg"
             href="#feedback-form"
             ariaLabel="Request early access to ScheduleBud"
-            className="shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             dataTestId="early-access-btn"
           />
         </div>

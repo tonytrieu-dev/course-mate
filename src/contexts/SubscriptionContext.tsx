@@ -1,6 +1,7 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { features } from '../utils/buildConfig';
 import { logger } from '../utils/logger';
+import { subscriptionService, SubscriptionStatus } from '../services/subscriptionService';
 
 // Subscription types for TypeScript
 interface SubscriptionPlan {
@@ -14,17 +15,23 @@ interface SubscriptionContextType {
   // Subscription state
   currentPlan: SubscriptionPlan | null;
   isSubscribed: boolean;
-  subscriptionStatus: 'active' | 'inactive' | 'canceled' | 'past_due' | null;
+  subscriptionStatus: 'free' | 'trialing' | 'active' | 'canceled';
+  trialDaysRemaining: number | null;
+  loading: boolean;
   
   // Usage tracking (for SaaS mode)
   aiCreditsUsed: number;
   aiCreditsLimit: number;
   canUseFeature: (feature: string) => boolean;
   
-  // Actions (no-op in personal mode)
-  upgradeSubscription: (planId: string) => Promise<void>;
-  cancelSubscription: () => Promise<void>;
+  // Actions
+  startFreeTrial: () => Promise<void>;
+  manageBilling: () => Promise<void>;
   checkUsage: () => Promise<void>;
+  refreshStatus: () => Promise<void>;
+  
+  // Student-specific
+  getUpgradeMessage: () => Promise<string>;
 }
 
 interface SubscriptionProviderProps {
@@ -34,7 +41,7 @@ interface SubscriptionProviderProps {
 // Create context
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
-// Default personal mode plan (unlimited)
+// Plans
 const personalPlan: SubscriptionPlan = {
   id: 'personal',
   name: 'Personal (Unlimited)',
@@ -48,49 +55,167 @@ const personalPlan: SubscriptionPlan = {
   ]
 };
 
+const studentProPlan: SubscriptionPlan = {
+  id: 'student-pro',
+  name: 'ScheduleBud - Student Plan',
+  price: 5,
+  features: [
+    'Unlimited AI study assistance',
+    'Advanced analytics & insights',
+    'Smart schedule optimization',
+    'Premium Canvas features',
+    'Priority support during finals',
+    'Export to multiple formats',
+    'Bulk task operations'
+  ]
+};
+
+const freePlan: SubscriptionPlan = {
+  id: 'free',
+  name: 'Free Student Plan',
+  price: 0,
+  features: [
+    'Basic task management',
+    'Canvas integration',
+    'Limited AI queries (5/day)',
+    'Basic analytics',
+    'Community support'
+  ]
+};
+
 // Provider component
 export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children }) => {
-  // In personal mode, everything is unlimited and free
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({ status: 'free' });
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load initial subscription status
+  useEffect(() => {
+    const loadSubscriptionStatus = async () => {
+      try {
+        const status = await subscriptionService.getSubscriptionStatus();
+        setSubscriptionStatus(status);
+        
+        if (status.status === 'trialing') {
+          const days = await subscriptionService.getTrialDaysRemaining();
+          setTrialDaysRemaining(days);
+        }
+      } catch (error) {
+        logger.error('Failed to load subscription status', { error });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSubscriptionStatus();
+  }, []);
+
+  // Subscribe to real-time status changes
+  useEffect(() => {
+    const unsubscribe = subscriptionService.subscribeToStatusChanges((newStatus) => {
+      setSubscriptionStatus(newStatus);
+      
+      if (newStatus.status === 'trialing') {
+        subscriptionService.getTrialDaysRemaining().then(setTrialDaysRemaining);
+      } else {
+        setTrialDaysRemaining(null);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Get current plan based on status
+  const getCurrentPlan = (): SubscriptionPlan => {
+    if (features.isPersonalMode) {
+      return personalPlan;
+    }
+
+    switch (subscriptionStatus.status) {
+      case 'trialing':
+      case 'active':
+        return studentProPlan;
+      case 'free':
+      case 'canceled':
+      default:
+        return freePlan;
+    }
+  };
+
+  // Check if user is subscribed (trialing or active)
+  const isSubscribed = features.isPersonalMode || 
+    subscriptionStatus.status === 'trialing' || 
+    subscriptionStatus.status === 'active';
+
   const value: SubscriptionContextType = {
-    // Personal mode: always subscribed with unlimited plan
-    currentPlan: features.isPersonalMode ? personalPlan : null,
-    isSubscribed: features.isPersonalMode ? true : false,
-    subscriptionStatus: features.isPersonalMode ? 'active' : null,
+    // Subscription state
+    currentPlan: getCurrentPlan(),
+    isSubscribed,
+    subscriptionStatus: subscriptionStatus.status,
+    trialDaysRemaining,
+    loading,
     
     // Usage tracking
-    aiCreditsUsed: 0, // Not tracked in personal mode
+    aiCreditsUsed: 0, // TODO: Implement usage tracking
     aiCreditsLimit: features.aiCreditLimit,
     
-    // Personal mode: all features always available
+    // Feature access control
     canUseFeature: (feature: string) => {
       if (features.isPersonalMode) {
         return true; // Everything is available in personal mode
       }
       
-      // In SaaS mode, implement actual feature checking logic
-      // This would check subscription plan and usage limits
-      return false; // Placeholder for SaaS mode logic
-    },
-    
-    // Actions (no-op in personal mode)
-    upgradeSubscription: async (planId: string) => {
-      if (features.isPersonalMode) {
-        logger.info('Upgrade not needed in personal mode - all features are already unlimited');
-        return;
+      // Use subscription service for feature checking
+      if (loading) {
+        return false; // Deny access while loading
       }
       
-      // In SaaS mode, implement Stripe checkout
-      throw new Error('Subscription upgrade not implemented in SaaS mode yet');
+      // Allow basic features for free users
+      const freeFeatures = [
+        'basic_tasks',
+        'basic_calendar',
+        'canvas_integration',
+        'limited_ai_queries',
+        'basic_analytics',
+      ];
+
+      if (freeFeatures.includes(feature)) {
+        return true;
+      }
+
+      // Student Plan features require subscription
+      return isSubscribed;
     },
     
-    cancelSubscription: async () => {
+    // Actions
+    startFreeTrial: async () => {
       if (features.isPersonalMode) {
-        logger.info('Cannot cancel personal mode - it\'s always active');
+        logger.info('Free trial not needed in personal mode');
         return;
       }
-      
-      // In SaaS mode, implement subscription cancellation
-      throw new Error('Subscription cancellation not implemented in SaaS mode yet');
+
+      try {
+        const { url } = await subscriptionService.createCheckoutSession();
+        window.location.href = url;
+      } catch (error) {
+        logger.error('Failed to start free trial', { error });
+        throw error;
+      }
+    },
+    
+    manageBilling: async () => {
+      if (features.isPersonalMode) {
+        logger.info('Billing management not available in personal mode');
+        return;
+      }
+
+      try {
+        const { url } = await subscriptionService.createPortalSession();
+        window.location.href = url;
+      } catch (error) {
+        logger.error('Failed to open billing portal', { error });
+        throw error;
+      }
     },
     
     checkUsage: async () => {
@@ -98,8 +223,31 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         return; // No usage limits to check
       }
       
-      // In SaaS mode, fetch current usage from backend
-      console.log('Usage check not implemented for SaaS mode yet');
+      // TODO: Implement usage checking
+      logger.info('Usage check not yet implemented');
+    },
+
+    refreshStatus: async () => {
+      try {
+        setLoading(true);
+        const status = await subscriptionService.getSubscriptionStatus();
+        setSubscriptionStatus(status);
+        
+        if (status.status === 'trialing') {
+          const days = await subscriptionService.getTrialDaysRemaining();
+          setTrialDaysRemaining(days);
+        } else {
+          setTrialDaysRemaining(null);
+        }
+      } catch (error) {
+        logger.error('Failed to refresh subscription status', { error });
+      } finally {
+        setLoading(false);
+      }
+    },
+
+    getUpgradeMessage: async () => {
+      return await subscriptionService.getUpgradeMessage();
     }
   };
 

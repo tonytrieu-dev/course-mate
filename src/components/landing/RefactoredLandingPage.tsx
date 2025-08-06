@@ -6,6 +6,7 @@ import LandingFeatures from './LandingFeatures';
 import LandingPricing from './LandingPricing';
 import LandingFAQ from './LandingFAQ';
 import LandingCTA from './LandingCTA';
+import LandingFooter from './LandingFooter';
 
 interface RefactoredLandingPageProps {
   onGetStarted: () => void;
@@ -25,7 +26,7 @@ const RefactoredLandingPage: React.FC<RefactoredLandingPageProps> = ({ onGetStar
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-white">
       <LandingNavigation onGetStarted={onGetStarted} trackEvent={trackEvent} />
       <LandingHero onGetStarted={onGetStarted} trackEvent={trackEvent} />
       <LandingSocialProof />
@@ -33,6 +34,7 @@ const RefactoredLandingPage: React.FC<RefactoredLandingPageProps> = ({ onGetStar
       <LandingPricing onGetStarted={onGetStarted} trackEvent={trackEvent} />
       <LandingFAQ />
       <LandingCTA onGetStarted={onGetStarted} />
+      <LandingFooter />
     </div>
   );
 };

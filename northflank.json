@@ -69,6 +69,14 @@
                 {
                   "name": "REACT_APP_STRIPE_PUBLISHABLE_KEY",
                   "secretName": "stripe-publishable-key"
+                },
+                {
+                  "name": "STRIPE_SECRET_KEY",
+                  "secretName": "stripe-secret-key"
+                },
+                {
+                  "name": "STRIPE_WEBHOOK_SECRET",
+                  "secretName": "stripe-webhook-secret"
                 }
               ]
             }

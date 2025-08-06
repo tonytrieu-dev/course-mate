@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { createClient } from 'https://esm.sh/@supabase/supabase-js'
 import { extractText } from 'https://esm.sh/unpdf'
+import { getDocument } from 'https://esm.sh/pdfjs-dist@4.0.379/build/pdf.mjs'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,7 @@ const corsHeaders = {
 const SECURITY_CONFIG = {
   MAX_TEXT_LENGTH: 1000000, // 1MB of text content
   MAX_CHUNK_SIZE: 2000, // Increased for academic content
-  MIN_CHUNK_SIZE: 50, // Minimum meaningful content
+  MIN_CHUNK_SIZE: 10, // Minimum meaningful content (reduced for edge cases)
   SUSPICIOUS_PATTERNS: [
     /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
     /javascript:/gi,
@@ -82,7 +83,7 @@ function validatePDFContent(content: string, fileName: string): { isValid: boole
     pattern.test(content)
   ).length;
   
-  const isLikelyAcademic = academicIndicators >= 2;
+  const isLikelyAcademic = academicIndicators >= 1 || fileName.toLowerCase().includes('hw') || fileName.toLowerCase().includes('homework') || fileName.toLowerCase().includes('assignment');
   
   if (!isLikelyAcademic) {
     logSecurityEvent('warn', 'Content may not be academic material', {
@@ -109,6 +110,111 @@ function validatePDFContent(content: string, fileName: string): { isValid: boole
     warnings,
     sanitizedContent
   };
+}
+
+// Enhanced PDF text extraction using pdfjs-dist
+async function performEnhancedTextExtraction(pdfBuffer: ArrayBuffer, fileName: string): Promise<string> {
+  try {
+    logSecurityEvent('info', 'Starting enhanced PDF text extraction', {
+      fileName,
+      bufferSize: pdfBuffer.byteLength
+    });
+
+    const uint8Array = new Uint8Array(pdfBuffer);
+    
+    try {
+      // Load PDF document using pdfjs-dist
+      const pdfDoc = await getDocument({ data: uint8Array }).promise;
+      const numPages = pdfDoc.numPages;
+      
+      console.log(`PDF loaded successfully: ${numPages} pages, extracting text content...`);
+      
+      // Check PDF metadata for insights
+      const metadata = await pdfDoc.getMetadata();
+      console.log('PDF metadata:', {
+        producer: metadata.info?.Producer || 'unknown',
+        creator: metadata.info?.Creator || 'unknown',
+        title: metadata.info?.Title || 'unknown',
+        hasMetadata: !!metadata.info
+      });
+      
+      let extractedText = '';
+      let totalTextItems = 0;
+      
+      // Process each page for text content
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        console.log(`Processing page ${pageNum}/${numPages}...`);
+        
+        try {
+          const page = await pdfDoc.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          // Extract text items and preserve some spatial structure
+          const pageText = textContent.items
+            .map((item: any) => {
+              if (item.str && item.str.trim()) {
+                return item.str;
+              }
+              return '';
+            })
+            .filter(text => text.length > 0)
+            .join(' ');
+          
+          totalTextItems += textContent.items?.length || 0;
+          
+          console.log(`Page ${pageNum} extraction details:`, {
+            textItemsFound: textContent.items?.length || 0,
+            pageTextLength: pageText?.length || 0,
+            pageTextSample: pageText ? pageText.substring(0, 100) + '...' : 'NO TEXT',
+            hasValidContent: pageText && pageText.trim().length > 0,
+            firstFewTextItems: textContent.items?.slice(0, 3).map((item: any) => item.str) || []
+          });
+          
+          if (pageText && pageText.trim().length > 0) {
+            extractedText += `\n--- Page ${pageNum} ---\n${pageText.trim()}\n`;
+          }
+        } catch (pageError) {
+          console.warn(`Could not extract text from page ${pageNum}:`, pageError.message);
+          continue; // Skip this page and continue with others
+        }
+      }
+      
+      console.log('Enhanced extraction final results:', {
+        fileName,
+        pagesProcessed: numPages,
+        totalTextItems: totalTextItems,
+        totalExtractedLength: extractedText.length,
+        extractedTextSample: extractedText ? extractedText.substring(0, 200) + '...' : 'NO CONTENT',
+        willReturnContent: extractedText.trim().length > 0,
+        likelyScannedDocument: totalTextItems === 0 || extractedText.length < 10
+      });
+
+      logSecurityEvent('info', 'Enhanced PDF text extraction completed', {
+        fileName,
+        extractedLength: extractedText.length,
+        pagesProcessed: numPages,
+        extractionMethod: 'pdfjs-text-content'
+      });
+
+      return extractedText.trim();
+      
+    } catch (pdfError) {
+      console.error('Enhanced PDF text extraction failed:', pdfError);
+      logSecurityEvent('warn', 'Enhanced PDF text extraction failed', {
+        fileName,
+        error: pdfError.message
+      });
+      return ''; // Return empty string on failure
+    }
+  } catch (error) {
+    logSecurityEvent('warn', 'Enhanced text extraction failed', {
+      fileName,
+      error: error.message
+    });
+    
+    console.warn(`Enhanced text extraction failed for ${fileName}:`, error.message);
+    return ''; // Return empty string on failure
+  }
 }
 
 // Determine bucket based on file type/path
@@ -200,8 +306,53 @@ Deno.serve(async (req) => {
       const fileBuffer = await blob.arrayBuffer();
       const { text } = await extractText(new Uint8Array(fileBuffer), { mergePages: true });
       
+      // Enhanced PDF extraction debugging
+      console.log('PDF extraction details:', {
+        fileName: file.name,
+        fileSize: fileBuffer.byteLength,
+        extractedTextLength: text?.length || 0,
+        extractedTextSample: text ? text.substring(0, 200) + '...' : 'NO TEXT EXTRACTED',
+        extractedTextType: typeof text,
+        needsAlternativeExtraction: !text || text.length < 5
+      });
+      
+      // If extraction failed, try enhanced PDF text extraction
+      let processableText = text || '';
+      if (!processableText || processableText.length < 5) {
+        console.warn('Initial PDF text extraction failed, attempting enhanced extraction...');
+        
+        try {
+          const enhancedText = await performEnhancedTextExtraction(fileBuffer, file.name);
+          
+          if (enhancedText && enhancedText.length > 10) {
+            processableText = enhancedText;
+            console.log(`✅ ENHANCED EXTRACTION SUCCESS: Extracted ${enhancedText.length} characters from PDF`);
+            
+            logSecurityEvent('info', 'Enhanced extraction successful', {
+              fileName: file.name,
+              fileId: file.id,
+              originalTextLength: text?.length || 0,
+              enhancedTextLength: enhancedText.length,
+              extractionMethod: 'pdfjs-enhanced'
+            });
+          } else {
+            console.warn('Enhanced extraction returned insufficient content, using fallback');
+            processableText = `PDF document: ${file.name}. This appears to be a scanned/image-based PDF with no extractable text. Document uploaded successfully for manual reference. You can still ask questions about this homework assignment.`;
+          }
+        } catch (enhancedError) {
+          console.error('Enhanced extraction failed:', enhancedError);
+          processableText = `PDF document: ${file.name}. Text and enhanced extraction failed but file has been uploaded successfully.`;
+          
+          logSecurityEvent('error', 'Enhanced extraction failed completely', {
+            fileName: file.name,
+            fileId: file.id,
+            error: enhancedError.message
+          });
+        }
+      }
+      
       // SECURITY: Validate and sanitize PDF content
-      const validation = validatePDFContent(text, file.name);
+      const validation = validatePDFContent(processableText, file.name);
       
       if (!validation.isValid) {
         logSecurityEvent('error', 'PDF content validation failed', {
@@ -301,6 +452,66 @@ Deno.serve(async (req) => {
     
     console.log(`Processing ${chunks.length} chunks for file: ${file.name}`);
     
+    // DUPLICATE PREVENTION: Check for existing embeddings for this file
+    // Look for documents with the same class_id and base file name
+    const baseFileName = file.name; // Base file name without chunk suffix
+    let duplicatesRemoved = 0;
+    
+    console.log('Checking for existing embeddings:', {
+      class_id: file.class_id,
+      baseFileName: baseFileName
+    });
+    
+    const { data: existingDocs, error: checkError } = await supabaseAdmin
+      .from('documents')
+      .select('id, file_name')
+      .eq('class_id', file.class_id)
+      .like('file_name', `${baseFileName}%`); // Match base filename with any chunk suffix
+    
+    if (checkError) {
+      console.error('Error checking for existing documents:', checkError);
+      // Continue anyway - don't block on this check
+    } else if (existingDocs && existingDocs.length > 0) {
+      console.log(`Found ${existingDocs.length} existing embedding chunks for file: ${baseFileName}`);
+      console.log('Existing chunks:', existingDocs.map(doc => doc.file_name));
+      
+      // Delete existing embeddings to prevent duplicates
+      const { error: deleteError } = await supabaseAdmin
+        .from('documents')
+        .delete()
+        .eq('class_id', file.class_id)
+        .like('file_name', `${baseFileName}%`);
+      
+      if (deleteError) {
+        console.error('Error deleting existing embeddings:', deleteError);
+        logSecurityEvent('error', 'Failed to delete existing embeddings', {
+          fileName: file.name,
+          fileId: file.id,
+          class_id: file.class_id,
+          error: deleteError.message
+        });
+        
+        return new Response(JSON.stringify({
+          error: 'Failed to clean up existing embeddings',
+          details: deleteError.message
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      duplicatesRemoved = existingDocs.length;
+      console.log(`Successfully deleted ${duplicatesRemoved} existing embedding chunks`);
+      logSecurityEvent('info', 'Cleaned up duplicate embeddings', {
+        fileName: file.name,
+        fileId: file.id,
+        class_id: file.class_id,
+        deletedChunks: duplicatesRemoved
+      });
+    } else {
+      console.log('No existing embeddings found - proceeding with fresh embedding');
+    }
+    
     // Process each chunk
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
@@ -375,11 +586,12 @@ Deno.serve(async (req) => {
       fileName: file.name,
       fileId: file.id,
       totalChunks: chunks.length,
+      duplicatesRemoved: duplicatesRemoved,
       bucketName,
       processingTimeMs: Date.now() - (req.headers.get('x-request-start') ? parseInt(req.headers.get('x-request-start')!) : Date.now())
     });
     
-    console.log('Successfully processed all chunks for file:', file.name);
+    console.log(`Successfully processed all chunks for file: ${file.name}${duplicatesRemoved > 0 ? ` (removed ${duplicatesRemoved} duplicate chunks first)` : ''}`);
     
     // Debug: Log content status before return
     console.log('Content status before return:', {
@@ -422,12 +634,13 @@ Deno.serve(async (req) => {
     // Create response - include extractedText directly if storage failed, otherwise reference
     const response = {
       success: true, 
-      message: `Successfully embedded ${chunks.length} chunks for ${file.name}`,
+      message: `Successfully embedded ${chunks.length} chunks for ${file.name}${duplicatesRemoved > 0 ? ` (replaced ${duplicatesRemoved} existing chunks)` : ''}`,
       securityStatus: 'validated',
       extractedText: extractedTextId ? null : content, // Include text only if storage failed
       extractedTextId: extractedTextId, // Reference to stored text
       contentLength: content.length,
-      chunksProcessed: chunks.length
+      chunksProcessed: chunks.length,
+      duplicatesRemoved: duplicatesRemoved
     };
     
     // Debug: Log response before sending

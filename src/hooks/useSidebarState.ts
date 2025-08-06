@@ -91,7 +91,7 @@ export const useSidebarState = (): UseSidebarStateReturn => {
   // Chatbot states
   const [showChatbotPanel, setShowChatbotPanel] = useState<boolean>(false);
   const [chatbotPanelHeight, setChatbotPanelHeight] = useState<number>(400);
-  const [chatbotPosition, setChatbotPosition] = useState<Position>({ x: 16, y: 0 });
+  const [chatbotPosition, setChatbotPosition] = useState<Position>({ x: 320, y: 16 });
   
   // Size control states
   const [showTitleSizeControl, setShowTitleSizeControl] = useState<boolean>(false);

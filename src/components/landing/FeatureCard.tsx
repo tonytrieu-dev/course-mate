@@ -8,56 +8,119 @@ interface FeatureCardProps {
   imageAlt: string;
   imageSrc?: string;
   icon: React.ReactNode;
-  colorScheme: 'blue' | 'green' | 'yellow' | 'indigo' | 'red';
+  colorScheme: 'blue' | 'green' | 'yellow' | 'indigo' | 'red' | 'teal' | 'coral' | 'orange' | 'cyan';
   priority?: boolean;
   priorityBadge?: string;
 }
 
 const colorClasses = {
   blue: {
-    border: 'hover:border-blue-200',
-    icon: 'bg-gradient-to-br from-blue-100 to-blue-200',
-    iconText: 'text-blue-600',
-    title: 'group-hover:text-blue-600',
+    border: 'hover:border-blue-300/70',
+    icon: 'bg-gradient-to-br from-blue-100/80 to-blue-200/90',
+    iconText: 'text-blue-700',
+    title: 'group-hover:text-blue-800',
     subtitle: 'text-blue-600',
-    checkmark: 'bg-blue-100 text-blue-600',
-    gradient: 'from-blue-600/20'
+    checkmark: 'bg-blue-100/90 text-blue-700 border border-blue-300/60',
+    gradient: 'from-blue-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-blue-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
   },
   green: {
-    border: 'hover:border-green-200',
-    icon: 'bg-gradient-to-br from-green-100 to-green-200',
-    iconText: 'text-green-600',
-    title: 'group-hover:text-green-600',
+    border: 'hover:border-green-300/70',
+    icon: 'bg-gradient-to-br from-green-100/80 to-emerald-200/90',
+    iconText: 'text-green-700',
+    title: 'group-hover:text-green-800',
     subtitle: 'text-green-600',
-    checkmark: 'bg-green-100 text-green-600',
-    gradient: 'from-green-600/20'
+    checkmark: 'bg-green-100/90 text-green-700 border border-green-300/60',
+    gradient: 'from-green-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-green-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
   },
   yellow: {
-    border: 'hover:border-yellow-200',
-    icon: 'bg-gradient-to-br from-yellow-100 to-yellow-200',
-    iconText: 'text-yellow-600',
-    title: 'group-hover:text-yellow-600',
+    border: 'hover:border-yellow-300/70',
+    icon: 'bg-gradient-to-br from-yellow-100/80 to-amber-200/90',
+    iconText: 'text-yellow-700',
+    title: 'group-hover:text-yellow-800',
     subtitle: 'text-yellow-600',
-    checkmark: 'bg-yellow-100 text-yellow-600',
-    gradient: 'from-yellow-600/20'
+    checkmark: 'bg-yellow-100/90 text-yellow-700 border border-yellow-300/60',
+    gradient: 'from-yellow-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-yellow-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
   },
   indigo: {
-    border: 'hover:border-indigo-200',
-    icon: 'bg-gradient-to-br from-indigo-100 to-indigo-200',
-    iconText: 'text-indigo-600',
-    title: 'group-hover:text-indigo-600',
+    border: 'hover:border-indigo-300/70',
+    icon: 'bg-gradient-to-br from-indigo-100/80 to-purple-200/90',
+    iconText: 'text-indigo-700',
+    title: 'group-hover:text-indigo-800',
     subtitle: 'text-indigo-600',
-    checkmark: 'bg-indigo-100 text-indigo-600',
-    gradient: 'from-indigo-600/20'
+    checkmark: 'bg-indigo-100/90 text-indigo-700 border border-indigo-300/60',
+    gradient: 'from-indigo-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-indigo-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
   },
   red: {
-    border: 'hover:border-red-200',
-    icon: 'bg-gradient-to-br from-red-100 to-red-200',
-    iconText: 'text-red-600',
-    title: 'group-hover:text-red-600',
+    border: 'hover:border-red-300/70',
+    icon: 'bg-gradient-to-br from-red-100/80 to-rose-200/90',
+    iconText: 'text-red-700',
+    title: 'group-hover:text-red-800',
     subtitle: 'text-red-600',
-    checkmark: 'bg-red-100 text-red-600',
-    gradient: 'from-red-600/20'
+    checkmark: 'bg-red-100/90 text-red-700 border border-red-300/60',
+    gradient: 'from-red-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-red-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
+  },
+  teal: {
+    border: 'hover:border-teal-300/70',
+    icon: 'bg-gradient-to-br from-teal-100/80 to-cyan-200/90',
+    iconText: 'text-teal-700',
+    title: 'group-hover:text-teal-800',
+    subtitle: 'text-teal-600',
+    checkmark: 'bg-teal-100/90 text-teal-700 border border-teal-300/60',
+    gradient: 'from-teal-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-teal-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
+  },
+  coral: {
+    border: 'hover:border-rose-300/70',
+    icon: 'bg-gradient-to-br from-rose-100/80 to-pink-200/90',
+    iconText: 'text-rose-700',
+    title: 'group-hover:text-rose-800',
+    subtitle: 'text-rose-600',
+    checkmark: 'bg-rose-100/90 text-rose-700 border border-rose-300/60',
+    gradient: 'from-rose-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-rose-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
+  },
+  orange: {
+    border: 'hover:border-orange-300/70',
+    icon: 'bg-gradient-to-br from-orange-100/80 to-amber-200/90',
+    iconText: 'text-orange-700',
+    title: 'group-hover:text-orange-800',
+    subtitle: 'text-orange-600',
+    checkmark: 'bg-orange-100/90 text-orange-700 border border-orange-300/60',
+    gradient: 'from-orange-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-orange-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
+  },
+  cyan: {
+    border: 'hover:border-cyan-300/70',
+    icon: 'bg-gradient-to-br from-cyan-100/80 to-blue-200/90',
+    iconText: 'text-cyan-700',
+    title: 'group-hover:text-cyan-800',
+    subtitle: 'text-cyan-600',
+    checkmark: 'bg-cyan-100/90 text-cyan-700 border border-cyan-300/60',
+    gradient: 'from-cyan-200/40',
+    cardBg: 'bg-gradient-to-br from-white/95 to-cyan-100/80',
+    textPrimary: 'text-slate-800',
+    textSecondary: 'text-slate-700'
   }
 };
 
@@ -76,57 +139,63 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   const colors = colorClasses[colorScheme];
 
   return (
-    <div className={`group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 ${colors.border} transform hover:-translate-y-2`}>
-      {/* Priority badge */}
+    <div className={`group relative ${colors.cardBg} backdrop-blur-lg rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-700 border border-slate-200/60 ${colors.border} transform hover:-translate-y-2 hover:scale-105 overflow-hidden`}>
+      {/* Priority badge with artistic enhancement */}
       {priority && priorityBadge && (
-        <div className="absolute -top-3 -right-3 bg-gradient-to-r from-orange-400 to-red-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+        <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl z-10">
           {priorityBadge}
         </div>
       )}
       
-      <div className="text-center mb-6">
-        <div className="relative overflow-hidden rounded-xl">
-          <img 
-            src={imageSrc}
-            alt={imageAlt}
-            className="w-full h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
-          <div className={`absolute inset-0 bg-gradient-to-t ${colors.gradient} to-transparent rounded-xl`}></div>
-        </div>
-      </div>
+      {/* Artistic background gradient overlay */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} to-transparent opacity-30 group-hover:opacity-50 transition-opacity duration-700`}></div>
       
-      <div className="flex items-center mb-4">
-        <div className={`w-14 h-14 ${colors.icon} rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300`}>
-          <div className={colors.iconText}>
-            {icon}
-          </div>
-        </div>
-        <div>
-          <h3 className={`text-xl font-bold text-gray-900 mb-1 ${colors.title} transition-colors`}>
-            {title}
-          </h3>
-          <span className={`text-sm ${colors.subtitle} font-medium`}>
-            {subtitle}
-          </span>
-        </div>
-      </div>
+      {/* Artistic accent border */}
+      <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent via-blue-100/20 to-transparent group-hover:via-blue-200/30 transition-all duration-700"></div>
       
-      <p className="text-gray-600 mb-6 leading-relaxed">
-        {description}
-      </p>
-      
-      <div className="space-y-2">
-        {features.map((feature, index) => (
-          <div key={index} className="flex items-center text-sm text-gray-700">
-            <div className={`w-5 h-5 ${colors.checkmark} rounded-full flex items-center justify-center mr-3`}>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+      <div className="relative z-10">
+        {/* Enhanced icon section with artistic treatment */}
+        <div className="flex items-center mb-8">
+          <div className={`w-20 h-20 ${colors.icon} backdrop-blur-sm rounded-3xl flex items-center justify-center mr-5 group-hover:scale-125 group-hover:rotate-3 transition-all duration-500 shadow-xl border border-slate-200/40`}>
+            <div className={`${colors.iconText} filter drop-shadow-lg`}>
+              {icon}
             </div>
-            <span className="font-medium">{feature}</span>
           </div>
-        ))}
+          <div className="flex-1">
+            <h3 className={`text-2xl font-bold ${colors.textPrimary} mb-2 ${colors.title} transition-colors duration-300 group-hover:scale-105 transform`}>
+              {title}
+            </h3>
+            <span className={`text-base ${colors.subtitle} font-bold tracking-wide opacity-90`}>
+              {subtitle}
+            </span>
+          </div>
+        </div>
+        
+        {/* Enhanced description with artistic container */}
+        <p className={`${colors.textSecondary} mb-8 leading-relaxed text-lg bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-slate-200/30`}>
+          {description}
+        </p>
+        
+        {/* Feature list with artistic enhancement */}
+        <div className="space-y-4">
+          {features.map((feature, index) => (
+            <div key={index} className="flex items-start group/feature">
+              <div className={`w-6 h-6 ${colors.checkmark} rounded-full flex items-center justify-center mr-4 mt-0.5 flex-shrink-0 group-hover/feature:scale-125 group-hover/feature:rotate-12 transition-all duration-300 shadow-lg`}>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className={`font-semibold leading-relaxed ${colors.textSecondary} text-base group-hover/feature:text-slate-800 transition-colors duration-200`}>{feature}</span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Artistic bottom accent with animation */}
+        <div className={`absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r ${colors.gradient} to-transparent opacity-40 group-hover:opacity-100 group-hover:h-3 transition-all duration-500`}></div>
+        
+        {/* Additional artistic elements */}
+        <div className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-100/30 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute bottom-4 right-4 w-6 h-6 bg-gradient-to-tl from-indigo-100/40 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{transitionDelay: '200ms'}}></div>
       </div>
     </div>
   );

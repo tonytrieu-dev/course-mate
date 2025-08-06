@@ -322,13 +322,71 @@ Deno.serve(async (req) => {
           hasRelevantDocuments = allDocuments && allDocuments.length > 0;
         }
         
-        // If we still don't have documents after auto-embedding, inform the user
+        // If we still don't have documents after auto-embedding, check for scanned documents
         if (!hasRelevantDocuments) {
-          const autoEmbedMessage = successfulEmbeddings > 0
-            ? `I processed ${successfulEmbeddings} file(s) for your class(es), but couldn't find content relevant to your question. The files may not contain information about "${query}". Try asking about topics specifically covered in your uploaded materials.`
-            : `I found ${classFiles.length} uploaded file(s) for your class(es), but encountered issues processing them for search. Please try re-uploading your course materials or contact support if the problem persists.`;
+          // Check if any documents exist but contain scanned document indicators
+          const { data: allEmbeddedDocs, error: allDocsError } = await supabaseAdmin
+            .from('documents')
+            .select('content')
+            .in('class_id', targetClassIds)
+            .limit(10);
+          
+          let hasHandwrittenDocuments = false;
+          let handwrittenFileCount = 0;
+          
+          if (!allDocsError && allEmbeddedDocs && allEmbeddedDocs.length > 0) {
+            const handwrittenIndicators = [
+              'scanned/image-based PDF',
+              'no extractable text',
+              'enhanced text extraction attempted',
+              'OCR processing attempted'
+            ];
             
-          console.log('Auto-embedding completed but no relevant documents found');
+            const handwrittenDocs = allEmbeddedDocs.filter(doc => 
+              handwrittenIndicators.some(indicator => 
+                doc.content.toLowerCase().includes(indicator.toLowerCase())
+              )
+            );
+            
+            hasHandwrittenDocuments = handwrittenDocs.length > 0;
+            handwrittenFileCount = handwrittenDocs.length;
+          }
+          
+          let autoEmbedMessage;
+          if (hasHandwrittenDocuments && successfulEmbeddings > 0) {
+            // Detected handwritten documents - provide specific guidance
+            const subjectHint = query.includes('EE') || query.includes('ee') ? 'electrical engineering' : 
+                              query.includes('CS') || query.includes('cs') || query.includes('computer') ? 'computer science' :
+                              query.includes('MATH') || query.includes('math') ? 'mathematics' :
+                              query.includes('PHYS') || query.includes('physics') ? 'physics' :
+                              query.includes('CHEM') || query.includes('chemistry') ? 'chemistry' :
+                              'your subject area';
+            
+            autoEmbedMessage = `I found ${handwrittenFileCount} handwritten document(s) in your class materials. Since these contain handwritten content, I can't search their text directly. However, I can still help! 
+
+Here's what I can do:
+• Answer general questions about ${subjectHint} topics
+• Explain concepts related to "${query}"
+• Help you understand problems if you describe them to me
+• Provide study guidance and explanations
+• Clarify course concepts and terminology
+
+Try asking: "Can you explain [specific concept]?" or describe what you're working on!`;
+          } else if (successfulEmbeddings > 0) {
+            // Regular case - processed files but no relevant content
+            autoEmbedMessage = `I processed ${successfulEmbeddings} file(s) for your class(es), but couldn't find content relevant to your question. The files may not contain information about "${query}". Try asking about topics specifically covered in your uploaded materials.`;
+          } else {
+            // Processing failed
+            autoEmbedMessage = `I found ${classFiles.length} uploaded file(s) for your class(es), but encountered issues processing them for search. Please try re-uploading your course materials or contact support if the problem persists.`;
+          }
+            
+          console.log('Auto-embedding completed but no relevant documents found', {
+            hasHandwrittenDocuments,
+            handwrittenFileCount,
+            successfulEmbeddings,
+            totalFiles: classFiles.length
+          });
+          
           return new Response(JSON.stringify({ 
             answer: autoEmbedMessage
           }), {
@@ -477,5 +535,4 @@ Answer:`;
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     })
   }
-});
 });
