@@ -184,10 +184,10 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
               {/* Interactive Gallery Caption */}
               <div className="text-center">
                 <p className="text-base text-slate-700 font-medium bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 border border-blue-200/40 shadow-lg">
-                  <span className="text-blue-700 font-bold">"Explore every ScheduleBud feature interactively"</span>
+                  <span className="text-blue-700 font-bold">Explore every ScheduleBud feature interactively</span>
                   <br />
                   <span className="text-sm text-slate-600 mt-1 inline-block">
-                    Swipe through 7 slides showing dashboard, Canvas sync, AI syllabus upload, grades, study tracking, mobile interface, and full demo video
+                    Swipe through 7 slides showing the dashboard, Canvas sync, AI syllabus upload, grades, study tracking, mobile interface, and full demo video.
                   </span>
                 </p>
               </div>
