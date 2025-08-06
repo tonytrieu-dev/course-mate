@@ -1,6 +1,6 @@
 # ScheduleBud
 
-![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green) ![React](https://img.shields.io/badge/React-18.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue) ![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue)
+![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green) ![React](https://img.shields.io/badge/React-18.2.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue) ![License](https://img.shields.io/badge/License-Proprietary-red)
 
 A comprehensive student productivity application designed to streamline academic workflow management. Features intelligent calendar integration, AI-powered task generation, Canvas LMS synchronization, and cross-platform compatibility - completely free for educational use.
 
@@ -41,55 +41,27 @@ A comprehensive student productivity application designed to streamline academic
 - Webpack bundling with performance optimization
 - Jest + Playwright testing suite
 
-## 🚀 Quick Start
+## 🌐 Access ScheduleBud
 
-### Prerequisites
-- Node.js 16+ 
-- npm or yarn package manager
-- Supabase account (for backend services)
-- Google Gemini API key (for AI features)
+**ScheduleBud is a web application** - simply visit the website to start managing your academic workflow.
 
-### Installation
+### Getting Started
+1. **Visit the Application** - Navigate to the ScheduleBud web application
+2. **Create Account** - Sign up with your email address and verify your account  
+3. **Setup Profile** - Configure your academic system (quarters/semesters)
+4. **Add Classes** - Create classes or import from Canvas LMS
+5. **Start Organizing** - Begin managing tasks, grades, and study sessions
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd schedulebud
-   ```
+### Browser Requirements
+- **Modern Web Browser** - Chrome, Firefox, Safari, or Edge (latest versions)
+- **JavaScript Enabled** - Required for full functionality
+- **Stable Internet Connection** - For real-time synchronization
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## 🔧 Technical Architecture
 
-3. **Environment Configuration**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Configure your environment variables:
-   ```env
-   REACT_APP_SUPABASE_URL=your_supabase_url
-   REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
-   REACT_APP_GEMINI_API_KEY=your_gemini_api_key
-   ```
+*The following information is provided for transparency about the technology stack and architecture.*
 
-4. **Development Server**
-   ```bash
-   npm start              # Start development server
-   npm run typecheck      # TypeScript type checking
-   npm run lint           # ESLint code quality check
-   ```
-
-5. **Production Build**
-   ```bash
-   npm run build          # Production build
-   npm run analyze        # Bundle analysis
-   ```
-
-## 🔧 Development
-
-### Project Architecture
+### Project Structure
 
 ```
 src/
@@ -123,17 +95,15 @@ src/
 - **syncService**: Real-time data synchronization
 - **studySessionService**: Study tracking and analytics
 
-### Development Scripts
+### Quality Assurance
 
-```bash
-npm start              # Development server with hot reload
-npm test               # Run Jest unit tests
-npm run e2e            # Run Playwright E2E tests
-npm run lint           # ESLint code quality check
-npm run typecheck      # TypeScript type validation
-npm run build          # Production build
-npm run analyze        # Bundle size analysis
-```
+The application is maintained with comprehensive quality standards:
+
+- **Unit Testing**: Jest framework for component and service testing
+- **End-to-End Testing**: Playwright for full user workflow validation  
+- **Type Safety**: TypeScript for compile-time error prevention
+- **Code Quality**: ESLint and Prettier for consistent code standards
+- **Performance Monitoring**: Bundle analysis and optimization tracking
 
 ## 🔒 Security & Privacy
 
@@ -160,15 +130,9 @@ npm run analyze        # Bundle size analysis
 - **Study Sessions**: Track study time and effectiveness
 - **AI Assistant**: Chat with AI about uploaded course materials
 
-## 🧪 Testing
+## 🧪 Quality Validation
 
-The application includes comprehensive testing:
-
-```bash
-npm test               # Unit tests with Jest
-npm run e2e           # End-to-end tests with Playwright
-npm run e2e:ui        # Interactive test debugging
-```
+The application undergoes rigorous testing to ensure reliability and user experience:
 
 ### Test Coverage
 - ✅ **Authentication**: Complete sign-up/login flow
@@ -201,52 +165,52 @@ npm run e2e:ui        # Interactive test debugging
 - **PDF.js** - Client-side PDF text extraction
 - **ical.js** - Calendar format parsing and processing
 
-## 🤝 Contributing
+## 🤝 Support & Feedback
 
-We welcome contributions from the academic community! Here's how you can help:
+This is proprietary software maintained exclusively by Tony Trieu. While code contributions are not accepted, your feedback is valuable:
 
-### Getting Involved
-1. **Fork the repository** and create your feature branch
-2. **Follow TypeScript** conventions and existing code patterns  
-3. **Write tests** for new functionality using Jest/Playwright
-4. **Run quality checks** with `npm run lint` and `npm run typecheck`
-5. **Submit pull requests** with clear descriptions
+### How You Can Help
+- 🐛 **Bug Reports** - Report issues you encounter while using the application
+- 💡 **Feature Suggestions** - Share ideas for new features or improvements  
+- 📋 **User Feedback** - Provide feedback on usability and user experience
+- 📚 **Documentation Feedback** - Suggest improvements to documentation clarity
+- 🎓 **Student Perspectives** - Share insights from your academic workflow
 
-### Areas for Contribution
-- 🐛 **Bug fixes** - Improve stability and user experience
-- ✨ **Feature development** - Enhance academic productivity tools
-- 📚 **Documentation** - Help other students get started
-- 🧪 **Testing** - Expand test coverage and edge cases
-- 🌐 **Accessibility** - Improve WCAG compliance and usability
+### Reporting Issues
+1. **Describe the problem** clearly with steps to reproduce
+2. **Include system information** (OS, browser, version)
+3. **Provide screenshots** if applicable
+4. **Check existing reports** to avoid duplicates
+
+**Note**: This software is under active development by a single developer. Response times may vary.
 
 ## 📄 License
 
-**Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**
+**Proprietary Software - All Rights Reserved**
 
-This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/).
+© 2025 Tony Trieu. All rights reserved.
 
-### What this means:
+### Usage Terms:
 
 ✅ **You CAN:**
-- Use this software for personal, educational, or research purposes
-- Share and redistribute the software
-- Modify and build upon the software
-- Use it in educational institutions and non-profit organizations
+- Use this web application for personal, educational, or research purposes
+- Access and use the application through your web browser as provided
 
 ❌ **You CANNOT:**
-- Use this software for commercial purposes or monetary gain
-- Sell the software or any derivative works
-- Use it in commercial applications or business environments
-- Monetize any part of this codebase
+- Modify, alter, or create derivative works of the source code
+- Redistribute, share, or publish any part of the source code
+- Reverse engineer, decompile, or disassemble the software
+- Use this software for commercial purposes without explicit permission
+- Remove or alter copyright notices
+- Submit code contributions or pull requests
 
-### License Summary:
-- **Attribution**: You must give appropriate credit and indicate if changes were made
-- **NonCommercial**: You may not use the material for commercial purposes
-- **ShareAlike**: If you remix or build upon the material, you must distribute under the same license
+### Development Rights:
+- **Exclusive Development**: Only the original author (Tony Trieu) has the right to modify, enhance, or maintain this codebase
+- **No Contributions**: This is not an open-source project - code contributions from external developers are not accepted
+- **Source Code Protection**: The source code is provided for transparency but remains under strict proprietary control
 
-This software was created to provide free educational tools for students and other busy people. If you want to use this software commercially, please contact the author for a separate commercial license.
-
-For the full license text, visit: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+### Contact:
+For licensing inquiries, feature requests, or bug reports, please contact the author directly. Commercial licensing may be available upon request.
 
 ---
 
