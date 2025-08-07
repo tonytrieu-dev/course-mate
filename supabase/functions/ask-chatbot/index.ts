@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
       const { data: documents, error: rpcError } = await supabaseAdmin.rpc('match_documents', {
         class_id_filter: targetClassIds[0],
         match_count: 5,
-        match_threshold: 0.5,
+        match_threshold: 0.3, // Lowered threshold for better matches
         query_embedding: queryEmbedding,
       });
 
@@ -110,6 +110,61 @@ Deno.serve(async (req) => {
         : '';
       
       console.log(`Found ${documents?.length || 0} matching documents for single class:`, targetClassIds[0]);
+      if (documents && documents.length > 0) {
+        console.log('Document content samples:');
+        documents.forEach((doc: Document, index: number) => {
+          console.log(`Document ${index + 1}: ${doc.content?.substring(0, 150)}...`);
+        });
+      }
+
+      // If semantic search didn't find relevant documents, try text search as fallback
+      if (!documents || documents.length === 0) {
+        console.log('Semantic search found no documents, trying text search and keyword fallback...');
+        
+        // First try PostgreSQL full-text search
+        const { data: textSearchDocs, error: textSearchError } = await supabaseAdmin
+          .from('documents')
+          .select('content')
+          .eq('class_id', targetClassIds[0])
+          .textSearch('content', query, { type: 'websearch' })
+          .limit(5);
+          
+        if (!textSearchError && textSearchDocs && textSearchDocs.length > 0) {
+          console.log(`Text search found ${textSearchDocs.length} documents`);
+          allDocuments = textSearchDocs;
+          contextText = textSearchDocs.map((doc: Document) => doc.content).join("\n\n---\n\n");
+        } else {
+          // Try keyword-based content search for specific terms
+          console.log('Text search also failed, trying keyword-based content search...');
+          
+          // Extract keywords from query for better matching
+          const keywords = ['LiveLab', 'grade', 'percentage', 'evaluation', 'criteria', 'points'];
+          const queryKeywords = query.toLowerCase().split(' ').filter(word => word.length > 2);
+          const searchTerms = [...keywords, ...queryKeywords];
+          
+          // Search for documents containing any of these terms
+          const { data: keywordDocs, error: keywordError } = await supabaseAdmin
+            .from('documents')
+            .select('content')
+            .eq('class_id', targetClassIds[0])
+            .limit(10);
+            
+          if (!keywordError && keywordDocs && keywordDocs.length > 0) {
+            // Filter documents that contain relevant keywords
+            const relevantDocs = keywordDocs.filter(doc => 
+              searchTerms.some(term => 
+                doc.content.toLowerCase().includes(term.toLowerCase())
+              )
+            );
+            
+            if (relevantDocs.length > 0) {
+              console.log(`Keyword search found ${relevantDocs.length} relevant documents`);
+              allDocuments = relevantDocs;
+              contextText = relevantDocs.map((doc: Document) => doc.content).join("\n\n---\n\n");
+            }
+          }
+        }
+      }
     } else {
       // Multiple classes - fetch documents from each and combine intelligently
       const classDocuments: { [classId: string]: Document[] } = {};
@@ -119,7 +174,7 @@ Deno.serve(async (req) => {
         const { data: documents, error: rpcError } = await supabaseAdmin.rpc('match_documents', {
           class_id_filter: classId,
           match_count: 3, // Fewer per class to avoid overwhelming context
-          match_threshold: 0.5,
+          match_threshold: 0.3, // Lowered threshold for better matches
           query_embedding: queryEmbedding,
         });
 
@@ -275,7 +330,7 @@ Deno.serve(async (req) => {
             const { data: retryDocuments, error: retryError } = await supabaseAdmin.rpc('match_documents', {
               class_id_filter: targetClassIds[0],
               match_count: 5,
-              match_threshold: 0.5,
+              match_threshold: 0.3, // Lowered threshold for better matches
               query_embedding: queryEmbedding,
             });
 
@@ -293,7 +348,7 @@ Deno.serve(async (req) => {
               const { data: retryDocuments, error: retryError } = await supabaseAdmin.rpc('match_documents', {
                 class_id_filter: classId,
                 match_count: 3,
-                match_threshold: 0.5,
+                match_threshold: 0.3, // Lowered threshold for better matches
                 query_embedding: queryEmbedding,
               });
 

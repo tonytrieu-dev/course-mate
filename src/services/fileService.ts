@@ -196,9 +196,10 @@ export const fileService = {
 
     // Delete existing syllabus if any (always check, regardless of classData.syllabus)
     const { error: deleteError } = await supabase
-      .from("class_syllabi")
+      .from("class_files")
       .delete()
-      .eq("class_id", classData.id);
+      .eq("class_id", classData.id)
+      .eq("type", "syllabus"); // Only delete syllabus files
     
     if (deleteError) {
       logger.debug('No existing syllabus to delete or delete failed', {
@@ -213,14 +214,15 @@ export const fileService = {
 
     // Insert new syllabus record
     const { data: syllabusRecord, error: insertError } = await supabase
-      .from("class_syllabi")
+      .from("class_files")
       .insert({
         class_id: classData.id,
         name: file.name,
         path: fileName,
-        type: file.type,
+        type: "syllabus", // Mark as syllabus file
         size: file.size,
         owner: user.id,
+        url: signedUrlData?.signedUrl, // Store the signed URL
       })
       .select()
       .single();
@@ -491,7 +493,7 @@ export const fileService = {
 
     // Sanitize filename to remove special characters that cause storage issues
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const fileName = `${classData.id}/files/${Date.now()}_${sanitizedFileName}`;
+    const fileName = `${user.id}/${classData.id}/files/${Date.now()}_${sanitizedFileName}`;
     
     // Upload file to storage
     const { data, error } = await supabase.storage
@@ -582,8 +584,12 @@ export const fileService = {
     }
 
     // Invoke embed-file function
+    const { data: { session } } = await supabase.auth.getSession();
     const { error: functionError } = await supabase.functions.invoke('embed-file', {
       body: { record: fileRecord },
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
     });
 
     if (functionError) {

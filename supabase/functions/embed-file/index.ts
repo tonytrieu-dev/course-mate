@@ -223,16 +223,82 @@ function getBucketName(filePath: string): string {
     filePath,
     containsSyllabi: filePath?.includes('/syllabi/'),
     containsSyllabus: filePath?.toLowerCase().includes('syllabus'),
+    pathPattern: filePath?.split('/').slice(-2).join('/')
   });
   
-  // If the path contains 'syllabi' or looks like a syllabus, use secure bucket
-  if (filePath.includes('/syllabi/') || filePath.toLowerCase().includes('syllabus')) {
-    console.log('✅ Selected bucket: secure-syllabi');
+  // Smart uploads (syllabi) go to secure-syllabi bucket with /syllabi/ path
+  // Normal class files go to class-materials bucket with /files/ path
+  if (filePath.includes('/syllabi/')) {
+    console.log('✅ Selected bucket: secure-syllabi (smart upload syllabus)');
     return 'secure-syllabi';
   }
-  // Otherwise use regular bucket
-  console.log('📁 Selected bucket: class-materials');
+  
+  // Normal class files go to class-materials bucket
+  console.log('✅ Selected bucket: class-materials (normal class file)');
   return 'class-materials';
+}
+
+// Handle skipped embedding with consistent response format
+async function handleSkippedEmbedding(content: string, file: any, supabaseAdmin: any, corsHeaders: any, embeddingStatus: string): Promise<Response> {
+  console.log('📄 PDF text extraction successful. File content available for manual review.');
+  
+  // Store extracted text in temporary extraction record for retrieval
+  let extractedTextId = null;
+  if (content && content.length > 0) {
+    try {
+      // First, verify the file exists in class_files table
+      const { data: existingFile, error: checkError } = await supabaseAdmin
+        .from('class_files')
+        .select('id')
+        .eq('id', file.id)
+        .single();
+
+      if (checkError || !existingFile) {
+        console.warn('File not found in class_files table, skipping document_extractions insert:', {
+          fileId: file.id,
+          fileName: file.name,
+          checkError: checkError?.message
+        });
+        // Don't store extracted text if parent file doesn't exist
+      } else {
+        const { data: extractionRecord, error: insertError } = await supabaseAdmin
+          .from('document_extractions')
+          .insert({
+            file_id: file.id,
+            extracted_text: content,
+            extraction_date: new Date().toISOString(),
+            content_length: content.length
+          })
+          .select('id')
+          .single();
+
+        if (insertError) {
+          console.error('Failed to store extracted text:', insertError);
+        } else {
+          extractedTextId = extractionRecord.id;
+          console.log('Stored extracted text with ID:', extractedTextId);
+        }
+      }
+    } catch (storageError) {
+      console.error('Error storing extracted text:', storageError);
+    }
+  }
+  
+  // Return success with extracted text but no embeddings
+  const response = {
+    success: true,
+    message: `Successfully extracted text from ${file.name} (${content.length} characters)`,
+    extractedText: extractedTextId ? null : content, // Include text only if storage failed
+    extractedTextId: extractedTextId, // Reference to stored text
+    contentLength: content.length,
+    chunksProcessed: 0,
+    embeddingStatus: embeddingStatus,
+    note: 'PDF text extracted successfully. Embeddings skipped due to Hugging Face API issues.'
+  };
+  
+  return new Response(JSON.stringify(response), { 
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+  });
 }
 
 Deno.serve(async (req) => {
@@ -245,16 +311,35 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const hfApiKey = Deno.env.get('HUGGINGFACE_API_KEY');
 
-    if (!supabaseUrl || !supabaseServiceKey || !hfApiKey) {
-      console.error('Missing environment variables:', {
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing critical environment variables:', {
         hasSupabaseUrl: !!supabaseUrl,
-        hasServiceKey: !!supabaseServiceKey,
-        hasHfApiKey: !!hfApiKey
+        hasServiceKey: !!supabaseServiceKey
       });
       return new Response(
-        JSON.stringify({ error: 'Missing environment variables on the server.' }),
+        JSON.stringify({ error: 'Missing Supabase environment variables on the server.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    if (!hfApiKey || hfApiKey.trim().length === 0 || hfApiKey === 'your-huggingface-api-key' || hfApiKey.startsWith('hf_example')) {
+      console.error('Invalid or missing Hugging Face API key - PDF processing will continue without embeddings');
+      console.log('API key status:', {
+        exists: !!hfApiKey,
+        length: hfApiKey?.length || 0,
+        startsCorrectly: hfApiKey?.startsWith('hf_') || false,
+        isPlaceholder: hfApiKey === 'your-huggingface-api-key' || hfApiKey?.startsWith('hf_example')
+      });
+      
+      logSecurityEvent('warn', 'Invalid or missing Hugging Face API key', {
+        fileName: 'N/A',
+        impact: 'PDF text extraction will work, but no vector embeddings will be generated',
+        apiKeyExists: !!hfApiKey,
+        apiKeyLength: hfApiKey?.length || 0
+      });
+      
+      // Continue processing but skip embedding generation
+      // This allows PDF text extraction to work even without valid HF API key
     }
 
     const body = await req.json();
@@ -291,13 +376,44 @@ Deno.serve(async (req) => {
     });
 
     // Download file content from appropriate storage bucket
+    console.log('🔍 Attempting file download:', {
+      bucketName: bucketName,
+      filePath: file.path,
+      fullDownloadPath: `${bucketName}/${file.path}`,
+      fileId: file.id,
+      fileName: file.name
+    });
+    
     const { data: blob, error: downloadError } = await supabaseAdmin.storage
       .from(bucketName)
       .download(file.path);
-    if (downloadError) throw downloadError;
+    
+    if (downloadError) {
+      console.error('❌ Storage download failed:', {
+        bucketName: bucketName,
+        filePath: file.path,
+        error: downloadError.message,
+        errorCode: downloadError.error,
+        fullPath: `${bucketName}/${file.path}`
+      });
+      throw downloadError;
+    }
+    
     if (!blob) {
+      console.error('❌ File not found in storage:', {
+        bucketName: bucketName,
+        filePath: file.path,
+        fullPath: `${bucketName}/${file.path}`
+      });
       throw new Error('File not found in storage.');
     }
+    
+    console.log('✅ File download successful:', {
+      bucketName: bucketName,
+      filePath: file.path,
+      blobSize: blob.size,
+      blobType: blob.type
+    });
 
     let content = '';
     const fileType = blob.type;
@@ -451,6 +567,45 @@ Deno.serve(async (req) => {
     });
     
     console.log(`Processing ${chunks.length} chunks for file: ${file.name}`);
+    
+    // Check if we can generate embeddings with comprehensive validation
+    if (!hfApiKey || hfApiKey.trim().length === 0 || hfApiKey === 'your-huggingface-api-key' || hfApiKey.startsWith('hf_example')) {
+      console.log('⚠️  Hugging Face API key invalid or missing - skipping embedding generation');
+      return await handleSkippedEmbedding(content, file, supabaseAdmin, corsHeaders, 'skipped_invalid_api_key');
+    }
+
+    // Test API key validity with a small request before processing chunks
+    console.log('🔑 Testing Hugging Face API key validity...');
+    try {
+      const testResponse = await fetch(
+        'https://router.huggingface.co/hf-inference/models/BAAI/bge-small-en-v1.5/pipeline/feature-extraction',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${hfApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ inputs: 'test', normalize: true }),
+        }
+      );
+
+      if (!testResponse.ok) {
+        const errorText = await testResponse.text();
+        console.log(`❌ API key test failed: ${testResponse.status} - ${errorText.substring(0, 200)}`);
+        
+        if (testResponse.status === 401) {
+          console.log('🚫 Hugging Face API key is invalid or expired - skipping embedding generation');
+          return await handleSkippedEmbedding(content, file, supabaseAdmin, corsHeaders, 'skipped_expired_api_key');
+        }
+      } else {
+        console.log('✅ Hugging Face API key validation successful');
+        // Continue with embedding generation
+      }
+    } catch (testError) {
+      console.log('❌ API key test failed with error:', testError.message);
+      console.log('⚠️  Skipping embedding generation due to API connectivity issues');
+      return await handleSkippedEmbedding(content, file, supabaseAdmin, corsHeaders, 'skipped_api_error');
+    }
     
     // DUPLICATE PREVENTION: Check for existing embeddings for this file
     // Look for documents with the same class_id and base file name
@@ -607,23 +762,39 @@ Deno.serve(async (req) => {
     let extractedTextId = null;
     if (content && content.length > 0) {
       try {
-        const { data: extractionRecord, error: insertError } = await supabaseAdmin
-          .from('document_extractions')
-          .insert({
-            file_id: file.id,
-            extracted_text: content,
-            extraction_date: new Date().toISOString(),
-            content_length: content.length
-          })
+        // First, verify the file exists in class_files table
+        const { data: existingFile, error: checkError } = await supabaseAdmin
+          .from('class_files')
           .select('id')
+          .eq('id', file.id)
           .single();
 
-        if (insertError) {
-          console.error('Failed to store extracted text:', insertError);
-          // Continue without storing - will include text in response as fallback
+        if (checkError || !existingFile) {
+          console.warn('File not found in class_files table, skipping document_extractions insert:', {
+            fileId: file.id,
+            fileName: file.name,
+            checkError: checkError?.message
+          });
+          // Don't store extracted text if parent file doesn't exist, include in response instead
         } else {
-          extractedTextId = extractionRecord.id;
-          console.log('Stored extracted text with ID:', extractedTextId);
+          const { data: extractionRecord, error: insertError } = await supabaseAdmin
+            .from('document_extractions')
+            .insert({
+              file_id: file.id,
+              extracted_text: content,
+              extraction_date: new Date().toISOString(),
+              content_length: content.length
+            })
+            .select('id')
+            .single();
+
+          if (insertError) {
+            console.error('Failed to store extracted text:', insertError);
+            // Continue without storing - will include text in response as fallback
+          } else {
+            extractedTextId = extractionRecord.id;
+            console.log('Stored extracted text with ID:', extractedTextId);
+          }
         }
       } catch (storageError) {
         console.error('Error storing extracted text:', storageError);

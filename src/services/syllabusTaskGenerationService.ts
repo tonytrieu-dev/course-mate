@@ -109,6 +109,19 @@ export class SyllabusTaskGenerationService {
       // Parse and validate generated tasks
       const parsedTasks = this.parseGeminiResponse(aiResponse);
       
+      // Debug: Log the first few parsed tasks to see their structure
+      logger.debug('Parsed tasks structure analysis', {
+        totalParsed: parsedTasks.length,
+        firstTaskSample: parsedTasks.length > 0 ? {
+          title: parsedTasks[0].title,
+          taskType: parsedTasks[0].taskType,
+          hasTaskType: !!parsedTasks[0].taskType,
+          taskTypeType: typeof parsedTasks[0].taskType,
+          allKeys: Object.keys(parsedTasks[0])
+        } : 'No tasks found',
+        validTaskTypes: TASK_GENERATION_CONFIG.TASK_VALIDATION_PATTERNS.VALID_TASK_TYPES
+      });
+      
       // Validate each generated task
       const validatedTasks = this.validateGeneratedTasks(parsedTasks, syllabusContent);
       
@@ -637,6 +650,13 @@ IMPORTANT:
    */
   private static parseGeminiResponse(responseText: string): GeneratedTask[] {
     try {
+      logger.debug('Parsing Gemini response', {
+        responseLength: responseText.length,
+        startsWithJson: responseText.trim().startsWith('```json'),
+        startsWithBackticks: responseText.trim().startsWith('```'),
+        firstChars: responseText.substring(0, 100)
+      });
+
       // Extract JSON from response (handle markdown code blocks)
       let jsonText = responseText.trim();
       
@@ -647,18 +667,84 @@ IMPORTANT:
         jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
 
-      const parsed = JSON.parse(jsonText);
-      
-      if (!parsed.tasks || !Array.isArray(parsed.tasks)) {
+      logger.debug('After markdown cleanup', {
+        jsonTextLength: jsonText.length,
+        firstChars: jsonText.substring(0, 200),
+        lastChars: jsonText.substring(jsonText.length - 100)
+      });
+
+      // Handle potential nested rawResponse structure
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch (parseError) {
+        logger.warn('Initial JSON parse failed, checking for nested structure', { error: parseError });
+        
+        // Try to find JSON within the response
+        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonText = jsonMatch[0];
+          parsed = JSON.parse(jsonText);
+        } else {
+          throw parseError;
+        }
+      }
+
+      logger.debug('Successfully parsed JSON', {
+        parsedKeys: Object.keys(parsed),
+        hasTasks: !!parsed.tasks,
+        tasksType: typeof parsed.tasks,
+        tasksIsArray: Array.isArray(parsed.tasks)
+      });
+
+      // Handle different response structures
+      let tasks = null;
+      if (parsed.tasks && Array.isArray(parsed.tasks)) {
+        tasks = parsed.tasks;
+      } else if (parsed.rawResponse && typeof parsed.rawResponse === 'string') {
+        // Handle nested rawResponse - clean markdown and parse
+        logger.debug('Found rawResponse, parsing nested JSON');
+        let cleanedRawResponse = parsed.rawResponse.trim();
+        
+        // Remove markdown code block markers from rawResponse
+        if (cleanedRawResponse.startsWith('```json')) {
+          cleanedRawResponse = cleanedRawResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (cleanedRawResponse.startsWith('```')) {
+          cleanedRawResponse = cleanedRawResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+        
+        logger.debug('Cleaned rawResponse for parsing', {
+          originalLength: parsed.rawResponse.length,
+          cleanedLength: cleanedRawResponse.length,
+          cleanedStartsWith: cleanedRawResponse.substring(0, 50)
+        });
+        
+        const nestedParsed = JSON.parse(cleanedRawResponse);
+        if (nestedParsed.tasks && Array.isArray(nestedParsed.tasks)) {
+          tasks = nestedParsed.tasks;
+        }
+      }
+
+      if (!tasks || !Array.isArray(tasks)) {
+        logger.error('Invalid task format in Gemini response', {
+          parsedStructure: Object.keys(parsed),
+          tasksFound: !!tasks,
+          tasksType: typeof tasks
+        });
         throw new Error('Invalid task format in Gemini response');
       }
 
-      return parsed.tasks.slice(0, TASK_GENERATION_CONFIG.MAX_TASKS_PER_SYLLABUS);
+      logger.info('Successfully extracted tasks from response', {
+        taskCount: tasks.length,
+        maxTasks: TASK_GENERATION_CONFIG.MAX_TASKS_PER_SYLLABUS
+      });
+
+      return tasks.slice(0, TASK_GENERATION_CONFIG.MAX_TASKS_PER_SYLLABUS);
       
     } catch (error) {
       logger.error('Failed to parse Gemini response', { 
         error: error instanceof Error ? error.message : String(error),
-        responseText: responseText.substring(0, 500) // Log first 500 chars for debugging
+        responseText: responseText.substring(0, 1000) // Log first 1000 chars for debugging
       });
       
       throw errorHandler.createError('Failed to parse Gemini response', 'PARSE_FAILED', {
@@ -672,15 +758,29 @@ IMPORTANT:
    * Validate generated tasks for quality and security
    */
   private static validateGeneratedTasks(tasks: GeneratedTask[], originalContent: string): GeneratedTask[] {
-    return tasks.filter(task => {
+    return tasks.map(task => {
+      // Fix missing or invalid taskType with smart inference
+      if (!task.taskType || !TASK_GENERATION_CONFIG.TASK_VALIDATION_PATTERNS.VALID_TASK_TYPES.includes(task.taskType as any)) {
+        const inferredType = this.inferTaskType(task.title, task.description || '');
+        logger.debug('Task type inference applied', { 
+          originalType: task.taskType, 
+          inferredType, 
+          taskTitle: task.title 
+        });
+        task.taskType = inferredType;
+      }
+
+      return task;
+    }).filter(task => {
       // Basic validation
       if (!task.title || task.title.length < 3) {
         logger.warn('Task rejected: title too short', { title: task.title });
         return false;
       }
 
+      // After inference, this should always pass, but keep as safety check
       if (!TASK_GENERATION_CONFIG.TASK_VALIDATION_PATTERNS.VALID_TASK_TYPES.includes(task.taskType as any)) {
-        logger.warn('Task rejected: invalid task type', { taskType: task.taskType });
+        logger.warn('Task rejected: invalid task type after inference', { taskType: task.taskType });
         return false;
       }
 
@@ -897,6 +997,41 @@ IMPORTANT:
       });
       return 'default-task-type-id'; // Ultimate fallback
     }
+  }
+
+  /**
+   * Infer task type from title and description using keyword matching
+   */
+  private static inferTaskType(title: string, description: string): string {
+    const text = (title + ' ' + description).toLowerCase();
+    
+    // Keyword patterns for different task types
+    const typePatterns = {
+      exam: /\b(exam|test|midterm|final|assessment)\b/i,
+      quiz: /\b(quiz|short test|pop quiz)\b/i,
+      assignment: /\b(assignment|homework|hw|problem set|exercise|submit|turn in)\b/i,
+      lab: /\b(lab|laboratory|experiment|practical)\b/i,
+      project: /\b(project|design|build|develop|create|presentation)\b/i,
+      reading: /\b(reading|read|chapter|section|textbook|article)\b/i,
+      discussion: /\b(discussion|forum|post|respond|participate|comment)\b/i
+    };
+
+    // Check for specific patterns
+    for (const [type, pattern] of Object.entries(typePatterns)) {
+      if (pattern.test(text)) {
+        logger.debug('Task type inferred from pattern', { type, pattern: pattern.source, matchedText: text.substring(0, 100) });
+        return type;
+      }
+    }
+
+    // Default fallback based on common academic terms
+    if (/\b(due|submit|complete|finish)\b/i.test(text)) {
+      return 'assignment';
+    }
+
+    // Ultimate fallback
+    logger.debug('Using fallback task type', { text: text.substring(0, 100) });
+    return 'assignment';
   }
 
   /**
