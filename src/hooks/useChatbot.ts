@@ -94,13 +94,14 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
   
   const chatContentRef = useRef<HTMLDivElement>(null);
 
-  // Initialize mention functionality
+  // Initialize mention functionality - with proper class loading validation
   const mentionHook = useChatbotMentions({
     classes,
     onMentionedClassesChange: (mentionedClasses) => {
       logger.debug('Mentioned classes changed', {
         count: mentionedClasses.length,
-        classes: mentionedClasses.map(c => c.name)
+        classes: mentionedClasses.map(c => c.name),
+        totalClassesAvailable: classes?.length || 0
       });
     }
   });
@@ -152,10 +153,37 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
     const queryText = typeof chatQuery === 'string' ? chatQuery : (e.target as HTMLFormElement).textContent || '';
     if (!queryText.trim() || isChatLoading) return;
 
-    // Parse @mentions in the query
+    // Parse @mentions in the query - with safety checks for class loading
     const mentionResult = mentionHook.parseMentions(queryText);
-    const cleanQuery = mentionResult.cleanText;
+    let cleanQuery = mentionResult.cleanText;
     const mentionedClasses = mentionResult.mentions.map(m => m.matchedClass).filter(Boolean) as ClassWithRelations[];
+    
+    // Validate that we got a proper clean query (not empty or just punctuation)
+    if (!cleanQuery.trim() || cleanQuery.trim().length < 2) {
+      logger.warn('Clean query is too short after mention parsing, using fallback', {
+        originalQuery: queryText,
+        cleanQuery,
+        classesLoaded: classes?.length || 0,
+        mentionResult
+      });
+      
+      // Fallback strategy:
+      // 1. If classes aren't loaded yet, use original query text (prevents "?" warmup issue)
+      // 2. If classes are loaded but parsing failed, try simple regex strip
+      if (!classes || classes.length === 0) {
+        cleanQuery = queryText; // Use original during warmup
+        logger.info('Using original query during class loading warmup', {
+          originalQuery: queryText
+        });
+      } else {
+        // Try simple regex-based mention removal as fallback
+        cleanQuery = queryText.replace(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g, '').replace(/\s+/g, ' ').trim();
+        logger.info('Using regex-based fallback mention removal', {
+          originalQuery: queryText,
+          fallbackQuery: cleanQuery
+        });
+      }
+    }
 
     // Determine which classes to query against
     let classesToQuery: ClassWithRelations[] = [];

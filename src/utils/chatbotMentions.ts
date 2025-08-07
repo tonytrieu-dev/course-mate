@@ -30,32 +30,88 @@ export class ChatbotMentionParser {
    * Parse text for @mentions and return structured results
    */
   public parseText(text: string): MentionParseResult {
+    // Defensive check: ensure we have classes loaded
+    if (!this.classes || this.classes.length === 0) {
+      logger.warn('No classes available for mention parsing', {
+        classesCount: this.classes?.length || 0,
+        originalText: text
+      });
+      
+      // Return text as-is if no classes are loaded
+      return {
+        mentions: [],
+        hasValidMentions: false,
+        cleanText: text.trim()
+      };
+    }
+
     const mentions = this.extractMentions(text);
     const resolvedMentions = mentions.map(mention => this.resolveClassMention(mention));
     
     // Filter to only include mentions with matched classes
     const validMentions = resolvedMentions.filter(m => m.matchedClass && m.confidence > 0.3);
     
-    // Create clean text with @mentions replaced with class names
+    // Create clean text by removing @mentions but keeping the rest of the question
     let cleanText = text;
-    for (const mention of validMentions.reverse()) { // Reverse to maintain indices
-      const replacement = `class "${mention.matchedClass!.name}"`;
-      cleanText = cleanText.substring(0, mention.startIndex) + 
-                  replacement + 
-                  cleanText.substring(mention.endIndex);
+    
+    // Sort mentions by startIndex in descending order to avoid index shifting issues
+    const sortedMentions = [...validMentions].sort((a, b) => b.startIndex - a.startIndex);
+    
+    for (const mention of sortedMentions) {
+      // Validate indices before string manipulation
+      if (mention.startIndex >= 0 && 
+          mention.endIndex <= cleanText.length && 
+          mention.startIndex < mention.endIndex) {
+        
+        const before = cleanText.substring(0, mention.startIndex);
+        const after = cleanText.substring(mention.endIndex);
+        cleanText = before + after;
+        
+        logger.debug('Removed mention from text', {
+          mention: mention.mention,
+          startIndex: mention.startIndex,
+          endIndex: mention.endIndex,
+          before: before.slice(-10),
+          after: after.slice(0, 10),
+          resultLength: cleanText.length
+        });
+      } else {
+        logger.warn('Invalid mention indices, skipping removal', {
+          mention: mention.mention,
+          startIndex: mention.startIndex,
+          endIndex: mention.endIndex,
+          textLength: cleanText.length
+        });
+      }
+    }
+    
+    // Clean up extra whitespace
+    cleanText = cleanText.replace(/\s+/g, ' ').trim();
+    
+    // Final validation: ensure we didn't accidentally remove the entire question
+    if (cleanText.length === 0 && text.trim().length > 0) {
+      logger.error('Clean text is empty after mention removal, falling back to original', {
+        originalText: text,
+        mentionsFound: mentions.length,
+        validMentions: validMentions.length
+      });
+      
+      // Fallback: return original text without the @mentions using simple regex
+      cleanText = text.replace(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g, '').replace(/\s+/g, ' ').trim();
     }
 
     logger.debug('Mention parsing result', {
       originalText: text,
       mentionsFound: mentions.length,
       validMentions: validMentions.length,
-      cleanText
+      cleanText,
+      classesAvailable: this.classes.length
     });
 
     return {
       mentions: validMentions,
       hasValidMentions: validMentions.length > 0,
-      cleanText: cleanText.trim()
+      cleanText: cleanText || text.trim() // Final fallback to ensure we never return empty text
     };
   }
 
@@ -63,18 +119,40 @@ export class ChatbotMentionParser {
    * Extract @mention patterns from text
    */
   private extractMentions(text: string): MentionMatch[] {
-    const mentionRegex = /@([a-zA-Z0-9_-]+(?:\s+[a-zA-Z0-9_-]+)*)/g;
+    // Conservative regex that matches @ClassName (single words only) followed by word boundary
+    // This prevents over-matching while allowing proper class name detection
+    const mentionRegex = /@([A-Za-z0-9_-]+)(?=\s|$|[.!?,:;])/g;
     const mentions: MentionMatch[] = [];
     let match;
 
     while ((match = mentionRegex.exec(text)) !== null) {
-      mentions.push({
-        mention: match[0],
-        className: match[1].trim(),
-        startIndex: match.index,
-        endIndex: match.index + match[0].length,
-        confidence: 0
-      });
+      const fullMatch = match[0];
+      const className = match[1].trim();
+      
+      // Additional validation: class names should be reasonable length
+      if (className.length <= 50) { // Reasonable class name limit
+        mentions.push({
+          mention: fullMatch,
+          className: className,
+          startIndex: match.index,
+          endIndex: match.index + fullMatch.length,
+          confidence: 0
+        });
+        
+        logger.debug('Extracted mention', {
+          fullMatch,
+          className,
+          startIndex: match.index,
+          endIndex: match.index + fullMatch.length,
+          textLength: text.length
+        });
+      } else {
+        logger.warn('Skipping overly long mention', {
+          mention: fullMatch,
+          className,
+          length: className.length
+        });
+      }
     }
 
     return mentions;
@@ -236,7 +314,7 @@ export const mentionUtils = {
    * Extract all @mention patterns from text (without resolution)
    */
   extractMentionPatterns(text: string): string[] {
-    const matches = text.match(/@[a-zA-Z0-9_-]+(?:\s+[a-zA-Z0-9_-]+)*/g);
+    const matches = text.match(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g);
     return matches || [];
   },
 
@@ -244,13 +322,13 @@ export const mentionUtils = {
    * Remove all @mentions from text
    */
   stripMentions(text: string): string {
-    return text.replace(/@[a-zA-Z0-9_-]+(?:\s+[a-zA-Z0-9_-]+)*/g, '').trim();
+    return text.replace(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g, '').replace(/\s+/g, ' ').trim();
   },
 
   /**
    * Replace @mentions with placeholder text
    */
   replaceMentions(text: string, replacement: string = '[CLASS]'): string {
-    return text.replace(/@[a-zA-Z0-9_-]+(?:\s+[a-zA-Z0-9_-]+)*/g, replacement);
+    return text.replace(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g, replacement);
   }
 };

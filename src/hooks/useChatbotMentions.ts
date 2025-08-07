@@ -49,8 +49,14 @@ export const useChatbotMentions = ({
   onMentionedClassesChange
 }: UseChatbotMentionsProps): UseChatbotMentionsReturn => {
   
-  // Initialize mention parser
-  const mentionParser = useMemo(() => new ChatbotMentionParser(classes), [classes]);
+  // Initialize mention parser - ensure classes are loaded
+  const mentionParser = useMemo(() => {
+    // Only create parser when we have classes loaded
+    if (!classes || classes.length === 0) {
+      logger.debug('Creating mention parser with empty classes - will need to update when classes load');
+    }
+    return new ChatbotMentionParser(classes || []);
+  }, [classes]);
   
   // State for mentions
   const [mentionState, setMentionState] = useState<MentionState>({
@@ -71,9 +77,25 @@ export const useChatbotMentions = ({
   // Flag to temporarily disable mention parsing after insertion
   const [skipNextParsing, setSkipNextParsing] = useState(false);
 
-  // Update parser when classes change
+  // Update parser when classes change and warm it up
   useEffect(() => {
     mentionParser.updateClasses(classes);
+    
+    // Warm up the parser when classes are loaded to prevent cold start issues
+    if (classes && classes.length > 0) {
+      logger.debug('Warming up mention parser with loaded classes', {
+        classCount: classes.length,
+        classNames: classes.slice(0, 3).map(c => c.name)
+      });
+      
+      // Test parse a simple @mention to ensure everything is initialized
+      try {
+        mentionParser.parseText('@test warmup');
+        logger.debug('Mention parser warmed up successfully');
+      } catch (error) {
+        logger.warn('Failed to warm up mention parser', { error });
+      }
+    }
   }, [classes, mentionParser]);
 
   // Notify parent when mentioned classes change
@@ -87,6 +109,30 @@ export const useChatbotMentions = ({
    * Parse text for @mentions and update state
    */
   const parseMentions = useCallback((text: string): MentionParseResult => {
+    // Early return if no classes are loaded yet
+    if (!classes || classes.length === 0) {
+      logger.debug('Skipping mention parsing - no classes loaded yet', {
+        text: text.substring(0, 50),
+        classesCount: classes?.length || 0
+      });
+      
+      // Return a safe result that preserves the original text
+      const fallbackResult: MentionParseResult = {
+        mentions: [],
+        hasValidMentions: false,
+        cleanText: text.trim()
+      };
+      
+      // Still update state to clear any previous mentions
+      setMentionState({
+        mentions: [],
+        referencedClasses: [],
+        hasValidMentions: false
+      });
+      
+      return fallbackResult;
+    }
+
     const result = mentionParser.parseText(text);
     
     // Update mention state
@@ -104,16 +150,26 @@ export const useChatbotMentions = ({
       text: text.substring(0, 50),
       mentionsFound: result.mentions.length,
       validMentions: result.hasValidMentions,
-      referencedClasses: referencedClasses.map(c => c.name)
+      referencedClasses: referencedClasses.map(c => c.name),
+      classesCount: classes.length
     });
 
     return result;
-  }, [mentionParser]);
+  }, [mentionParser, classes]);
 
   /**
    * Show autocomplete dropdown
    */
   const showAutocomplete = useCallback((searchTerm: string, position: { top: number; left: number }) => {
+    // Check if we have classes available before getting suggestions
+    if (!classes || classes.length === 0) {
+      logger.debug('No classes available for autocomplete', {
+        searchTerm,
+        classesCount: classes?.length || 0
+      });
+      return;
+    }
+
     const suggestions = mentionParser.getAutocompleteSuggestions(searchTerm, 6);
     
     setAutocompleteState({
@@ -127,9 +183,11 @@ export const useChatbotMentions = ({
     logger.debug('Autocomplete shown', {
       searchTerm,
       suggestionsCount: suggestions.length,
-      position
+      position,
+      classesAvailable: classes.length,
+      isVisible: suggestions.length > 0
     });
-  }, [mentionParser]);
+  }, [mentionParser, classes]);
 
   /**
    * Hide autocomplete dropdown
@@ -199,9 +257,26 @@ export const useChatbotMentions = ({
       // Check if we're still in the same word (no spaces after @)
       if (!afterAt.includes(' ') && afterAt.length <= 20) {
         // We're typing an @mention - show autocomplete
+        logger.debug('Showing autocomplete for mention typing', {
+          afterAt,
+          length: afterAt.length,
+          atIndex,
+          cursorPosition
+        });
         showAutocomplete(afterAt, { top: 0, left: 0 }); // Position will be calculated by UI
         return;
+      } else {
+        logger.debug('Not showing autocomplete - invalid mention pattern', {
+          afterAt,
+          includesSpace: afterAt.includes(' '),
+          length: afterAt.length
+        });
       }
+    } else {
+      logger.debug('No @ symbol found before cursor', {
+        beforeCursor: beforeCursor.slice(-10),
+        cursorPosition
+      });
     }
     
     // Not typing @mention, hide autocomplete

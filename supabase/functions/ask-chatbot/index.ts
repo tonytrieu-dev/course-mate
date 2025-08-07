@@ -57,6 +57,20 @@ Deno.serve(async (req) => {
       hasMentions: mentionContext?.hasMentions || false,
       mentionedClasses: mentionContext?.mentionedClasses?.length || 0
     });
+
+    // DEBUG: Log if we're looking for the right class ID
+    if (query.toLowerCase().includes('livelabs') || query.toLowerCase().includes('livelab')) {
+      console.log('LIVELAB QUERY DEBUG:', {
+        searchingForClassIds: targetClassIds,
+        expectedClassId: 'class1752473032042',
+        isMatchingExpected: targetClassIds.includes('class1752473032042'),
+        queryContains: {
+          livelab: query.toLowerCase().includes('livelab'),
+          grade: query.toLowerCase().includes('grade'),
+          percentage: query.toLowerCase().includes('percentage')
+        }
+      });
+    }
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
