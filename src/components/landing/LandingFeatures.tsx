@@ -6,12 +6,12 @@ const LandingFeatures: React.FC = () => {
     {
       title: "Canvas Calendar Sync",
       subtitle: "Auto-Import Your Canvas Assignments",
-      description: "Paste your Canvas calendar link and watch your assignments appear automatically. Stop wasting hours on manual data entry. It even handles duplicate assignments and weird formatting from professors. Takes 30 seconds instead of hours of copying.",
+      description: "Paste your Canvas link → boom, all assignments imported. No more copy-paste hell.",
       features: [
         "Automatic Canvas assignment import",
-        "Real-time sync with Canvas LMS", 
         "Smart duplicate detection",
-        "Quarter & semester system support"
+        "Quarter & semester system support",
+        "Works with any Canvas LMS"
       ],
       imageAlt: "Canvas LMS integration showing automatic assignment synchronization",
       icon: (
@@ -26,7 +26,7 @@ const LandingFeatures: React.FC = () => {
     {
       title: "Smart Syllabus Upload",
       subtitle: "AI-Powered Task Extraction",
-      description: "Drop in a syllabus PDF and the AI pulls out all the assignments, due dates, and exam info. Works even when professors format things weirdly. Powered by Google's Gemini AI.",
+      description: "Drop PDF syllabus → AI reads everything → instant task list. Even works with messy professor formatting.",
       features: [
         "PDF syllabus → automatic tasks",
         "AI-powered due date extraction",
@@ -44,12 +44,12 @@ const LandingFeatures: React.FC = () => {
     {
       title: "Cross-Platform Sync",
       subtitle: "Access Anywhere, Anytime",
-      description: "Your tasks, grades, and study data sync seamlessly across all devices. Real-time updates keep everything current wherever you are.",
+      description: "Phone, laptop, tablet → everything syncs instantly. Start studying anywhere, finish everywhere.",
       features: [
         "Works on phone, tablet, laptop",
         "Real-time cloud synchronization",
-        "Instant data updates",
-        "No app downloads needed"
+        "No app downloads needed",
+        "Offline mode with smart sync"
       ],
       imageAlt: "Cross-platform synchronization across devices",
       icon: (
@@ -62,7 +62,7 @@ const LandingFeatures: React.FC = () => {
     {
       title: "Document Q&A Assistant",
       subtitle: "AI Chat About Your Course Materials",
-      description: "Upload your syllabi and ask questions like 'When is the midterm?' or 'What's the late policy?' The AI searches through your documents and gives you real answers from your actual course materials.",
+      description: "Ask your documents anything. \"When's the midterm?\" \"What's the late policy?\" Get instant answers from your own course materials.",
       features: [
         "Search through uploaded documents",
         "Context-aware answers from your files",
@@ -80,7 +80,7 @@ const LandingFeatures: React.FC = () => {
     {
       title: "Study Session Tracking",
       subtitle: "Performance Analytics",
-      description: "Track study sessions with built-in timer, effectiveness ratings, and insights into your study patterns.",
+      description: "Built-in study timer + effectiveness tracking. See what actually helps you learn better.",
       features: [
         "Built-in study timer",
         "Session effectiveness ratings",
@@ -98,7 +98,7 @@ const LandingFeatures: React.FC = () => {
     {
       title: "Advanced Grade Analytics",
       subtitle: "GPA Tracking & Insights",
-      description: "See your GPA update in real-time as you add grades. Import directly from Canvas or add them manually. Works with both semester and quarter systems.",
+      description: "Real-time GPA tracking as you add grades. Import from Canvas or add manually. Watch your GPA live.",
       features: [
         "Real-time GPA calculation",
         "Quarter & semester support",
@@ -142,9 +142,9 @@ const LandingFeatures: React.FC = () => {
         {/* Student workspace elements */}
         <div className="absolute inset-0 opacity-25">
           {/* Highlighter marks */}
-          <div className="absolute top-1/4 right-1/3 w-24 h-3 bg-yellow-300/60 transform rotate-45 rounded-full"></div>
-          <div className="absolute bottom-1/3 left-1/4 w-18 h-2 bg-green-300/50 transform -rotate-12 rounded-full"></div>
-          <div className="absolute top-2/3 right-1/4 w-20 h-2.5 bg-pink-300/40 transform rotate-12 rounded-full"></div>
+          <div className="absolute top-1/4 right-1/3 w-24 h-3 bg-blue-300/60 transform rotate-45 rounded-full"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-18 h-2 bg-indigo-300/50 transform -rotate-12 rounded-full"></div>
+          <div className="absolute top-2/3 right-1/4 w-20 h-2.5 bg-blue-400/40 transform rotate-12 rounded-full"></div>
           
           {/* Pencil/pen marks and dots */}
           <div className="absolute top-20 left-20 w-2 h-2 bg-blue-400 rounded-full opacity-60 transform rotate-45"></div>
@@ -152,8 +152,8 @@ const LandingFeatures: React.FC = () => {
           <div className="absolute top-1/2 right-1/4 w-1 h-4 bg-indigo-400 rounded-full transform -rotate-12 opacity-40"></div>
           
           {/* Post-it note shadows */}
-          <div className="absolute top-16 left-1/3 w-16 h-16 bg-yellow-200/20 transform rotate-6 rounded-sm shadow-sm"></div>
-          <div className="absolute bottom-24 right-1/4 w-14 h-14 bg-pink-200/15 transform -rotate-12 rounded-sm shadow-sm"></div>
+          <div className="absolute top-16 left-1/3 w-16 h-16 bg-blue-200/20 transform rotate-6 rounded-sm shadow-sm"></div>
+          <div className="absolute bottom-24 right-1/4 w-14 h-14 bg-indigo-200/15 transform -rotate-12 rounded-sm shadow-sm"></div>
           
           {/* Subtle grid pattern for engineering paper feel */}
           <div className="absolute inset-0 opacity-05">
@@ -167,91 +167,17 @@ const LandingFeatures: React.FC = () => {
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20 relative z-10">
-          {/* Student-focused productivity badge */}
-          <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-full text-lg font-bold mb-8 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 border-2 border-blue-400/50">
-            <span className="mr-3 text-2xl">⚡</span>
-            <span className="text-xl">Student-Built Features That Actually Save Time</span>
-          </div>
-          
-          {/* Enhanced artistic title with productivity emphasis */}
+          {/* Enhanced artistic title with automation emphasis */}
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-8 tracking-tight relative">
             <span className="text-slate-800 hover:text-slate-700 transition-colors duration-300">
-              Stop Wasting Time on{' '}
+              How ScheduleBud{' '}
             </span>
-            <span className="text-red-500 hover:text-red-600 transition-colors duration-300">
-              Busy Work
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-700 to-blue-800 hover:from-blue-500 hover:via-indigo-600 hover:to-blue-700 transition-all duration-300">
+              Eliminates Manual Work
             </span>
             {/* Artistic underline with handwritten feel */}
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-40 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full opacity-70 shadow-sm transform rotate-1"></div>
           </h2>
-          
-          {/* Enhanced value-focused description */}
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-2xl hover:shadow-3xl transition-all duration-500 relative overflow-hidden">
-              {/* Notebook paper effect background */}
-              <div className="absolute inset-0 opacity-[0.03]" style={{
-                backgroundImage: 'repeating-linear-gradient(transparent, transparent 24px, #3b82f6 25px)',
-                backgroundSize: '100% 25px'
-              }}></div>
-              
-              {/* Content with value-focused messaging */}
-              <div className="relative z-10">
-                <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium">
-                  Take back your time with features that eliminate academic busy work. Focus on learning, not organizing.
-                </p>
-                
-                {/* Time empowerment outcomes */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
-                  <div className="bg-blue-100 rounded-lg p-4">
-                    <span className="text-blue-800 font-bold">⏱️ Save Time</span>
-                    <span className="text-blue-700 text-sm block">Reclaim hours for actual studying</span>
-                  </div>
-                  <div className="bg-blue-100 rounded-lg p-4">
-                    <span className="text-blue-800 font-bold">🎯 Stay Focused</span>
-                    <span className="text-blue-700 text-sm block">Learning over organizing</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Solution Bridge Section */}
-          <div className="max-w-5xl mx-auto mt-16">
-            <div className="bg-gradient-to-r from-blue-100/80 via-indigo-100/90 to-blue-200/80 rounded-3xl p-8 border-2 border-blue-300/60 shadow-xl relative overflow-hidden">
-              {/* Bridge artistic elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-blue-100/40 opacity-70"></div>
-              <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-blue-200/50 to-transparent rounded-full"></div>
-              <div className="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-tl from-indigo-200/60 to-transparent rounded-full"></div>
-              
-              <div className="relative z-10 text-center">
-                <h3 className="text-3xl md:text-4xl font-black text-slate-800 mb-6">
-                  Here's How{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
-                    ScheduleBud Solves This
-                  </span>
-                </h3>
-                
-                <div className="grid md:grid-cols-3 gap-6 text-left">
-                  <div className="bg-white/90 rounded-xl p-6 border border-blue-200/50 shadow-lg">
-                    <h4 className="font-bold text-slate-800 mb-2">❌ Missing Assignments</h4>
-                    <p className="text-slate-700 text-sm">→ Canvas sync automatically imports everything</p>
-                  </div>
-                  <div className="bg-white/90 rounded-xl p-6 border border-blue-200/50 shadow-lg">
-                    <h4 className="font-bold text-slate-800 mb-2">❌ Manual Data Entry</h4>
-                    <p className="text-slate-700 text-sm">→ AI reads your syllabi and creates tasks instantly</p>
-                  </div>
-                  <div className="bg-white/90 rounded-xl p-6 border border-blue-200/50 shadow-lg">
-                    <h4 className="font-bold text-slate-800 mb-2">❌ Scattered Information</h4>
-                    <p className="text-slate-700 text-sm">→ Everything unified: tasks, grades, documents, analytics</p>
-                  </div>
-                </div>
-                
-                <p className="text-lg text-slate-700 font-semibold mt-6">
-                  Each feature below directly addresses these pain points:
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-10">

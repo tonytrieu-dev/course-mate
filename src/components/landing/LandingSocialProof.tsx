@@ -45,7 +45,7 @@ const LandingSocialProof: React.FC = () => {
               <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-indigo-200/40 to-transparent rounded-full"></div>
               
               <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium relative z-10">
-                As a UCR computer engineering student, I was wasting hours every week on academic busy work. Time I should have been spending actually learning. So I built ScheduleBud to give students their time back.
+                Every student faces the same time-wasting cycle: copying assignments, tracking deadlines, managing scattered information. I built ScheduleBud to eliminate this busy work forever.
               </p>
             </div>
           </div>
@@ -63,10 +63,9 @@ const LandingSocialProof: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Missing Assignments</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">Missing Critical Deadlines</h3>
                 <p className="text-slate-700 leading-relaxed font-medium">
-                  Got that 2 AM panic when you remember something was due today? 
-                  Canvas notifications are a mess and easy to miss.
+                  20% of your grade gone because Canvas notifications failed. 2 AM panic realizing something major was due today.
                 </p>
               </div>
             </div>
@@ -83,10 +82,9 @@ const LandingSocialProof: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Manual Data Entry</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">Hours of Copy-Paste Hell</h3>
                 <p className="text-slate-700 leading-relaxed font-medium">
-                  Tired of copying assignments one by one from Canvas into your planner? 
-                  It's mind-numbing busy work that steals hours from actual studying.
+                  Wasted entire first day of the quarter copying syllabus dates. Every. Single. Assignment. Manually entered instead of studying.
                 </p>
               </div>
             </div>
@@ -103,31 +101,14 @@ const LandingSocialProof: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.239 0-4.236-.906-5.672-2.372M6.343 17.657l-.707.707A1 1 0 004.222 17.95l.707-.707m-.707-8.486l.707-.707a1 1 0 011.414 1.414l-.707.707m7.072 0l.707-.707a1 1 0 011.414 1.414l-.707.707m-.707 8.486l.707.707a1 1 0 01-1.414 1.414l-.707-.707M13 13.5V16a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2.5" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Scattered Information</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-3">Information Chaos</h3>
                 <p className="text-slate-700 leading-relaxed font-medium">
-                  Tasks scattered across apps, grades stuck in Canvas, 
-                  syllabi buried in PDFs. Nothing talks to each other.
+                  Syllabus in email, grades in Canvas, tasks nowhere. Searching through 12 PDFs to find one assignment deadline.
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="text-center mt-16">
-            <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-2xl hover:shadow-3xl transition-all duration-500 max-w-4xl mx-auto relative overflow-hidden">
-              {/* Inner artistic elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-200/30 opacity-60"></div>
-              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full"></div>
-              <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-indigo-200/40 to-transparent rounded-full"></div>
-              
-              <p className="text-lg text-slate-700 font-semibold relative z-10 leading-relaxed">
-                ScheduleBud gives you your time back: automatic Canvas sync, AI that reads your syllabi, 
-                and everything organized in one place.{' '}
-                <span className="text-transparent bg-clip-text bg-blue-600  font-bold">
-                  Take back your time. Focus on learning.
-                </span>
-              </p>
-            </div>
-          </div>
         </div>
       </section>
       

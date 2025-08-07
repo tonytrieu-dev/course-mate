@@ -44,15 +44,13 @@ const LandingCTA: React.FC<LandingCTAProps> = ({ onGetStarted }) => {
             <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 tracking-tight drop-shadow-sm">
               Ready to{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                Take Back Your Time?
+                Automate Your Assignments?
               </span>
             </h2>
             <p className="text-xl text-slate-700 mb-8 max-w-2xl mx-auto font-medium leading-relaxed bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/40">
-              Eliminate hours of manual work with automatic Canvas sync, AI syllabus reading, and intelligent document Q&A. 
+              <span className="text-blue-700 font-bold">Start with our free plan today.</span>
               <br />
-              <span className="text-blue-700 font-bold">Focus on learning, not organizing.</span>
-              <br />
-              <span className="text-slate-600 text-lg italic mt-2 block">Built by a student who lived these exact struggles.</span>
+              <span className="text-slate-600 text-lg italic mt-2 block">Built by a UCR student who got tired of copy-paste hell.</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button

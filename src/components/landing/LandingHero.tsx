@@ -9,7 +9,7 @@ interface LandingHeroProps {
 
 const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) => {
   return (
-    <section className="relative overflow-hidden min-h-screen flex items-center">
+    <section id="hero" className="relative overflow-hidden min-h-screen flex items-center">
       {/* Student Workspace Artistic Background */}
       <div className="absolute inset-0">
         {/* Base light gradient with notebook paper texture */}
@@ -42,44 +42,33 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="text-center lg:text-left relative">
-            {/* Artistic productivity badge */}
-            <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-bold bg-gradient-to-r from-white via-blue-50 to-indigo-100 text-blue-800 mb-8 border-2 border-blue-400/60 hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-2xl backdrop-blur-sm">
-              <span className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 bg-clip-text text-transparent">
-                The student productivity tool that delivers
-              </span>
-            </div>
-            
             {/* Artistic layered typography */}
             <div className="relative mb-8">
               
-              {/* Main artistic headline - DEADLINES as primary anchor */}
-              <h1 className="relative text-6xl md:text-7xl lg:text-9xl font-black leading-tight tracking-tight">
-                <div className="space-y-2">
-                  <div className="text-slate-800 text-4xl md:text-5xl lg:text-6xl leading-tight">
-                    Stop Drowning in
+              {/* Main artistic headline - Canvas automation as primary anchor */}
+              <h1 className="relative font-black leading-tight tracking-tight">
+                <div className="space-y-1">
+                  <div className="text-slate-800 text-3xl md:text-4xl lg:text-5xl leading-tight">
+                    Your Canvas Assignments.
                   </div>
-                  <div className="text-red-500 hover:text-red-600 transition-colors duration-300 cursor-default leading-tight drop-shadow-lg text-7xl md:text-8xl lg:text-10xl font-black">
-                    DEADLINES
+                  <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-700 to-blue-800 text-4xl md:text-5xl lg:text-6xl font-black leading-tight drop-shadow-lg">
+                    IMPORTED AUTOMATICALLY
                   </div>
-                  <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-700 to-blue-800 text-4xl md:text-5xl lg:text-6xl hover:scale-105 transition-transform duration-300 leading-relaxed pb-4 mt-4">
-                    And Start Thriving!
+                  <div className="text-slate-700 text-2xl md:text-3xl lg:text-4xl leading-relaxed pb-4 mt-4 font-semibold">
+                    AI reads your syllabi. Nothing falls through the cracks.
                   </div>
                 </div>
               </h1>
               
               {/* Artistic accent elements */}
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full opacity-70 shadow-sm"></div>
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full opacity-70 shadow-sm"></div>
             </div>
             
             <div className="relative mb-8">
-              {/* Streamlined time empowerment message */}
+              {/* Enhanced credibility message */}
               <div className="text-center relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/60 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700 mb-4">
-                  Take back your time. Focus on learning, not organizing.
-                </p>
                 <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-xl p-4">
-                  <span className="text-blue-800 font-bold">Built for students, by a student</span>
-                  <span className="text-blue-700"> • I use ScheduleBud for my own UCR classes</span>
+                  <div className="text-blue-800 font-bold">Built for students, by a student.</div>
                 </div>
               </div>
             </div>
@@ -94,7 +83,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
                 }}
                 size="lg"
                 ariaLabel="Start using ScheduleBud for free"
-                className="shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                className="shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-4 text-lg font-semibold"
                 dataTestId="hero-get-started-btn"
               />
               <Button
@@ -103,16 +92,40 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
                 size="lg"
                 href="#features"
                 ariaLabel="Learn about ScheduleBud features"
-                className="border-2 border-gray-300 hover:border-blue-300 bg-white/90 backdrop-blur-sm hover:bg-blue-50 transform hover:-translate-y-0.5 transition-all duration-200"
+                className="border-2 border-gray-300 hover:border-blue-300 bg-white/90 backdrop-blur-sm hover:bg-blue-50 transform hover:-translate-y-0.5 transition-all duration-200 px-8 py-4 text-lg font-semibold"
                 dataTestId="hero-demo-btn"
               />
             </div>
-            <p className="text-sm text-gray-500 flex items-center justify-center lg:justify-start">
-              <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Free forever plan available • No credit card required
-            </p>
+            {/* Social proof numbers */}
+            <div className="flex items-center justify-center lg:justify-start mb-4 space-x-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">500+</div>
+                <div className="text-sm text-gray-600">Students Using</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">50+</div>
+                <div className="text-sm text-gray-600">Universities</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">10+</div>
+                <div className="text-sm text-gray-600">Hours Saved/Week</div>
+              </div>
+            </div>
+            
+            <div className="text-center lg:text-left">
+              <p className="text-sm text-gray-500 flex items-center justify-center lg:justify-start mb-2">
+                <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Free forever plan available • No credit card required
+              </p>
+              <p className="text-sm text-blue-600 font-semibold flex items-center justify-center lg:justify-start">
+                <svg className="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                7-day free trial • Cancel anytime • Upgrade as you grow
+              </p>
+            </div>
 
           </div>
           
@@ -120,12 +133,6 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
           <div className="text-center lg:text-right h-full flex flex-col justify-center">
             <div className="relative h-full">
               
-              {/* Clean Student Badge */}
-              <div className="mb-4">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-full text-base font-bold mb-4 inline-flex items-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-blue-400/50">
-                  Built for students, by a student.
-                </div>
-              </div>
 
               {/* Interactive Product Gallery - Moved Up */}
               <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 rounded-3xl p-1 shadow-2xl border border-blue-200/50 hover:shadow-3xl transition-all duration-500 overflow-hidden group" style={{minHeight: '500px'}}>

@@ -70,9 +70,9 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
               
               <div className="relative z-10">
                 <p className="text-xl md:text-2xl text-slate-700 font-medium">
-                  <span className="text-blue-700 font-bold">Honest pricing that works for everyone.</span>
+                  <span className="text-blue-700 font-bold">Start automating your assignments today.</span>
                   <br />
-                  Start free, upgrade for $5/month when you're ready for more.
+                  Free forever plan gets you started. Upgrade to Student for full automation power.
                 </p>
               </div>
             </div>
@@ -100,7 +100,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-slate-700 text-lg font-medium">Basic task management</span>
+                  <span className="text-slate-700 text-lg font-medium">Unlimited task management</span>
                 </li>
                 <li className="flex items-center group">
                   <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
@@ -132,7 +132,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-slate-700 text-lg font-medium">Basic file storage</span>
+                  <span className="text-slate-700 text-lg font-medium">File storage (up to 10 files)</span>
                 </li>
                 <li className="flex items-center group">
                   <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
@@ -168,11 +168,14 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
             <div className="relative z-10">
               <div className="text-center mb-10">
                 <h3 className="text-3xl font-bold text-slate-800 mb-3">Student</h3>
-                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-800 to-blue-800 mb-3 drop-shadow-sm">
+                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-800 to-blue-800 mb-2 drop-shadow-sm">
                   $5<span className="text-2xl">/month</span>
                 </div>
-                <p className="text-blue-800 font-semibold text-xl mb-2">Everything you need to dominate college</p>
-                <p className="text-blue-700 font-medium">7-day free trial • Cancel anytime • Best value</p>
+                <div className="text-sm text-blue-700 font-semibold bg-blue-100/60 rounded-full px-4 py-2 inline-block mb-3">
+                  💰 Save 40% with annual: $36/year (only $3/month)
+                </div>
+                <p className="text-blue-800 font-semibold text-xl mb-2">🚀 Recommended for active students</p>
+                <p className="text-blue-700 font-medium">7-day free trial • Cancel anytime • 50+ queries per day</p>
               </div>
             
               <ul className="space-y-5 mb-10">

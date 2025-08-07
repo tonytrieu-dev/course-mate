@@ -9,8 +9,24 @@ const LandingFAQ: React.FC = () => {
       answer: "No, ScheduleBud is an app designed specifically for the chaos of college. It's built around the reality of Canvas integration and the need to connect your study habits directly to your grades which is something that generic planners don't do."
     },
     {
+      question: "Does it work with all universities?",
+      answer: "ScheduleBud works with any university that uses Canvas LMS. Most major universities (UCR, UCLA, UCSB, Cal State schools, etc.) use Canvas. If your school uses a different system, the manual syllabus upload still works perfectly."
+    },
+    {
+      question: "How secure is my academic data?",
+      answer: "Your data is encrypted and stored securely with industry-standard practices. I only access what's needed for the features to work - your Canvas assignments and uploaded files. I never share or sell your information, and you can delete everything anytime."
+    },
+    {
+      question: "Can I cancel my subscription anytime?",
+      answer: "Absolutely. Cancel anytime, no questions asked. Your Free plan features continue working forever. If you cancel the Student plan, you simply go back to the Free tier - no data loss, no hassle."
+    },
+    {
+      question: "What if my Canvas assignments change?",
+      answer: "ScheduleBud syncs with Canvas when you refresh your Canvas integration. If your professor changes a due date or adds new assignments, you can re-sync your Canvas calendar to get the latest updates instantly. The sync is quick and handles duplicate detection automatically."
+    },
+    {
       question: "Why is it \"by a student\"?",
-      answer: "Because big companies don't understand student workflows. They don't experience the daily frustration of manual academic busy work that steals hours from studying. I built this because I lived through these tedious tasks, and I'm committed to solving problems that real students face, not what a corporate team thinks we need."
+      answer: "Because big companies don't understand student workflows. They don't experience the daily frustration of menial tasks. I built this because I lived through these problems. I solve what real students face, not what a corporate team thinks we need."
     },
     {
       question: "What does it mean to be an early adopter?",
