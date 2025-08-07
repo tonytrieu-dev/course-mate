@@ -47,17 +47,9 @@ const LandingFAQ: React.FC = () => {
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="faq">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-bold bg-gradient-to-r from-white to-blue-100 text-blue-800 mb-6 border-2 border-blue-400/50 backdrop-blur-md shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
-              <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
-                Honest answers from a real student
-              </span>
-            </div>
             <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 tracking-tight">A Few Honest Questions</h2>
             <p className="text-xl text-slate-700 max-w-2xl mx-auto font-medium">
-              Real questions I get asked, with honest answers from the developer.
+              Blunt answers to what you're probably wondering, from me, the creator.
             </p>
           </div>
           

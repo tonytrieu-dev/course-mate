@@ -25,16 +25,20 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
   const [passwordFocused, setPasswordFocused] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [capsLockOn, setCapsLockOn] = useState<boolean>(false);
+  const [ageVerified, setAgeVerified] = useState<boolean>(false);
   
   // Validation states
   const [emailError, setEmailError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
+  const [ageError, setAgeError] = useState<string>("");
   const [formValid, setFormValid] = useState<boolean>(false);
 
   const toggleMode = useCallback((): void => {
     setIsRegistering((prev) => !prev);
     setEmailFocused(false);
     setPasswordFocused(false);
+    setAgeVerified(false);
+    setAgeError("");
   }, []);
 
   // Input validation with proper typing
@@ -50,11 +54,21 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
     return result.isValid;
   }, []);
 
+  const validateAge = useCallback((verified: boolean): boolean => {
+    if (!verified) {
+      setAgeError("You must be 18 or older to create an account");
+      return false;
+    }
+    setAgeError("");
+    return true;
+  }, []);
+
   useEffect(() => {
     const emailValid = email ? validateEmail(email) : true;
     const passwordValid = password ? validatePassword(password) : true;
-    setFormValid(emailValid && passwordValid && !!email && !!password);
-  }, [email, password, validateEmail, validatePassword]);
+    const ageValid = isRegistering ? validateAge(ageVerified) : true;
+    setFormValid(emailValid && passwordValid && ageValid && !!email && !!password);
+  }, [email, password, ageVerified, isRegistering, validateEmail, validatePassword, validateAge]);
 
   const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -62,8 +76,9 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
     // Final validation before submission
     const emailValid = validateEmail(email);
     const passwordValid = validatePassword(password);
+    const ageValid = isRegistering ? validateAge(ageVerified) : true;
     
-    if (!emailValid || !passwordValid) {
+    if (!emailValid || !passwordValid || !ageValid) {
       return;
     }
     
@@ -76,7 +91,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
     if (onClose) {
       onClose();
     }
-  }, [email, password, isRegistering, validateEmail, validatePassword, register, login, onClose]);
+  }, [email, password, ageVerified, isRegistering, validateEmail, validatePassword, validateAge, register, login, onClose]);
 
   const handleOAuthLogin = useCallback((provider: OAuthProvider): void => {
     loginWithProvider(provider);
@@ -128,6 +143,12 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
       onClose();
     }
   }, [onClose]);
+
+  const handleAgeCheckChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
+    const checked = e.target.checked;
+    setAgeVerified(checked);
+    validateAge(checked);
+  }, [validateAge]);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999]">
@@ -220,6 +241,28 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
             )}
           </div>
 
+          {isRegistering && (
+            <div className="mb-6">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  id="ageVerification"
+                  checked={ageVerified}
+                  onChange={handleAgeCheckChange}
+                  className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  required
+                />
+                <label htmlFor="ageVerification" className="text-sm text-gray-700 leading-5">
+                  <strong className="text-red-600">*</strong> I confirm that I am 18 years of age or older. 
+                  <span className="block text-xs text-gray-500 mt-1">
+                    ScheduleBud is exclusively for adult users (18+). By checking this box, you certify that you meet this age requirement.
+                  </span>
+                </label>
+              </div>
+              {ageError && <p className="text-red-500 text-sm mt-2">{ageError}</p>}
+            </div>
+          )}
+
           <div className="flex justify-between items-center">
             <button
               type="button"
@@ -243,6 +286,13 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
 
         <div className="mt-6 pt-6 border-t border-gray-300">
           <p className="text-center text-gray-500 mb-4">Or sign in with:</p>
+          {isRegistering && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+              <p className="text-amber-800 text-sm text-center">
+                <strong>Age Requirement:</strong> By using social login, you confirm you are 18+ years old.
+              </p>
+            </div>
+          )}
           <div className="flex justify-center gap-4">
             <OAuthButton provider="google" onClick={handleOAuthLogin} />
             <OAuthButton provider="discord" onClick={handleOAuthLogin} />
