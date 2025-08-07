@@ -15,33 +15,27 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
         {/* Base light gradient with notebook paper texture */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100"></div>
         
-        {/* Subtle notebook paper lines (very faint) */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
+        {/* Authentic notebook paper lines (more visible) */}
+        <div className="absolute inset-0 opacity-[0.08]" style={{
           backgroundImage: 'repeating-linear-gradient(transparent, transparent 23px, #3b82f6 24px)',
           backgroundSize: '100% 24px'
         }}></div>
         
-        {/* Coffee ring stains as decorative elements */}
-        <div className="absolute top-16 left-16 w-12 h-12 rounded-full border-2 border-amber-200/40 opacity-30"></div>
-        <div className="absolute bottom-32 right-20 w-8 h-8 rounded-full border border-amber-300/30 opacity-25"></div>
-        <div className="absolute top-1/3 right-1/4 w-6 h-6 rounded-full border border-orange-200/35 opacity-20"></div>
+        {/* Left margin line like real notebook paper */}
+        <div className="absolute left-20 top-0 bottom-0 w-px bg-red-300/20"></div>
         
-        {/* Student stress-to-success journey elements - SIMPLIFIED */}
-        <div className="absolute inset-0 opacity-40">
-          {/* Key stress element only */}
-          <div className="absolute top-20 right-20 w-40 h-40 bg-gradient-to-br from-red-200 to-pink-200 rounded-xl transform rotate-6 mix-blend-multiply filter blur-2xl"></div>
+        {/* Authentic student workspace elements */}
+        <div className="absolute inset-0 opacity-25">
+          {/* Coffee rings - multiple overlapping like real stains */}
+          <div className="absolute top-20 left-32 w-12 h-12 rounded-full border-2 border-amber-200/40"></div>
+          <div className="absolute top-22 left-34 w-8 h-8 rounded-full border border-amber-300/30"></div>
+          <div className="absolute bottom-40 right-32 w-10 h-10 rounded-full border border-orange-200/35"></div>
           
-          {/* Main success transformation */}
-          <div className="absolute bottom-32 left-32 w-96 h-96 bg-gradient-to-tl from-blue-200/60 to-indigo-300/50 rounded-2xl mix-blend-multiply filter blur-3xl opacity-80"></div>
-        </div>
-        
-        {/* Student workspace elements - ESSENTIAL ONLY */}
-        <div className="absolute inset-0 opacity-12">
-          {/* Key accent line */}
-          <div className="absolute top-1/3 right-1/3 w-1 h-16 bg-gradient-to-b from-blue-400 to-indigo-400 rotate-12 rounded-full"></div>
+          {/* Pencil mark - like real handwriting */}
+          <div className="absolute top-40 right-40 w-16 h-1 bg-slate-400/20 rounded-full transform rotate-12"></div>
           
-          {/* Single highlighter mark */}
-          <div className="absolute bottom-1/3 left-1/3 w-14 h-1.5 bg-yellow-300/50 rounded-full transform rotate-2"></div>
+          {/* Single success element - clean and minimal */}
+          <div className="absolute bottom-32 left-32 w-64 h-64 bg-gradient-to-br from-blue-200/40 to-indigo-200/30 rounded-xl filter blur-2xl opacity-60"></div>
         </div>
       </div>
       
@@ -50,34 +44,24 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
           <div className="text-center lg:text-left relative">
             {/* Artistic productivity badge */}
             <div className="inline-flex items-center px-6 py-3 rounded-full text-sm font-bold bg-gradient-to-r from-white via-blue-50 to-indigo-100 text-blue-800 mb-8 border-2 border-blue-400/60 hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-2xl backdrop-blur-sm">
-              <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
               <span className="bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-800 bg-clip-text text-transparent">
-                The student productivity tool that actually works
+                The student productivity tool that delivers
               </span>
             </div>
             
             {/* Artistic layered typography */}
             <div className="relative mb-8">
-              {/* Background stress text - lighter colors */}
-              <div className="absolute -top-3 -left-2 text-red-300/40 text-4xl font-black rotate-12 opacity-50 select-none">
-                STRESSED?
-              </div>
-              <div className="absolute -top-1 right-10 text-orange-300/30 text-2xl font-bold -rotate-6 opacity-30 select-none">
-                overwhelmed?
-              </div>
               
-              {/* Main artistic headline */}
-              <h1 className="relative text-5xl md:text-6xl lg:text-8xl font-black leading-tight tracking-tight">
-                <div className="space-y-1">
-                  <div className="text-slate-800 hover:scale-105 transition-transform duration-300 leading-tight">
+              {/* Main artistic headline - DEADLINES as primary anchor */}
+              <h1 className="relative text-6xl md:text-7xl lg:text-9xl font-black leading-tight tracking-tight">
+                <div className="space-y-2">
+                  <div className="text-slate-800 text-4xl md:text-5xl lg:text-6xl leading-tight">
                     Stop Drowning in
                   </div>
-                  <div className="text-red-500 hover:text-red-600 transition-colors duration-300 cursor-default leading-tight drop-shadow-sm">
-                    DEADLINES.
+                  <div className="text-red-500 hover:text-red-600 transition-colors duration-300 cursor-default leading-tight drop-shadow-lg text-7xl md:text-8xl lg:text-10xl font-black">
+                    DEADLINES
                   </div>
-                  <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-700 to-blue-800 text-4xl md:text-5xl lg:text-6xl hover:scale-105 transition-transform duration-300 leading-relaxed pb-4 mt-3">
+                  <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-700 to-blue-800 text-4xl md:text-5xl lg:text-6xl hover:scale-105 transition-transform duration-300 leading-relaxed pb-4 mt-4">
                     And Start Thriving!
                   </div>
                 </div>
@@ -88,19 +72,14 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
             </div>
             
             <div className="relative mb-8">
-              {/* Value-focused description */}
-              <div className="text-lg text-slate-700 leading-relaxed font-medium relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/60 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <p className="mb-3 text-slate-800 text-xl font-semibold">
-                  Stop wasting hours on manual busy work that steals time from your actual studies.
-                </p>
-                <p className="mb-4">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700 font-bold text-xl">
-                    Get automatic sync, AI syllabus processing, and document Q&A that actually saves time.
-                  </span>
+              {/* Streamlined time empowerment message */}
+              <div className="text-center relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/60 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700 mb-4">
+                  Take back your time. Focus on learning, not organizing.
                 </p>
                 <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-xl p-4">
-                  <span className="text-blue-800 font-bold">⚡ Take back your time</span>
-                  <span className="text-blue-700"> • Empower your academic success through automation</span>
+                  <span className="text-blue-800 font-bold">Built for students, by a student</span>
+                  <span className="text-blue-700"> • I use ScheduleBud for my own UCR classes</span>
                 </div>
               </div>
             </div>
@@ -141,55 +120,16 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
           <div className="text-center lg:text-right h-full flex flex-col justify-center">
             <div className="relative h-full">
               
-              {/* Student Testimonial Header */}
-              <div className="mb-6">
+              {/* Clean Student Badge */}
+              <div className="mb-4">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-full text-base font-bold mb-4 inline-flex items-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-blue-400/50">
-                  🎓 Built for students, by a student
+                  Built for students, by a student.
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">
-                  "I used to waste hours on academic busy work..."
-                </h3>
-                <p className="text-lg text-slate-600 italic">
-                  Now I focus on learning. Here's what changed everything:
-                </p>
               </div>
 
-              {/* Interactive Product Gallery */}
-              <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 rounded-3xl p-1 shadow-2xl border border-blue-200/50 hover:shadow-3xl transition-all duration-500 overflow-hidden group mb-6">
+              {/* Interactive Product Gallery - Moved Up */}
+              <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 rounded-3xl p-1 shadow-2xl border border-blue-200/50 hover:shadow-3xl transition-all duration-500 overflow-hidden group" style={{minHeight: '500px'}}>
                 <LandingProductGallery />
-                
-                {/* Floating Gallery Tags */}
-                <div className="absolute -top-2 -left-2 bg-red-500 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg">
-                  🎬 INTERACTIVE GALLERY
-                </div>
-                <div className="absolute -top-2 -right-2 bg-blue-500 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg">
-                  📱 SWIPE TO EXPLORE
-                </div>
-              </div>
-
-              {/* Student Success Story */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-red-100/80 backdrop-blur-sm rounded-xl p-4 border border-red-200/50 text-center">
-                  <div className="text-3xl mb-2">😰</div>
-                  <div className="text-sm font-bold text-red-800">BEFORE</div>
-                  <div className="text-xs text-red-700">Hours lost to manual tasks</div>
-                </div>
-                <div className="bg-green-100/80 backdrop-blur-sm rounded-xl p-4 border border-green-200/50 text-center">
-                  <div className="text-3xl mb-2">🎯</div>
-                  <div className="text-sm font-bold text-green-800">AFTER</div>
-                  <div className="text-xs text-green-700">Time for actual learning</div>
-                </div>
-              </div>
-
-              {/* Interactive Gallery Caption */}
-              <div className="text-center">
-                <p className="text-base text-slate-700 font-medium bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 border border-blue-200/40 shadow-lg">
-                  <span className="text-blue-700 font-bold">Explore every ScheduleBud feature interactively</span>
-                  <br />
-                  <span className="text-sm text-slate-600 mt-1 inline-block">
-                    Swipe through 7 slides showing the dashboard, Canvas sync, AI syllabus upload, grades, study tracking, mobile interface, and full demo video.
-                  </span>
-                </p>
               </div>
             </div>
           </div>

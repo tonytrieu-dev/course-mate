@@ -48,7 +48,6 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
         <div className="text-center mb-20 relative z-10">
           {/* Simple Value Badge */}
           <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full text-base font-bold mb-6 shadow-lg hover:scale-105 transition-all duration-300">
-            <span className="mr-2">⚡</span>
             <span>Simple Pricing</span>
           </div>
           

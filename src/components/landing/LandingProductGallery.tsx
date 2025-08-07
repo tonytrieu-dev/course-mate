@@ -34,7 +34,7 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
             <div className="flex items-center justify-between mb-3">
               <div className="text-lg font-bold text-slate-800">Today's Schedule</div>
               <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                ⏰ 3 hours saved
+                ✅ On Track
               </div>
             </div>
             
@@ -64,22 +64,18 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
             </div>
           </div>
 
-          {/* Performance Metrics */}
+          {/* Study Progress */}
           <div className="bg-gradient-to-r from-emerald-100 to-green-100 rounded-lg p-4 border border-green-200/50">
             <div className="text-center">
-              <div className="text-xl font-bold text-green-800">🎯 This Week's Impact</div>
-              <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
-                <div>
-                  <div className="font-bold text-green-700">3h</div>
-                  <div className="text-green-600">Saved</div>
+              <div className="text-xl font-bold text-green-800">📚 Study Progress</div>
+              <div className="grid grid-cols-2 gap-3 mt-2 text-sm">
+                <div className="bg-white/50 rounded p-2">
+                  <div className="font-bold text-green-700">CS 141</div>
+                  <div className="text-green-600 text-xs">Lab on track</div>
                 </div>
-                <div>
-                  <div className="font-bold text-green-700">0</div>
-                  <div className="text-green-600">Missed</div>
-                </div>
-                <div>
-                  <div className="font-bold text-green-700">100%</div>
-                  <div className="text-green-600">Organized</div>
+                <div className="bg-white/50 rounded p-2">
+                  <div className="font-bold text-green-700">MATH 120</div>
+                  <div className="text-green-600 text-xs">Review ready</div>
                 </div>
               </div>
             </div>
@@ -545,15 +541,15 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
       </div>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
+      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-3 z-50">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-200 ${
+            className={`w-3.5 h-3.5 rounded-full transition-all duration-300 border-2 shadow-md ${
               index === currentSlide
-                ? 'bg-blue-500 scale-110'
-                : 'bg-white/60 hover:bg-white/80'
+                ? 'bg-blue-500 border-blue-600 scale-110 shadow-blue-400/60'
+                : 'bg-white border-slate-300 hover:bg-slate-50 hover:border-slate-400 hover:scale-105 shadow-slate-400/40'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -561,24 +557,24 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
       </div>
 
       {/* Slide Information */}
-      <div className="mt-6 text-center">
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 border border-blue-200/40 shadow-lg max-w-lg mx-auto">
-          <h4 className="text-lg font-bold text-slate-800 mb-2">
+      <div className="mt-6 mb-6 text-center">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-8 py-6 border border-blue-200/50 shadow-xl max-w-lg mx-auto">
+          <h4 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">
             {currentSlideData.title}
           </h4>
-          <p className="text-sm text-slate-700">
+          <p className="text-lg text-slate-700 mb-8 leading-relaxed font-medium">
             {currentSlideData.description}
           </p>
           
-          {/* Progress Indicator */}
-          <div className="flex items-center justify-center mt-3 space-x-2">
-            <span className="text-xs text-slate-500">
+          {/* Progress Indicator - Moved back to bottom with more space */}
+          <div className="flex items-center justify-center space-x-2">
+            <span className="text-sm font-semibold text-slate-600 bg-slate-50 px-3 py-1 rounded-full border border-slate-200/80 shadow-sm">
               {currentSlide + 1} of {slides.length}
             </span>
             {isAutoPlaying && (
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1.5 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/80 shadow-sm">
                 <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-blue-600">Auto-advancing</span>
+                <span className="text-xs font-semibold text-blue-700">Auto-advancing</span>
               </div>
             )}
           </div>

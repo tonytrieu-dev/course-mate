@@ -8,7 +8,7 @@ interface FeatureCardProps {
   imageAlt: string;
   imageSrc?: string;
   icon: React.ReactNode;
-  colorScheme: 'blue' | 'green' | 'amber';
+  colorScheme: 'blue';
   priority?: boolean;
   priorityBadge?: string;
 }
@@ -23,30 +23,6 @@ const colorClasses = {
     checkmark: 'bg-blue-100/90 text-blue-700 border border-blue-300/60',
     gradient: 'from-blue-200/40',
     cardBg: 'bg-gradient-to-br from-white/95 to-blue-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  green: {
-    border: 'hover:border-green-300/70',
-    icon: 'bg-gradient-to-br from-green-100/80 to-emerald-200/90',
-    iconText: 'text-green-700',
-    title: 'group-hover:text-green-800',
-    subtitle: 'text-green-600',
-    checkmark: 'bg-green-100/90 text-green-700 border border-green-300/60',
-    gradient: 'from-green-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-green-100/80',
-    textPrimary: 'text-slate-800',
-    textSecondary: 'text-slate-700'
-  },
-  amber: {
-    border: 'hover:border-amber-300/70',
-    icon: 'bg-gradient-to-br from-amber-100/80 to-yellow-200/90',
-    iconText: 'text-amber-700',
-    title: 'group-hover:text-amber-800',
-    subtitle: 'text-amber-600',
-    checkmark: 'bg-amber-100/90 text-amber-700 border border-amber-300/60',
-    gradient: 'from-amber-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-amber-100/80',
     textPrimary: 'text-slate-800',
     textSecondary: 'text-slate-700'
   }
@@ -103,9 +79,28 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         <p className={`${colors.textSecondary} mb-6 leading-relaxed text-lg bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-slate-200/30`}>
           {description}
         </p>
+        
+        {/* Feature list with artistic enhancement */}
+        <div className="space-y-4" data-feature-list="true">
+          {features.map((feature, index) => (
+            <div key={index} className="flex items-start group/feature" data-feature-item={index}>
+              <div className={`w-6 h-6 ${colors.checkmark} rounded-lg flex items-center justify-center mr-4 mt-0.5 flex-shrink-0 group-hover/feature:scale-125 group-hover/feature:rotate-6 transition-all duration-300 shadow-lg transform rotate-1`}>
+                {/* Handwritten-style checkmark */}
+                <svg className="w-4 h-4 transform -rotate-12" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121L9.707 19.121z" />
+                </svg>
+              </div>
+              <span 
+                className={`font-semibold leading-relaxed ${colors.textSecondary} text-base flex-1 inline-block`}
+              >
+                {feature}
+              </span>
+            </div>
+          ))}
+        </div>
 
-        {/* Simplified Demo Placeholder */}
-        <div className="mb-6 bg-gradient-to-br from-slate-100/60 to-slate-200/40 rounded-xl overflow-hidden border border-slate-300/20 relative group">
+        {/* Simplified Demo Placeholder - AFTER bullet points */}
+        <div className="mt-6 bg-gradient-to-br from-slate-100/60 to-slate-200/40 rounded-xl overflow-hidden border border-slate-300/20 relative group">
           <div className="aspect-video bg-gradient-to-br from-slate-100 via-blue-50/80 to-indigo-50/60 flex items-center justify-center relative">
             
             {/* Clean Feature Icon */}
@@ -129,25 +124,6 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
               Demo Preview
             </div>
           </div>
-        </div>
-        
-        {/* Feature list with artistic enhancement */}
-        <div className="space-y-4" data-feature-list="true">
-          {features.map((feature, index) => (
-            <div key={index} className="flex items-start group/feature" data-feature-item={index}>
-              <div className={`w-6 h-6 ${colors.checkmark} rounded-lg flex items-center justify-center mr-4 mt-0.5 flex-shrink-0 group-hover/feature:scale-125 group-hover/feature:rotate-6 transition-all duration-300 shadow-lg transform rotate-1`}>
-                {/* Handwritten-style checkmark */}
-                <svg className="w-4 h-4 transform -rotate-12" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M9.707 19.121a.997.997 0 0 1-1.414 0l-5.646-5.647a1.5 1.5 0 0 1 0-2.121l.707-.707a1.5 1.5 0 0 1 2.121 0L9 14.171l9.525-9.525a1.5 1.5 0 0 1 2.121 0l.707.707a1.5 1.5 0 0 1 0 2.121L9.707 19.121z" />
-                </svg>
-              </div>
-              <span 
-                className={`font-semibold leading-relaxed ${colors.textSecondary} text-base flex-1 inline-block`}
-              >
-                {feature}
-              </span>
-            </div>
-          ))}
         </div>
         
         {/* Artistic bottom accent with animation - moved outside of content area */}

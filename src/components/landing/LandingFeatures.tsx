@@ -39,7 +39,7 @@ const LandingFeatures: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
       ),
-      colorScheme: 'amber' as const
+      colorScheme: 'blue' as const
     },
     {
       title: "Cross-Platform Sync",
@@ -75,7 +75,7 @@ const LandingFeatures: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
       ),
-      colorScheme: 'green' as const
+      colorScheme: 'blue' as const
     },
     {
       title: "Study Session Tracking",
@@ -111,7 +111,7 @@ const LandingFeatures: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
         </svg>
       ),
-      colorScheme: 'green' as const
+      colorScheme: 'blue' as const
     }
   ];
 
@@ -197,18 +197,18 @@ const LandingFeatures: React.FC = () => {
               {/* Content with value-focused messaging */}
               <div className="relative z-10">
                 <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium">
-                  These features eliminate the manual tasks that steal hours from your actual learning. Canvas sync that actually works, AI that understands your syllabi, and analytics that empower your success.
+                  Take back your time with features that eliminate academic busy work. Focus on learning, not organizing.
                 </p>
                 
-                {/* Focus on key outcomes without repetition */}
+                {/* Time empowerment outcomes */}
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-md mx-auto">
                   <div className="bg-blue-100 rounded-lg p-4">
-                    <span className="text-blue-800 font-bold">🎯 Focus</span>
-                    <span className="text-blue-700 text-sm block">on studying, not setup</span>
+                    <span className="text-blue-800 font-bold">⏱️ Save Time</span>
+                    <span className="text-blue-700 text-sm block">Reclaim hours for actual studying</span>
                   </div>
-                  <div className="bg-green-100 rounded-lg p-4">
-                    <span className="text-green-800 font-bold">📈 Better outcomes</span>
-                    <span className="text-green-700 text-sm block">through organization</span>
+                  <div className="bg-blue-100 rounded-lg p-4">
+                    <span className="text-blue-800 font-bold">🎯 Stay Focused</span>
+                    <span className="text-blue-700 text-sm block">Learning over organizing</span>
                   </div>
                 </div>
               </div>

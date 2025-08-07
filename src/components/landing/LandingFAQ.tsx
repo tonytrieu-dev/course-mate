@@ -41,7 +41,7 @@ const LandingFAQ: React.FC = () => {
             </div>
             <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 tracking-tight">A Few Honest Questions</h2>
             <p className="text-xl text-slate-700 max-w-2xl mx-auto font-medium">
-              Real questions I get asked, with real answers from someone who actually uses this stuff.
+              Real questions I get asked, with honest answers from the developer.
             </p>
           </div>
           

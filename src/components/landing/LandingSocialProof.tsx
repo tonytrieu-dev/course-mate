@@ -36,7 +36,7 @@ const LandingSocialProof: React.FC = () => {
               <span className="text-red-500">
                 Academic Busy Work
               </span>{' '}
-              <span className="text-slate-800">Is Stealing Your Time</span>
+              <span className="text-slate-800">Steals Your Time</span>
             </h2>
             <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-3xl hover:shadow-4xl transition-all duration-500 max-w-4xl mx-auto relative overflow-hidden">
               {/* Inner artistic elements */}
@@ -45,7 +45,7 @@ const LandingSocialProof: React.FC = () => {
               <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-indigo-200/40 to-transparent rounded-full"></div>
               
               <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium relative z-10">
-                As a UCR engineering student, I was spending hours every week on mindless busy work - copying assignments, organizing syllabi, manually tracking due dates. I realized this was time I should be spending actually learning. So I built ScheduleBud to automate all of that tedious work and give students their time back.
+                As a UCR computer engineering student, I was wasting hours every week on academic busy work. Time I should have been spending actually learning. So I built ScheduleBud to give students their time back.
               </p>
             </div>
           </div>
@@ -120,10 +120,10 @@ const LandingSocialProof: React.FC = () => {
               <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-indigo-200/40 to-transparent rounded-full"></div>
               
               <p className="text-lg text-slate-700 font-semibold relative z-10 leading-relaxed">
-                ScheduleBud connects all the dots: automatic Canvas sync, AI that reads your syllabi, 
-                grade tracking, and study analytics.{' '}
+                ScheduleBud gives you your time back: automatic Canvas sync, AI that reads your syllabi, 
+                and everything organized in one place.{' '}
                 <span className="text-transparent bg-clip-text bg-blue-600  font-bold">
-                  Everything in one place, like it should be.
+                  Take back your time. Focus on learning.
                 </span>
               </p>
             </div>
