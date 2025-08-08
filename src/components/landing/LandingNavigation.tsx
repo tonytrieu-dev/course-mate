@@ -19,11 +19,11 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
   };
 
   return (
-    <nav className="bg-gradient-to-r from-white via-blue-50/80 to-indigo-50 shadow-lg backdrop-blur-sm sticky top-0 z-50 border-b border-blue-200/50">
+    <nav className="shadow-lg backdrop-blur-sm sticky top-0 z-50" style={{background: 'linear-gradient(to right, #ffffff 0%, rgba(37, 99, 235, 0.05) 50%, rgba(37, 99, 235, 0.08) 100%)', borderBottom: '1px solid rgba(37, 99, 235, 0.2)'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded hover:scale-105 transition-transform duration-200" tabIndex={0}>
+            <h1 className="text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 rounded hover:scale-105 transition-transform duration-200" style={{color: 'var(--primary-navy)'}} tabIndex={0}>
               {getAppName()}
             </h1>
           </div>
@@ -32,28 +32,28 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
           <div className="hidden md:flex items-center space-x-6">
             <a 
               href="#features" 
-              className="text-slate-700 hover:text-blue-600 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-3 py-2 hover:bg-blue-50"
+              className="text-slate-700  font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-3 py-2 "
               onClick={() => trackEvent('nav_click', { section: 'features' })}
             >
               Features
             </a>
             <a 
               href="#pricing" 
-              className="text-slate-700 hover:text-blue-600 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-3 py-2 hover:bg-blue-50"
+              className="text-slate-700  font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-3 py-2 "
               onClick={() => trackEvent('nav_click', { section: 'pricing' })}
             >
               Pricing
             </a>
             <a 
               href="#hero" 
-              className="text-slate-700 hover:text-blue-600 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-3 py-2 hover:bg-blue-50"
+              className="text-slate-700  font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-3 py-2 "
               onClick={() => trackEvent('nav_click', { section: 'about' })}
             >
               About
             </a>
             <a 
               href="#faq" 
-              className="text-slate-700 hover:text-blue-600 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-3 py-2 hover:bg-blue-50"
+              className="text-slate-700  font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-3 py-2 "
               onClick={() => trackEvent('nav_click', { section: 'faq' })}
             >
               FAQ
@@ -64,7 +64,8 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 trackEvent('get_started_clicked', { location: 'nav' });
                 onGetStarted();
               }}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              variant="primary"
+              className="font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               ariaLabel="Start using ScheduleBud for free"
               dataTestId="nav-get-started-btn"
             />
@@ -79,13 +80,14 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 onGetStarted();
               }}
               size="sm"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-4 py-3 min-h-[44px]"
+              variant="primary"
+              className="font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-4 py-3 min-h-[44px]"
               ariaLabel="Start using ScheduleBud for free"
               dataTestId="mobile-nav-get-started-btn"
             />
             <button
               onClick={toggleMobileMenu}
-              className="text-slate-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded p-3 hover:bg-blue-50 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="text-slate-700  focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded p-3  transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Toggle mobile menu"
               aria-expanded={isMobileMenuOpen}
             >
@@ -102,11 +104,11 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
         
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-blue-200/50 py-2 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+          <div className="md:hidden border-t border-[var(--primary-navy)]/20 py-2 bg-gradient-to-r from-white/80 to-[var(--primary-navy)]/5">
             <div className="flex flex-col space-y-2">
               <a 
                 href="#features" 
-                className="text-slate-700 hover:text-blue-600 hover:bg-blue-100/50 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
+                className="text-slate-700  hover:bg-[var(--primary-navy)]/10 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
                 onClick={() => {
                   trackEvent('nav_click', { section: 'features', device: 'mobile' });
                   closeMobileMenu();
@@ -116,7 +118,7 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
               </a>
               <a 
                 href="#pricing" 
-                className="text-slate-700 hover:text-blue-600 hover:bg-blue-100/50 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
+                className="text-slate-700  hover:bg-[var(--primary-navy)]/10 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
                 onClick={() => {
                   trackEvent('nav_click', { section: 'pricing', device: 'mobile' });
                   closeMobileMenu();
@@ -126,7 +128,7 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
               </a>
               <a 
                 href="#hero" 
-                className="text-slate-700 hover:text-blue-600 hover:bg-blue-100/50 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
+                className="text-slate-700  hover:bg-[var(--primary-navy)]/10 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
                 onClick={() => {
                   trackEvent('nav_click', { section: 'about', device: 'mobile' });
                   closeMobileMenu();
@@ -136,7 +138,7 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
               </a>
               <a 
                 href="#faq" 
-                className="text-slate-700 hover:text-blue-600 hover:bg-blue-100/50 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
+                className="text-slate-700  hover:bg-[var(--primary-navy)]/10 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-4 min-h-[44px] flex items-center"
                 onClick={() => {
                   trackEvent('nav_click', { section: 'faq', device: 'mobile' });
                   closeMobileMenu();

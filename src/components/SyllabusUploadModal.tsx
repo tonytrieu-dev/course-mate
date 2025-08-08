@@ -267,7 +267,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10010] p-4">
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative z-[10011]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-xl">
+        <div className="bg-blue-600 text-white p-6 rounded-t-xl">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Upload Syllabus</h2>
@@ -306,7 +306,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
           {uploadProgress > 0 && (
             <div className="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
@@ -374,7 +374,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
                       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                     </svg>
                     <div>
-                      <p className="font-medium">{selectedFile.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{selectedFile.name}</p>
                       <p className="text-sm text-gray-600 dark:text-slate-300">
                         {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                       </p>
@@ -434,7 +434,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
           {currentStep === 'upload' && (
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Uploading syllabus...</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">Uploading syllabus...</h3>
               <p className="text-gray-600 dark:text-slate-300">Securely uploading your file to our protected storage</p>
             </div>
           )}
@@ -443,11 +443,11 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
           {currentStep === 'generate' && (
             <div className="text-center">
               <div className="animate-pulse">
-                <svg className="h-12 w-12 text-purple-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-12 w-12 text-blue-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium mb-2">Generating tasks with AI...</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">Generating tasks with AI...</h3>
               <p className="text-gray-600 dark:text-slate-300">Analyzing syllabus content and extracting assignments, exams, and due dates</p>
             </div>
           )}
@@ -463,20 +463,6 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
                 Your syllabus has been processed and {generation.tasksGenerated} new tasks have been added to your calendar and task list.
               </p>
               
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl p-6 mb-6 border border-green-200 dark:border-green-700/50">
-                <div className="grid grid-cols-2 gap-6 text-center">
-                  <div>
-                    <div className="text-4xl font-bold text-green-600 mb-1">{generation.tasksGenerated}</div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-slate-300">Tasks Created</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-bold text-blue-600 mb-1">
-                      {Math.round(generation.averageConfidence * 100)}%
-                    </div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-slate-300">AI Confidence</div>
-                  </div>
-                </div>
-              </div>
 
               {generation.warnings.length > 0 && (
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-4 mb-6 text-left">
@@ -499,7 +485,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={handleClose}
-                  className="bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-green-700 transition-all duration-200 font-semibold text-lg shadow-lg"
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold text-lg shadow-lg"
                 >
                   View My New Tasks
                 </button>

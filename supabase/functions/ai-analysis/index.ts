@@ -180,11 +180,24 @@ SYLLABUS CONTENT:
 ${data.syllabusText}
 
 EXTRACTION INSTRUCTIONS:
-1. Extract all assignments, projects, exams, quizzes, and deliverables
+1. Extract all assignments, projects, exams, quizzes, labs, and deliverables
 2. Find specific due dates, time periods, or scheduling information
-3. Identify task types (Essay, Exam, Project, Assignment, Quiz, Reading, etc.)
+3. Identify task types (Assignment, Project, Exam, Quiz, Lab, Reading, Essay, Presentation, Discussion, Other)
 4. Extract point values, percentages, or grade weights when available
 5. Include brief descriptions when provided
+
+SPECIAL LAB ASSIGNMENT RULES:
+For laboratory assignments, extract BOTH the assignment date AND the lab session date:
+- Assignment Date: When the lab is assigned/announced
+- Session Date: When the lab session actually occurs
+- If only one date is provided, determine if it's assignment or session based on context
+
+SUBJECT DETECTION:
+Identify the academic subject from course codes, titles, or content:
+- Electrical Engineering: EE, ECE, Electrical Engineering, Power Electronics
+- Chemistry: CHEM, Chemistry, Chemical
+- Physics: PHYS, Physics, Physical Science
+- Other subjects as applicable
 
 RESPONSE FORMAT:
 Return a JSON object with this exact structure:
@@ -193,17 +206,21 @@ Return a JSON object with this exact structure:
     {
       "title": "Assignment/task name",
       "description": "Brief description or requirements",
-      "type": "Assignment|Project|Exam|Quiz|Reading|Essay|Presentation|Discussion|Other",
+      "type": "Assignment|Project|Exam|Quiz|Lab|Reading|Essay|Presentation|Discussion|Other",
       "dueDate": "YYYY-MM-DD or null if no specific date",
+      "assignmentDate": "YYYY-MM-DD - when lab was assigned (for labs only)",
+      "sessionDate": "YYYY-MM-DD - when lab session occurs (for labs only)",
       "priority": "high|medium|low",
       "points": "Point value or null",
       "weight": "Grade percentage or null",
-      "notes": "Additional context or requirements"
+      "notes": "Additional context or requirements",
+      "subject": "Detected academic subject (EE, Chemistry, Physics, etc.)"
     }
   ],
   "courseInfo": {
     "className": "${data.className}",
     "courseName": "${data.courseName}",
+    "subject": "Primary academic subject detected",
     "extractedDates": ["Important dates found"],
     "gradingScale": "If mentioned in syllabus",
     "policies": "Key policies mentioned"
@@ -212,8 +229,10 @@ Return a JSON object with this exact structure:
 
 IMPORTANT RULES:
 - Only extract tasks that have clear academic requirements
-- Use "Other" type only when no standard type fits
+- For lab assignments, always try to extract both assignment and session dates
+- Use "Lab" type specifically for laboratory experiments and practicals
 - Set priority based on point value, weight, or stated importance
+- Include subject detection for all tasks, especially labs
 - Maximum 50 tasks to prevent overwhelming students
 - Respond only with valid JSON, no additional text`;
 }

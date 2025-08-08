@@ -111,17 +111,17 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-700 dark:to-slate-600 border border-blue-200 dark:border-slate-500 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <svg className="h-6 w-6 text-purple-600 dark:text-purple-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white">Smart Upload with AI Task Generation</h4>
-                  <p className="text-sm text-gray-600 dark:text-slate-300">Upload your syllabus and automatically generate tasks from assignments and due dates</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">Automatically creates tasks from syllabus assignments and deadlines</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowAiUpload(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center ml-6 mr-2"
               >
                 <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />

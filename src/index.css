@@ -13,7 +13,7 @@ body {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
-/* Base styles */
+/* Enhanced Study Focus Palette - Base styles */
 :root {
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f8fafc;
@@ -22,6 +22,14 @@ body {
   --color-text-secondary: #475569;
   --color-border: #e2e8f0;
   --color-accent: #3b82f6;
+  
+  /* Enhanced Study Focus Palette */
+  --primary-navy: #2563EB;        /* Main brand, headers, navigation */
+  --secondary-cream: #FFF8DC;      /* Backgrounds, content areas */  
+  --accent-sage: #9CAF88;          /* Success states, progress */
+  --premium-gold: #B8860B;         /* Achievements, testimonials */
+  --cta-orange: #FF8C00;          /* Action buttons */
+  --success-green: #10B981;        /* Checkmarks, positive feedback */
 }
 
 /* Enhanced dark mode variables with warmer tones */

@@ -4,117 +4,63 @@ import Button from '../ui/Button';
 const LandingSocialProof: React.FC = () => {
   return (
     <>
-      {/* Problem Statement - Light Artistic Theme */}
-      <section className="py-32 bg-gradient-to-br from-slate-50 via-blue-50/80 to-indigo-100 relative overflow-hidden">
-        {/* Light artistic background elements */}
+      <section className="py-24" style={{background: 'linear-gradient(135deg, var(--secondary-cream) 0%, #ffffff 50%, rgba(37, 99, 235, 0.05) 100%)'}}>
         <div className="absolute inset-0">
-          {/* Multi-layer light gradients for depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-slate-50/80 to-blue-100/70"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl from-indigo-100/50 via-blue-100/60 to-white/80"></div>
-          
-          {/* Light dynamic floating orbs */}
-          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-blue-200/50 to-indigo-300/60 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
-          <div className="absolute bottom-32 right-16 w-80 h-80 bg-gradient-to-tl from-indigo-200/45 to-blue-300/55 rounded-full mix-blend-multiply filter blur-2xl opacity-60"></div>
-          <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gradient-to-r from-blue-300/40 to-blue-200/50 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
-          
-          {/* Light artistic accent elements */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-1/4 right-1/4 w-2 h-40 bg-gradient-to-b from-blue-500 to-transparent rotate-45"></div>
-            <div className="absolute bottom-1/3 left-1/4 w-2 h-32 bg-gradient-to-t from-indigo-500 to-transparent -rotate-12"></div>
-            <div className="absolute top-2/3 right-1/3 w-1 h-24 bg-gradient-to-b from-blue-500 to-transparent rotate-12"></div>
-            
-            {/* Light floating particles */}
-            <div className="absolute top-32 left-32 w-3 h-3 bg-blue-400 rounded-full opacity-50"></div>
-            <div className="absolute bottom-32 right-32 w-2 h-2 bg-indigo-400 rounded-full opacity-60"></div>
-            <div className="absolute top-3/4 right-1/5 w-2 h-2 bg-blue-400 rounded-full opacity-40"></div>
-          </div>
+          <div className="absolute top-20 right-20 w-64 h-64 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(156, 175, 136, 0.1)'}}></div>
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 mb-8 leading-tight tracking-tight">
-              <span className="text-red-500">
-                Academic Busy Work
-              </span>{' '}
-              <span className="text-slate-800">Steals Your Time</span>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-8 leading-tight tracking-tight">
+              <span style={{color: 'var(--cta-orange)'}}>Manual Setup</span> Wastes Your Quarter
             </h2>
-            <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-blue-300/50 shadow-3xl hover:shadow-4xl transition-all duration-500 max-w-4xl mx-auto relative overflow-hidden">
-              {/* Inner artistic elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-200/30 opacity-60"></div>
-              <div className="absolute top-2 right-2 w-12 h-12 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full"></div>
-              <div className="absolute bottom-2 left-2 w-8 h-8 bg-gradient-to-tl from-indigo-200/40 to-transparent rounded-full"></div>
-              
-              <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium relative z-10">
-                Every student faces the same time-wasting cycle: copying assignments, tracking deadlines, managing scattered information. I built ScheduleBud to eliminate this busy work forever.
+            <div className="rounded-2xl p-8 shadow-xl max-w-3xl mx-auto" style={{backgroundColor: 'rgba(255, 248, 220, 0.95)', border: '1px solid rgba(37, 99, 235, 0.3)'}}>
+              <p className="text-xl text-slate-700 leading-relaxed">
+                Every quarter starts the same way: <span className="font-semibold text-slate-800">wasting 2-4 hours</span> setting up your planner instead of studying. Manually typing Canvas deadlines, scanning through 5 different PDFs for dates, hunting through emails for assignment details.
               </p>
             </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Missing Assignments Card */}
-            <div className="text-center p-8 bg-white/90 backdrop-blur-lg rounded-3xl border border-red-200/50 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
-              {/* Card artistic elements */}
-              <div className="absolute inset-0 bg-red-100/20 opacity-50"></div>
-              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-red-200/30 to-transparent rounded-full"></div>
-              
-              <div className="relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-100/80 to-red-200/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl border border-red-300/60">
-                  <svg className="w-8 h-8 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Missing Critical Deadlines</h3>
-                <p className="text-slate-700 leading-relaxed font-medium">
-                  20% of your grade gone because Canvas notifications failed. 2 AM panic realizing something major was due today.
-                </p>
+            <div className="text-center p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundColor: 'var(--secondary-cream)', border: '1px solid rgba(156, 175, 136, 0.3)'}}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{backgroundColor: 'rgba(156, 175, 136, 0.2)'}}>
+                <svg className="w-8 h-8" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
               </div>
+              <h3 className="text-xl font-bold mb-3" style={{color: 'var(--primary-navy)'}}>Syllabus Scavenger Hunt</h3>
+              <p className="text-slate-700 leading-relaxed">
+                Professor puts one assignment in the syllabus, mentions another in a random email, and hides the third in some lecture slide from week 2. Good luck finding anything when you actually need it.
+              </p>
             </div>
 
-            {/* Manual Data Entry Card */}
-            <div className="text-center p-8 bg-white/90 backdrop-blur-lg rounded-3xl border border-blue-200/50 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
-              {/* Card artistic elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-200/30 opacity-50"></div>
-              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full"></div>
-              
-              <div className="relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-100/80 to-blue-200/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl border border-blue-300/60">
-                  <svg className="w-8 h-8 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Hours of Copy-Paste Hell</h3>
-                <p className="text-slate-700 leading-relaxed font-medium">
-                  Wasted entire first day of the quarter copying syllabus dates. Every. Single. Assignment. Manually entered instead of studying.
-                </p>
+            <div className="text-center p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundColor: 'var(--secondary-cream)', border: '1px solid rgba(156, 175, 136, 0.3)'}}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{backgroundColor: 'rgba(156, 175, 136, 0.2)'}}>
+                <svg className="w-8 h-8" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                </svg>
               </div>
+              <h3 className="text-xl font-bold mb-3" style={{color: 'var(--primary-navy)'}}>Sunday Setup Hell</h3>
+              <p className="text-slate-700 leading-relaxed">
+                You know the drill. Sunday night, laptop out, manually typing every single deadline from Canvas into your planner. Takes forever and you STILL end up missing stuff buried in random PDFs.
+              </p>
             </div>
 
-            {/* Scattered Information Card */}
-            <div className="text-center p-8 bg-white/90 backdrop-blur-lg rounded-3xl border border-blue-200/50 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
-              {/* Card artistic elements */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-indigo-200/30 opacity-50"></div>
-              <div className="absolute top-2 right-2 w-10 h-10 bg-gradient-to-br from-blue-200/30 to-transparent rounded-full"></div>
-              
-              <div className="relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-100/80 to-blue-200/90 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl border border-blue-300/60">
-                  <svg className="w-8 h-8 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.239 0-4.236-.906-5.672-2.372M6.343 17.657l-.707.707A1 1 0 004.222 17.95l.707-.707m-.707-8.486l.707-.707a1 1 0 011.414 1.414l-.707.707m7.072 0l.707-.707a1 1 0 011.414 1.414l-.707.707m-.707 8.486l.707.707a1 1 0 01-1.414 1.414l-.707-.707M13 13.5V16a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2.5" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">Information Chaos</h3>
-                <p className="text-slate-700 leading-relaxed font-medium">
-                  Syllabus in email, grades in Canvas, tasks nowhere. Searching through 12 PDFs to find one assignment deadline.
-                </p>
+            <div className="text-center p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundColor: 'var(--secondary-cream)', border: '1px solid rgba(156, 175, 136, 0.3)'}}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{backgroundColor: 'rgba(156, 175, 136, 0.2)'}}>
+                <svg className="w-8 h-8" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <h3 className="text-xl font-bold mb-3" style={{color: 'var(--primary-navy)'}}>The 2 AM Canvas Check</h3>
+              <p className="text-slate-700 leading-relaxed">
+                It's midnight and you're frantically clicking through Canvas tabs because something feels off. Did I submit that thing? Wait, what's due tomorrow? Canvas notifications are absolutely useless.
+              </p>
             </div>
           </div>
           
         </div>
       </section>
-      
-      {/* Transition element to Features */}
-      <div className="h-8 bg-gradient-to-b from-indigo-100/50 to-blue-50/50"></div>
-
     </>
   );
 };

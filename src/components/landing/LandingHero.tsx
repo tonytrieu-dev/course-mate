@@ -9,118 +9,74 @@ interface LandingHeroProps {
 
 const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) => {
   return (
-    <section id="hero" className="relative overflow-hidden min-h-screen flex items-center">
-      {/* Student Workspace Artistic Background */}
-      <div className="absolute inset-0">
-        {/* Base light gradient with notebook paper texture */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100"></div>
-        
-        {/* Authentic notebook paper lines (more visible) */}
-        <div className="absolute inset-0 opacity-[0.08]" style={{
-          backgroundImage: 'repeating-linear-gradient(transparent, transparent 23px, #3b82f6 24px)',
-          backgroundSize: '100% 24px'
-        }}></div>
-        
-        {/* Left margin line like real notebook paper */}
-        <div className="absolute left-20 top-0 bottom-0 w-px bg-red-300/20"></div>
-        
-        {/* Authentic student workspace elements */}
-        <div className="absolute inset-0 opacity-25">
-          {/* Coffee rings - multiple overlapping like real stains */}
-          <div className="absolute top-20 left-32 w-12 h-12 rounded-full border-2 border-amber-200/40"></div>
-          <div className="absolute top-22 left-34 w-8 h-8 rounded-full border border-amber-300/30"></div>
-          <div className="absolute bottom-40 right-32 w-10 h-10 rounded-full border border-orange-200/35"></div>
-          
-          {/* Pencil mark - like real handwriting */}
-          <div className="absolute top-40 right-40 w-16 h-1 bg-slate-400/20 rounded-full transform rotate-12"></div>
-          
-          {/* Single success element - clean and minimal */}
-          <div className="absolute bottom-32 left-32 w-64 h-64 bg-gradient-to-br from-blue-200/40 to-indigo-200/30 rounded-xl filter blur-2xl opacity-60"></div>
-        </div>
+    <section id="hero" className="relative min-h-screen flex items-center" style={{background: 'linear-gradient(135deg, var(--secondary-cream) 0%, #ffffff 30%, rgba(37, 99, 235, 0.05) 100%)'}}>
+      {/* Enhanced Study Focus background with navy blue + cream + sage green */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute bottom-32 left-32 w-96 h-96 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(156, 175, 136, 0.08)'}}></div>
+        <div className="absolute top-20 right-40 w-64 h-64 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(37, 99, 235, 0.12)'}}></div>
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full filter blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{backgroundColor: 'rgba(37, 99, 235, 0.06)'}}></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="text-center lg:text-left relative">
-            {/* Artistic layered typography */}
-            <div className="relative mb-8">
-              
-              {/* Main artistic headline - Canvas automation as primary anchor */}
-              <h1 className="relative font-black leading-tight tracking-tight">
-                <div className="space-y-1">
-                  <div className="text-slate-800 text-3xl md:text-4xl lg:text-5xl leading-tight">
-                    Your Canvas Assignments.
-                  </div>
-                  <div className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-700 to-blue-800 text-4xl md:text-5xl lg:text-6xl font-black leading-tight drop-shadow-lg">
-                    IMPORTED AUTOMATICALLY
-                  </div>
-                  <div className="text-slate-700 text-2xl md:text-3xl lg:text-4xl leading-relaxed pb-4 mt-4 font-semibold">
-                    AI reads your syllabi. Nothing falls through the cracks.
-                  </div>
+          <div className="text-center lg:text-left relative z-40">
+            <div className="mb-8">
+              <h1 className="font-black leading-tight tracking-tight">
+                <div className="text-slate-900 text-4xl md:text-5xl lg:text-6xl mb-4">
+                  Your Canvas Assignments.
+                </div>
+                <div className="text-4xl md:text-5xl lg:text-6xl mb-6 font-black" style={{color: 'var(--primary-navy)'}}>
+                  IMPORTED AUTOMATICALLY
+                </div>
+                <div className="text-slate-800 text-xl md:text-2xl lg:text-3xl font-semibold">
+                  Save 3+ hours every quarter. AI reads your syllabi instantly. More reliable than Canvas.
                 </div>
               </h1>
-              
-              {/* Artistic accent elements */}
-              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full opacity-70 shadow-sm"></div>
             </div>
             
-            <div className="relative mb-8">
-              {/* Enhanced credibility message */}
-              <div className="text-center relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/60 shadow-xl hover:shadow-2xl transition-all duration-300">
-                <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-xl p-4">
-                  <div className="text-blue-800 font-bold">Built for students, by a student.</div>
+            <div className="mb-8">
+              <div className="rounded-2xl p-6 shadow-xl" style={{backgroundColor: 'rgba(255, 248, 220, 0.95)', border: '1px solid rgba(156, 175, 136, 0.3)', backdropFilter: 'blur(4px)'}}>
+                <div className="text-slate-800 font-bold mb-2">Built by a UCR student who actually uses it.</div>
+                <div className="text-slate-700">
+                  I built this because I was wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3-4 hours every quarter</span> setting up my planner. Now I paste my Canvas link, upload my syllabi, and I'm <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>done in 10 seconds</span>. 😎
                 </div>
               </div>
             </div>
             
             {/* Enhanced CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6 relative z-10">
               <Button
                 text="Try ScheduleBud for Free"
                 onClick={() => {
                   trackEvent('get_started_clicked', { location: 'hero' });
                   onGetStarted();
                 }}
+                variant="cta-orange"
                 size="lg"
                 ariaLabel="Start using ScheduleBud for free"
-                className="shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5 transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-4 text-lg font-semibold"
+                className="transform hover:-translate-y-0.5 transition-all duration-200 px-8 py-4 text-lg font-semibold"
                 dataTestId="hero-get-started-btn"
               />
               <Button
-                text="See How It Works"
+                text="See Features"
                 variant="outline"
                 size="lg"
                 href="#features"
                 ariaLabel="Learn about ScheduleBud features"
-                className="border-2 border-gray-300 hover:border-blue-300 bg-white/90 backdrop-blur-sm hover:bg-blue-50 transform hover:-translate-y-0.5 transition-all duration-200 px-8 py-4 text-lg font-semibold"
+                className="bg-white/90 backdrop-blur-sm transform hover:-translate-y-0.5 transition-all duration-200 px-8 py-4 text-lg font-semibold cursor-pointer"
                 dataTestId="hero-demo-btn"
               />
-            </div>
-            {/* Social proof numbers */}
-            <div className="flex items-center justify-center lg:justify-start mb-4 space-x-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">500+</div>
-                <div className="text-sm text-gray-600">Students Using</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">50+</div>
-                <div className="text-sm text-gray-600">Universities</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">10+</div>
-                <div className="text-sm text-gray-600">Hours Saved/Week</div>
-              </div>
             </div>
             
             <div className="text-center lg:text-left">
               <p className="text-sm text-gray-500 flex items-center justify-center lg:justify-start mb-2">
-                <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 mr-2" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Free forever plan available • No credit card required
               </p>
-              <p className="text-sm text-blue-600 font-semibold flex items-center justify-center lg:justify-start">
-                <svg className="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <p className="text-sm font-semibold flex items-center justify-center lg:justify-start" style={{color: 'var(--cta-orange)'}}>
+                <svg className="w-4 h-4 mr-2" style={{color: 'var(--cta-orange)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 7-day free trial • Cancel anytime • Upgrade as you grow
@@ -130,12 +86,16 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
           </div>
           
           {/* Full-Height Product Demo Showcase */}
-          <div className="text-center lg:text-right h-full flex flex-col justify-center">
-            <div className="relative h-full">
-              
-
-              {/* Interactive Product Gallery - Moved Up */}
-              <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 rounded-3xl p-1 shadow-2xl border border-blue-200/50 hover:shadow-3xl transition-all duration-500 overflow-hidden group" style={{minHeight: '500px'}}>
+          <div className="text-center lg:text-right flex flex-col justify-center">
+            <div className="relative">
+              {/* Interactive Product Gallery - Enhanced Study Focus theme */}
+              <div className="relative rounded-3xl p-1 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden" 
+                   style={{
+                     background: 'linear-gradient(135deg, rgba(255, 248, 220, 0.95) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(37, 99, 235, 0.08) 50%, rgba(37, 99, 235, 0.15) 100%)',
+                     border: '1px solid rgba(37, 99, 235, 0.2)',
+                     minHeight: '500px', 
+                     maxWidth: '100%'
+                   }}>
                 <LandingProductGallery />
               </div>
             </div>

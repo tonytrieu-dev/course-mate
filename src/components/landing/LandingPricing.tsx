@@ -8,7 +8,7 @@ interface LandingPricingProps {
 
 const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEvent }) => {
   const checkIcon = (
-    <svg className="w-5 h-5 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-[#9CAF88] mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   );
@@ -20,23 +20,23 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
   );
 
   return (
-    <section id="pricing" className="py-32 bg-gradient-to-br from-indigo-50 via-blue-50 to-blue-100 relative overflow-hidden">
-      {/* Light artistic pricing background */}
+    <section id="pricing" className="py-32 relative overflow-hidden" style={{background: 'linear-gradient(135deg, var(--secondary-cream) 0%, #ffffff 30%, rgba(37, 99, 235, 0.05) 70%, rgba(37, 99, 235, 0.08) 100%)'}}>
+      {/* Enhanced Study Focus background with cream integration */}
       <div className="absolute inset-0">
-        {/* Primary light layers for depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-indigo-50/90 to-blue-100/80"></div>
-        <div className="absolute inset-0 bg-gradient-to-tl from-blue-100/60 via-indigo-100/70 to-white/80"></div>
+        {/* Cream-integrated layers for Enhanced Study Focus continuity */}
+        <div className="absolute inset-0" style={{background: 'linear-gradient(to bottom right, rgba(255, 248, 220, 0.8) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(37, 99, 235, 0.08) 100%)'}}></div>
+        <div className="absolute inset-0" style={{background: 'linear-gradient(to top left, rgba(37, 99, 235, 0.06) 0%, rgba(255, 248, 220, 0.7) 50%, rgba(255, 255, 255, 0.8) 100%)'}}></div>
         
-        {/* Light dynamic artistic elements */}
-        <div className="absolute top-20 right-20 w-80 h-80 bg-gradient-to-br from-blue-200/50 to-indigo-300/60 rounded-full mix-blend-multiply filter blur-3xl opacity-60"></div>
-        <div className="absolute bottom-32 left-20 w-96 h-96 bg-gradient-to-tl from-indigo-200/40 to-blue-300/50 rounded-full mix-blend-multiply filter blur-2xl opacity-50"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-blue-300/40 to-indigo-200/60 rounded-full mix-blend-multiply filter blur-xl opacity-40"></div>
+        {/* Enhanced Study Focus artistic elements */}
+        <div className="absolute top-20 right-20 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-60" style={{background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(156, 175, 136, 0.12))'}}></div>
+        <div className="absolute bottom-32 left-20 w-96 h-96 rounded-full mix-blend-multiply filter blur-2xl opacity-50" style={{background: 'linear-gradient(to top left, rgba(37, 99, 235, 0.12), rgba(255, 248, 220, 0.8))'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full mix-blend-multiply filter blur-xl opacity-40" style={{background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(156, 175, 136, 0.08))'}}></div>
         
         {/* Light artistic accent lines for student energy */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 right-1/4 w-2 h-40 bg-gradient-to-b from-blue-500 to-transparent rotate-45"></div>
-          <div className="absolute bottom-1/3 left-1/4 w-2 h-32 bg-gradient-to-t from-indigo-500 to-transparent -rotate-12"></div>
-          <div className="absolute top-2/3 right-1/3 w-1 h-24 bg-gradient-to-b from-blue-500 to-transparent rotate-12"></div>
+          <div className="absolute top-1/4 right-1/4 w-2 h-40 bg-gradient-to-b from-[var(--primary-navy)] to-transparent rotate-45"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-2 h-32 bg-gradient-to-t from-[var(--primary-navy)] to-transparent -rotate-12"></div>
+          <div className="absolute top-2/3 right-1/3 w-1 h-24 bg-gradient-to-b from-[var(--primary-navy)] to-transparent rotate-12"></div>
           
           {/* Light floating particles */}
           <div className="absolute top-20 left-20 w-3 h-3 bg-blue-400 rounded-full opacity-50"></div>
@@ -47,30 +47,27 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20 relative z-10">
           {/* Simple Value Badge */}
-          <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full text-base font-bold mb-6 shadow-lg hover:scale-105 transition-all duration-300">
+          <div className="inline-flex items-center bg-gradient-to-r from-[var(--primary-navy)] to-[var(--primary-navy)] text-white px-6 py-3 rounded-full text-base font-bold mb-6 shadow-lg hover:scale-105 transition-all duration-300">
             <span>Simple Pricing</span>
           </div>
           
           {/* Clean title focused on choice */}
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 tracking-tight relative">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-12 tracking-tight">
             <span className="text-slate-800">Choose Your </span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:via-indigo-500 hover:to-blue-600 transition-all duration-500 drop-shadow-sm">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary-navy)] via-[var(--primary-navy)] to-[var(--primary-navy)] hover:from-[var(--primary-navy)] hover:via-[var(--primary-navy)] hover:to-[var(--primary-navy)] transition-all duration-500 drop-shadow-sm">
               Plan
             </span>
-            
-            {/* Handwritten-style underline */}
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 rounded-full opacity-70 shadow-sm transform -rotate-1"></div>
           </h2>
           
-          {/* Single powerful student message */}
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 border border-blue-300/50 shadow-xl transition-all duration-300 relative overflow-hidden">
-              {/* Coffee ring stain decoration */}
-              <div className="absolute top-2 right-4 w-8 h-8 border-2 border-amber-200/40 rounded-full opacity-40"></div>
+          {/* Single powerful student message with cream theme - enhanced spacing */}
+          <div className="max-w-4xl mx-auto mb-16">
+            <div className="backdrop-blur-lg rounded-2xl p-8 md:p-10 border shadow-xl transition-all duration-300 relative overflow-hidden" style={{background: 'rgba(255, 248, 220, 0.95)', borderColor: 'rgba(37, 99, 235, 0.5)'}}>
+              {/* Enhanced Study Focus decoration */}
+              <div className="absolute top-3 right-5 w-8 h-8 border-2 rounded-full opacity-40" style={{borderColor: 'rgba(184, 134, 11, 0.4)'}}></div>
               
               <div className="relative z-10">
-                <p className="text-xl md:text-2xl text-slate-700 font-medium">
-                  <span className="text-blue-700 font-bold">Start automating your assignments today.</span>
+                <p className="text-xl md:text-2xl text-slate-700 font-medium leading-relaxed">
+                  <span className="font-bold" style={{color: 'var(--primary-navy)'}}>Start automating your assignments today.</span>
                   <br />
                   Free forever plan gets you started. Upgrade to Student for full automation power.
                 </p>
@@ -79,12 +76,12 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto mb-20 relative z-10">
-          {/* Free Plan - Light artistic redesign */}
-          <div className="bg-gradient-to-br from-white/95 to-slate-100/90 backdrop-blur-lg rounded-3xl p-10 border-2 border-slate-300/60 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden">
-            {/* Light artistic background elements */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-200/20 to-gray-100/30 opacity-50"></div>
-            <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-slate-200/30 to-transparent rounded-full"></div>
+        <div className="grid md:grid-cols-2 gap-16 max-w-5xl mx-auto mb-24 relative z-10">
+          {/* Free Plan - Enhanced Study Focus cream theme */}
+          <div className="backdrop-blur-lg rounded-3xl p-10 border-2 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden" style={{background: 'linear-gradient(135deg, rgba(255, 248, 220, 0.95) 0%, rgba(255, 255, 255, 0.9) 50%, rgba(156, 175, 136, 0.08) 100%)', borderColor: 'rgba(156, 175, 136, 0.6)'}}>
+            {/* Enhanced Study Focus background elements */}
+            <div className="absolute inset-0 opacity-50" style={{background: 'linear-gradient(to bottom right, rgba(255, 248, 220, 0.3) 0%, rgba(156, 175, 136, 0.1) 100%)'}}></div>
+            <div className="absolute top-4 right-4 w-16 h-16 rounded-full" style={{background: 'linear-gradient(135deg, rgba(255, 248, 220, 0.4), transparent)'}}></div>
             
             <div className="relative z-10">
               <div className="text-center mb-10">
@@ -95,48 +92,48 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
             
               <ul className="space-y-5 mb-10">
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <span className="text-slate-700 text-lg font-medium">Unlimited task management</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <span className="text-slate-700 text-lg font-medium">Canvas calendar sync</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <span className="text-slate-700 text-lg font-medium">5 document Q&A queries per day</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <span className="text-slate-700 text-lg font-medium">Basic grade tracking</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <span className="text-slate-700 text-lg font-medium">File storage (up to 10 files)</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-green-500/30 border border-green-500/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
@@ -158,29 +155,29 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
             </div>
           </div>
 
-          {/* Student Plan - Light artistic redesign */}
-          <div className="bg-gradient-to-br from-blue-100/95 to-indigo-200/90 backdrop-blur-lg rounded-3xl p-10 border-4 border-blue-400/80 relative shadow-3xl transform scale-105 hover:scale-110 transition-all duration-500 overflow-hidden">
-            {/* Light artistic background elements */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-300/30 to-indigo-400/40 opacity-40"></div>
-            <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-blue-200/40 to-transparent rounded-full"></div>
-            <div className="absolute bottom-4 left-4 w-16 h-16 bg-gradient-to-tl from-indigo-200/30 to-transparent rounded-full"></div>
+          {/* Student Plan - Enhanced Study Focus with premium navy blue accents */}
+          <div className="backdrop-blur-lg rounded-3xl p-10 border-4 relative shadow-3xl transform scale-105 hover:scale-110 transition-all duration-500 overflow-hidden" style={{background: 'linear-gradient(135deg, rgba(255, 248, 220, 0.95) 0%, rgba(37, 99, 235, 0.12) 40%, rgba(37, 99, 235, 0.08) 100%)', borderColor: 'rgba(37, 99, 235, 0.7)'}}>
+            {/* Enhanced Study Focus premium background elements */}
+            <div className="absolute inset-0 opacity-40" style={{background: 'linear-gradient(to bottom right, rgba(184, 134, 11, 0.15) 0%, rgba(37, 99, 235, 0.1) 50%, rgba(255, 248, 220, 0.3) 100%)'}}></div>
+            <div className="absolute top-4 right-4 w-20 h-20 rounded-full" style={{background: 'linear-gradient(135deg, rgba(184, 134, 11, 0.2), transparent)'}}></div>
+            <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full" style={{background: 'linear-gradient(to top left, rgba(255, 248, 220, 0.4), transparent)'}}></div>
             
             <div className="relative z-10">
               <div className="text-center mb-10">
                 <h3 className="text-3xl font-bold text-slate-800 mb-3">Student</h3>
-                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-800 to-blue-800 mb-2 drop-shadow-sm">
-                  $5<span className="text-2xl">/month</span>
+                <div className="text-5xl font-black mb-2 drop-shadow-sm" style={{color: 'var(--primary-navy)'}}>
+                  $4.99<span className="text-2xl">/month</span>
                 </div>
-                <div className="text-sm text-blue-700 font-semibold bg-blue-100/60 rounded-full px-4 py-2 inline-block mb-3">
+                <div className="text-sm font-semibold rounded-full px-4 py-2 inline-block mb-3" style={{color: 'var(--premium-gold)', backgroundColor: 'rgba(255, 248, 220, 0.8)', border: '1px solid rgba(184, 134, 11, 0.4)'}}>
                   💰 Save 40% with annual: $36/year (only $3/month)
                 </div>
-                <p className="text-blue-800 font-semibold text-xl mb-2">🚀 Recommended for active students</p>
-                <p className="text-blue-700 font-medium">7-day free trial • Cancel anytime • 50+ queries per day</p>
+                <p className="text-xl mb-2 font-semibold" style={{color: 'var(--primary-navy)'}}>🚀 Recommended for active students</p>
+                <p className="font-medium" style={{color: 'var(--primary-navy)'}}>7-day free trial • Cancel anytime • 50+ queries per day</p>
               </div>
             
               <ul className="space-y-5 mb-10">
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-blue-600/40 border border-blue-600/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
                     <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -188,7 +185,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   <span className="text-slate-800 text-lg font-semibold">Everything in Free</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-blue-600/40 border border-blue-600/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
                     <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -196,7 +193,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   <span className="text-slate-800 text-lg font-medium">50 document Q&A queries per day</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-blue-600/40 border border-blue-600/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
                     <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -204,7 +201,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   <span className="text-slate-800 text-lg font-medium">Advanced study analytics</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-blue-600/40 border border-blue-600/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
                     <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -212,7 +209,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   <span className="text-slate-800 text-lg font-medium">Unlimited syllabus AI extraction</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-blue-600/40 border border-blue-600/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
                     <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -220,7 +217,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   <span className="text-slate-800 text-lg font-medium">Custom task types & colors</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-blue-600/40 border border-blue-600/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
                     <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -236,7 +233,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   onGetStarted();
                 }}
                 variant="primary"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white font-bold py-4 text-lg transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-3xl"
+                className="w-full bg-gradient-to-r from-[var(--primary-navy)] to-[var(--primary-navy)] hover:from-[var(--primary-navy)] hover:to-[var(--primary-navy)] text-white font-bold py-4 text-lg transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-3xl"
                 ariaLabel="Start Student plan free trial"
                 dataTestId="student-plan-btn"
               />
@@ -246,15 +243,15 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
 
 
         <div className="text-center mt-16 relative z-10">
-          <div className="flex items-center justify-center gap-6 text-blue-600 text-lg font-medium">
-            <span className="flex items-center bg-white/90 px-4 py-2 rounded-full shadow-lg">
-              <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center justify-center gap-6 text-lg font-medium" style={{color: 'var(--primary-navy)'}}>
+            <span className="flex items-center px-4 py-2 rounded-full shadow-lg" style={{backgroundColor: 'rgba(255, 248, 220, 0.9)'}}>
+              <svg className="w-5 h-5 mr-2" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               7-day free trial
             </span>
-            <span className="flex items-center bg-white/90 px-4 py-2 rounded-full shadow-lg">
-              <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="flex items-center px-4 py-2 rounded-full shadow-lg" style={{backgroundColor: 'rgba(255, 248, 220, 0.9)'}}>
+              <svg className="w-5 h-5 mr-2" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Cancel anytime

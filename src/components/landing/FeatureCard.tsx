@@ -8,22 +8,58 @@ interface FeatureCardProps {
   imageAlt: string;
   imageSrc?: string;
   icon: React.ReactNode;
-  colorScheme: 'blue';
+  colorScheme: 'navy' | 'orange' | 'sage' | 'yellow';
   priority?: boolean;
   priorityBadge?: string;
 }
 
 const colorClasses = {
-  blue: {
-    border: 'hover:border-blue-300/70',
-    icon: 'bg-gradient-to-br from-blue-100/80 to-blue-200/90',
-    iconText: 'text-blue-700',
-    title: 'group-hover:text-blue-800',
-    subtitle: 'text-blue-600',
-    checkmark: 'bg-blue-100/90 text-blue-700 border border-blue-300/60',
-    gradient: 'from-blue-200/40',
-    cardBg: 'bg-gradient-to-br from-white/95 to-blue-100/80',
-    textPrimary: 'text-slate-800',
+  navy: {
+    border: 'hover:border-[var(--primary-navy)]/70',
+    icon: 'bg-gradient-to-br from-[var(--primary-navy)]/10 to-[var(--primary-navy)]/20',
+    iconText: 'text-[var(--primary-navy)]',
+    title: 'group-hover:text-[var(--primary-navy)]',
+    subtitle: 'text-[var(--primary-navy)]',
+    checkmark: 'bg-[var(--accent-sage)]/10 text-[var(--accent-sage)] border border-[var(--accent-sage)]/30',
+    gradient: 'from-[var(--primary-navy)]/10',
+    cardBg: 'bg-gradient-to-br from-[var(--secondary-cream)]/98 to-[var(--primary-navy)]/5',
+    textPrimary: 'text-[var(--primary-navy)]',
+    textSecondary: 'text-slate-700'
+  },
+  orange: {
+    border: 'hover:border-[var(--cta-orange)]/70',
+    icon: 'bg-gradient-to-br from-[var(--cta-orange)]/10 to-[var(--cta-orange)]/20',
+    iconText: 'text-[var(--cta-orange)]',
+    title: 'group-hover:text-[var(--primary-navy)]',
+    subtitle: 'text-[var(--cta-orange)]',
+    checkmark: 'bg-[var(--accent-sage)]/10 text-[var(--accent-sage)] border border-[var(--accent-sage)]/30',
+    gradient: 'from-[var(--cta-orange)]/10',
+    cardBg: 'bg-gradient-to-br from-[var(--secondary-cream)]/98 to-[var(--cta-orange)]/5',
+    textPrimary: 'text-[var(--primary-navy)]',
+    textSecondary: 'text-slate-700'
+  },
+  sage: {
+    border: 'hover:border-[var(--accent-sage)]/70',
+    icon: 'bg-gradient-to-br from-[var(--accent-sage)]/10 to-[var(--accent-sage)]/20',
+    iconText: 'text-[var(--accent-sage)]',
+    title: 'group-hover:text-[var(--primary-navy)]',
+    subtitle: 'text-[var(--accent-sage)]',
+    checkmark: 'bg-[var(--accent-sage)]/10 text-[var(--accent-sage)] border border-[var(--accent-sage)]/30',
+    gradient: 'from-[var(--accent-sage)]/10',
+    cardBg: 'bg-gradient-to-br from-[var(--secondary-cream)]/98 to-[var(--accent-sage)]/5',
+    textPrimary: 'text-[var(--primary-navy)]',
+    textSecondary: 'text-slate-700'
+  },
+  yellow: {
+    border: 'hover:border-[var(--premium-gold)]/70',
+    icon: 'bg-gradient-to-br from-[var(--premium-gold)]/10 to-[var(--premium-gold)]/20',
+    iconText: 'text-[var(--premium-gold)]',
+    title: 'group-hover:text-[var(--primary-navy)]',
+    subtitle: 'text-[var(--premium-gold)]',
+    checkmark: 'bg-[var(--accent-sage)]/10 text-[var(--accent-sage)] border border-[var(--accent-sage)]/30',
+    gradient: 'from-[var(--premium-gold)]/10',
+    cardBg: 'bg-gradient-to-br from-[var(--secondary-cream)]/98 to-[var(--premium-gold)]/5',
+    textPrimary: 'text-[var(--primary-navy)]',
     textSecondary: 'text-slate-700'
   }
 };
@@ -44,29 +80,20 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 
   return (
     <div className={`group relative ${colors.cardBg} backdrop-blur-lg rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-700 border border-slate-200/60 ${colors.border} transform hover:-translate-y-2 hover:scale-105 overflow-hidden`}>
-      {/* Priority badge with artistic enhancement */}
-      {priority && priorityBadge && (
-        <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl z-10">
-          {priorityBadge}
-        </div>
-      )}
       
-      {/* Artistic background gradient overlay */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} to-transparent opacity-30 group-hover:opacity-50 transition-opacity duration-700`}></div>
-      
-      {/* Artistic accent border */}
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent via-blue-100/20 to-transparent group-hover:via-blue-200/30 transition-all duration-700"></div>
+      {/* Subtle background gradient - no hover opacity change */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} to-transparent opacity-20 transition-opacity duration-700`}></div>
       
       <div className="relative z-10">
         {/* Enhanced icon section with artistic treatment */}
         <div className="flex items-center mb-8">
-          <div className={`w-20 h-20 ${colors.icon} backdrop-blur-sm rounded-3xl flex items-center justify-center mr-5 group-hover:scale-125 group-hover:rotate-3 transition-all duration-500 shadow-xl border border-slate-200/40`}>
-            <div className={`${colors.iconText} filter drop-shadow-lg`}>
+          <div className={`w-20 h-20 ${colors.icon} backdrop-blur-sm rounded-3xl flex items-center justify-center mr-6 flex-shrink-0 group-hover:shadow-2xl transition-all duration-500 shadow-xl border border-slate-200/40`}>
+            <div className={`${colors.iconText} filter drop-shadow-lg group-hover:scale-110 transition-transform duration-300`}>
               {icon}
             </div>
           </div>
-          <div className="flex-1">
-            <h3 className={`text-2xl font-bold ${colors.textPrimary} mb-2 ${colors.title} transition-colors duration-300 group-hover:scale-105 transform`}>
+          <div className="flex-1 min-w-0">
+            <h3 className={`text-2xl font-bold ${colors.textPrimary} mb-2 ${colors.title} transition-colors duration-300`}>
               {title}
             </h3>
             <span className={`text-base ${colors.subtitle} font-bold tracking-wide opacity-90`}>
@@ -101,7 +128,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 
         {/* Simplified Demo Placeholder - AFTER bullet points */}
         <div className="mt-6 bg-gradient-to-br from-slate-100/60 to-slate-200/40 rounded-xl overflow-hidden border border-slate-300/20 relative group">
-          <div className="aspect-video bg-gradient-to-br from-slate-100 via-blue-50/80 to-indigo-50/60 flex items-center justify-center relative">
+          <div className="aspect-video flex items-center justify-center relative" 
+               style={{background: 'linear-gradient(135deg, #F8F9FA 0%, #FFF8DC 50%, #F3F7F0 100%)'}}>
             
             {/* Clean Feature Icon */}
             <div className={`w-20 h-20 ${colors.icon} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300`}>
@@ -111,8 +139,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             </div>
             
             {/* Simple Play Button Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/5 group-hover:bg-transparent transition-all duration-300">
-              <div className="bg-blue-600 hover:bg-blue-700 rounded-full w-16 h-16 flex items-center justify-center shadow-xl cursor-pointer transform hover:scale-110 transition-all duration-300">
+            <div className="absolute inset-0 flex items-center justify-center transition-all duration-300">
+              <div className="rounded-full w-16 h-16 flex items-center justify-center shadow-xl cursor-pointer transform hover:scale-110 transition-all duration-300"
+                   style={{backgroundColor: '#2563EB'}}
+                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0F2744'}
+                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563EB'}>
                 <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
@@ -126,11 +157,6 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           </div>
         </div>
         
-        {/* Artistic bottom accent with animation - moved outside of content area */}
-        
-        {/* Additional artistic elements */}
-        <div className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-blue-100/30 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        <div className="absolute bottom-4 right-4 w-6 h-6 bg-gradient-to-tl from-indigo-100/40 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{transitionDelay: '200ms'}}></div>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ const LandingFAQ: React.FC = () => {
     },
     {
       question: "Why is it \"by a student\"?",
-      answer: "Because big companies don't understand student workflows. They don't experience the daily frustration of menial tasks. I built this because I lived through these problems. I solve what real students face, not what a corporate team thinks we need."
+      answer: "Because big companies don't understand student workflows. They've never spent their Sunday manually copying Canvas deadlines when they should be studying. I built this because I lived through these problems daily. I solve what real students actually face, not what a corporate team thinks we need."
     },
     {
       question: "What does it mean to be an early adopter?",
@@ -35,37 +35,41 @@ const LandingFAQ: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50 relative overflow-hidden">
-      {/* Light artistic background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-blue-50/60 to-indigo-100/40"></div>
-        {/* Light floating elements */}
-        <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-blue-200/30 to-indigo-200/40 rounded-full mix-blend-multiply filter blur-2xl opacity-60"></div>
-        <div className="absolute bottom-20 left-20 w-48 h-48 bg-gradient-to-tl from-indigo-200/25 to-blue-200/35 rounded-full mix-blend-multiply filter blur-xl opacity-50"></div>
+    <section className="py-20 relative overflow-hidden" style={{background: 'linear-gradient(135deg, var(--secondary-cream) 0%, #ffffff 40%, rgba(37, 99, 235, 0.03) 70%, rgba(37, 99, 235, 0.08) 100%)'}}>
+      {/* Enhanced Study Focus background with cream integration */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0" style={{background: 'linear-gradient(135deg, rgba(255, 248, 220, 0.8) 0%, rgba(255, 255, 255, 0.6) 40%, rgba(37, 99, 235, 0.05) 70%, rgba(37, 99, 235, 0.08) 100%)'}}></div>
+        {/* Professional floating elements */}
+        <div className="absolute top-20 right-20 w-64 h-64 rounded-full mix-blend-multiply filter blur-2xl opacity-70" style={{background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(156, 175, 136, 0.08))'}}></div>
+        <div className="absolute bottom-20 left-20 w-48 h-48 rounded-full mix-blend-multiply filter blur-xl opacity-60" style={{background: 'linear-gradient(to top left, rgba(37, 99, 235, 0.12), rgba(255, 255, 255, 0.5))'}}></div>
       </div>
       
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="faq">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 tracking-tight">A Few Honest Questions</h2>
-            <p className="text-xl text-slate-700 max-w-2xl mx-auto font-medium">
-              Blunt answers to what you're probably wondering, from me, the creator.
-            </p>
+            <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight text-slate-900">
+              A Few <span style={{color: 'var(--primary-navy)'}}>Honest</span> Questions
+            </h2>
+            <div className="backdrop-blur-sm rounded-2xl p-6 shadow-xl max-w-2xl mx-auto" style={{backgroundColor: 'rgba(255, 248, 220, 0.9)', border: '1px solid rgba(37, 99, 235, 0.3)'}}>
+              <p className="text-xl text-slate-700 font-medium">
+                Blunt answers to what you're probably wondering, from me, the creator.
+              </p>
+            </div>
           </div>
           
           <div className="space-y-4">
             {faqData.map((faq, index) => (
-              <div key={index} className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-blue-200/50 overflow-hidden hover:shadow-2xl hover:bg-white/98 transition-all duration-300">
+              <div key={index} className="backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.01]" style={{backgroundColor: 'rgba(255, 248, 220, 0.98)', border: '1px solid rgba(156, 175, 136, 0.5)', '--hover-border': 'rgba(37, 99, 235, 0.7)'}}>
                 <button
-                  className="w-full px-6 py-5 text-left focus:outline-none hover:bg-blue-50/50 transition-all duration-200"
+                  className="w-full px-6 py-5 text-left focus:outline-none transition-all duration-200" style={{'--hover-bg': 'rgba(37, 99, 235, 0.05)'}}
                   onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
                   aria-expanded={openFaqIndex === index}
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-slate-800 pr-4">{faq.question}</h3>
+                    <h3 className="text-lg font-bold pr-4" style={{color: 'var(--primary-navy)'}}>{faq.question}</h3>
                     <div className="flex-shrink-0">
                       <svg 
-                        className={`w-5 h-5 text-blue-600 transform transition-transform duration-200 ${openFaqIndex === index ? 'rotate-180' : ''}`} 
+                        className={`w-5 h-5 transform transition-transform duration-200 ${openFaqIndex === index ? 'rotate-180' : ''}`} style={{color: 'var(--primary-navy)'}} 
                         fill="none" 
                         stroke="currentColor" 
                         viewBox="0 0 24 24"
@@ -77,7 +81,7 @@ const LandingFAQ: React.FC = () => {
                 </button>
                 <div className={`transition-all duration-300 ease-in-out ${openFaqIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
                   <div className="px-6 pb-5">
-                    <div className="border-t border-blue-100/50 pt-4">
+                    <div className="border-t pt-4 rounded-b-xl -mx-6 px-6" style={{borderColor: 'rgba(156, 175, 136, 0.4)', backgroundColor: 'rgba(156, 175, 136, 0.05)'}}>
                       <p className="text-slate-700 leading-relaxed font-medium">{faq.answer}</p>
                     </div>
                   </div>
@@ -87,9 +91,11 @@ const LandingFAQ: React.FC = () => {
           </div>
           
           <div className="text-center mt-8">
-            <p className="text-slate-600 text-sm">
-              Have more questions? <a href="#feedback-form" className="text-blue-600 hover:text-blue-700 font-bold underline hover:no-underline transition-all duration-200">Ask me directly</a>
-            </p>
+            <div className="backdrop-blur-sm rounded-2xl p-4 shadow-lg inline-block" style={{backgroundColor: 'rgba(255, 248, 220, 0.9)', border: '1px solid rgba(37, 99, 235, 0.3)'}}>
+              <p className="text-slate-700 text-sm font-medium">
+                Have more questions? <a href="https://discord.gg/schedulebud" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:no-underline transition-all duration-200" style={{color: 'var(--primary-navy)'}}>Ask me on Discord</a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
