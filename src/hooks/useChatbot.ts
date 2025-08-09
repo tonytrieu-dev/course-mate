@@ -98,11 +98,13 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
   const mentionHook = useChatbotMentions({
     classes,
     onMentionedClassesChange: (mentionedClasses) => {
-      logger.debug('Mentioned classes changed', {
-        count: mentionedClasses.length,
-        classes: mentionedClasses.map(c => c.name),
-        totalClassesAvailable: classes?.length || 0
-      });
+      // Only log if there are actual changes to avoid startup spam
+      if (mentionedClasses.length > 0) {
+        logger.info('Classes mentioned in chat', {
+          count: mentionedClasses.length,
+          classes: mentionedClasses.map(c => c.name).join(', ')
+        });
+      }
     }
   });
   

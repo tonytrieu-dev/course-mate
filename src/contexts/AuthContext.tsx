@@ -51,11 +51,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    logger.debug("AuthProvider useEffect started");
+    // AuthProvider initialization started
 
     const initializeApp = async (): Promise<void> => {
       try {
-        logger.debug("Starting initialization...");
+        // Starting app initialization
         const currentUser = await getCurrentUser();
         logger.debug("Current user check result:", currentUser);
 

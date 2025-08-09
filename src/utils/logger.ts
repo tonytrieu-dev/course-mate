@@ -37,7 +37,8 @@ class Logger {
   constructor() {
     // Use environment directly (config.js has module compatibility issues)
     const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
-    this.level = isDevelopment ? LOG_LEVELS.DEBUG : LOG_LEVELS.WARN;
+    // Reduce log level during development - only show INFO and above for cleaner startup
+    this.level = isDevelopment ? LOG_LEVELS.INFO : LOG_LEVELS.WARN;
   }
 
   setLevel(level: LogLevel): void {

@@ -111,8 +111,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
       // Get Supabase config from existing client
       if (process.env.NODE_ENV === 'development') {
-        console.log('Supabase URL:', supabaseConfig.url);
-        console.log('Has Supabase Key:', !!supabaseConfig.key);
+        // Supabase configuration validated
       }
       
       if (!supabaseConfig.url || !supabaseConfig.key) {

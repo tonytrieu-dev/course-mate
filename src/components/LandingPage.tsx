@@ -21,7 +21,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     }
     // Only log in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('Analytics Event:', eventName, properties);
+      // Analytics event tracked
     }
   };
 

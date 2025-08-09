@@ -288,7 +288,7 @@ async function handleSkippedEmbedding(content: string, file: any, supabaseAdmin:
   const response = {
     success: true,
     message: `Successfully extracted text from ${file.name} (${content.length} characters)`,
-    extractedText: extractedTextId ? null : content, // Include text only if storage failed
+    extractedText: content, // Always include the actual content
     extractedTextId: extractedTextId, // Reference to stored text
     contentLength: content.length,
     chunksProcessed: 0,
@@ -802,12 +802,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create response - include extractedText directly if storage failed, otherwise reference
+    // Create response - always include extractedText content for frontend processing
     const response = {
       success: true, 
       message: `Successfully embedded ${chunks.length} chunks for ${file.name}${duplicatesRemoved > 0 ? ` (replaced ${duplicatesRemoved} existing chunks)` : ''}`,
       securityStatus: 'validated',
-      extractedText: extractedTextId ? null : content, // Include text only if storage failed
+      extractedText: content, // Always include the actual content
       extractedTextId: extractedTextId, // Reference to stored text
       contentLength: content.length,
       chunksProcessed: chunks.length,

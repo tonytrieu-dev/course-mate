@@ -234,7 +234,7 @@ export const fetchCanvasCalendar = async (
   user: User | null = null,
   forceUpdate = false
 ): Promise<FetchCanvasResult> => {
-  logger.debug(`[fetchCanvasCalendar] Starting. URL: ${icsUrl ? 'Provided' : 'Not Provided'}, useSupabase: ${useSupabase}, User provided: ${!!user}`);
+  // Reduced logging for startup performance
   try {
     if (!icsUrl) {
       const error = errorHandler.canvas.invalidUrl({ 
@@ -272,7 +272,7 @@ export const fetchCanvasCalendar = async (
     }
 
     const maskedUrl = CanvasSecurityUtils.maskSensitiveUrl(icsUrl);
-    logger.debug(`[fetchCanvasCalendar] Attempting to fetch: ${maskedUrl}`);
+    // Canvas fetch attempt logged at INFO level only on errors
     
     // Multi-proxy strategy with security-focused fallback chain
     let rawText: string | null = null;
@@ -294,7 +294,7 @@ export const fetchCanvasCalendar = async (
             }
           });
           
-          logger.debug(`[fetchCanvasCalendar] ${proxyService.name} response status:`, proxyResponse.status);
+          // Response status logged only on error
           
           // Check for rate limiting
           if (proxyResponse.status === 429) {
@@ -325,7 +325,7 @@ export const fetchCanvasCalendar = async (
           throw new Error('Empty response from proxy service');
         }
         
-        logger.debug(`[fetchCanvasCalendar] Successfully retrieved calendar via ${proxyService.name}`);
+        // Successfully retrieved calendar
         break; // Success! Exit the loop
         
       } catch (error) {
@@ -408,8 +408,7 @@ export const fetchCanvasCalendar = async (
       });
     }
 
-    logger.debug(`[fetchCanvasCalendar] Successfully fetched calendar via ${successfulService}`);
-    logger.debug("[fetchCanvasCalendar] Raw response preview:", rawText.substring(0, 200) + (rawText.length > 200 ? "..." : ""));
+    // Calendar fetched successfully - reduced logging for performance
     
     // Handle base64-encoded ICS data from Canvas
     let icsText = rawText;
@@ -446,7 +445,7 @@ export const fetchCanvasCalendar = async (
     let events: CanvasEvent[];
     try {
       events = parseICS(icsText);
-      logger.debug(`[fetchCanvasCalendar] parseICS completed. Found ${events.length} events.`);
+      // parseICS completed with ${events.length} events
     } catch (error) {
       logger.error("[fetchCanvasCalendar] Failed to parse ICS data:", error);
       throw errorHandler.canvas.parseError({ 
@@ -517,7 +516,7 @@ export const fetchCanvasCalendar = async (
       
       try {
         const task = convertEventToTask(event);
-        logger.debug(`[fetchCanvasCalendar] Event "${event.summary}" converted to task:`, task);
+        // Event converted to task
         
         // Ensure class exists before creating task and use the correct class ID
         if (task.class) {
@@ -567,7 +566,7 @@ export const fetchCanvasCalendar = async (
         });
         
         const addedTask = await addTask(task, useSupabase, user);
-        logger.debug(`[fetchCanvasCalendar] addTask for "${event.summary}" completed. Result:`, addedTask !== null && addedTask !== undefined ? (addedTask.id ? `Task (ID: ${addedTask.id})` : 'Task object without ID') : 'No task returned (null/undefined)');
+        // Task added successfully
         
         if (!addedTask) {
           logger.warn(`[fetchCanvasCalendar] addTask returned null/undefined for "${event.summary}". Task not added.`);
@@ -584,10 +583,10 @@ export const fetchCanvasCalendar = async (
           // If created within the last 5 minutes, consider it "new"
           if (timeDiffMinutes <= 5) {
             addedTasks.push(addedTask);
-            logger.debug(`[fetchCanvasCalendar] Task "${event.summary}" added as NEW (created ${timeDiffMinutes.toFixed(1)} min ago)`);
+            // Task added as new
           } else {
             existingTasks.push(addedTask);
-            logger.debug(`[fetchCanvasCalendar] Task "${event.summary}" found as EXISTING (created ${timeDiffMinutes.toFixed(1)} min ago)`);
+            // Task found as existing
           }
         }
       } catch (error) {
@@ -604,7 +603,7 @@ export const fetchCanvasCalendar = async (
       }
     }
     
-    logger.debug(`[fetchCanvasCalendar] Finished processing all events. ${addedTasks.length} new tasks, ${existingTasks.length} existing tasks.`);
+    // Finished processing Canvas events
     
     const totalProcessed = addedTasks.length + existingTasks.length;
     
@@ -693,18 +692,15 @@ function parseICS(icsData: string): CanvasEvent[] {
     let currentEvent: CanvasEvent | null = null;
     let lineNumber = 0;
     
-    logger.debug(`[parseICS] Processing ${lines.length} lines of ICS data`);
-    logger.debug(`[parseICS] First 10 lines:`, lines.slice(0, 10));
+    // Processing ICS data - verbose logging reduced for startup performance
 
     for (let i = 0; i < lines.length; i++) {
       lineNumber = i + 1;
       const line = lines[i].trim();
 
     if (line === 'BEGIN:VEVENT') {
-      logger.debug(`[parseICS] Found VEVENT start at line ${i + 1}`);
       currentEvent = {};
     } else if (line === 'END:VEVENT' && currentEvent) {
-      logger.debug(`[parseICS] Found VEVENT end at line ${i + 1}, adding event:`, currentEvent);
       events.push(currentEvent);
       currentEvent = null;
     } else if (currentEvent) {
@@ -755,7 +751,7 @@ function parseICS(icsData: string): CanvasEvent[] {
     }
   }
 
-  logger.debug(`[parseICS] Parsed ${events.length} events from ICS data`);
+  // Parsed ${events.length} events from ICS data
   
   // If no events found, check for common issues
   if (events.length === 0) {
@@ -1083,8 +1079,7 @@ function convertEventToTask(event: CanvasEvent): Partial<TaskInsert> {
       }
     }
     
-    logger.debug(`[convertEventToTask] Extracted class "${taskClass}" from summary: "${event.summary}"`);
-    logger.debug(`[convertEventToTask] Cleaned title: "${cleanTitle}" (original: "${event.summary}")`);
+    // Event converted: extracted class and cleaned title;
   }
 
   const task: Partial<TaskInsert> = {

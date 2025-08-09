@@ -41,7 +41,7 @@ export const fileService = {
     logger.debug('Syllabus upload started', {
       fileName: file?.name,
       fileSize: file?.size,
-      classId: classData?.id,
+      classId: String(classData?.id || ''),
       className: classData?.name
     });
 
@@ -144,7 +144,7 @@ export const fileService = {
     logger.debug('Secure file path generated', {
       original: file.name,
       secureStoragePath: fileName,
-      classId: classData.id,
+      classId: String(classData.id),
       userIdPrefix: user.id.substring(0, 8)
     });
     
@@ -195,21 +195,38 @@ export const fileService = {
     }
 
     // Delete existing syllabus if any (always check, regardless of classData.syllabus)
-    const { error: deleteError } = await supabase
+    const { data: deletedRecords, error: deleteError } = await supabase
       .from("class_files")
       .delete()
       .eq("class_id", classData.id)
-      .eq("type", "syllabus"); // Only delete syllabus files
+      .eq("type", "syllabus") // Only delete syllabus files
+      .select(); // Get deleted records to verify deletion and clean up storage files
     
     if (deleteError) {
-      logger.debug('No existing syllabus to delete or delete failed', {
-        classId: classData.id,
-        error: deleteError.message
-      });
+      logger.debug(`No existing syllabus to delete or delete failed for class ${classData.id}: ${deleteError.message}`);
+    } else if (deletedRecords && deletedRecords.length > 0) {
+      logger.debug(`Successfully deleted ${deletedRecords.length} existing syllabus record(s) for class ${classData.id}`);
+      
+      // Clean up storage files for deleted records
+      for (const record of deletedRecords) {
+        if (record.path) {
+          try {
+            const { error: storageError } = await supabase.storage
+              .from(SYLLABUS_SECURITY_CONFIG.BUCKET_NAME)
+              .remove([record.path]);
+            
+            if (storageError) {
+              logger.warn(`Failed to delete storage file ${record.path}: ${storageError.message}`);
+            } else {
+              logger.debug(`Successfully deleted storage file: ${record.path}`);
+            }
+          } catch (storageCleanupError) {
+            logger.warn(`Storage cleanup failed for ${record.path}:`, storageCleanupError);
+          }
+        }
+      }
     } else {
-      logger.debug('Existing syllabus deleted successfully', {
-        classId: classData.id
-      });
+      logger.debug(`No existing syllabus found to delete for class ${classData.id}`);
     }
 
     // Insert new syllabus record
@@ -578,7 +595,7 @@ export const fileService = {
         details: {
           supabaseError: insertError,
           fileName: fileName,
-          classId: classData.id
+          classId: String(classData.id)
         }
       });
     }

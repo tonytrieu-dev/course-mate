@@ -43,7 +43,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
       const result = await debugICSParsing(canvasUrl);
       setDebugInfo(result);
       if (process.env.NODE_ENV === 'development') {
-        console.log('ICS Debug Result:', result);
+        // ICS debug result obtained
       }
     } catch (error) {
       console.error('Debug error:', error);

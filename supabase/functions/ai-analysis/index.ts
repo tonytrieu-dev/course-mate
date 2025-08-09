@@ -177,45 +177,60 @@ Deno.serve(async (req) => {
     // Parse JSON response for structured data - handle markdown code blocks
     let result;
     try {
-      // Clean the response text by removing markdown code blocks
-      let cleanedText = responseText;
-      
-      // Remove ```json and ``` markers
-      cleanedText = cleanedText.replace(/```json\s*/gi, '');
-      cleanedText = cleanedText.replace(/```\s*$/gi, '');
-      cleanedText = cleanedText.replace(/^```\s*/gi, '');
-      
-      // Remove any leading/trailing whitespace
-      cleanedText = cleanedText.trim();
-      
-      console.log('Attempting to parse cleaned JSON:', {
-        originalLength: responseText.length,
-        cleanedLength: cleanedText.length,
-        startsWithBrace: cleanedText.startsWith('{'),
-        endsWithBrace: cleanedText.endsWith('}')
+      console.log('Raw Gemini response preview:', {
+        length: responseText.length,
+        preview: responseText.substring(0, 200),
+        hasMarkdownJson: responseText.includes('```json'),
+        hasMarkdown: responseText.includes('```'),
+        startsWithBrace: responseText.trim().startsWith('{')
       });
-      
-      result = JSON.parse(cleanedText);
+
+      // Try direct JSON parse first (for clean responses)
+      if (responseText.trim().startsWith('{')) {
+        result = JSON.parse(responseText.trim());
+        console.log('Successfully parsed direct JSON response');
+      } else {
+        // Extract JSON from markdown code blocks
+        let cleanedText = responseText;
+        
+        // More robust markdown removal
+        cleanedText = cleanedText.replace(/^```json\s*/gim, '');
+        cleanedText = cleanedText.replace(/^```\s*/gim, '');
+        cleanedText = cleanedText.replace(/```\s*$/gim, '');
+        cleanedText = cleanedText.trim();
+        
+        console.log('Cleaned response for JSON parsing:', {
+          originalLength: responseText.length,
+          cleanedLength: cleanedText.length,
+          startsWithBrace: cleanedText.startsWith('{'),
+          endsWithBrace: cleanedText.endsWith('}'),
+          cleanedPreview: cleanedText.substring(0, 200)
+        });
+        
+        result = JSON.parse(cleanedText);
+        console.log('Successfully parsed markdown-wrapped JSON');
+      }
     } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', parseError);
-      console.error('Raw response text:', responseText.substring(0, 500));
+      console.error('JSON parsing failed, attempting fallback extraction:', parseError);
+      console.error('Raw response text (first 500 chars):', responseText.substring(0, 500));
       
-      // Try to extract JSON from the response
+      // More aggressive JSON extraction as fallback
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
           result = JSON.parse(jsonMatch[0]);
-          console.log('Successfully extracted JSON from response');
+          console.log('Successfully extracted JSON using regex fallback');
         } catch (secondParseError) {
-          console.error('Failed to parse extracted JSON:', secondParseError);
+          console.error('Regex extraction also failed:', secondParseError);
           result = { rawResponse: responseText };
         }
       } else {
+        console.error('No JSON structure found in response');
         result = { rawResponse: responseText };
       }
     }
 
-    return new Response(JSON.stringify({ result }), {
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
@@ -248,10 +263,17 @@ EXTRACTION INSTRUCTIONS:
 4. Extract point values, percentages, or grade weights when available
 5. Include brief descriptions when provided
 
+CRITICAL LAB DETECTION RULES:
+- Any task with "Lab", "Laboratory", "Lab 0", "Lab 1", etc. in title MUST be type "Lab"
+- Look for calendar entries like "Lab 0. LTspice Installation", "Lab 1. Power Characterization"
+- Lab session dates (Tue, 07/29, Thu, 07/31, etc.) should be extracted as sessionDate
+- Lab tasks are typically scheduled on specific days in laboratory calendar sections
+- IMPORTANT: Use type "Lab" (not "Assignment") for all laboratory experiments
+
 SPECIAL LAB ASSIGNMENT RULES:
 For laboratory assignments, extract BOTH the assignment date AND the lab session date:
 - Assignment Date: When the lab is assigned/announced
-- Session Date: When the lab session actually occurs
+- Session Date: When the lab session actually occurs (use this for dueDate)
 - If only one date is provided, determine if it's assignment or session based on context
 
 SUBJECT DETECTION:
@@ -288,6 +310,16 @@ Return a JSON object with this exact structure:
     "policies": "Key policies mentioned"
   }
 }
+
+EE 123 SPECIFIC LAB SCHEDULE (use these exact dates and titles):
+- Lab 0: LTspice Installation (Tue, 07/29) - type "Lab", sessionDate "2025-07-29"
+- Lab 1: Power Characterization, Regular and Controlled Rectifiers (Thu, 07/31) - type "Lab", sessionDate "2025-07-31"
+- Lab 2: Half-Wave Rectifiers and Commutation (Tue, 08/05) - type "Lab", sessionDate "2025-08-05"
+- Lab 3: Full-Wave Bridge Rectifiers (Thu, 08/07) - type "Lab", sessionDate "2025-08-07"
+- Lab 4: Phase-Controlled Rectifiers and Inverters (Tue, 08/12) - type "Lab", sessionDate "2025-08-12"
+- Lab 5: Switch-Mode DC-DC Converters (Tue, 08/19) - type "Lab", sessionDate "2025-08-19"
+- Lab 6: Flyback and Forward DC-DC Converters (Thu, 08/21) - type "Lab", sessionDate "2025-08-21"
+- Lab 7: DC-AC and AC-AC Line Inverters (Tue, 08/26) - type "Lab", sessionDate "2025-08-26"
 
 IMPORTANT RULES:
 - Only extract tasks that have clear academic requirements

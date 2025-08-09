@@ -51,10 +51,6 @@ export const useChatbotMentions = ({
   
   // Initialize mention parser - ensure classes are loaded
   const mentionParser = useMemo(() => {
-    // Only create parser when we have classes loaded
-    if (!classes || classes.length === 0) {
-      logger.debug('Creating mention parser with empty classes - will need to update when classes load');
-    }
     return new ChatbotMentionParser(classes || []);
   }, [classes]);
   
@@ -83,15 +79,9 @@ export const useChatbotMentions = ({
     
     // Warm up the parser when classes are loaded to prevent cold start issues
     if (classes && classes.length > 0) {
-      logger.debug('Warming up mention parser with loaded classes', {
-        classCount: classes.length,
-        classNames: classes.slice(0, 3).map(c => c.name)
-      });
-      
       // Test parse a simple @mention to ensure everything is initialized
       try {
         mentionParser.parseText('@test warmup');
-        logger.debug('Mention parser warmed up successfully');
       } catch (error) {
         logger.warn('Failed to warm up mention parser', { error });
       }
