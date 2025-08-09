@@ -1632,412 +1632,281 @@ IMPORTANT:
   }
 
   /**
-   * Parse lab schedule from syllabus content - Multi-approach parsing system for maximum compatibility
+   * Parse lab schedule from syllabus content - Simplified multi-approach system
    */
   private static parseLabScheduleFromContent(syllabusContent: string, currentYear: number = 2025): Array<{title: string, date: string}> {
-    const schedule: Array<{title: string, date: string}> = [];
+    let schedule: Array<{title: string, date: string}> = [];
     
-    logger.info('🔍 PARSING LAB SCHEDULE FROM CONTENT - Multi-Approach System', {
+    logger.info('🔍 PARSING LAB SCHEDULE FROM CONTENT - Simplified System', {
       contentLength: syllabusContent.length,
       targetYear: currentYear,
-      contentPreview: syllabusContent.substring(0, 300),
       hasLabKeywords: syllabusContent.toLowerCase().includes('lab'),
       hasDatePatterns: /\d{1,2}\/\d{1,2}/.test(syllabusContent)
     });
 
-    // DEBUG: Find all lines containing "Lab" to see what we're working with
-    const labLines = syllabusContent.split('\n').filter(line => 
-      line.toLowerCase().includes('lab') && /\d{1,2}\/\d{1,2}/.test(line)
-    );
-    logger.info('🔬 DEBUG: All lines containing Lab + dates', {
-      totalLabLines: labLines.length,
-      labLines: labLines.slice(0, 10) // Show first 10 for debugging
-    });
-
-    // APPROACH 1: Regex-based pattern matching (fast but specific)
-    logger.info('🎯 APPROACH 1: Regex Pattern Matching');
-    const regexSchedule = this.parseLabsWithRegex(syllabusContent, currentYear);
-    schedule.push(...regexSchedule);
+    // Split content into lines for analysis
+    const lines = syllabusContent.split('\n');
     
-    logger.info('📊 APPROACH 1 RESULTS', {
-      foundSessions: regexSchedule.length,
-      successfulExtractions: regexSchedule.map(s => ({
-        labNum: s.title.match(/lab\s*(\d+)/i)?.[1],
-        date: s.date,
-        title: s.title.substring(0, 40)
-      }))
-    });
-
-    // APPROACH 2: Line-by-line parsing (robust, handles various formats)
-    if (schedule.length < 7) { // If regex didn't find most labs, try line-by-line
-      logger.info('🔄 APPROACH 2: Line-by-Line Parsing (Regex insufficient)');
-      const lineSchedule = this.parseLabsLineByLine(labLines, currentYear);
-      
-      // Merge with existing schedule, avoiding duplicates
-      const mergedSchedule = this.mergeLabSchedules(schedule, lineSchedule);
-      schedule.length = 0;
-      schedule.push(...mergedSchedule);
-      
-      logger.info('📊 APPROACH 2 RESULTS', {
-        foundSessions: lineSchedule.length,
-        totalAfterMerge: schedule.length,
-        addedFromLineApproach: schedule.length - regexSchedule.length
+    // APPROACH 1: Find all lines that contain both a date and "Lab"
+    logger.info('🎯 APPROACH 1: Direct Line Matching');
+    const directMatches = this.parseDirectLineMatches(lines, currentYear);
+    if (directMatches.length > 0) {
+      schedule = directMatches;
+      logger.info('✅ Direct line matching successful', {
+        foundLabs: directMatches.length,
+        labs: directMatches.map(s => ({ lab: s.title, date: s.date }))
       });
     }
-
-    // APPROACH 3: Word-by-word parsing (fallback for complex formats)
-    if (schedule.length < 7) { // If still insufficient, try word-level parsing
-      logger.info('🔍 APPROACH 3: Word-by-Word Analysis (Both approaches insufficient)');
-      const wordSchedule = this.parseLabsWordByWord(syllabusContent, currentYear);
-      
-      // Merge with existing schedule
-      const finalSchedule = this.mergeLabSchedules(schedule, wordSchedule);
-      schedule.length = 0;
-      schedule.push(...finalSchedule);
-      
-      logger.info('📊 APPROACH 3 RESULTS', {
-        foundSessions: wordSchedule.length,
-        finalTotal: schedule.length,
-        addedFromWordApproach: schedule.length - (regexSchedule.length + Math.max(0, schedule.length - regexSchedule.length))
-      });
-    }
-
-    // Remove duplicates based on lab number (keep the one with most complete title)
-    const uniqueSchedule = schedule.reduce((acc, current) => {
-      const currentLabNum = current.title.match(/lab\s*(\d+)/i)?.[1];
-      const existingIndex = acc.findIndex(item => {
-        const existingLabNum = item.title.match(/lab\s*(\d+)/i)?.[1];
-        return currentLabNum && existingLabNum && currentLabNum === existingLabNum;
-      });
-      
-      if (existingIndex === -1) {
-        acc.push(current);
-      } else {
-        // Keep the one with more descriptive title
-        const existing = acc[existingIndex];
-        if (current.title.length > existing.title.length) {
-          acc[existingIndex] = current;
-          logger.debug('Replaced lab with more descriptive title', {
-            labNumber: currentLabNum,
-            oldTitle: existing.title,
-            newTitle: current.title
-          });
-        }
+    
+    // APPROACH 2: If direct matching didn't find enough, try word-by-word association
+    if (schedule.length < 5) {
+      logger.info('🎯 APPROACH 2: Word Association');
+      const wordAssociation = this.parseLabsWithWordAssociation(syllabusContent, currentYear);
+      if (wordAssociation.length > schedule.length) {
+        schedule = wordAssociation;
+        logger.info('✅ Word association successful', {
+          foundLabs: wordAssociation.length,
+          labs: wordAssociation.map(s => ({ lab: s.title, date: s.date }))
+        });
       }
-      
-      return acc;
-    }, [] as Array<{title: string, date: string}>);
+    }
+    
+    // APPROACH 3: If still not enough, try comprehensive regex
+    if (schedule.length < 5) {
+      logger.info('🎯 APPROACH 3: Comprehensive Regex');
+      const regexMatches = this.parseLabsWithComprehensiveRegex(syllabusContent, currentYear);
+      if (regexMatches.length > schedule.length) {
+        schedule = regexMatches;
+        logger.info('✅ Comprehensive regex successful', {
+          foundLabs: regexMatches.length,
+          labs: regexMatches.map(s => ({ lab: s.title, date: s.date }))
+        });
+      }
+    }
 
-    // Sort by lab number
-    uniqueSchedule.sort((a, b) => {
-      const labA = parseInt(a.title.match(/lab\s*(\d+)/i)?.[1] || '0');
-      const labB = parseInt(b.title.match(/lab\s*(\d+)/i)?.[1] || '0');
-      return labA - labB;
-    });
+    // Deduplicate and sort the final schedule
+    const uniqueSchedule = this.deduplicateAndSortLabs(schedule);
 
-    logger.info('🎯 ENHANCED LAB SCHEDULE PARSING COMPLETED - EE 123', {
+    logger.info('🎯 DYNAMIC LAB SCHEDULE PARSING COMPLETED', {
       foundSessions: uniqueSchedule.length,
-      expectedSessions: '7-8 for EE 123',
-      successRate: `${Math.round((uniqueSchedule.length / 8) * 100)}%`,
+      expectedRange: '7-10 labs typical',
+      successRate: uniqueSchedule.length >= 7 ? '100%' : `${Math.round((uniqueSchedule.length / 7) * 100)}%`,
       sessions: uniqueSchedule.map(s => ({
         labNum: s.title.match(/lab\s*(\d+)/i)?.[1],
         date: s.date,
         title: s.title.substring(0, 60)
       })),
-      willEnableCalendarDisplay: uniqueSchedule.length > 0
+      parsingApproachesUsed: [
+        'direct-line-matches',
+        'word-association',
+        'comprehensive-regex'
+      ].filter(Boolean)
     });
 
     return uniqueSchedule;
   }
 
   /**
-   * APPROACH 1: Regex-based parsing with multiple patterns for different formats
+   * APPROACH 1: Direct line matching - finds lines with both date and lab
    */
-  private static parseLabsWithRegex(syllabusContent: string, currentYear: number): Array<{title: string, date: string}> {
+  private static parseDirectLineMatches(lines: string[], currentYear: number): Array<{title: string, date: string}> {
     const schedule: Array<{title: string, date: string}> = [];
     
-    // Multiple patterns for different syllabus formats
-    const labPatterns = [
-      // Pattern 1: EE 123 table format - Date in one column, Lab info in another column on same row
-      // Matches: "Tue, 07/29" followed by any content then "Lab 0. LTspice Installation"
-      /(mon|tue|wed|thu|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday),?\s+(\d{1,2}\/\d{1,2})[^\n]*?Lab\s*(\d+)(?:\s*\([^)]*\))?\.\s*([^\n]*?)(?=\s*(?:\n|$))/gi,
+    for (const line of lines) {
+      // Skip empty lines
+      if (!line.trim()) continue;
       
-      // Pattern 2: Alternative table format without day name
-      // Matches: "07/29" followed by Lab info on same line
-      /(\d{1,2}\/\d{1,2})(?:\/\d{2,4})?[^\n]*?Lab\s*(\d+)(?:\s*\([^)]*\))?\.\s*([^\n]*?)(?=\s*(?:\n|$))/gi,
-      
-      // Pattern 3: Traditional inline format - "Day, MM/DD - Lab X. Description"
-      /(mon|tue|wed|thu|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday),?\s+(\d{1,2}\/\d{1,2})(?:\/\d{2,4})?\s+-\s+Lab\s*(\d+)(?:\s*\([^)]*\))?\.\s*([^\n]*?)(?=\s*(?:\n|$))/gi
-    ];
-
-    labPatterns.forEach((pattern, patternIndex) => {
-      let match;
-      const regex = new RegExp(pattern.source, pattern.flags);
-      
-      logger.info(`🔎 TRYING REGEX PATTERN ${patternIndex + 1}`, {
-        patternIndex: patternIndex + 1,
-        patternDescription: this.getRegexPatternDescription(patternIndex)
-      });
-      
-      let matchCount = 0;
-      while ((match = regex.exec(syllabusContent)) !== null) {
-        matchCount++;
-        
-        let dateString: string, labNumber: string, description: string;
-        
-        // Handle different pattern structures
-        if (patternIndex === 0) { // EE 123 table format with day name
-          dateString = match[2];  // Date is in group 2
-          labNumber = match[3];   // Lab number is in group 3
-          description = match[4] ? match[4].trim() : '';  // Description in group 4
-        } else if (patternIndex === 1) { // Alternative table format without day name
-          dateString = match[1];  // Date is in group 1
-          labNumber = match[2];   // Lab number is in group 2
-          description = match[3] ? match[3].trim() : '';  // Description in group 3
-        } else { // Traditional inline format
-          dateString = match[2];  // Date is in group 2
-          labNumber = match[3];   // Lab number is in group 3
-          description = match[4] ? match[4].trim() : '';  // Description in group 4
-        }
-        
-        if (dateString && labNumber) {
-          const convertedDate = this.convertDateToISO(dateString, currentYear);
-          if (convertedDate) {
-            // Clean description
-            const cleanDescription = description
-              .replace(/\(Lab\s*\d+\)/gi, '')
-              .replace(/^[.\s\-|]+/, '')
-              .replace(/\s+/g, ' ')
-              .trim();
-            
-            const title = cleanDescription ? 
-              `Lab ${labNumber}. ${cleanDescription}` : 
-              `Lab ${labNumber}`;
-              
-            schedule.push({
-              title: title,
-              date: convertedDate
-            });
-            
-            logger.info('✅ REGEX EXTRACTION SUCCESS', {
-              pattern: patternIndex + 1,
-              labNumber,
-              date: convertedDate,
-              originalDate: dateString,
-              description: cleanDescription
-            });
-          }
-        }
-      }
-      
-      logger.info(`📊 REGEX PATTERN ${patternIndex + 1} COMPLETED`, {
-        matchesFound: matchCount,
-        totalScheduleEntries: schedule.length
-      });
-    });
-
-    return schedule;
-  }
-
-  /**
-   * APPROACH 2: Line-by-line parsing for robust extraction
-   */
-  private static parseLabsLineByLine(labLines: string[], currentYear: number): Array<{title: string, date: string}> {
-    const schedule: Array<{title: string, date: string}> = [];
-    
-    logger.info('📝 STARTING LINE-BY-LINE PARSING', {
-      totalLines: labLines.length,
-      sampleLines: labLines.slice(0, 3).map(line => line.substring(0, 80))
-    });
-    
-    for (const line of labLines) {
-      const dayMatch = line.match(/(mon|tue|wed|thu|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
+      // Check if line contains both a date and "Lab X"
       const dateMatch = line.match(/(\d{1,2}\/\d{1,2})/);
-      const labMatch = line.match(/Lab\s*(\d+)/i);
+      const labMatch = line.match(/Lab\s*(\d+)[\.:]*\s*([^(\n]*)/i);
       
       if (dateMatch && labMatch) {
-        let description = '';
+        const dateStr = dateMatch[1];
+        const labNumber = labMatch[1];
+        let description = labMatch[2]?.trim() || '';
         
-        // Extract description using multiple strategies
-        // First, look for description after "Lab X."
-        const labPattern = /Lab\s*\d+\.\s*(.+?)(?:\s*\(|$)/i;
-        const labDescMatch = line.match(labPattern);
-        if (labDescMatch && labDescMatch[1]) {
-          description = labDescMatch[1].trim();
-        } else if (line.includes(' - ')) {
-          // Format: "Day, Date - Description (Lab X)"
-          const parts = line.split(' - ');
-          if (parts.length > 1) {
-            description = parts[1]
-              .replace(/\(Lab\s*\d+\)/i, '')
-              .replace(/\([^)]*\)$/, '') // Remove any trailing parentheses
-              .trim();
-          }
-        } else if (line.includes(':')) {
-          // Format: "Date: Description Lab X"
-          const parts = line.split(':');
-          if (parts.length > 1) {
-            description = parts[1]
-              .replace(/Lab\s*\d+/i, '')
-              .trim();
-          }
-        } else {
-          // Extract everything after Lab X
-          const labIndex = line.toLowerCase().indexOf('lab');
-          if (labIndex !== -1) {
-            const afterLab = line.substring(labIndex);
-            const descMatch = afterLab.match(/Lab\s*\d+[.\s]+(.+)/i);
-            if (descMatch && descMatch[1]) {
-              description = descMatch[1]
-                .replace(/\([^)]*\)$/, '')
-                .trim();
-            }
-          }
+        // Clean up description
+        description = description
+          .replace(/\s+/g, ' ')
+          .replace(/\([^)]*\)$/, '') // Remove trailing parentheses
+          .replace(/^[\s\-\.]+|[\s\-\.]+$/g, '') // Remove leading/trailing punctuation
+          .trim();
+        
+        // Limit description length
+        if (description.length > 60) {
+          description = description.substring(0, 60).trim();
         }
         
-        const convertedDate = this.convertDateToISO(dateMatch[1], currentYear);
+        const convertedDate = this.convertDateToISO(dateStr, currentYear);
         if (convertedDate) {
-          const title = description ? 
-            `Lab ${labMatch[1]}. ${description}` : 
-            `Lab ${labMatch[1]}`;
-            
-          schedule.push({
-            title: title,
-            date: convertedDate
-          });
-          
-          logger.info('✅ LINE-BY-LINE EXTRACTION SUCCESS', {
-            labNumber: labMatch[1],
-            date: convertedDate,
-            originalDate: dateMatch[1],
-            description: description,
-            originalLine: line.substring(0, 100)
-          });
-        }
-      } else {
-        logger.debug('❌ LINE PARSING FAILED', {
-          line: line.substring(0, 100),
-          hasDate: !!dateMatch,
-          hasLab: !!labMatch
-        });
-      }
-    }
-    
-    logger.info('📊 LINE-BY-LINE PARSING COMPLETED', {
-      processedLines: labLines.length,
-      extractedSessions: schedule.length
-    });
-    
-    return schedule;
-  }
-
-  /**
-   * APPROACH 3: Word-by-word analysis for complex formats
-   */
-  private static parseLabsWordByWord(syllabusContent: string, currentYear: number): Array<{title: string, date: string}> {
-    const schedule: Array<{title: string, date: string}> = [];
-    
-    logger.info('🔍 STARTING WORD-BY-WORD ANALYSIS');
-    
-    // Find all date patterns
-    const dateMatches: RegExpExecArray[] = [];
-    const labMatches: RegExpExecArray[] = [];
-    
-    // Use exec() for better TypeScript compatibility
-    const dateRegex = /\d{1,2}\/\d{1,2}/g;
-    const labRegex = /Lab\s*(\d+)/gi;
-    
-    let dateMatch;
-    while ((dateMatch = dateRegex.exec(syllabusContent)) !== null) {
-      dateMatches.push(dateMatch);
-    }
-    
-    let labMatch;
-    while ((labMatch = labRegex.exec(syllabusContent)) !== null) {
-      labMatches.push(labMatch);
-    }
-    
-    logger.info('🔍 WORD-LEVEL PATTERN DETECTION', {
-      datesFound: dateMatches.length,
-      labsFound: labMatches.length,
-      dates: dateMatches.slice(0, 10).map(m => m[0]),
-      labs: labMatches.slice(0, 10).map(m => `Lab ${m[1]}`)
-    });
-    
-    // Try to associate each lab with the closest preceding date
-    for (const labMatch of labMatches) {
-      const labNumber = labMatch[1];
-      const labIndex = labMatch.index || 0;
-      
-      // Find the closest date before this lab mention
-      let closestDate: RegExpMatchArray | null = null;
-      let minDistance = Infinity;
-      
-      for (const dateMatch of dateMatches) {
-        const dateIndex = dateMatch.index || 0;
-        const distance = labIndex - dateIndex;
-        
-        // Date should be before the lab mention but not too far (within 200 characters)
-        if (distance > 0 && distance < 200 && distance < minDistance) {
-          closestDate = dateMatch;
-          minDistance = distance;
-        }
-      }
-      
-      if (closestDate) {
-        const convertedDate = this.convertDateToISO(closestDate[0], currentYear);
-        if (convertedDate) {
-          // Try to extract description from text between date and lab
-          const startIndex = (closestDate.index || 0) + closestDate[0].length;
-          const endIndex = labIndex;
-          const betweenText = syllabusContent.substring(startIndex, endIndex);
-          
-          // Clean up the description
-          let description = betweenText
-            .replace(/\n/g, ' ')
-            .replace(/\s+/g, ' ')
-            .replace(/^[.\s\-|]+/, '')
-            .replace(/[.\s\-|]+$/, '')
-            .trim();
-          
-          // Limit description length and clean up
-          if (description.length > 100) {
-            description = description.substring(0, 100).trim();
-          }
-          
           const title = description ? 
             `Lab ${labNumber}. ${description}` : 
             `Lab ${labNumber}`;
-            
-          schedule.push({
-            title: title,
-            date: convertedDate
-          });
           
-          logger.info('✅ WORD-BY-WORD EXTRACTION SUCCESS', {
+          schedule.push({ title, date: convertedDate });
+          
+          logger.debug('✅ Direct match found', {
             labNumber,
             date: convertedDate,
-            originalDate: closestDate[0],
-            description: description.substring(0, 50),
-            distance: minDistance
+            description: description || '(no description)',
+            sourceLine: line.substring(0, 100)
           });
         }
-      } else {
-        logger.debug('❌ NO SUITABLE DATE FOUND FOR LAB', {
-          labNumber,
-          labIndex,
-          availableDates: dateMatches.map(d => d[0])
-        });
       }
     }
     
-    logger.info('📊 WORD-BY-WORD ANALYSIS COMPLETED', {
-      candidateLabs: labMatches.length,
-      successfulExtractions: schedule.length
+    // Deduplicate and sort
+    return this.deduplicateAndSortLabs(schedule);
+  }
+  
+  /**
+   * APPROACH 2: Word association - finds all dates and labs, then associates them
+   */
+  private static parseLabsWithWordAssociation(syllabusContent: string, currentYear: number): Array<{title: string, date: string}> {
+    const schedule: Array<{title: string, date: string}> = [];
+    
+    // Find all dates and their positions
+    const dateRegex = /(\d{1,2}\/\d{1,2})/g;
+    const dates: Array<{match: string, index: number}> = [];
+    let dateMatch;
+    while ((dateMatch = dateRegex.exec(syllabusContent)) !== null) {
+      dates.push({ match: dateMatch[1], index: dateMatch.index });
+    }
+    
+    // Find all lab mentions and their positions
+    const labRegex = /Lab\s*(\d+)[\.:]*\s*([^(\n]{0,60})/gi;
+    const labs: Array<{number: string, description: string, index: number}> = [];
+    let labMatch;
+    while ((labMatch = labRegex.exec(syllabusContent)) !== null) {
+      labs.push({
+        number: labMatch[1],
+        description: (labMatch[2] || '').trim(),
+        index: labMatch.index
+      });
+    }
+    
+    logger.debug('Word association data', {
+      datesFound: dates.length,
+      labsFound: labs.length,
+      sampleDates: dates.slice(0, 5).map(d => d.match),
+      sampleLabs: labs.slice(0, 5).map(l => `Lab ${l.number}`)
     });
     
-    return schedule;
+    // Associate each lab with the closest preceding date
+    for (const lab of labs) {
+      let bestDate: {match: string, index: number} | null = null;
+      let minDistance = Infinity;
+      
+      for (const date of dates) {
+        // Prefer dates that come BEFORE the lab mention (on same line or previous line)
+        const distance = lab.index - date.index;
+        
+        // Date should precede lab and be within reasonable distance (0-100 chars before)
+        if (distance > 0 && distance < 100) {
+          if (distance < minDistance) {
+            bestDate = date;
+            minDistance = distance;
+          }
+        }
+      }
+      
+      // If no preceding date found, look for closest date in either direction
+      if (!bestDate) {
+        for (const date of dates) {
+          const distance = Math.abs(lab.index - date.index);
+          if (distance < 150 && distance < minDistance) {
+            bestDate = date;
+            minDistance = distance;
+          }
+        }
+      }
+      
+      if (bestDate) {
+        const convertedDate = this.convertDateToISO(bestDate.match, currentYear);
+        if (convertedDate) {
+          const title = lab.description ? 
+            `Lab ${lab.number}. ${lab.description}` : 
+            `Lab ${lab.number}`;
+          
+          schedule.push({ title, date: convertedDate });
+          
+          logger.debug('✅ Word association match', {
+            labNumber: lab.number,
+            date: convertedDate,
+            distance: minDistance
+          });
+        }
+      }
+    }
+    
+    return this.deduplicateAndSortLabs(schedule);
   }
+  
+  /**
+   * APPROACH 3: Comprehensive regex patterns
+   */
+  private static parseLabsWithComprehensiveRegex(syllabusContent: string, currentYear: number): Array<{title: string, date: string}> {
+    const schedule: Array<{title: string, date: string}> = [];
+    
+    // Pattern specifically for EE 123 format
+    const patterns = [
+      // Table format with day name: "Tue, 07/29 ... Lab 0. LTspice"
+      /(mon|tue|wed|thu|fri|sat|sun),?\s*(\d{1,2}\/\d{1,2})[^\n]{0,200}?Lab\s*(\d+)[\.:]*\s*([^\n(]{0,60})/gim,
+      // Just date and lab: "07/29 ... Lab 0"
+      /(\d{1,2}\/\d{1,2})[^\n]{0,200}?Lab\s*(\d+)[\.:]*\s*([^\n(]{0,60})/gim
+    ];
+
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(syllabusContent)) !== null) {
+        let dateStr: string;
+        let labNumber: string;
+        let description: string;
+        
+        if (match[1].length <= 3) {
+          // Pattern 1: Has day name
+          dateStr = match[2];
+          labNumber = match[3];
+          description = (match[4] || '').trim();
+        } else {
+          // Pattern 2: No day name
+          dateStr = match[1];
+          labNumber = match[2];
+          description = (match[3] || '').trim();
+        }
+        
+        // Clean description
+        description = description
+          .replace(/\s+/g, ' ')
+          .replace(/\([^)]*\)$/, '')
+          .replace(/^[\s\-\.]+|[\s\-\.]+$/g, '')
+          .trim();
+        
+        if (description.length > 60) {
+          description = description.substring(0, 60).trim();
+        }
+        
+        const convertedDate = this.convertDateToISO(dateStr, currentYear);
+        if (convertedDate) {
+          const title = description ? 
+            `Lab ${labNumber}. ${description}` : 
+            `Lab ${labNumber}`;
+          
+          schedule.push({ title, date: convertedDate });
+          
+          logger.debug('✅ Regex match found', {
+            labNumber,
+            date: convertedDate,
+            description: description || '(no description)'
+          });
+        }
+      }
+    }
+    
+    return this.deduplicateAndSortLabs(schedule);
+  }
+
+
 
   /**
    * Merge lab schedules while avoiding duplicates
@@ -2070,17 +1939,6 @@ IMPORTANT:
     return merged;
   }
 
-  /**
-   * Get description for regex patterns
-   */
-  private static getRegexPatternDescription(patternIndex: number): string {
-    const descriptions = [
-      'EE 123 Table Format: Day, Date in one column, Lab X. Description in another',
-      'Alternative Table Format: Date only followed by Lab X. Description',
-      'Traditional Inline Format: Day, Date - Lab X. Description'
-    ];
-    return descriptions[patternIndex] || 'Unknown pattern';
-  }
 
   /**
    * Deduplicate and sort lab schedule entries
@@ -2120,6 +1978,66 @@ IMPORTANT:
     });
 
     return uniqueSchedule;
+  }
+
+  /**
+   * Parse labs with context awareness - looks for date sections with lab information
+   */
+  private static parseLabsWithContext(lines: string[], currentYear: number): Array<{title: string, date: string}> {
+    const schedule: Array<{title: string, date: string}> = [];
+    
+    // Build a context map of dates and their associated content
+    const dateContextMap = new Map<string, string[]>();
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Find dates
+      const dateMatch = line.match(/(\d{1,2}\/\d{1,2})/);
+      if (dateMatch) {
+        const date = dateMatch[1];
+        const context = [];
+        
+        // Gather context: current line plus next 3 lines
+        for (let j = 0; j < 4 && i + j < lines.length; j++) {
+          context.push(lines[i + j]);
+        }
+        
+        dateContextMap.set(date, context);
+      }
+    }
+    
+    // Now look for labs in the context of each date
+    dateContextMap.forEach((contextLines, dateStr) => {
+      const fullContext = contextLines.join(' ');
+      
+      // Look for lab mentions
+      const labMatch = fullContext.match(/Lab\s*(\d+)[\.:]?\s*([^(\n.]{0,100})/i);
+      if (labMatch) {
+        const convertedDate = this.convertDateToISO(dateStr, currentYear);
+        if (convertedDate) {
+          const title = labMatch[2]?.trim() 
+            ? `Lab ${labMatch[1]}. ${labMatch[2].trim()}`
+            : `Lab ${labMatch[1]}`;
+          
+          // Check if we already have this lab
+          const exists = schedule.some(s => 
+            s.title.match(/lab\s*(\d+)/i)?.[1] === labMatch[1]
+          );
+          
+          if (!exists) {
+            schedule.push({ title, date: convertedDate });
+            logger.info('✅ EXTRACTED LAB WITH CONTEXT', {
+              labNumber: labMatch[1],
+              date: convertedDate,
+              context: fullContext.substring(0, 100)
+            });
+          }
+        }
+      }
+    });
+    
+    return schedule;
   }
 
   /**
