@@ -66,9 +66,9 @@ Deno.serve(async (req) => {
         prompt = buildSyllabusTaskPrompt(syllabusData);
         generationConfig = {
           temperature: 0.1,
-          topK: 1,
-          topP: 0.8,
-          maxOutputTokens: 8192,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 4096,
         };
         break;
         
@@ -95,38 +95,69 @@ Deno.serve(async (req) => {
       generationConfig = { ...generationConfig, ...body.config };
     }
 
-    // Call Google Gemini API
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }],
-          }],
-          generationConfig,
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH", 
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            }
-          ]
-        }),
+    // Try Gemini 2.0 Flash first, fallback to 1.5 Flash if overloaded
+    let geminiResponse;
+    const models = ['gemini-2.0-flash-exp', 'gemini-1.5-flash'];
+    let lastError;
+    
+    for (const model of models) {
+      try {
+        console.log(`Attempting to use model: ${model}`);
+        geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${googleApiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: prompt }],
+              }],
+              generationConfig,
+              safetySettings: [
+                {
+                  category: "HARM_CATEGORY_HARASSMENT",
+                  threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                  category: "HARM_CATEGORY_HATE_SPEECH", 
+                  threshold: "BLOCK_MEDIUM_AND_ABOVE"
+                }
+              ]
+            }),
+          }
+        );
+        
+        if (geminiResponse.ok) {
+          console.log(`Successfully using model: ${model}`);
+          break;
+        } else if (geminiResponse.status === 503) {
+          console.log(`Model ${model} is overloaded, trying fallback...`);
+          lastError = await geminiResponse.text();
+          continue;
+        } else {
+          lastError = await geminiResponse.text();
+          break;
+        }
+      } catch (error) {
+        console.error(`Error with model ${model}:`, error);
+        lastError = error;
+        continue;
       }
-    );
+    }
 
-    if (!geminiResponse.ok) {
-      const errorBody = await geminiResponse.text();
-      console.error('Google Gemini API error:', errorBody);
+    if (!geminiResponse || !geminiResponse.ok) {
+      console.error('All Gemini models failed:', {
+        status: geminiResponse?.status,
+        statusText: geminiResponse?.statusText,
+        lastError: lastError,
+        requestType: body.type,
+        requestDataKeys: Object.keys(body.data || {}),
+      });
       return new Response(
         JSON.stringify({ 
           error: 'AI analysis failed',
-          details: `Gemini API returned ${geminiResponse.status}` 
+          details: `All Gemini models failed. Last error: ${lastError}`,
+          geminiError: lastError
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -143,14 +174,45 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse JSON response for structured data
+    // Parse JSON response for structured data - handle markdown code blocks
     let result;
     try {
-      result = JSON.parse(responseText);
+      // Clean the response text by removing markdown code blocks
+      let cleanedText = responseText;
+      
+      // Remove ```json and ``` markers
+      cleanedText = cleanedText.replace(/```json\s*/gi, '');
+      cleanedText = cleanedText.replace(/```\s*$/gi, '');
+      cleanedText = cleanedText.replace(/^```\s*/gi, '');
+      
+      // Remove any leading/trailing whitespace
+      cleanedText = cleanedText.trim();
+      
+      console.log('Attempting to parse cleaned JSON:', {
+        originalLength: responseText.length,
+        cleanedLength: cleanedText.length,
+        startsWithBrace: cleanedText.startsWith('{'),
+        endsWithBrace: cleanedText.endsWith('}')
+      });
+      
+      result = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
-      // Return raw text if JSON parsing fails
-      result = { rawResponse: responseText };
+      console.error('Raw response text:', responseText.substring(0, 500));
+      
+      // Try to extract JSON from the response
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          result = JSON.parse(jsonMatch[0]);
+          console.log('Successfully extracted JSON from response');
+        } catch (secondParseError) {
+          console.error('Failed to parse extracted JSON:', secondParseError);
+          result = { rawResponse: responseText };
+        }
+      } else {
+        result = { rawResponse: responseText };
+      }
     }
 
     return new Response(JSON.stringify({ result }), {

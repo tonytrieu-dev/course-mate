@@ -117,14 +117,8 @@ const CalendarApp: React.FC = () => {
     
     const loadSettings = async () => {
       try {
-        // Initialize secure storage bucket for syllabus uploads
-        if (user) {
-          try {
-            await SyllabusSecurityService.initializeBucketSecurity();
-          } catch (error) {
-            console.warn('Failed to initialize secure bucket (will try again later):', error);
-          }
-        }
+        // Note: Secure bucket 'secure-syllabi' already exists in Supabase
+        // No need to initialize on startup as it's pre-configured manually
 
         const settings = await getSettingsWithSync(user?.id);
         

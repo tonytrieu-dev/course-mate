@@ -13,7 +13,7 @@ body {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
-/* Enhanced Study Focus Palette - Base styles */
+/* PREMIUM CREAM-DOMINANT PALETTE - Luxury Student Experience */
 :root {
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f8fafc;
@@ -23,13 +23,27 @@ body {
   --color-border: #e2e8f0;
   --color-accent: #3b82f6;
   
-  /* Enhanced Study Focus Palette */
-  --primary-navy: #2563EB;        /* Main brand, headers, navigation */
-  --secondary-cream: #FFF8DC;      /* Backgrounds, content areas */  
-  --accent-sage: #9CAF88;          /* Success states, progress */
-  --premium-gold: #B8860B;         /* Achievements, testimonials */
-  --cta-orange: #FF8C00;          /* Action buttons */
+  /* BALANCED ROYAL BLUE + PREMIUM CREAM PALETTE */
+  --primary-navy: #2563EB;         /* PRIMARY: Headers, navigation, main brand elements */
+  --royal-blue: #1E3A8A;           /* Royal blue: Emphasis, hero elements, CTAs */
+  --soft-blue: #3B82F6;            /* Soft: Secondary elements, icons, links */
+  --deep-blue: #1D4ED8;            /* Deep: Hover states, active elements */
+  
+  --primary-cream: #FFF8DC;        /* PREMIUM: Backgrounds, content areas, warmth */
+  --secondary-cream: #F5F0E6;      /* Secondary: Card backgrounds, sections */
+  --rich-cream: #FFFAED;           /* Rich: Premium highlights, special sections */
+  --warm-beige: #E6D7C3;           /* Warm: Borders, hover states, subtle accents */
+  
+  --premium-gold: #D4A574;         /* Gold: Achievements, testimonials, luxury touches */
+  --warm-gold: #C8956D;            /* Warm gold: Hover states, active gold elements */
+  --accent-sage: #9CAF88;          /* Success states, completion psychology */
+  --cta-orange: #FF8C00;           /* Action buttons - vibrant orange */
   --success-green: #10B981;        /* Checkmarks, positive feedback */
+  
+  /* BACKWARD COMPATIBILITY - Maintain existing variable names */
+  --accent-navy: var(--primary-navy);     /* Keep navy as primary */
+  --deep-navy: var(--royal-blue);         /* Map deep navy to royal blue */
+  --secondary-cream: var(--primary-cream); /* Cream remains important */
 }
 
 /* Enhanced dark mode variables with warmer tones */

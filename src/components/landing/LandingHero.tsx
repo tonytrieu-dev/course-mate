@@ -9,12 +9,17 @@ interface LandingHeroProps {
 
 const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) => {
   return (
-    <section id="hero" className="relative min-h-screen flex items-center" style={{background: 'linear-gradient(135deg, var(--secondary-cream) 0%, #ffffff 30%, rgba(37, 99, 235, 0.05) 100%)'}}>
-      {/* Enhanced Study Focus background with navy blue + cream + sage green */}
+    <section id="hero" className="relative min-h-screen flex items-center" style={{background: 'linear-gradient(135deg, #ffffff 0%, var(--primary-cream) 30%, rgba(37, 99, 235, 0.05) 70%, rgba(30, 58, 138, 0.08) 100%)'}}>
+      {/* ROYAL BLUE DOMINANT with Premium Cream Accents */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute bottom-32 left-32 w-96 h-96 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(156, 175, 136, 0.08)'}}></div>
-        <div className="absolute top-20 right-40 w-64 h-64 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(37, 99, 235, 0.12)'}}></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full filter blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{backgroundColor: 'rgba(37, 99, 235, 0.06)'}}></div>
+        {/* Royal blue dominant artistic elements */}
+        <div className="absolute bottom-32 left-32 w-96 h-96 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(37, 99, 235, 0.12)'}}></div>
+        <div className="absolute top-20 right-40 w-64 h-64 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(30, 58, 138, 0.15)'}}></div>
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full filter blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{backgroundColor: 'rgba(59, 130, 246, 0.08)'}}></div>
+        
+        {/* Premium cream accent touches for warmth */}
+        <div className="absolute top-40 left-1/4 w-48 h-48 rounded-full filter blur-2xl opacity-50" style={{backgroundColor: 'rgba(255, 248, 220, 0.6)'}}></div>
+        <div className="absolute bottom-40 right-1/3 w-40 h-40 rounded-full filter blur-xl opacity-40" style={{backgroundColor: 'rgba(212, 165, 116, 0.15)'}}></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
@@ -35,8 +40,8 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
             </div>
             
             <div className="mb-8">
-              <div className="rounded-2xl p-6 shadow-xl" style={{backgroundColor: 'rgba(255, 248, 220, 0.95)', border: '1px solid rgba(156, 175, 136, 0.3)', backdropFilter: 'blur(4px)'}}>
-                <div className="text-slate-800 font-bold mb-2">Built by a UCR student who actually uses it.</div>
+              <div className="rounded-2xl p-6 shadow-xl" style={{backgroundColor: 'var(--primary-cream)', border: '1px solid rgba(37, 99, 235, 0.2)', backdropFilter: 'blur(8px)'}}>
+                <div className="font-bold mb-2" style={{color: 'var(--primary-navy)'}}>Built by a UCR student who actually uses it.</div>
                 <div className="text-slate-700">
                   I built this because I was wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3-4 hours every quarter</span> setting up my planner. Now I paste my Canvas link, upload my syllabi, and I'm <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>done in 10 seconds</span>. 😎
                 </div>
@@ -91,7 +96,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
               {/* Interactive Product Gallery - Enhanced Study Focus theme */}
               <div className="relative rounded-3xl p-1 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden" 
                    style={{
-                     background: 'linear-gradient(135deg, rgba(255, 248, 220, 0.95) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(37, 99, 235, 0.08) 50%, rgba(37, 99, 235, 0.15) 100%)',
+                     background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, var(--primary-cream) 30%, rgba(255, 248, 220, 0.8) 60%, rgba(37, 99, 235, 0.08) 100%)',
                      border: '1px solid rgba(37, 99, 235, 0.2)',
                      minHeight: '500px', 
                      maxWidth: '100%'

@@ -57,12 +57,17 @@ const LandingFeatures: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-24 bg-white">
-      {/* Research-backed blue-dominant background with subtle accents */}
+    <section id="features" className="py-24 bg-white relative">
+      {/* ROYAL BLUE DOMINANT with Premium Cream Accent Background */}
       <div className="absolute inset-0 pointer-events-none">
+        {/* Royal blue dominant artistic elements */}
         <div className="absolute top-20 right-20 w-64 h-64 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(37, 99, 235, 0.08)'}}></div>
-        <div className="absolute bottom-40 left-20 w-96 h-96 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(37, 99, 235, 0.12)'}}></div>
-        <div className="absolute top-40 left-1/2 w-80 h-80 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(156, 175, 136, 0.06)'}}></div>
+        <div className="absolute bottom-40 left-20 w-96 h-96 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(30, 58, 138, 0.12)'}}></div>
+        <div className="absolute top-40 left-1/2 w-80 h-80 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(59, 130, 246, 0.06)'}}></div>
+        
+        {/* Premium cream accent touches for warmth */}
+        <div className="absolute bottom-20 right-1/3 w-60 h-60 rounded-full filter blur-2xl opacity-60" style={{backgroundColor: 'rgba(255, 248, 220, 0.8)'}}></div>
+        <div className="absolute top-60 left-1/4 w-48 h-48 rounded-full filter blur-xl opacity-45" style={{backgroundColor: 'rgba(212, 165, 116, 0.12)'}}></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,10 +80,10 @@ const LandingFeatures: React.FC = () => {
           </p>
         </div>
 
-        {/* Smart Syllabus - HERO FEATURE (Larger) */}
+        {/* Smart Syllabus - HERO FEATURE with unique UPLOAD layout */}
         <div className="mb-16 max-w-4xl mx-auto relative">
-          {/* Enhanced hero feature prominence with subtle glow */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-[var(--cta-orange)]/10 to-[var(--cta-orange)]/5 rounded-3xl blur-xl"></div>
+          {/* Enhanced hero feature prominence with warm cream glow */}
+          <div className="absolute -inset-6 bg-gradient-to-r from-[var(--premium-gold)]/15 to-[var(--cta-orange)]/10 rounded-3xl blur-xl"></div>
           <FeatureCard
             key={0}
             title={features[0].title}
@@ -88,23 +93,37 @@ const LandingFeatures: React.FC = () => {
             imageAlt={features[0].imageAlt}
             icon={features[0].icon}
             colorScheme={features[0].colorScheme}
+            layout="upload"
           />
         </div>
         
-        {/* Supporting Features Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {features.slice(1).map((feature, index) => (
-            <FeatureCard
-              key={index + 1}
-              title={feature.title}
-              subtitle={feature.subtitle}
-              description={feature.description}
-              features={feature.features}
-              imageAlt={feature.imageAlt}
-              icon={feature.icon}
-              colorScheme={feature.colorScheme}
-            />
-          ))}
+        {/* Supporting Features Grid - Each with UNIQUE layout */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {/* Canvas Sync - COMPARISON layout */}
+          <FeatureCard
+            key={1}
+            title={features[1].title}
+            subtitle={features[1].subtitle}
+            description={features[1].description}
+            features={features[1].features}
+            imageAlt={features[1].imageAlt}
+            icon={features[1].icon}
+            colorScheme={features[1].colorScheme}
+            layout="comparison"
+          />
+          
+          {/* AI Chatbot - CHAT layout */}
+          <FeatureCard
+            key={2}
+            title={features[2].title}
+            subtitle={features[2].subtitle}
+            description={features[2].description}
+            features={features[2].features}
+            imageAlt={features[2].imageAlt}
+            icon={features[2].icon}
+            colorScheme={features[2].colorScheme}
+            layout="chat"
+          />
         </div>
       </div>
     </section>
