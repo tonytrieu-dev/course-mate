@@ -7,7 +7,7 @@ import { supabase } from './supabaseClient';
 import { logger } from '../utils/logger';
 
 export interface SubscriptionStatus {
-  status: 'free' | 'trialing' | 'active' | 'canceled';
+  status: 'free' | 'trialing' | 'active' | 'canceled' | 'lifetime';
   trialEndDate?: string;
   stripeCustomerId?: string;
 }
@@ -93,7 +93,7 @@ export class SubscriptionService {
    */
   async hasProAccess(): Promise<boolean> {
     const status = await this.getSubscriptionStatus();
-    return status.status === 'trialing' || status.status === 'active';
+    return status.status === 'trialing' || status.status === 'active' || status.status === 'lifetime';
   }
 
   /**
