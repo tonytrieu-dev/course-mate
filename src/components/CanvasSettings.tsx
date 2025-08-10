@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { fetchCanvasCalendar, debugICSParsing } from "../services/canvasService";
 import { getSettings, updateSettings } from "../services/settings/settingsOperations";
 import { useAuth } from "../contexts/AuthContext";
+import { logger } from "../utils/logger";
 import type { TaskInsert, AppSettings } from "../types/database";
 
 interface SyncStatus {
@@ -46,7 +47,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
         // ICS debug result obtained
       }
     } catch (error) {
-      console.error('Debug error:', error);
+      logger.error('Debug error', { error });
     } finally {
       setIsSyncing(false);
     }
@@ -103,7 +104,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
 
     setIsSyncing(true);
     setSyncProgress('Connecting to Canvas...');
-    setSyncStatus({ message: "Syncing with Canvas..." });
+    setSyncStatus(null);
 
     try {
       // Simulate progress updates
@@ -188,9 +189,9 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Canvas Integration</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Canvas Calendar Sync</h2>
           <p className="text-gray-600 dark:text-slate-400 text-sm leading-relaxed">
-            Connect your Canvas LMS to automatically sync assignments and due dates.
+            Imports assignments from your Canvas calendar feed URL.
           </p>
         </div>
 
@@ -222,7 +223,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
                 <span className="text-xs text-gray-600 dark:text-slate-400">
-                  Uses secure proxy service to access Canvas calendars from any browser
+                  Uses secure proxy service to parse Canvas ICS calendar feeds
                 </span>
               </div>
             </div>
@@ -427,7 +428,8 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
           )}
 
           <div className={`order-1 sm:order-2 flex flex-col sm:flex-row gap-3 ${!onClose ? 'w-full' : ''}`}>
-            <button
+            {/* Debug button - commented out for production */}
+            {/* <button
               onClick={handleDebugICS}
               disabled={isSyncing || !canvasUrl}
               className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-sm min-h-[44px] flex items-center justify-center"
@@ -440,7 +442,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               Debug
-            </button>
+            </button> */}
             <button
               onClick={handleSyncNow}
               disabled={isSyncing}
@@ -485,7 +487,7 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
   );
 };
 
-export default CanvasSettings;
+export default React.memo(CanvasSettings);
 
 // Component enhancements:
 // ✅ Enhanced visual hierarchy with proper headings and icons

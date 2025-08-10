@@ -10,6 +10,7 @@ import type {
   WhatIfScenario, 
   GradeChange 
 } from '../types/database';
+import { logger } from '../utils/logger';
 
 interface GradeDashboardProps {
   onSwitchToGradeEntry?: () => void;
@@ -49,7 +50,7 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
       }
       setClassesWithGrades(classesData);
     } catch (error) {
-      console.error('Error loading GPA data:', error);
+      logger.error('Error loading GPA data', { error });
     } finally {
       setLoading(false);
     }
@@ -82,7 +83,7 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
       const scenario = await calculateWhatIfScenario(user.id, [change], isAuthenticated);
       setWhatIfScenario(scenario);
     } catch (error) {
-      console.error('Error calculating what-if scenario:', error);
+      logger.error('Error calculating what-if scenario', { error });
     }
   }, [user?.id, isAuthenticated, classesWithGrades]);
 
@@ -404,4 +405,4 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
   );
 };
 
-export default GradeDashboard;
+export default React.memo(GradeDashboard);

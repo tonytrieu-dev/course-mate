@@ -16,6 +16,30 @@ const SECURITY_CONFIG = {
   MAX_TEXT_LENGTH: 1000000, // 1MB of text content
 } as const;
 
+// Class file security configuration (broader than syllabus-only validation)
+const CLASS_FILE_SECURITY_CONFIG = {
+  MAX_FILE_SIZE: '10MB',
+  // Safe file types for undergraduate students
+  ALLOWED_MIME_TYPES: [
+    'application/pdf',                                                          // Syllabi, readings
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX assignments
+    'image/jpeg',                                                              // Photos of notes
+    'image/jpg',                                                               // Photos of notes  
+    'image/png',                                                               // Screenshots, diagrams
+    'text/plain'                                                               // Plain text notes
+  ],
+  MAX_UPLOADS_PER_HOUR: 20, // Higher limit for general class files
+  MAX_UPLOADS_PER_DAY: 100,
+  MAX_TOTAL_STORAGE_MB: 200,
+  // File extensions that should be blocked for security
+  BLOCKED_EXTENSIONS: [
+    '.exe', '.bat', '.sh', '.zip', '.rar', '.7z',  // Executables and archives
+    '.js', '.html', '.php', '.asp', '.jsp',        // Web scripts
+    '.xls', '.xlsx', '.ppt', '.pptx', '.doc',      // Legacy Office files with macro risks
+    '.scr', '.com', '.pif', '.cmd'                 // Other executable types
+  ]
+} as const;
+
 // Security validation interfaces
 interface SecurityValidationResult {
   isValid: boolean;
@@ -425,6 +449,84 @@ export class SyllabusSecurityService {
   }
 
   /**
+   * Validate class file uploads with broader security checks
+   * Supports images, text files, PDF, and DOCX - safe for student use
+   */
+  static validateClassFileUpload(file: File, user: User): SecurityValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // File size validation
+    const maxSizeBytes = this.parseFileSize(CLASS_FILE_SECURITY_CONFIG.MAX_FILE_SIZE);
+    if (file.size > maxSizeBytes) {
+      errors.push(`File size (${this.formatFileSize(file.size)}) exceeds maximum allowed size (${CLASS_FILE_SECURITY_CONFIG.MAX_FILE_SIZE})`);
+    }
+
+    // MIME type validation for class files (broader than syllabus validation)
+    if (!CLASS_FILE_SECURITY_CONFIG.ALLOWED_MIME_TYPES.includes(file.type as any)) {
+      const allowedTypes = CLASS_FILE_SECURITY_CONFIG.ALLOWED_MIME_TYPES
+        .map(type => {
+          if (type.includes('pdf')) return 'PDF';
+          if (type.includes('wordprocessingml')) return 'DOCX';
+          if (type.includes('jpeg') || type.includes('jpg')) return 'JPG';
+          if (type.includes('png')) return 'PNG';
+          if (type.includes('text/plain')) return 'TXT';
+          return type;
+        })
+        .join(', ');
+      errors.push(`File type '${file.type}' is not allowed. Only ${allowedTypes} files are permitted for class materials.`);
+    }
+
+    // Enhanced filename security validation for class files
+    const sanitizedName = this.sanitizeFilename(file.name);
+    if (sanitizedName !== file.name) {
+      warnings.push(`Filename was sanitized from '${file.name}' to '${sanitizedName}'`);
+    }
+
+    // Basic filename validation
+    if (file.name.length > 255) {
+      errors.push('Filename is too long (maximum 255 characters)');
+    }
+
+    // Check for blocked file extensions (comprehensive security check)
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    if (CLASS_FILE_SECURITY_CONFIG.BLOCKED_EXTENSIONS.some(ext => ext.toLowerCase() === fileExtension)) {
+      errors.push(`File extension '${fileExtension}' is blocked for security reasons. This file type may contain executable code or macros.`);
+    }
+
+    // Additional security patterns for class files
+    const suspiciousPatterns = [
+      /\.(exe|bat|sh|cmd|scr|com|pif)$/i,  // Executables
+      /\.(zip|rar|7z|tar|gz)$/i,          // Archives (zip bombs, etc.)
+      /\.(js|html|php|asp|jsp)$/i,         // Web scripts
+      /\.(xls|xlsx|ppt|pptx|doc)$/i       // Legacy Office files with macro risks
+    ];
+
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(file.name)) {
+        errors.push(`Filename contains blocked file type: ${file.name}. This file type is not permitted for security reasons.`);
+        break;
+      }
+    }
+
+    logger.debug('Class file upload validation completed', {
+      fileName: file.name,
+      fileSize: file.size,
+      mimeType: file.type,
+      userId: user.id,
+      errors: errors.length,
+      warnings: warnings.length,
+      validationType: 'class_file_upload'
+    });
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings
+    };
+  }
+
+  /**
    * Log security event for monitoring
    */
   static logSecurityEvent(event: string, details: Record<string, any>): void {
@@ -438,3 +540,4 @@ export class SyllabusSecurityService {
 
 // Export configuration for external use
 export const SYLLABUS_SECURITY_CONFIG = SECURITY_CONFIG;
+export const CLASS_FILE_SECURITY_CONFIG_EXPORT = CLASS_FILE_SECURITY_CONFIG;

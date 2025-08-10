@@ -18,7 +18,6 @@ const Settings = lazy(() => import("./Settings"));
 const SyllabusModal = lazy(() => import("./SyllabusModal"));
 const ChatbotPanel = lazy(() => import("./ChatbotPanel"));
 const AuthSection = lazy(() => import("./AuthSection"));
-const StudyAnalyticsDashboard = lazy(() => import("./StudyAnalyticsDashboard"));
 
 // Constants
 const MIN_SIDEBAR_WIDTH = 200;
@@ -79,8 +78,6 @@ const SidebarInner: React.FC<SidebarProps> = ({
     setShowClassNameSizeControl,
     isCanvasSyncing,
     setIsCanvasSyncing,
-    showStudyAnalytics,
-    setShowStudyAnalytics,
     handleTitleClick,
     handleSidebarToggle,
     handleClassesTitleBlur,
@@ -476,7 +473,6 @@ const SidebarInner: React.FC<SidebarProps> = ({
           isCanvasSyncing={isCanvasSyncing}
           onShowChatbot={() => setShowChatbotPanel(!showChatbotPanel)}
           onShowSettings={() => setShowSettings(true)}
-          onShowStudyAnalytics={() => setShowStudyAnalytics(true)}
         />
 
         {/* Auth Controls - minimal gap */}
@@ -548,34 +544,6 @@ const SidebarInner: React.FC<SidebarProps> = ({
         </Suspense>
       )}
 
-      {showStudyAnalytics && isAuthenticated && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white dark:bg-slate-800/90 dark:backdrop-blur-md rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl dark:shadow-slate-900/40 border border-gray-100 dark:border-slate-700/50">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700/50">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Study Analytics</h2>
-              <button
-                onClick={() => setShowStudyAnalytics(false)}
-                className="text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
-              >
-                <span className="sr-only">Close</span>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-                  <p className="ml-4 text-gray-600 dark:text-gray-400">Loading Study Analytics...</p>
-                </div>
-              }>
-                <StudyAnalyticsDashboard />
-              </Suspense>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Chatbot Panel */}
       <Suspense fallback={
@@ -611,4 +579,4 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

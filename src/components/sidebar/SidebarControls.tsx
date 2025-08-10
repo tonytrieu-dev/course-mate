@@ -5,7 +5,6 @@ interface SidebarControlsProps {
   isCanvasSyncing: boolean;
   onShowChatbot: () => void;
   onShowSettings: () => void;
-  onShowStudyAnalytics: () => void;
 }
 
 const SidebarControls: React.FC<SidebarControlsProps> = ({
@@ -13,7 +12,6 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
   isCanvasSyncing,
   onShowChatbot,
   onShowSettings,
-  onShowStudyAnalytics,
 }) => {
   const controlButtons = [
     {
@@ -23,14 +21,6 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
       onClick: onShowChatbot,
       description: 'Get AI assistance with your coursework and study questions',
       ariaLabel: 'Open AI class chatbot for study assistance'
-    },
-    {
-      id: 'analytics',
-      label: 'Study Analytics',
-      icon: '📊',
-      onClick: onShowStudyAnalytics,
-      description: 'View your study patterns and academic progress',
-      ariaLabel: 'Open study analytics dashboard'
     },
     {
       id: 'settings',

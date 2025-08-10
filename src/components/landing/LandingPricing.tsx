@@ -151,8 +151,8 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   trackEvent('get_started_clicked', { location: 'pricing', plan: 'free' });
                   onGetStarted();
                 }}
-                variant="secondary"
-                className="w-full bg-gradient-to-r from-slate-500 to-gray-500 hover:from-slate-600 hover:to-gray-600 text-white font-bold py-4 text-lg transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                variant="outline"
+                className="w-full border-2 border-[var(--primary-navy)] text-[var(--primary-navy)] bg-white hover:bg-[var(--primary-navy)] hover:text-white font-bold py-4 text-lg transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
                 ariaLabel="Start with ScheduleBud free plan"
                 dataTestId="free-plan-btn"
               />

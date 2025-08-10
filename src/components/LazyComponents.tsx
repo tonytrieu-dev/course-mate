@@ -49,9 +49,6 @@ export const LazyStudySessionTracker = lazy(() =>
   import('./StudySessionTracker').then(module => ({ default: module.StudySessionTracker }))
 );
 
-export const LazyStudyAnalyticsDashboard = lazy(() => 
-  import('./StudyAnalyticsDashboard').then(module => ({ default: module.default }))
-);
 
 export const LazyStudyScheduleOptimizer = lazy(() => 
   import('./StudyScheduleOptimizer').then(module => ({ default: module.default }))

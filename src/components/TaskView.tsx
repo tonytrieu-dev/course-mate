@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
-import { getTasks, updateTask, deleteTask, getTaskTypes } from "../services/dataService";
+import { updateTask, deleteTask } from "../services/dataService";
 import type { TaskWithMeta, TaskType, ClassWithRelations } from "../types/database";
 import { useAuth } from "../contexts/AuthContext";
 import { getEventStyle } from "../utils/taskStyles";
 import { formatDateForInput, formatTimeForDisplay } from "../utils/dateHelpers";
 import { validateAuthState } from "../utils/authHelpers";
 import classService from "../services/classService";
+import taskService from "../services/taskService";
+import taskTypeService from "../services/taskTypeService";
 import { logger } from "../utils/logger";
 import type { TaskData } from "./TaskModal";
 import TaskFilter from "./TaskFilter";
@@ -54,37 +56,57 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
   const [editingTask, setEditingTask] = useState<TaskWithMeta | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  // Load data when auth state is ready
+  // Initialize services when auth state is ready
   useEffect(() => {
-    const loadData = async (): Promise<void> => {
+    const initializeServices = async (): Promise<void> => {
       if (!loading && isAuthenticated && user && user.id) {
-        logger.debug('Loading task view data for user', { userId: user.id });
+        logger.debug('Initializing task view services for user', { userId: user.id });
         
-        const fetchedTasks = await getTasks(user.id, isAuthenticated);
-        setTasks(fetchedTasks || []);
+        // Initialize all services in parallel for better performance
+        await Promise.all([
+          taskService.initialize(user.id, isAuthenticated),
+          classService.initialize(user.id, isAuthenticated),
+          taskTypeService.initialize(user.id, isAuthenticated)
+        ]);
         
-        const fetchedClasses = await classService.refreshClasses(user.id, isAuthenticated);
-        setClasses(fetchedClasses || []);
-        
-        const fetchedTaskTypes = await getTaskTypes(user.id, isAuthenticated);
-        setTaskTypes(fetchedTaskTypes || []);
+        // Set initial data from services
+        setTasks(taskService.getCurrentTasks());
+        setClasses(classService.getCurrentClasses());
+        setTaskTypes(taskTypeService.getCurrentTaskTypes());
+      } else if (!isAuthenticated) {
+        // Reset services when not authenticated
+        taskService.reset();
+        classService.reset();
+        taskTypeService.reset();
       }
     };
-    loadData();
+    initializeServices();
   }, [loading, isAuthenticated, user, user?.id, lastCalendarSyncTimestamp]);
 
-  // Subscribe to class changes
+  // Subscribe to service changes
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      classService.reset();
       return;
     }
 
-    const unsubscribe = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
+    // Subscribe to all services
+    const unsubscribeClasses = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
       setClasses(updatedClasses);
     });
 
-    return unsubscribe;
+    const unsubscribeTasks = taskService.subscribe((updatedTasks: TaskWithMeta[]) => {
+      setTasks(updatedTasks);
+    });
+
+    const unsubscribeTaskTypes = taskTypeService.subscribe((updatedTaskTypes: TaskType[]) => {
+      setTaskTypes(updatedTaskTypes);
+    });
+
+    return () => {
+      unsubscribeClasses();
+      unsubscribeTasks();
+      unsubscribeTaskTypes();
+    };
   }, [isAuthenticated, user]);
 
   // Convert TaskWithMeta to Task interface for FilterService

@@ -5,7 +5,7 @@ const LandingFeatures: React.FC = () => {
   const features = [
     {
       title: "Smart Syllabus Upload",
-      subtitle: "PDF → Task List in 30 Seconds, Save 2+ Hours Per Class",
+      subtitle: "PDF → Task List in 30 Seconds, Save 2+ Hours Every Quarter",
       description: "Drop PDF syllabus → AI reads everything → instant task list. Works even when professors forget to update Canvas. The syllabus is always accurate.",
       features: [
         "Turn any PDF into your task list instantly",
@@ -21,15 +21,15 @@ const LandingFeatures: React.FC = () => {
       colorScheme: 'orange' as const
     },
     {
-      title: "Canvas Calendar Sync",
-      subtitle: "Copy-Paste Your Canvas Link, Save 1+ Hour Per Quarter",
-      description: "Canvas link → boom, everything's imported automatically. Perfect backup when professors actually keep Canvas updated.",
+      title: "Canvas Calendar Import",
+      subtitle: "Copy-Paste Your Canvas Feed URL, Save 1+ Hour Per Quarter",
+      description: "Canvas calendar feed → boom, everything's parsed automatically. Perfect backup when professors actually keep Canvas updated.",
       features: [
-        "Set up Canvas assignments in 10 seconds",
+        "Import Canvas calendar feed in 10 seconds",
         "Works when professors update Canvas",
         "Cross-device sync included"
       ],
-      imageAlt: "Canvas LMS integration showing automatic assignment synchronization",
+      imageAlt: "Canvas calendar import showing automatic assignment parsing from ICS feeds",
       icon: (
         <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

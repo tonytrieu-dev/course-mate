@@ -16,6 +16,7 @@ import { addClass } from './class/classOperations';
 import { addTaskType } from './taskType/taskTypeOperations';
 import { getClasses } from './class/classOperations';
 import { getTaskTypes } from './taskType/taskTypeOperations';
+import { supabase } from './supabaseClient';
 
 // Import data types
 export interface ImportData {
@@ -28,7 +29,7 @@ export interface ImportData {
 }
 
 export interface ImportOptions {
-  format: 'json' | 'csv' | 'ics';
+  format: 'csv' | 'ics';
   preview?: boolean;
   skipDuplicates?: boolean;
   conflictResolution?: 'skip' | 'overwrite' | 'merge' | 'prompt';
@@ -121,64 +122,47 @@ export class ImportService {
   }
 
   /**
-   * Import data from JSON file (complete data restore)
+   * Secure server-side file validation
    */
-  async importJSON(
+  private async validateFileSecurely(
     file: File,
-    options: ImportOptions = { format: 'json' },
-    onProgress?: ImportProgressCallback
-  ): Promise<ImportResult> {
+    format: 'csv' | 'ics'
+  ): Promise<{ content: string; warnings: string[] }> {
     try {
-      onProgress?.({ step: 'Reading File', progress: 5, message: 'Reading import file...' });
-
-      const fileContent = await this.readFileContent(file);
-      let exportData: ExportData;
-
-      try {
-        exportData = JSON.parse(fileContent);
-      } catch (parseError) {
-        throw new Error('Invalid JSON format in import file');
+      // Convert file to base64
+      const fileContent = await this.readFileAsBase64(file);
+      
+      // Get auth session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentication required for secure import');
       }
 
-      onProgress?.({ step: 'Validating', progress: 15, message: 'Validating import data...' });
-
-      // Validate the export data structure
-      const validation = await this.validateExportData(exportData, options);
-      if (!validation.isValid && !options.preview) {
-        throw new Error(`Validation failed: ${validation.errors.map(e => e.message).join(', ')}`);
-      }
-
-      onProgress?.({ step: 'Analyzing', progress: 25, message: 'Analyzing data for conflicts...' });
-
-      // Check for conflicts with existing data
-      const conflicts = await this.detectConflicts(exportData, options);
-
-      if (options.preview) {
-        return {
-          success: true,
-          summary: this.createImportSummary(exportData, 0, 0, 0, 0, 0),
-          errors: validation.errors,
-          conflicts
-        };
-      }
-
-      onProgress?.({ step: 'Importing', progress: 40, message: 'Starting data import...' });
-
-      // Perform the actual import
-      const result = await this.performImport(exportData, options, onProgress);
-
-      onProgress?.({ step: 'Complete', progress: 100, message: 'Import completed successfully!' });
-
-      logger.info('JSON import completed', { 
-        imported: result.summary.imported,
-        skipped: result.summary.skipped,
-        errors: result.errors.length
+      // Send to secure validation endpoint
+      const { data, error } = await supabase.functions.invoke('secure-import', {
+        body: {
+          file: fileContent,
+          filename: file.name,
+          contentType: file.type,
+          format: format
+        }
       });
 
-      return result;
+      if (error) {
+        throw new Error(error.message || 'Server-side validation failed');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Security validation failed');
+      }
+
+      return {
+        content: data.content,
+        warnings: data.warnings || []
+      };
     } catch (error) {
-      logger.error('JSON import failed', error);
-      throw errorHandler.handle(error as Error, 'importJSON');
+      logger.error('Secure file validation failed', error);
+      throw new Error(`Security validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -191,9 +175,17 @@ export class ImportService {
     onProgress?: ImportProgressCallback
   ): Promise<ImportResult> {
     try {
-      onProgress?.({ step: 'Reading CSV', progress: 10, message: 'Parsing CSV file...' });
+      onProgress?.({ step: 'Security Check', progress: 10, message: 'Validating file security...' });
 
-      const fileContent = await this.readFileContent(file);
+      // Secure server-side validation
+      const { content: fileContent, warnings } = await this.validateFileSecurely(file, 'csv');
+      
+      if (warnings.length > 0) {
+        logger.warn('CSV import warnings', warnings);
+      }
+
+      onProgress?.({ step: 'Parsing CSV', progress: 20, message: 'Parsing CSV file...' });
+
       const csvData = this.parseCSV(fileContent);
 
       if (csvData.length === 0) {
@@ -275,9 +267,17 @@ export class ImportService {
     onProgress?: ImportProgressCallback
   ): Promise<ImportResult> {
     try {
-      onProgress?.({ step: 'Reading ICS', progress: 10, message: 'Parsing ICS calendar file...' });
+      onProgress?.({ step: 'Security Check', progress: 10, message: 'Validating file security...' });
 
-      const fileContent = await this.readFileContent(file);
+      // Secure server-side validation
+      const { content: fileContent, warnings } = await this.validateFileSecurely(file, 'ics');
+      
+      if (warnings.length > 0) {
+        logger.warn('ICS import warnings', warnings);
+      }
+
+      onProgress?.({ step: 'Parsing ICS', progress: 20, message: 'Parsing ICS calendar file...' });
+
       const events = this.parseICS(fileContent);
 
       onProgress?.({ step: 'Converting', progress: 40, message: 'Converting calendar events to tasks...' });
@@ -350,9 +350,6 @@ export class ImportService {
       let result: ImportResult;
       
       switch (options.format) {
-        case 'json':
-          result = await this.importJSON(file, previewOptions);
-          break;
         case 'csv':
           result = await this.importTasksCSV(file, previewOptions);
           break;
@@ -366,20 +363,11 @@ export class ImportService {
       const fileContent = await this.readFileContent(file);
       let data: ImportData;
 
-      if (options.format === 'json') {
-        const exportData: ExportData = JSON.parse(fileContent);
-        data = {
-          tasks: exportData.tasks || [],
-          classes: exportData.classes || [],
-          taskTypes: exportData.taskTypes || []
-        };
-      } else {
-        data = {
-          tasks: [], // Will be populated by the specific parsers
-          classes: [],
-          taskTypes: []
-        };
-      }
+      data = {
+        tasks: [], // Will be populated by the specific parsers
+        classes: [],
+        taskTypes: []
+      };
 
       return {
         valid: result.success && result.errors.length === 0,
@@ -415,54 +403,18 @@ export class ImportService {
     });
   }
 
-  private async validateExportData(data: ExportData, options: ImportOptions): Promise<ValidationResult> {
-    const errors: ImportError[] = [];
-    const warnings: ImportError[] = [];
-
-    // Check version compatibility
-    if (!data.version || data.version !== '1.0') {
-      warnings.push({
-        type: 'format',
-        item: 'Export version',
-        message: `Unknown export version: ${data.version}. Import may not work correctly.`,
-        severity: 'medium'
-      });
-    }
-
-    // Validate required fields
-    if (!data.tasks || !Array.isArray(data.tasks)) {
-      errors.push({
-        type: 'format',
-        item: 'Tasks data',
-        message: 'Missing or invalid tasks data in export file',
-        severity: 'high'
-      });
-    }
-
-    if (!data.classes || !Array.isArray(data.classes)) {
-      warnings.push({
-        type: 'format',
-        item: 'Classes data',
-        message: 'Missing classes data in export file',
-        severity: 'low'
-      });
-    }
-
-    // Validate individual tasks
-    if (data.tasks) {
-      for (let i = 0; i < data.tasks.length; i++) {
-        const task = data.tasks[i];
-        const taskErrors = this.validateTask(task, `Task ${i + 1}`);
-        errors.push(...taskErrors);
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings
-    };
+  private async readFileAsBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = (e.target?.result as string).split(',')[1]; // Remove data:xxx;base64, prefix
+        resolve(base64);
+      };
+      reader.onerror = () => reject(new Error('Failed to read file as base64'));
+      reader.readAsDataURL(file);
+    });
   }
+
 
   private validateTask(task: any, itemName: string): ImportError[] {
     const errors: ImportError[] = [];
@@ -517,200 +469,7 @@ export class ImportService {
     };
   }
 
-  private async detectConflicts(data: ExportData, options: ImportOptions): Promise<ImportConflict[]> {
-    const conflicts: ImportConflict[] = [];
-    const user = await getCurrentUser();
-    
-    if (!user) return conflicts;
 
-    // Get existing data
-    const existingClasses = await getClasses(user.id, true);
-    const existingTaskTypes = await getTaskTypes(user.id, true);
-
-    // Check for class name conflicts
-    if (data.classes) {
-      for (const importedClass of data.classes) {
-        const existing = existingClasses.find(c => 
-          c.name.toLowerCase() === importedClass.name.toLowerCase()
-        );
-        
-        if (existing) {
-          conflicts.push({
-            type: 'class',
-            existing,
-            imported: importedClass,
-            field: 'name',
-            suggestedResolution: 'merge'
-          });
-        }
-      }
-    }
-
-    // Check for task type conflicts
-    if (data.taskTypes) {
-      for (const importedType of data.taskTypes) {
-        const existing = existingTaskTypes.find(t => 
-          t.name.toLowerCase() === importedType.name.toLowerCase()
-        );
-        
-        if (existing) {
-          conflicts.push({
-            type: 'taskType',
-            existing,
-            imported: importedType,
-            field: 'name',
-            suggestedResolution: 'merge'
-          });
-        }
-      }
-    }
-
-    return conflicts;
-  }
-
-  private async performImport(
-    data: ExportData,
-    options: ImportOptions,
-    onProgress?: ImportProgressCallback
-  ): Promise<ImportResult> {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
-    let totalSteps = 0;
-    let currentStep = 0;
-    const errors: ImportError[] = [];
-    
-    // Count total steps
-    if (data.classes) totalSteps += data.classes.length;
-    if (data.taskTypes) totalSteps += data.taskTypes.length;
-    if (data.tasks) totalSteps += data.tasks.length;
-
-    let importedClasses = 0;
-    let importedTaskTypes = 0;
-    let importedTasks = 0;
-    let skippedItems = 0;
-
-    // Import classes first
-    if (data.classes) {
-      onProgress?.({ step: 'Importing Classes', progress: 40, message: 'Importing classes...' });
-      
-      for (const classData of data.classes) {
-        try {
-          const classInsert: ClassInsert = {
-            ...classData,
-            user_id: user.id,
-            id: undefined // Let database generate new ID
-          };
-          
-          await addClass(classInsert);
-          importedClasses++;
-        } catch (error) {
-          skippedItems++;
-          errors.push({
-            type: 'database',
-            item: `Class: ${classData.name}`,
-            message: error instanceof Error ? error.message : 'Unknown error',
-            severity: 'medium'
-          });
-        }
-        
-        currentStep++;
-        onProgress?.({
-          step: 'Importing Classes',
-          progress: 40 + Math.floor((currentStep / totalSteps) * 30),
-          message: `Imported ${importedClasses} classes...`,
-          processed: currentStep,
-          total: totalSteps
-        });
-      }
-    }
-
-    // Import task types
-    if (data.taskTypes) {
-      onProgress?.({ step: 'Importing Task Types', progress: 60, message: 'Importing task types...' });
-      
-      for (const typeData of data.taskTypes) {
-        try {
-          const typeInsert: TaskTypeInsert = {
-            ...typeData,
-            user_id: user.id,
-            id: undefined // Let database generate new ID
-          };
-          
-          await addTaskType(typeInsert);
-          importedTaskTypes++;
-        } catch (error) {
-          skippedItems++;
-          errors.push({
-            type: 'database',
-            item: `Task Type: ${typeData.name}`,
-            message: error instanceof Error ? error.message : 'Unknown error',
-            severity: 'medium'
-          });
-        }
-        
-        currentStep++;
-        onProgress?.({
-          step: 'Importing Task Types',
-          progress: 60 + Math.floor((currentStep / totalSteps) * 20),
-          message: `Imported ${importedTaskTypes} task types...`,
-          processed: currentStep,
-          total: totalSteps
-        });
-      }
-    }
-
-    // Import tasks last (they depend on classes and task types)
-    if (data.tasks) {
-      onProgress?.({ step: 'Importing Tasks', progress: 80, message: 'Importing tasks...' });
-      
-      for (const taskData of data.tasks) {
-        try {
-          const taskInsert: TaskInsert = {
-            ...taskData,
-            user_id: user.id,
-            id: undefined // Let database generate new ID
-          };
-          
-          await addTask(taskInsert);
-          importedTasks++;
-        } catch (error) {
-          skippedItems++;
-          errors.push({
-            type: 'database',
-            item: `Task: ${taskData.title}`,
-            message: error instanceof Error ? error.message : 'Unknown error',
-            severity: 'medium'
-          });
-        }
-        
-        currentStep++;
-        onProgress?.({
-          step: 'Importing Tasks',
-          progress: 80 + Math.floor((currentStep / totalSteps) * 15),
-          message: `Imported ${importedTasks} tasks...`,
-          processed: currentStep,
-          total: totalSteps
-        });
-      }
-    }
-
-    return {
-      success: true,
-      summary: this.createImportSummary(
-        data,
-        importedTasks,
-        importedClasses,
-        importedTaskTypes,
-        skippedItems,
-        errors.length
-      ),
-      errors,
-      conflicts: []
-    };
-  }
 
   private parseCSV(content: string): string[][] {
     const lines = content.split('\n');

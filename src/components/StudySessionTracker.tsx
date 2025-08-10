@@ -8,7 +8,7 @@ interface StudySessionTrackerProps {
   className?: string;
 }
 
-export const StudySessionTracker: React.FC<StudySessionTrackerProps> = ({ 
+export const StudySessionTracker: React.FC<StudySessionTrackerProps> = React.memo(({ 
   taskId, 
   className = '' 
 }) => {
@@ -335,4 +335,4 @@ export const StudySessionTracker: React.FC<StudySessionTrackerProps> = ({
       )}
     </div>
   );
-};
+});

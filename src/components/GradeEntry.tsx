@@ -21,6 +21,7 @@ import type {
   ClassGpaInfoInsert,
   AppSettings
 } from '../types/database';
+import { logger } from '../utils/logger';
 
 interface GradeEntryProps {
   onGradeAdded?: () => void;
@@ -99,7 +100,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
           setSelectedClassId(classesData[0].id);
         }
       } catch (error) {
-        console.error('Error loading classes:', error);
+        logger.error('Error loading classes', { error });
       }
     };
 
@@ -119,7 +120,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
           setAssignmentForm(prev => ({ ...prev, categoryId: categoriesData[0].id }));
         }
       } catch (error) {
-        console.error('Error loading categories:', error);
+        logger.error('Error loading categories', { error });
       }
     };
 
@@ -190,7 +191,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
 
       onGradeAdded?.();
     } catch (error) {
-      console.error('Error creating assignment and grade:', error);
+      logger.error('Error creating assignment and grade', { error });
       alert('Error creating assignment. Please try again.');
     } finally {
       setLoading(false);
@@ -227,7 +228,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
         setActiveTab('assignment');
       }
     } catch (error) {
-      console.error('Error creating category:', error);
+      logger.error('Error creating category', { error });
       alert('Error creating category. Please try again.');
     } finally {
       setLoading(false);
@@ -255,7 +256,7 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
       // Switch to assignment tab after setup
       setActiveTab('assignment');
     } catch (error) {
-      console.error('Error setting up class:', error);
+      logger.error('Error setting up class', { error });
       alert('Error setting up class. Please try again.');
     } finally {
       setLoading(false);
@@ -704,4 +705,4 @@ const GradeEntry: React.FC<GradeEntryProps> = ({ onGradeAdded, initialClassId })
   );
 };
 
-export default GradeEntry;
+export default React.memo(GradeEntry);

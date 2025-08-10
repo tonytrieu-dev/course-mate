@@ -36,6 +36,11 @@ export const features = {
   analytics: getFeatureFlag('SHOW_ANALYTICS'),
   emailVerification: getFeatureFlag('REQUIRE_EMAIL_VERIFICATION'),
   
+  // Advanced feature visibility flags
+  showGradeAnalytics: getFeatureFlag('SHOW_GRADE_ANALYTICS'),
+  showEmailNotifications: getFeatureFlag('SHOW_EMAIL_NOTIFICATIONS'),
+  showAdvancedFeatures: getFeatureFlag('SHOW_ADVANCED_FEATURES'),
+  
   // Convenience flags
   isPersonalMode: isPersonalMode(),
   isSaaSMode: isSaaSMode(),

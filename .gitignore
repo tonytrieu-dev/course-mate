@@ -84,3 +84,5 @@ CLAUDE_HISTORY.md
 NEXT_SESSION_PROMPT.md
 PRODUCTION_LAUNCH_CHECKLIST.md
 supabase/migrations/20250105000000_add_subscription_columns.sql
+src/components/AssignmentImportModal.tsx
+FEATURE_FLAGS.md

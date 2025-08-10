@@ -10,7 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { logger } from '../../utils/logger';
 import { getAvailableTerms, getCurrentAcademicTerm, type AcademicSystem } from '../../utils/academicTermHelpers';
 
-export type ExportFormat = 'json' | 'csv' | 'ics';
+export type ExportFormat = 'pdf' | 'ics' | 'zip';
 
 export interface ExportState {
   isExporting: boolean;
@@ -32,7 +32,7 @@ export const useExportFunctionality = ({ academicSystem }: ExportFunctionalityPr
     error: null
   });
 
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('pdf');
   const [exportOptions, setExportOptions] = useState({
     includeCompleted: true,
     startDate: '',
@@ -73,22 +73,22 @@ export const useExportFunctionality = ({ academicSystem }: ExportFunctionalityPr
       let filename: string;
 
       switch (format) {
-        case 'json':
-          blob = await exportService.exportJSON(options, onProgress);
-          filename = generateExportFilename('json', 'complete', {
+        case 'pdf':
+          blob = await exportService.exportPDF(options, onProgress);
+          filename = generateExportFilename('pdf', 'academic-report', {
             semester: exportOptions.semester,
             year: exportOptions.semester ? exportOptions.year : undefined
           });
           break;
 
-        case 'csv':
-          blob = await exportService.exportGradesCSV(options, onProgress);
-          filename = generateExportFilename('csv', 'grades');
-          break;
-
         case 'ics':
           blob = await exportService.exportCalendarICS(options, onProgress);
           filename = generateExportFilename('ics', 'calendar');
+          break;
+
+        case 'zip':
+          blob = await exportService.exportUserFiles(onProgress);
+          filename = generateExportFilename('zip', 'user-files');
           break;
 
         default:
@@ -203,11 +203,11 @@ export const ExportTab: React.FC<ExportTabProps> = ({
         <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">
           Export Format
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { value: 'json', label: 'Complete Backup', desc: 'Full data backup (JSON)', icon: '📁' },
-            { value: 'csv', label: 'Grade Report', desc: 'Grades and transcripts (CSV)', icon: '📊' },
-            { value: 'ics', label: 'Calendar', desc: 'Academic calendar (ICS)', icon: '📅' }
+            { value: 'pdf', label: 'Academic Report', desc: 'Formatted PDF report', icon: '📄' },
+            { value: 'ics', label: 'Calendar', desc: 'Academic calendar (ICS)', icon: '📅' },
+            { value: 'zip', label: 'File Archive', desc: 'All uploaded files (ZIP)', icon: '📦' }
           ].map((format) => (
             <button
               key={format.value}

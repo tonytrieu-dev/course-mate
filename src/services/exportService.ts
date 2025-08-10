@@ -13,6 +13,8 @@ import { getTasks } from './task/taskOperations';
 import { getClasses } from './class/classOperations';
 import { getTaskTypes } from './taskType/taskTypeOperations';
 import { getCurrentUser } from './authService';
+import { supabase } from './supabaseClient';
+import * as JSZip from 'jszip';
 import { getTermDateRange, parseTermFromString, type AcademicTerm, type AcademicSystem } from '../utils/academicTermHelpers';
 
 // Export data structure types
@@ -30,7 +32,7 @@ export interface ExportData {
 }
 
 export interface ExportOptions {
-  format: 'json' | 'csv' | 'ics' | 'pdf';
+  format: 'json' | 'csv' | 'ics' | 'pdf' | 'zip';
   includeCompleted?: boolean;
   startDate?: Date;
   endDate?: Date;
@@ -372,8 +374,9 @@ export class ExportService {
     year: number,
     onProgress?: ExportProgressCallback
   ): Promise<Blob> {
-    // Maintain backward compatibility by delegating to the new method
-    return this.exportTermArchive(semester, year, 'semester', onProgress);
+    // Auto-detect academic system from term name
+    const academicSystem = semester.includes('Quarter') ? 'quarter' : 'semester';
+    return this.exportTermArchive(semester, year, academicSystem, onProgress);
   }
 
   /**
@@ -444,6 +447,292 @@ export class ExportService {
 
   private formatICSDate(date: Date): string {
     return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  }
+
+  /**
+   * Export all user's uploaded files as ZIP archive
+   */
+  async exportUserFiles(
+    onProgress?: ExportProgressCallback
+  ): Promise<Blob> {
+    try {
+      onProgress?.({ step: 'Authenticating', progress: 10, message: 'Verifying user authentication...' });
+      
+      const user = await getCurrentUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      onProgress?.({ step: 'Finding Files', progress: 25, message: 'Loading uploaded files...' });
+      
+      const userFiles = await this.getAllUserFiles(user.id);
+      
+      if (userFiles.length === 0) {
+        // Create empty ZIP with a readme
+        const readmeContent = 'No files found to export.\nUpload some syllabi or documents to see them here.';
+        const blob = new Blob([readmeContent], { type: 'text/plain' });
+        return blob;
+      }
+
+      onProgress?.({ step: 'Downloading Files', progress: 50, message: `Downloading ${userFiles.length} files...` });
+
+      // Create ZIP archive with JSZip
+      const zip = new JSZip();
+      
+      // Create a README file
+      const readmeContent = `ScheduleBud Files Export
+Generated on: ${new Date().toLocaleString()}
+Total files: ${userFiles.length}
+
+This archive contains all your uploaded files organized by class.
+`;
+      zip.file('README.txt', readmeContent);
+
+      // Group files by class and download them
+      const classFolders = new Map<string, typeof userFiles>();
+      userFiles.forEach(file => {
+        const className = file.className || 'Unassigned';
+        if (!classFolders.has(className)) {
+          classFolders.set(className, []);
+        }
+        classFolders.get(className)!.push(file);
+      });
+
+      let processedFiles = 0;
+      for (const [className, classFiles] of Array.from(classFolders.entries())) {
+        // Create folder for each class
+        const classFolder = zip.folder(className);
+        
+        if (classFolder) {
+          for (const file of classFiles) {
+            try {
+              // Download file content from Supabase storage
+              const fileContent = await this.downloadFileFromStorage(file.path);
+              
+              if (fileContent.length > 0) {
+                classFolder.file(file.name, fileContent);
+                logger.info('Added file to ZIP', { fileName: file.name, className });
+              } else {
+                // Add placeholder for empty/failed files
+                classFolder.file(`${file.name}.txt`, `Failed to download: ${file.name}\nFile may have been moved or deleted.`);
+                logger.warn('Failed to download file, added placeholder', { fileName: file.name });
+              }
+            } catch (error) {
+              let errorMessage = 'Unknown error';
+              if (error instanceof Error) {
+                errorMessage = error.message;
+              } else if (typeof error === 'object' && error !== null) {
+                errorMessage = JSON.stringify(error, Object.getOwnPropertyNames(error));
+              } else {
+                errorMessage = String(error);
+              }
+              
+              logger.error('Error downloading file for ZIP', { 
+                fileName: file.name, 
+                error: errorMessage,
+                errorType: typeof error,
+                errorConstructor: error?.constructor?.name 
+              });
+              
+              // Add detailed error info to ZIP
+              classFolder.file(`${file.name}_ERROR.txt`, 
+                `Error downloading ${file.name}:\n\n` +
+                `Error Message: ${errorMessage}\n` +
+                `Error Type: ${typeof error}\n` +
+                `File Path: ${file.path}\n` +
+                `Timestamp: ${new Date().toISOString()}\n\n` +
+                `This error occurred during ZIP export. The file may have been:\n` +
+                `- Moved to a different storage location\n` +
+                `- Deleted from storage\n` +
+                `- Corrupted during upload\n` +
+                `- Access permissions changed\n\n` +
+                `Please try re-uploading this file if needed.`
+              );
+            }
+            
+            processedFiles++;
+            const downloadProgress = 50 + Math.floor((processedFiles / userFiles.length) * 30);
+            onProgress?.({ 
+              step: 'Downloading Files', 
+              progress: downloadProgress, 
+              message: `Downloaded ${processedFiles}/${userFiles.length} files...` 
+            });
+          }
+        }
+      }
+
+      onProgress?.({ step: 'Creating Archive', progress: 90, message: 'Creating ZIP archive...' });
+      
+      // Generate ZIP blob
+      const zipBlob = await zip.generateAsync({ 
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+
+      onProgress?.({ step: 'Complete', progress: 100, message: 'Files export complete!' });
+
+      logger.info('User files export completed', { 
+        userId: user.id, 
+        fileCount: userFiles.length 
+      });
+
+      return zipBlob;
+    } catch (error) {
+      logger.error('User files export failed', error);
+      throw errorHandler.handle(error as Error, 'exportUserFiles');
+    }
+  }
+
+  /**
+   * Get all files uploaded by a user
+   */
+  private async getAllUserFiles(userId: string): Promise<Array<{
+    id: string;
+    name: string;
+    path: string;
+    size: number;
+    className?: string;
+    uploaded_at: string;
+  }>> {
+    try {
+      logger.info('Getting all user files', { userId });
+      
+      // Query class_files table with join to classes table for class names
+      const { data: files, error } = await supabase
+        .from('class_files')
+        .select(`
+          id,
+          name,
+          path,
+          size,
+          uploaded_at,
+          classes (
+            name
+          )
+        `)
+        .eq('owner', userId)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        logger.error('Supabase query error for user files', error);
+        throw error;
+      }
+
+      if (!files || files.length === 0) {
+        logger.info('No files found for user', { userId });
+        return [];
+      }
+
+      // Transform the data to match our interface
+      const userFiles = files.map(file => ({
+        id: file.id,
+        name: file.name,
+        path: file.path,
+        size: file.size || 0,
+        className: (file.classes as any)?.name || 'Unknown Class',
+        uploaded_at: file.uploaded_at
+      }));
+
+      logger.info('Successfully retrieved user files', { 
+        userId, 
+        fileCount: userFiles.length 
+      });
+
+      return userFiles;
+    } catch (error) {
+      logger.error('Failed to get user files', error);
+      return [];
+    }
+  }
+
+  /**
+   * Download file content from Supabase storage
+   */
+  private async downloadFileFromStorage(filePath: string): Promise<Uint8Array> {
+    try {
+      logger.info('Downloading file from storage', { filePath });
+      
+      // Determine correct bucket based on file path and name
+      // Match the same logic as fileService.ts for consistency
+      const isSyllabusFile = filePath.includes('syllabus') || 
+                            filePath.includes('Syllabus') || 
+                            filePath.includes('syllabi/') || 
+                            filePath.includes('secure-syllabi');
+      
+      const bucketName = isSyllabusFile ? 'secure-syllabi' : 'class-materials';
+      
+      if (isSyllabusFile) {
+        logger.info('Using secure-syllabi bucket for syllabus file', { filePath, isSyllabusFile });
+      } else {
+        logger.info('Using class-materials bucket for regular class file', { filePath, isSyllabusFile });
+      }
+      
+      logger.debug('Using storage bucket for download', { filePath, bucketName });
+      
+      // Clean up file path - remove bucket name if it's included in the path
+      let cleanedPath = filePath;
+      
+      // Handle different possible path formats
+      if (filePath.startsWith('secure-syllabi/')) {
+        cleanedPath = filePath.replace('secure-syllabi/', '');
+      } else if (filePath.startsWith('class-materials/')) {
+        cleanedPath = filePath.replace('class-materials/', '');
+      } else if (filePath.startsWith('/')) {
+        // Remove leading slash if present
+        cleanedPath = filePath.substring(1);
+      }
+      
+      // Additional validation - ensure we have a valid file path
+      if (!cleanedPath || cleanedPath === filePath.replace(/^\/+/, '')) {
+        logger.debug('No path cleaning needed', { originalPath: filePath, cleanedPath, bucketName });
+      } else {
+        logger.debug('Cleaned file path', { originalPath: filePath, cleanedPath, bucketName });
+      }
+      
+      // Validate that we have a reasonable file path
+      if (!cleanedPath || cleanedPath.length === 0) {
+        throw new Error(`Invalid file path after cleaning: "${filePath}" → "${cleanedPath}"`);
+      }
+      
+      // Download file from Supabase storage
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .download(cleanedPath);
+
+      if (error) {
+        logger.error('Supabase storage download error', { 
+          originalPath: filePath,
+          cleanedPath,
+          bucketName, 
+          error: error.message,
+          errorDetails: JSON.stringify(error)
+        });
+        throw new Error(`Storage download failed: ${error.message} - File: ${cleanedPath} in bucket: ${bucketName}`);
+      }
+
+      if (!data) {
+        logger.warn('No file data returned from storage', { originalPath: filePath, cleanedPath, bucketName });
+        throw new Error(`No file data returned from storage - File: ${cleanedPath} in bucket: ${bucketName}`);
+      }
+
+      // Convert blob to Uint8Array
+      const arrayBuffer = await data.arrayBuffer();
+      const result = new Uint8Array(arrayBuffer as ArrayBuffer);
+      logger.info('Successfully downloaded file', { 
+        originalPath: filePath, 
+        cleanedPath, 
+        bucketName, 
+        sizeBytes: result.length 
+      });
+      return result;
+    } catch (error) {
+      logger.error('Failed to download file from storage', { 
+        originalPath: filePath, 
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    }
   }
 }
 

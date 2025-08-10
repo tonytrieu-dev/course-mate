@@ -167,27 +167,6 @@ export const SettingsLoadingFallback: React.FC = () => (
   </div>
 );
 
-// Study Analytics Loading Skeleton
-export const StudyAnalyticsLoadingFallback: React.FC = () => (
-  <div className="space-y-6" role="status" aria-label="Loading analytics">
-    {/* Metrics Row */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="p-4 border border-gray-200 rounded-lg space-y-2 bg-white">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-6 w-16" />
-        </div>
-      ))}
-    </div>
-    
-    {/* Charts */}
-    <div className="space-y-4">
-      <Skeleton className="h-8 w-40" />
-      <Skeleton className="h-80" />
-    </div>
-    <span className="sr-only">Loading analytics...</span>
-  </div>
-);
 
 // Generic Small Component Loading
 export const SmallComponentLoadingFallback: React.FC = () => (

@@ -1,4 +1,5 @@
 import React from 'react';
+import { features } from '../../utils/buildConfig';
 import type { SettingsTabNavigationProps, SettingsTabInfo } from './types';
 
 const tabs: SettingsTabInfo[] = [
@@ -10,9 +11,9 @@ const tabs: SettingsTabInfo[] = [
   },
   {
     id: 'canvas',
-    label: 'Canvas Sync',
+    label: 'Canvas Calendar Sync',
     icon: '🔄',
-    description: 'Canvas LMS integration'
+    description: 'Import assignments from your Canvas calendar URL'
   },
   {
     id: 'notifications',
@@ -38,10 +39,21 @@ const SettingsTabNavigation: React.FC<SettingsTabNavigationProps> = ({
   activeTab, 
   onTabChange 
 }) => {
+  // Filter tabs based on feature flags
+  const availableTabs = tabs.filter(tab => {
+    if (tab.id === 'notifications' && !features.showEmailNotifications) {
+      return false;
+    }
+    if (tab.id === 'study-schedule') {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="w-full sm:w-48 lg:w-64 bg-gray-50 dark:bg-slate-800/50 border-b sm:border-b-0 sm:border-r border-gray-200 dark:border-slate-700/50 p-2 sm:p-4">
       <nav className="flex sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 overflow-x-auto sm:overflow-x-visible">
-        {tabs.map((tab) => (
+        {availableTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}

@@ -8,6 +8,16 @@ import { cacheService } from './cacheService';
 import { generateTextHash } from '../utils/fileFingerprinting';
 import type { CachedTaskData, TaskGenerationMetadata } from '../types/cache';
 
+// Import refactored syllabus modules
+import {
+  validateSyllabusForTaskGeneration,
+  callAIAnalysisEdgeFunction,
+  parseGeminiResponse,
+  enhanceLabTasksWithManualDateParsing,
+  determineTaskClass,
+  getOrCreateTaskTypeViaServiceLayer
+} from './syllabus';
+
 // Syllabus task generation configuration
 const TASK_GENERATION_CONFIG = {
   GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
@@ -89,7 +99,7 @@ export class SyllabusTaskGenerationService {
 
     try {
       // SECURITY: Validate syllabus content
-      const securityValidation = await this.validateSyllabusForTaskGeneration(syllabusContent, user.id);
+      const securityValidation = await validateSyllabusForTaskGeneration(syllabusContent, user.id);
       if (!securityValidation.isValid) {
         throw errorHandler.createError(
           'Syllabus content validation failed: ' + securityValidation.errors.join('; '),
@@ -192,14 +202,14 @@ export class SyllabusTaskGenerationService {
       }
       
       // Call AI Analysis Edge Function for task generation
-      const aiResponse = await this.callAIAnalysis({
+      const aiResponse = await callAIAnalysisEdgeFunction({
         syllabusText: syllabusContent,
         className: classInfo?.name || 'Unknown Class',
         courseName: classInfo?.name || 'Unknown Course'
       });
       
       // Parse and validate generated tasks
-      const parsedTasks = this.parseGeminiResponse(aiResponse);
+      const parsedTasks = parseGeminiResponse(aiResponse);
       
       // ENHANCED DEBUG: Log ALL tasks with comprehensive details
       logger.info('🔍 COMPREHENSIVE PARSED TASKS ANALYSIS - EE 123', {
@@ -249,7 +259,7 @@ export class SyllabusTaskGenerationService {
       });
       
       // Apply manual lab date parsing if AI failed to extract dates (DOCUMENT-BASED)
-      const enhancedTasks = await this.enhanceLabTasksWithManualDateParsing(parsedTasks, classId);
+      const enhancedTasks = await enhanceLabTasksWithManualDateParsing(parsedTasks, classId);
       
       // CRITICAL VALIDATION STEP - Where labs might be getting filtered
       logger.info('🚨 ENTERING CRITICAL VALIDATION PHASE - EE 123', {

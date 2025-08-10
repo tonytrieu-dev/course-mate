@@ -7,6 +7,7 @@ import UserExperienceSettings from './appearance/UserExperienceSettings';
 import SettingsSaveControls from './controls/SettingsSaveControls';
 import AboutSection from './controls/AboutSection';
 import type { GeneralSettingsTabProps, GeneralSettingsState, SaveStatus } from './types';
+import { logger } from '../../utils/logger';
 
 const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
   isNavCollapsed = false,
@@ -49,7 +50,7 @@ const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
         setOriginalSettings(prev => ({ ...prev, ...parsedSettings }));
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      logger.error('Failed to load settings', { error });
     }
   }, [user]);
 
@@ -97,7 +98,7 @@ const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
       // Clear saved status after 3 seconds
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
-      console.error('Failed to save settings:', error);
+      logger.error('Failed to save settings', { error });
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }

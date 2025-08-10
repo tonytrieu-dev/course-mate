@@ -3,6 +3,7 @@ import React, { useCallback, useState } from 'react';
 import type { ClassWithRelations, ClassSyllabus, ClassFile } from '../types/database';
 import { useFileManager } from '../hooks/useFileManager';
 import { SyllabusUploadModal } from './SyllabusUploadModal';
+import { logger } from '../utils/logger';
 
 interface SyllabusModalProps {
   show: boolean;
@@ -82,7 +83,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
   const handleTasksGenerated = useCallback((taskCount: number) => {
     // Handle successful task generation
     if (process.env.NODE_ENV === 'development') {
-      console.log(`Successfully generated ${taskCount} tasks from syllabus`);
+      logger.info(`Successfully generated ${taskCount} tasks from syllabus`);
     }
     
     // Trigger task refresh to show new tasks in the UI
@@ -252,7 +253,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                   Lecture notes, assignments, presentations, and other course materials
                 </p>
                 <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                  PDF, DOC, PPT, XLS, JPG, PNG, ZIP files supported
+                  PDF, DOCX, JPG, PNG, TXT files supported
                 </p>
               </div>
 
@@ -260,7 +261,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
               <div className="relative">
                 <input
                   type="file"
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip"
+                  accept=".pdf,.docx,.jpg,.jpeg,.png,.txt"
                   onChange={handleFileUpload}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   id="file-upload"
@@ -382,4 +383,4 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
   );
 };
 
-export default SyllabusModal;
+export default React.memo(SyllabusModal);

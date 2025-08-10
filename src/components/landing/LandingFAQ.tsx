@@ -59,9 +59,9 @@ const LandingFAQ: React.FC = () => {
           
           <div className="space-y-4">
             {faqData.map((faq, index) => (
-              <div key={index} className="backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.01]" style={{backgroundColor: 'rgba(255, 248, 220, 0.98)', border: '1px solid rgba(156, 175, 136, 0.5)', '--hover-border': 'rgba(37, 99, 235, 0.7)'}}>
+              <div key={index} className="backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.01]" style={{backgroundColor: 'rgba(255, 248, 220, 0.98)', border: '1px solid rgba(156, 175, 136, 0.5)'} as React.CSSProperties}>
                 <button
-                  className="w-full px-6 py-5 text-left focus:outline-none transition-all duration-200" style={{'--hover-bg': 'rgba(37, 99, 235, 0.05)'}}
+                  className="w-full px-6 py-5 text-left focus:outline-none transition-all duration-200"
                   onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
                   aria-expanded={openFaqIndex === index}
                 >

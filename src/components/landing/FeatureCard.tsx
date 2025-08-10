@@ -119,8 +119,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           <div className="flex flex-wrap gap-3 mb-6">
             {features.map((feature, index) => (
               <div key={index} className="flex items-center bg-white/80 border border-[var(--primary-cream)] rounded-full px-4 py-2 shadow-md">
-                <div className="w-4 h-4 bg-[var(--accent-sage)]/20 text-[var(--accent-sage)] rounded-full flex items-center justify-center mr-3">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-6 h-6 bg-[var(--accent-sage)]/20 text-[var(--accent-sage)] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -183,12 +183,12 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           <div className="p-6 pt-4 space-y-3">
             {features.map((feature, index) => (
               <div key={index} className="flex items-start">
-                <div className="w-5 h-5 bg-[var(--accent-sage)]/20 text-[var(--accent-sage)] rounded-lg flex items-center justify-center mr-3 mt-0.5">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-7 h-7 bg-[var(--accent-sage)]/20 text-[var(--accent-sage)] rounded-lg flex items-center justify-center mr-4 mt-0.5 flex-shrink-0">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-slate-700 text-sm font-medium">{feature}</span>
+                <span className="text-slate-700 text-sm font-medium leading-relaxed">{feature}</span>
               </div>
             ))}
           </div>
@@ -256,12 +256,12 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           <div className="space-y-3">
             {features.map((feature, index) => (
               <div key={index} className="flex items-start">
-                <div className="w-5 h-5 bg-[var(--accent-sage)]/20 text-[var(--accent-sage)] rounded-lg flex items-center justify-center mr-3 mt-0.5">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-7 h-7 bg-[var(--accent-sage)]/20 text-[var(--accent-sage)] rounded-lg flex items-center justify-center mr-4 mt-0.5 flex-shrink-0">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-slate-700 text-sm font-medium">{feature}</span>
+                <span className="text-slate-700 text-sm font-medium leading-relaxed">{feature}</span>
               </div>
             ))}
           </div>
@@ -288,12 +288,12 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         <div className="space-y-3">
           {features.map((feature, index) => (
             <div key={index} className="flex items-start">
-              <div className={`w-5 h-5 ${colors.checkmark} rounded-lg flex items-center justify-center mr-3 mt-0.5`}>
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <div className={`w-7 h-7 ${colors.checkmark} rounded-lg flex items-center justify-center mr-4 mt-0.5 flex-shrink-0`}>
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className={`${colors.textSecondary} text-sm font-medium`}>{feature}</span>
+              <span className={`${colors.textSecondary} text-sm font-medium leading-relaxed`}>{feature}</span>
             </div>
           ))}
         </div>

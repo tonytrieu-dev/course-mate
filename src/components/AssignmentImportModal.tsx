@@ -4,7 +4,8 @@ import { SyllabusUploadModal } from './SyllabusUploadModal';
 import { fetchCanvasCalendar } from '../services/canvasService';
 import { integrateCanvasTasksWithGrades } from '../services/grade/canvasGradeIntegration';
 import { getClasses } from '../services/class/classOperations';
-import { getTasks } from '../services/dataService';
+import taskService from '../services/taskService';
+import { logger } from '../utils/logger';
 import type { Class } from '../types/database';
 
 interface AssignmentImportModalProps {
@@ -69,12 +70,12 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
     },
     {
       id: 'canvas',
-      title: '📅 Canvas Integration',
-      description: 'Import assignments from your Canvas calendar and convert to gradeable assignments',
+      title: '📅 Canvas Calendar Import',
+      description: 'Import assignments from your Canvas calendar feed and convert to gradeable assignments',
       icon: '🔗',
       benefits: [
-        'Syncs with your Canvas calendar',
-        'Imports all assignment due dates',
+        'Imports from Canvas ICS calendar feed',
+        'Parses all assignment due dates',
         'Converts to gradeable assignments',
         'Maintains Canvas assignment details',
         'Great for ongoing semester management'
@@ -82,7 +83,7 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
       requirements: [
         'Canvas ICS calendar URL',
         'Active Canvas assignments',
-        'Existing Canvas integration setup'
+        'Existing Canvas calendar sync setup'
       ]
     }
   ];
@@ -96,7 +97,7 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
         const classesData = await getClasses(user.id, isAuthenticated);
         setClasses(classesData);
       } catch (error) {
-        console.error('Error loading classes:', error);
+        logger.error('Error loading classes', { error });
       }
     };
 
@@ -138,7 +139,7 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
     
     try {
       // Step 1: Check for existing Canvas tasks
-      const existingTasks = await getTasks(user.id, isAuthenticated);
+      const existingTasks = taskService.getCurrentTasks();
       const canvasTasks = existingTasks.filter(task => task.canvas_uid);
       
       setCanvasImportSteps(prev => prev.map(step => 
@@ -146,7 +147,7 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
       ));
 
       if (canvasTasks.length === 0) {
-        throw new Error('No Canvas tasks found. Please import Canvas calendar first from Settings → Canvas Sync');
+        throw new Error('No Canvas tasks found. Please import Canvas calendar first from Settings → Canvas Calendar Sync');
       }
 
       // Step 2: Analyze and integrate tasks
@@ -175,7 +176,7 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
       }
 
     } catch (error) {
-      console.error('Canvas import error:', error);
+      logger.error('Canvas import error', { error });
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setImportResults({
         tasksImported: 0,
@@ -382,8 +383,8 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
                     </svg>
                   </button>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">📅 Canvas Integration</h3>
-                    <p className="text-gray-600 dark:text-slate-400">Convert Canvas tasks to gradeable assignments</p>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">📅 Canvas Calendar Import</h3>
+                    <p className="text-gray-600 dark:text-slate-400">Convert Canvas calendar tasks to gradeable assignments</p>
                   </div>
                 </div>
 
@@ -474,7 +475,7 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
                 {/* Action Buttons */}
                 <div className="flex justify-between">
                   <div className="text-sm text-gray-600 dark:text-slate-400">
-                    Make sure you've imported Canvas calendar first in Settings → Canvas Sync
+                    Make sure you've imported Canvas calendar first in Settings → Canvas Calendar Sync
                   </div>
                   <button
                     onClick={handleCanvasImport}
@@ -516,4 +517,4 @@ const AssignmentImportModal: React.FC<AssignmentImportModalProps> = ({
   );
 };
 
-export default AssignmentImportModal;
+export default React.memo(AssignmentImportModal);

@@ -508,6 +508,41 @@ export const fileService = {
       });
     }
 
+    // SECURITY: Validate class file upload for safety
+    logger.debug('Starting security validation for class file upload', {
+      fileName: file.name,
+      fileSize: file.size,
+      mimeType: file.type,
+      classId: classData.id,
+      userId: user.id
+    });
+
+    const fileValidation = SyllabusSecurityService.validateClassFileUpload(file, user);
+    if (!fileValidation.isValid) {
+      SyllabusSecurityService.logSecurityEvent('class_file_validation_failed', {
+        userId: user.id,
+        fileName: file.name,
+        mimeType: file.type,
+        fileSize: file.size,
+        errors: fileValidation.errors,
+        classId: classData.id
+      });
+      throw errorHandler.data.saveFailed({
+        operation: 'uploadClassFile - security validation',
+        details: fileValidation.errors.join(', '),
+        validationErrors: fileValidation.errors
+      });
+    }
+
+    // Log any warnings (non-blocking)
+    if (fileValidation.warnings.length > 0) {
+      logger.warn('Class file upload security warnings', {
+        fileName: file.name,
+        warnings: fileValidation.warnings,
+        userId: user.id
+      });
+    }
+
     // Sanitize filename to remove special characters that cause storage issues
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
     const fileName = `${user.id}/${classData.id}/files/${Date.now()}_${sanitizedFileName}`;

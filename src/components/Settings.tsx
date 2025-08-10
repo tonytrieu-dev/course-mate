@@ -4,6 +4,7 @@ import CanvasSettings from './CanvasSettings';
 import StudyScheduleOptimizer from './StudyScheduleOptimizer';
 import ExportImportPanel from './ExportImportPanel';
 import { StudyScheduleProvider } from '../contexts/StudyScheduleContext';
+import { features } from '../utils/buildConfig';
 import {
   SettingsTabNavigation,
   GeneralSettingsTab,
@@ -36,15 +37,9 @@ const Settings: React.FC<SettingsModalProps> = ({
       case 'canvas':
         return <CanvasSettings />;
       case 'notifications':
-        return <NotificationSettings />;
+        return features.showEmailNotifications ? <NotificationSettings /> : null;
       case 'study-schedule':
-        return (
-          <StudyScheduleSettingsTab
-            onOpenOptimizer={() => setShowStudySchedule(true)}
-            user={user || null}
-            classes={classes || []}
-          />
-        );
+        return null;
       case 'export-import':
         return <ExportImportPanel />;
       default:

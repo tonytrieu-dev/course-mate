@@ -7,6 +7,7 @@ import TaskFormFields from "./taskModal/TaskFormFields";
 import ClassManagement from "./taskModal/ClassManagement";
 import TaskTypeManagement from "./taskModal/TaskTypeManagement";
 import { StudySessionTracker } from "./StudySessionTracker";
+import { logger } from "../utils/logger";
 
 export interface TaskData {
   id?: string;
@@ -109,7 +110,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
         await onSubmit(taskData);
       });
     } catch (error) {
-      console.error('Error submitting task:', error);
+      logger.error('Error submitting task', { error });
     } finally {
       setIsSubmitting(false);
     }

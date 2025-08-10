@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import NotificationService from '../services/notificationService';
 import { supabaseConfig } from '../config';
 import type { NotificationSettings as NotificationSettingsType } from '../types/database';
+import { logger } from '../utils/logger';
 
 interface NotificationSettingsProps {
   onClose?: () => void;
@@ -49,7 +50,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
       }
     } catch (err) {
       setError('Failed to load notification settings');
-      console.error('Error loading notification settings:', err);
+      logger.error('Error loading notification settings', { error: err });
     } finally {
       setLoading(false);
     }
@@ -78,7 +79,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
       await loadSettings();
     } catch (err) {
       setError('Failed to save notification settings');
-      console.error('Error saving notification settings:', err);
+      logger.error('Error saving notification settings', { error: err });
     } finally {
       setSaving(false);
     }
@@ -146,7 +147,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
       setSuccess(`✅ Test email sent successfully to ${result.email_address}! Check your inbox.`);
       setTimeout(() => setSuccess(null), 8000);
     } catch (err: any) {
-      console.error('Test email error:', err);
+      logger.error('Test email error', { error: err });
       setError(`Failed to send test email: ${err.message}`);
     } finally {
       setTestEmailSending(false);
@@ -505,7 +506,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
   );
 };
 
-export default NotificationSettings;
+export default React.memo(NotificationSettings);
 
 // Component enhancements:
 // ✅ Modern visual design with gradients and improved layouts

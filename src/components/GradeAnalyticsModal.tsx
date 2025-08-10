@@ -8,6 +8,7 @@ import type {
   ClassGradeInfo,
   AssignmentWithGrade 
 } from '../types/database';
+import { logger } from '../utils/logger';
 
 interface GradeAnalyticsModalProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ const GradeAnalyticsModal: React.FC<GradeAnalyticsModalProps> = ({ isOpen, onClo
         }
         setClassesWithGrades(classesData);
       } catch (error) {
-        console.error('Error loading analytics data:', error);
+        logger.error('Error loading analytics data', { error });
       } finally {
         setLoading(false);
       }

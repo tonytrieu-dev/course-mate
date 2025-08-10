@@ -64,7 +64,7 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 trackEvent('get_started_clicked', { location: 'nav' });
                 onGetStarted();
               }}
-              variant="primary"
+              variant="cta-orange"
               className="font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               ariaLabel="Start using ScheduleBud for free"
               dataTestId="nav-get-started-btn"
@@ -80,7 +80,7 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 onGetStarted();
               }}
               size="sm"
-              variant="primary"
+              variant="cta-orange"
               className="font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-4 py-3 min-h-[44px]"
               ariaLabel="Start using ScheduleBud for free"
               dataTestId="mobile-nav-get-started-btn"

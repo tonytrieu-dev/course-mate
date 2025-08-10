@@ -8,7 +8,7 @@ import {
 } from '../../services/importService';
 import { logger } from '../../utils/logger';
 
-export type ImportFormat = 'json' | 'csv' | 'ics';
+export type ImportFormat = 'csv' | 'ics';
 
 export interface ImportState {
   isImporting: boolean;
@@ -32,7 +32,7 @@ export const useImportFunctionality = () => {
     selectedFile: null
   });
 
-  const [importFormat, setImportFormat] = useState<ImportFormat>('json');
+  const [importFormat, setImportFormat] = useState<ImportFormat>('csv');
   const [importOptions, setImportOptions] = useState<{
     skipDuplicates: boolean;
     validateData: boolean;
@@ -50,17 +50,33 @@ export const useImportFunctionality = () => {
 
     // Auto-detect format from file extension
     const extension = file.name.split('.').pop()?.toLowerCase();
-    if (extension === 'json' || extension === 'csv' || extension === 'ics') {
+    if (extension === 'csv' || extension === 'ics') {
       setImportFormat(extension);
+      setImportState(prev => ({
+        ...prev,
+        selectedFile: file,
+        error: null,
+        preview: null,
+        showPreview: false
+      }));
+    } else if (extension === 'zip' || extension === 'json') {
+      // ZIP and JSON files are not supported for import for security reasons
+      setImportState(prev => ({
+        ...prev,
+        selectedFile: null,
+        error: 'Only CSV and ICS files are supported for import. JSON and ZIP files are blocked for security reasons.',
+        preview: null,
+        showPreview: false
+      }));
+    } else {
+      setImportState(prev => ({
+        ...prev,
+        selectedFile: file,
+        error: null,
+        preview: null,
+        showPreview: false
+      }));
     }
-
-    setImportState(prev => ({
-      ...prev,
-      selectedFile: file,
-      error: null,
-      preview: null,
-      showPreview: false
-    }));
   }, []);
 
   const handlePreviewImport = useCallback(async () => {
@@ -112,9 +128,6 @@ export const useImportFunctionality = () => {
       let result: ImportResult;
 
       switch (importFormat) {
-        case 'json':
-          result = await importService.importJSON(importState.selectedFile, options, onProgress);
-          break;
         case 'csv':
           result = await importService.importTasksCSV(importState.selectedFile, options, onProgress);
           break;
@@ -204,7 +217,7 @@ export const ImportTab: React.FC<ImportTabProps> = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept=".json,.csv,.ics"
+            accept=".csv,.ics"
             onChange={handleFileSelect}
             className="hidden"
           />
@@ -238,7 +251,7 @@ export const ImportTab: React.FC<ImportTabProps> = ({
                 Choose File
               </button>
               <div className="text-xs text-gray-500 dark:text-slate-400">
-                Supported: JSON, CSV, ICS files
+                Supported: CSV, ICS files only (JSON/ZIP blocked for security)
               </div>
             </div>
           )}

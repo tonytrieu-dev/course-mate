@@ -349,4 +349,4 @@ function getWeekStart(date: Date): Date {
   return new Date(start.setDate(diff));
 }
 
-export default StudyScheduleOptimizer;
+export default React.memo(StudyScheduleOptimizer);

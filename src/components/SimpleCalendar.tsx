@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense, JSX } from "react";
-import {
-  getTasks,
-  addTask,
-  updateTask,
-  deleteTask,
-  getTaskTypes,
-} from "../services/dataService";
+import { addTask, updateTask, deleteTask } from "../services/dataService";
 import type { TaskData } from "./TaskModal";
 import { useAuth } from "../contexts/AuthContext";
 import { getEventStyle } from "../utils/taskStyles";
@@ -23,6 +17,8 @@ import {
 import { getDayCellClasses, getViewButtonClasses, getNavButtonClasses, getNavIconClasses } from "../utils/styleHelpers";
 import { validateAuthState } from "../utils/authHelpers";
 import classService from "../services/classService";
+import taskService from "../services/taskService";
+import taskTypeService from "../services/taskTypeService";
 import { logger } from "../utils/logger";
 
 // Lazy load TaskModal for better performance
@@ -110,43 +106,64 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
     }
   }, [user?.id, isAuthenticated]);
 
-  // Load data when auth state is ready (initial load and after Canvas sync)
+  // Initialize services when auth state is ready (initial load and after Canvas sync)
   useEffect(() => {
-    const loadData = async (): Promise<void> => {
+    const initializeServices = async (): Promise<void> => {
       if (!loading && isAuthenticated && user && user.id) {
-        logger.debug('Loading data for user', { userId: user.id, trigger: lastCalendarSyncTimestamp ? 'sync' : 'initial' });
+        logger.debug('Initializing calendar services for user', { userId: user.id, trigger: lastCalendarSyncTimestamp ? 'sync' : 'initial' });
         
-        const fetchedTasks = await getTasks(user.id, isAuthenticated);
-        logger.debug('Fetched tasks from server', { taskCount: fetchedTasks?.length || 0 });
-        setTasks(fetchedTasks || []);
+        // Initialize all services in parallel for better performance
+        await Promise.all([
+          taskService.refreshTasks(user.id, isAuthenticated),
+          classService.refreshClasses(user.id, isAuthenticated),
+          taskTypeService.refreshTaskTypes(user.id, isAuthenticated)
+        ]);
         
-        // Use class service for centralized class management
-        // Force refresh to ensure we get latest classes including new ones
-        const fetchedClasses = await classService.refreshClasses(user.id, isAuthenticated);
-        setClasses(fetchedClasses || []);
-
-        const fetchedTaskTypes = await getTaskTypes(user.id, isAuthenticated);
-        setTaskTypes(fetchedTaskTypes || []);
-
-      } else {
-        logger.debug('Skipping data load - conditions not met', { loading, isAuthenticated, userId: user?.id });
+        // Set initial data from services
+        setTasks(taskService.getCurrentTasks());
+        setClasses(classService.getCurrentClasses());
+        setTaskTypes(taskTypeService.getCurrentTaskTypes());
+        
+        logger.debug('Calendar services initialized', { 
+          taskCount: taskService.getCurrentTasks().length,
+          classCount: classService.getCurrentClasses().length,
+          taskTypeCount: taskTypeService.getCurrentTaskTypes().length
+        });
+      } else if (!isAuthenticated) {
+        // Reset services when not authenticated
+        taskService.reset();
+        classService.reset();
+        taskTypeService.reset();
+        logger.debug('Services reset - user not authenticated');
       }
     };
-    loadData();
+    initializeServices();
   }, [loading, isAuthenticated, user, user?.id, lastCalendarSyncTimestamp]);
 
-  // Subscribe to class changes from the class service
+  // Subscribe to service changes
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      classService.reset();
       return;
     }
 
-    const unsubscribe = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
+    // Subscribe to all services
+    const unsubscribeClasses = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
       setClasses(updatedClasses);
     });
 
-    return unsubscribe;
+    const unsubscribeTasks = taskService.subscribe((updatedTasks: TaskWithMeta[]) => {
+      setTasks(updatedTasks);
+    });
+
+    const unsubscribeTaskTypes = taskTypeService.subscribe((updatedTaskTypes: TaskType[]) => {
+      setTaskTypes(updatedTaskTypes);
+    });
+
+    return () => {
+      unsubscribeClasses();
+      unsubscribeTasks();
+      unsubscribeTaskTypes();
+    };
   }, [isAuthenticated, user]);
 
   // Validate auth state and show appropriate UI

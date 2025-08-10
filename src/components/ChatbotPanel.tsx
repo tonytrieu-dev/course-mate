@@ -3,6 +3,7 @@ import type { ClassWithRelations, Position } from '../types/database';
 import { useChatbot } from '../hooks/useChatbot';
 import { useDragAndResize } from '../hooks/useDragAndResize';
 import ChatbotAutocomplete from './ChatbotAutocomplete';
+import { logger } from '../utils/logger';
 
 interface ChatbotPanelProps {
   selectedClass: ClassWithRelations | null;
@@ -113,7 +114,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
             chatInput.focus();
             
           } catch (error) {
-            console.warn('Error with selection-based insertion:', error);
+            logger.warn('Error with selection-based insertion', { error });
             // Fallback to the old method
             const newText = mentionHook.insertMention(classObj, originalText, currentCursor);
             chatInput.textContent = newText;

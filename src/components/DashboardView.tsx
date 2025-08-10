@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { getTasks, getTaskTypes } from "../services/dataService";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import type { TaskWithMeta, TaskType, ClassWithRelations } from "../types/database";
 import { useAuth } from "../contexts/AuthContext";
 import { getEventStyle } from "../utils/taskStyles";
 import { formatDateForInput, formatTimeForDisplay } from "../utils/dateHelpers";
 import { validateAuthState } from "../utils/authHelpers";
 import classService from "../services/classService";
+import taskService from "../services/taskService";
+import taskTypeService from "../services/taskTypeService";
 import { logger } from "../utils/logger";
 
 interface DashboardStats {
@@ -57,37 +58,57 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   const [classes, setClasses] = useState<ClassWithRelations[]>([]);
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
 
-  // Load data when auth state is ready
+  // Initialize services when auth state is ready
   useEffect(() => {
-    const loadData = async (): Promise<void> => {
+    const initializeServices = async (): Promise<void> => {
       if (!loading && isAuthenticated && user && user.id) {
-        logger.debug('Loading dashboard data for user', { userId: user.id });
+        logger.debug('Initializing dashboard services for user', { userId: user.id });
         
-        const fetchedTasks = await getTasks(user.id, isAuthenticated);
-        setTasks(fetchedTasks || []);
+        // Initialize all services in parallel for better performance
+        await Promise.all([
+          taskService.initialize(user.id, isAuthenticated),
+          classService.initialize(user.id, isAuthenticated),
+          taskTypeService.initialize(user.id, isAuthenticated)
+        ]);
         
-        const fetchedClasses = await classService.refreshClasses(user.id, isAuthenticated);
-        setClasses(fetchedClasses || []);
-        
-        const fetchedTaskTypes = await getTaskTypes(user.id, isAuthenticated);
-        setTaskTypes(fetchedTaskTypes || []);
+        // Set initial data from services
+        setTasks(taskService.getCurrentTasks());
+        setClasses(classService.getCurrentClasses());
+        setTaskTypes(taskTypeService.getCurrentTaskTypes());
+      } else if (!isAuthenticated) {
+        // Reset services when not authenticated
+        taskService.reset();
+        classService.reset();
+        taskTypeService.reset();
       }
     };
-    loadData();
+    initializeServices();
   }, [loading, isAuthenticated, user, user?.id, lastCalendarSyncTimestamp]);
 
-  // Subscribe to class changes
+  // Subscribe to service changes
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      classService.reset();
       return;
     }
 
-    const unsubscribe = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
+    // Subscribe to all services
+    const unsubscribeClasses = classService.subscribe((updatedClasses: ClassWithRelations[]) => {
       setClasses(updatedClasses);
     });
 
-    return unsubscribe;
+    const unsubscribeTasks = taskService.subscribe((updatedTasks: TaskWithMeta[]) => {
+      setTasks(updatedTasks);
+    });
+
+    const unsubscribeTaskTypes = taskTypeService.subscribe((updatedTaskTypes: TaskType[]) => {
+      setTaskTypes(updatedTaskTypes);
+    });
+
+    return () => {
+      unsubscribeClasses();
+      unsubscribeTasks();
+      unsubscribeTaskTypes();
+    };
   }, [isAuthenticated, user]);
 
   // Calculate dashboard statistics
@@ -254,6 +275,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({
       .slice(0, 5); // Show only first 5
   }, [tasks]);
 
+  // Memoized event handlers for better performance
+  const handleTaskClick = useCallback((task: TaskWithMeta) => {
+    if (onTaskEdit) {
+      onTaskEdit(task);
+    }
+  }, [onTaskEdit]);
+
   // Validate auth state
   const authState = validateAuthState(user, isAuthenticated, loading);
   
@@ -370,7 +398,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                     <div
                       key={task.id}
                       className={`p-4 rounded-lg border-l-4 ${style.border} bg-gray-50 dark:bg-slate-700/50 backdrop-blur-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600/50 transition-colors`}
-                      onClick={() => onTaskEdit?.(task)}
+                      onClick={() => handleTaskClick(task)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -427,7 +455,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                     <div
                       key={task.id}
                       className={`p-4 rounded-lg border-l-4 border-red-400 bg-red-50 dark:bg-red-900/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors`}
-                      onClick={() => onTaskEdit?.(task)}
+                      onClick={() => handleTaskClick(task)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -560,69 +588,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         )}
 
-        {/* Grade Tracking Quick Access */}
-        <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Grade Tracking</h2>
-            <button
-              onClick={onSwitchToGrades}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
-            >
-              View Grades
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div 
-              onClick={onSwitchToGrades}
-              className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg cursor-pointer hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-900/40 dark:hover:to-blue-800/40 transition-colors backdrop-blur-sm"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="bg-blue-500 p-2 rounded-lg">
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">GPA Dashboard</h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-slate-300">View your current GPA, class performance, and grade analytics</p>
-            </div>
-
-            <div 
-              onClick={() => {
-                onSwitchToGrades?.();
-                // Switch to entry view - this will be handled in the parent component
-              }}
-              className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg cursor-pointer hover:from-green-100 hover:to-green-200 dark:hover:from-green-900/40 dark:hover:to-green-800/40 transition-colors backdrop-blur-sm"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="bg-green-500 p-2 rounded-lg">
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">Add Grades</h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-slate-300">Enter assignment grades and manage your grade categories</p>
-            </div>
-
-            <div 
-              onClick={onSwitchToGrades}
-              className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg cursor-pointer hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-900/40 dark:hover:to-purple-800/40 transition-colors backdrop-blur-sm"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="bg-purple-500 p-2 rounded-lg">
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">What-If Scenarios</h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-slate-300">Calculate how grades affect your GPA with interactive scenarios</p>
-            </div>
-          </div>
-
-        </div>
       </div>
     </div>
   );
