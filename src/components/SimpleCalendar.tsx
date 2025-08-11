@@ -174,8 +174,8 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your calendar...</p>
+            <div className="animate-spin rounded-full h-24 w-24 border-b-6 border-blue-600 mx-auto"></div>
+            <p className="mt-6 text-xl font-medium text-gray-600 dark:text-gray-400">Loading your calendar...</p>
           </div>
         </div>
       );
@@ -559,8 +559,8 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       <Suspense fallback={
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto" />
-            <p className="text-center mt-4 text-gray-600 dark:text-gray-400">Loading task editor...</p>
+            <div className="animate-spin rounded-full h-20 w-20 border-b-6 border-blue-600 mx-auto" />
+            <p className="text-center mt-6 text-lg font-medium text-gray-600 dark:text-gray-400">Loading task editor...</p>
           </div>
         </div>
       }>

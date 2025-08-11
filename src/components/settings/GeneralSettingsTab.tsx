@@ -19,8 +19,6 @@ const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
 
   // Initialize settings state
   const [settings, setSettings] = useState<GeneralSettingsState>({
-    fontSize: 'medium',
-    defaultView: 'calendar',
     taskCompletionSound: true,
     showWeekNumbers: false,
     showNavigationBar: true,
@@ -106,8 +104,6 @@ const GeneralSettingsTab: React.FC<GeneralSettingsTabProps> = ({
 
   const handleReset = () => {
     const defaultSettings: GeneralSettingsState = {
-      fontSize: 'medium',
-      defaultView: 'calendar',
       taskCompletionSound: true,
       showWeekNumbers: false,
       showNavigationBar: true,

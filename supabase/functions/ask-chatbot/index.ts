@@ -129,13 +129,22 @@ Deno.serve(async (req) => {
       const now = new Date();
       
       if (normalizedQuery.includes('next week')) {
+        // "Next week" = next Monday to Sunday
         const startOfNextWeek = new Date(now);
-        const daysUntilNextMonday = (8 - now.getDay()) % 7 || 7;
+        const currentDayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+        
+        // Calculate days until next Monday
+        // If today is Sunday (0), next Monday is 1 day away
+        // If today is Monday (1), next Monday is 7 days away
+        // If today is Tuesday (2), next Monday is 6 days away
+        // If today is Saturday (6), next Monday is 2 days away
+        const daysUntilNextMonday = currentDayOfWeek === 0 ? 1 : currentDayOfWeek === 1 ? 7 : (8 - currentDayOfWeek);
+        
         startOfNextWeek.setDate(now.getDate() + daysUntilNextMonday);
         startOfNextWeek.setHours(0, 0, 0, 0);
         
         const endOfNextWeek = new Date(startOfNextWeek);
-        endOfNextWeek.setDate(startOfNextWeek.getDate() + 6);
+        endOfNextWeek.setDate(startOfNextWeek.getDate() + 6); // Monday + 6 = Sunday
         endOfNextWeek.setHours(23, 59, 59, 999);
         
         return { start: startOfNextWeek, end: endOfNextWeek };

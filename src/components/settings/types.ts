@@ -4,8 +4,6 @@ import type { ClassWithRelations } from '../../types/database';
 export type SettingsTab = 'general' | 'canvas' | 'notifications' | 'study-schedule' | 'export-import';
 
 export interface GeneralSettingsState {
-  fontSize: string;
-  defaultView: string;
   taskCompletionSound: boolean;
   showWeekNumbers: boolean;
   showNavigationBar: boolean;

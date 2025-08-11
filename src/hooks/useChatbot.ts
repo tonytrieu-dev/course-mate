@@ -244,7 +244,9 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
       const taskKeywords = [
         'due', 'deadline', 'assignment', 'homework', 'task', 'project',
         'upcoming', 'overdue', 'tomorrow', 'today', 'week', 'month',
-        'schedule', 'calendar', 'what\'s', 'show me', 'list'
+        'schedule', 'calendar', 'what\'s', 'show me', 'list',
+        // Enhanced patterns for common task queries
+        'next week', 'this week', 'my tasks', 'my assignments', 'whats due', 'when is'
       ];
       const normalizedQuery = query.toLowerCase();
       return taskKeywords.some(keyword => normalizedQuery.includes(keyword));
@@ -263,12 +265,13 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
     } else if (selectedClass) {
       // Fallback to selected class
       classesToQuery = [selectedClass];
-    } else if (isTaskSchedulingQuery(cleanQuery)) {
-      // Allow task/scheduling queries without class selection
+    } else if (isTaskSchedulingQuery(queryText)) {
+      // Allow task/scheduling queries without class selection (check original query, not processed cleanQuery)
       classesToQuery = [];
       contextMessage = 'General task query';
       logger.info('Allowing task/scheduling query without class selection', {
-        query: cleanQuery.substring(0, 50)
+        originalQuery: queryText.substring(0, 50),
+        cleanQuery: cleanQuery.substring(0, 50)
       });
     } else {
       // No class context available and not a task query
@@ -304,7 +307,7 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
 
       const { data, error } = await supabase.functions.invoke('ask-chatbot', {
         body: {
-          query: cleanQuery,
+          query: classesToQuery.length === 0 ? queryText : cleanQuery, // Use original query for task queries, clean query for class-specific queries
           classIds: classesToQuery.map(c => c.id), // Send multiple class IDs
           classId: classesToQuery[0]?.id, // Keep for backward compatibility
           conversationHistory: newHistory.slice(0, -1).slice(-CHAT_HISTORY_LIMIT),

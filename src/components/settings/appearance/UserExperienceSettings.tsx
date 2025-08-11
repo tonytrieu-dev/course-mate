@@ -1,5 +1,6 @@
 import React from 'react';
 import type { GeneralSettingsState } from '../types';
+import { features } from '../../../utils/buildConfig';
 
 interface UserExperienceSettingsProps {
   settings: GeneralSettingsState;
@@ -17,21 +18,23 @@ const UserExperienceSettings: React.FC<UserExperienceSettingsProps> = ({
       <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">User Experience</h3>
       <div className="space-y-4">
 
-        {/* Academic System */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100">Academic System</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Choose between semester or quarter system for grades and scheduling</p>
+        {/* Academic System - Only show when grade analytics are enabled */}
+        {features.showGradeAnalytics && (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Academic System</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Choose between semester or quarter system for grades and scheduling</p>
+            </div>
+            <select
+              value={settings.academicSystem}
+              onChange={(e) => onSettingChange('academicSystem', e.target.value)}
+              className="px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="semester">Semester System</option>
+              <option value="quarter">Quarter System</option>
+            </select>
           </div>
-          <select
-            value={settings.academicSystem}
-            onChange={(e) => onSettingChange('academicSystem', e.target.value)}
-            className="px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="semester">Semester System</option>
-            <option value="quarter">Quarter System</option>
-          </select>
-        </div>
+        )}
 
         {/* Show Navigation Bar */}
         <div className="flex items-center justify-between">

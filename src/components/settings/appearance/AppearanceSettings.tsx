@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { GeneralSettingsState } from '../types';
+import { getSettingsWithSync, updateSelectedView } from '../../../services/settings/settingsOperations';
+import { useAuth } from '../../../contexts/AuthContext';
+import { logger } from '../../../utils/logger';
 
 interface AppearanceSettingsProps {
   settings: GeneralSettingsState;
@@ -18,9 +21,42 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   hasChanges,
   contextMode
 }) => {
+  const { user } = useAuth();
+  const [selectedView, setSelectedView] = useState<'dashboard' | 'tasks' | 'calendar' | 'grades'>('dashboard');
+  const [viewLoading, setViewLoading] = useState(true);
+
+  // Load current selectedView from settings
+  useEffect(() => {
+    const loadSelectedView = async () => {
+      try {
+        const appSettings = await getSettingsWithSync(user?.id);
+        setSelectedView(appSettings.selectedView || 'dashboard');
+      } catch (error) {
+        logger.warn('Failed to load selected view', { error });
+        setSelectedView('dashboard'); // fallback
+      } finally {
+        setViewLoading(false);
+      }
+    };
+
+    loadSelectedView();
+  }, [user?.id]);
+
   const handleThemeChange = (theme: 'light' | 'dark' | 'auto') => {
     // Only update local settings state for preview - actual theme application happens on save
     onSettingChange('theme', theme);
+  };
+
+  const handleViewChange = async (view: 'dashboard' | 'tasks' | 'calendar' | 'grades') => {
+    try {
+      setSelectedView(view);
+      await updateSelectedView(view, user?.id);
+    } catch (error) {
+      logger.error('Failed to update selected view', { error });
+      // Revert on error
+      const appSettings = await getSettingsWithSync(user?.id);
+      setSelectedView(appSettings.selectedView || 'dashboard');
+    }
   };
 
   return (
@@ -75,34 +111,29 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </p>
         </div>
         
-        {/* Font Size */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Font Size</label>
-          <select 
-            value={settings.fontSize}
-            onChange={(e) => onSettingChange('fontSize', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
-          >
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
-          </select>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Adjust text size for better readability</p>
-        </div>
 
         {/* Default View */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Default View</label>
+        <div className="border border-blue-200 dark:border-blue-700/50 rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/20">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Default View
+          </label>
           <select 
-            value={settings.defaultView}
-            onChange={(e) => onSettingChange('defaultView', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
+            value={selectedView}
+            onChange={(e) => handleViewChange(e.target.value as 'dashboard' | 'tasks' | 'calendar' | 'grades')}
+            disabled={viewLoading}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 disabled:opacity-50"
           >
+            <option value="dashboard">Dashboard</option>
             <option value="calendar">Calendar View</option>
             <option value="tasks">Task List</option>
-            <option value="dashboard">Dashboard</option>
+            <option value="grades">Grades</option>
           </select>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Choose which view opens by default</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-medium">
+            {viewLoading ? 'Loading...' : 'This setting saves automatically and changes immediately'}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Choose which view opens when you first load the app
+          </p>
         </div>
       </div>
     </div>
