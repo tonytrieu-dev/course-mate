@@ -174,8 +174,8 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
       return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-24 w-24 border-b-6 border-blue-600 mx-auto"></div>
-            <p className="mt-6 text-xl font-medium text-gray-600 dark:text-gray-400">Loading your calendar...</p>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-8 border-blue-600 mx-auto"></div>
+            <p className="mt-8 text-2xl font-bold text-gray-600 dark:text-gray-400">Loading your calendar...</p>
           </div>
         </div>
       );

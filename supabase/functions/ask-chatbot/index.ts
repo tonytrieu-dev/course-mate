@@ -128,24 +128,49 @@ Deno.serve(async (req) => {
       const normalizedQuery = query.toLowerCase();
       const now = new Date();
       
+      console.log('Date range calculation started:', {
+        query: normalizedQuery,
+        currentDate: now.toISOString(),
+        currentDayOfWeek: now.getDay(), // 0=Sunday, 1=Monday, ..., 6=Saturday
+        currentDateFormatted: now.toLocaleDateString('en-US', { 
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        })
+      });
+      
       if (normalizedQuery.includes('next week')) {
-        // "Next week" = next Monday to Sunday
-        const startOfNextWeek = new Date(now);
-        const currentDayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+        // "Next week" = proper calendar week (Monday-Sunday) after current week
+        const startOfThisWeek = new Date(now);
+        const daysFromMonday = (now.getDay() + 6) % 7; // Same logic as "this week"
+        startOfThisWeek.setDate(now.getDate() - daysFromMonday);
+        startOfThisWeek.setHours(0, 0, 0, 0);
         
-        // Calculate days until next Monday
-        // If today is Sunday (0), next Monday is 1 day away
-        // If today is Monday (1), next Monday is 7 days away
-        // If today is Tuesday (2), next Monday is 6 days away
-        // If today is Saturday (6), next Monday is 2 days away
-        const daysUntilNextMonday = currentDayOfWeek === 0 ? 1 : currentDayOfWeek === 1 ? 7 : (8 - currentDayOfWeek);
-        
-        startOfNextWeek.setDate(now.getDate() + daysUntilNextMonday);
-        startOfNextWeek.setHours(0, 0, 0, 0);
+        const startOfNextWeek = new Date(startOfThisWeek);
+        startOfNextWeek.setDate(startOfThisWeek.getDate() + 7); // Add 7 days to get next Monday
         
         const endOfNextWeek = new Date(startOfNextWeek);
-        endOfNextWeek.setDate(startOfNextWeek.getDate() + 6); // Monday + 6 = Sunday
+        endOfNextWeek.setDate(startOfNextWeek.getDate() + 6); // Add 6 days to get next Sunday
         endOfNextWeek.setHours(23, 59, 59, 999);
+        
+        console.log('FIXED: Next week calculation completed:', {
+          todayIs: now.toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          }),
+          todayDayOfWeek: now.getDay(),
+          daysFromMonday: daysFromMonday,
+          thisWeekStart: startOfThisWeek.toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          }),
+          nextWeekStart: startOfNextWeek.toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          }),
+          nextWeekEnd: endOfNextWeek.toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          }),
+          nextWeekRange: `${startOfNextWeek.toLocaleDateString('en-US')} - ${endOfNextWeek.toLocaleDateString('en-US')}`,
+          expectedMondayStart: 'Should start on Monday',
+          expectedSundayEnd: 'Should end on Sunday',
+          fixApplied: 'Using proper Monday-Sunday calendar week boundaries'
+        });
         
         return { start: startOfNextWeek, end: endOfNextWeek };
       } else if (normalizedQuery.includes('this week')) {
@@ -157,6 +182,20 @@ Deno.serve(async (req) => {
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
         endOfWeek.setHours(23, 59, 59, 999);
+        
+        console.log('This week calculation (for comparison):', {
+          todayIs: now.toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          }),
+          thisWeekStart: startOfWeek.toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          }),
+          thisWeekEnd: endOfWeek.toLocaleDateString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+          }),
+          thisWeekRange: `${startOfWeek.toLocaleDateString('en-US')} - ${endOfWeek.toLocaleDateString('en-US')}`,
+          logicUsed: 'Same Monday-Sunday logic as fixed next week'
+        });
         
         return { start: startOfWeek, end: endOfWeek };
       } else if (normalizedQuery.includes('tomorrow')) {
@@ -233,13 +272,19 @@ Deno.serve(async (req) => {
               // Range filtering (this week, next week, etc.)
               const startDateStr = dateRange.start.toISOString().split('T')[0];
               const endDateStr = dateRange.end.toISOString().split('T')[0];
-              console.log('Date range filtering applied:', {
+              const queryCondition = `and(date.gte.${dateRange.start.toISOString()},date.lte.${dateRange.end.toISOString()}),and(dueDate.gte.${startDateStr},dueDate.lte.${endDateStr})`;
+              console.log('Enhanced date range filtering applied:', {
+                originalQuery: query.toLowerCase(),
                 startDate: startDateStr,
                 endDate: endDateStr,
                 startTimestamp: dateRange.start.toISOString(),
-                endTimestamp: dateRange.end.toISOString()
+                endTimestamp: dateRange.end.toISOString(),
+                postgrestCondition: queryCondition,
+                logicalCondition: `((date >= ${dateRange.start.toISOString()} AND date <= ${dateRange.end.toISOString()}) OR (dueDate >= ${startDateStr} AND dueDate <= ${endDateStr}))`,
+                currentDate: new Date().toISOString(),
+                fixApplied: 'Corrected OR logic to use proper AND/OR grouping - should exclude historical tasks'
               });
-              taskQuery = taskQuery.or(`date.gte.${dateRange.start.toISOString()},date.lte.${dateRange.end.toISOString()},"dueDate".gte.${startDateStr},"dueDate".lte.${endDateStr}`);
+              taskQuery = taskQuery.or(queryCondition);
             } else if (dateRange.end) {
               // Before date (overdue)
               const endDateStr = dateRange.end.toISOString().split('T')[0];
@@ -247,7 +292,7 @@ Deno.serve(async (req) => {
                 endDate: endDateStr,
                 endTimestamp: dateRange.end.toISOString()
               });
-              taskQuery = taskQuery.or(`date.lt.${dateRange.end.toISOString()},"dueDate".lt.${endDateStr}`);
+              taskQuery = taskQuery.or(`date.lt.${dateRange.end.toISOString()},dueDate.lt.${endDateStr}`);
             }
           }
 
