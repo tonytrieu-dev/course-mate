@@ -88,12 +88,12 @@ export const useChatbotMentions = ({
     }
   }, [classes, mentionParser]);
 
-  // Notify parent when mentioned classes change
+  // Notify parent when mentioned classes change - prevent callback spam during initialization
   useEffect(() => {
-    if (onMentionedClassesChange) {
+    if (onMentionedClassesChange && classes.length > 0) {
       onMentionedClassesChange(mentionState.referencedClasses);
     }
-  }, [mentionState.referencedClasses, onMentionedClassesChange]);
+  }, [mentionState.referencedClasses, onMentionedClassesChange, classes.length]);
 
   /**
    * Parse text for @mentions and update state

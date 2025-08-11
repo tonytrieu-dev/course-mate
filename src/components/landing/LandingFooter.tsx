@@ -3,17 +3,10 @@ import { getAppName } from '../../utils/buildConfig';
 
 const LandingFooter: React.FC = () => {
   return (
-    <footer className="text-slate-800 py-12 relative overflow-hidden" style={{background: 'linear-gradient(135deg, #ffffff 0%, rgba(37, 99, 235, 0.05) 50%, rgba(37, 99, 235, 0.1) 100%)', borderTop: '1px solid rgba(37, 99, 235, 0.2)'}}>
-      {/* Research-backed blue-dominant elements */}
-      <div className="absolute inset-0">
-        {/* Multi-layer professional gradients */}
-        <div className="absolute inset-0" style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(37, 99, 235, 0.08) 50%, rgba(37, 99, 235, 0.12) 100%)'}}></div>
-        <div className="absolute inset-0" style={{background: 'linear-gradient(to top left, rgba(37, 99, 235, 0.1) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0.9) 100%)'}}></div>
-        
-        {/* Professional floating elements */}
-        <div className="absolute top-10 right-10 w-48 h-48 rounded-full mix-blend-multiply filter blur-2xl opacity-60" style={{background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(156, 175, 136, 0.08))'}}></div>
-        <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full mix-blend-multiply filter blur-xl opacity-50" style={{background: 'linear-gradient(to top left, rgba(37, 99, 235, 0.12), rgba(255, 255, 255, 0.5))'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full mix-blend-multiply filter blur-lg opacity-40" style={{background: 'linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(156, 175, 136, 0.06))'}}></div>
+    <footer className="text-slate-800 py-12 relative overflow-hidden bg-gradient-to-br from-white to-[var(--primary-cream)]/40" style={{borderTop: '1px solid rgba(37, 99, 235, 0.2)'}}>
+      {/* Clean, professional footer background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute bottom-10 right-10 w-32 h-32 rounded-full filter blur-xl opacity-30" style={{backgroundColor: 'var(--primary-navy)'}}></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

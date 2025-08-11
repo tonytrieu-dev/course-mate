@@ -4,6 +4,7 @@ import { SubscriptionProvider } from "../contexts/SubscriptionContext";
 import { SimpleThemeProvider } from "../contexts/ThemeContext";
 import { features } from "../utils/buildConfig";
 import { logger } from "../utils/logger";
+import AnalyticsDashboard from "./AnalyticsDashboard";
 import ErrorBoundary from "./ErrorBoundary";
 import { getSettingsWithSync, updateNavigationOrder, updateSelectedView } from "../services/settings/settingsOperations";
 import { SyllabusSecurityService } from "../services/syllabusSecurityService";
@@ -82,6 +83,7 @@ const CalendarApp: React.FC = () => {
   const [isReorderMode, setIsReorderMode] = useState<boolean>(false);
   const [reorderTimer, setReorderTimer] = useState<NodeJS.Timeout | null>(null);
   const [settingsLoaded, setSettingsLoaded] = useState<boolean>(false);
+  const [showAnalytics, setShowAnalytics] = useState<boolean>(false);
   const { user, isAuthenticated, logout, loading, setLastCalendarSyncTimestamp } = useAuth();
 
   // Default navigation items with conditional grades feature
@@ -172,6 +174,19 @@ const CalendarApp: React.FC = () => {
     
     saveSelectedView();
   }, [appView, user?.id, settingsLoaded]);
+
+  // Analytics dashboard keyboard shortcut (Ctrl+Alt+A)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.altKey && event.key === 'a') {
+        event.preventDefault();
+        setShowAnalytics(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // iOS-style reorder mode activation
   const enterReorderMode = useCallback(() => {
@@ -614,6 +629,12 @@ const CalendarApp: React.FC = () => {
           </ErrorBoundary>
         </div>
       </div>
+      
+      {/* Analytics Dashboard - Access with Ctrl+Alt+A */}
+      <AnalyticsDashboard 
+        isVisible={showAnalytics}
+        onClose={() => setShowAnalytics(false)}
+      />
     </div>
   );
 };

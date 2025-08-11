@@ -90,9 +90,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     return (
       <div className={`group relative ${colors.cardBg} backdrop-blur-lg rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 border-2 border-[var(--warm-beige)] ${colors.border} transform hover:-translate-y-3 overflow-hidden`}>
         
-        {/* Premium cream background with gold accents */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-[var(--primary-cream)]/40 to-[var(--primary-cream)]/60 opacity-95"></div>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[var(--premium-gold)]/15 to-transparent rounded-full filter blur-2xl"></div>
+        {/* Clean cream background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white to-[var(--primary-cream)]/50 opacity-95"></div>
         
         <div className="relative z-10 p-10">
           {/* Large Document Upload Area */}
@@ -138,8 +137,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     return (
       <div className={`group relative ${colors.cardBg} backdrop-blur-lg rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 border-2 border-[var(--warm-beige)] ${colors.border} transform hover:-translate-y-3 overflow-hidden`}>
         
-        {/* Premium cream background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--secondary-cream)] via-[var(--primary-cream)] to-[var(--tertiary-cream)] opacity-95"></div>
+        {/* Clean cream background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white to-[var(--primary-cream)]/40 opacity-95"></div>
         
         <div className="relative z-10">
           {/* Header */}
@@ -202,8 +201,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     return (
       <div className={`group relative ${colors.cardBg} backdrop-blur-lg rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 border-2 border-[var(--warm-beige)] ${colors.border} transform hover:-translate-y-3 overflow-hidden`}>
         
-        {/* Premium cream background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--tertiary-cream)] via-[var(--secondary-cream)] to-[var(--primary-cream)] opacity-95"></div>
+        {/* Clean cream background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white to-[var(--primary-cream)]/40 opacity-95"></div>
         
         <div className="relative z-10 p-8">
           {/* Chat Header */}

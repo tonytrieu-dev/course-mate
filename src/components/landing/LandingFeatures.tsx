@@ -21,11 +21,11 @@ const LandingFeatures: React.FC = () => {
       colorScheme: 'orange' as const
     },
     {
-      title: "Canvas Calendar Import",
+      title: "Canvas Calendar Sync",
       subtitle: "Copy-Paste Your Canvas Feed URL, Save 1+ Hour Per Quarter",
-      description: "Canvas calendar feed → boom, everything's parsed automatically. Perfect backup when professors actually keep Canvas updated.",
+      description: "Canvas calendar sync → boom, everything's parsed automatically. Perfect when professors actually keep Canvas updated. No official integration needed.",
       features: [
-        "Import Canvas calendar feed in 10 seconds",
+        "Sync Canvas calendar feed in 10 seconds",
         "Works when professors update Canvas",
         "Cross-device sync included"
       ],
@@ -57,25 +57,18 @@ const LandingFeatures: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-24 bg-white relative">
-      {/* ROYAL BLUE DOMINANT with Premium Cream Accent Background */}
+    <section id="features" className="py-24 bg-gradient-to-br from-[var(--primary-cream)]/20 via-white to-[var(--primary-cream)]/30 relative">
+      {/* Clean background with subtle student-focused accents */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Royal blue dominant artistic elements */}
-        <div className="absolute top-20 right-20 w-64 h-64 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(37, 99, 235, 0.08)'}}></div>
-        <div className="absolute bottom-40 left-20 w-96 h-96 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(30, 58, 138, 0.12)'}}></div>
-        <div className="absolute top-40 left-1/2 w-80 h-80 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(59, 130, 246, 0.06)'}}></div>
-        
-        {/* Premium cream accent touches for warmth */}
-        <div className="absolute bottom-20 right-1/3 w-60 h-60 rounded-full filter blur-2xl opacity-60" style={{backgroundColor: 'rgba(255, 248, 220, 0.8)'}}></div>
-        <div className="absolute top-60 left-1/4 w-48 h-48 rounded-full filter blur-xl opacity-45" style={{backgroundColor: 'rgba(212, 165, 116, 0.12)'}}></div>
+        <div className="absolute top-32 right-32 w-48 h-48 rounded-full filter blur-2xl opacity-25" style={{backgroundColor: 'var(--accent-sage)'}}></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight text-slate-900">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 tracking-tight text-slate-900 leading-tight">
             Three Features That Actually <span style={{color: 'var(--primary-navy)'}}>Matter</span>
           </h2>
-          <p className="text-xl text-slate-700 max-w-2xl mx-auto font-medium">
+          <p className="text-lg sm:text-xl text-slate-700 max-w-2xl mx-auto font-medium leading-relaxed">
             Smart syllabus upload, Canvas sync, and AI chatbot. That's it. No feature bloat.
           </p>
         </div>

@@ -1,0 +1,21 @@
+{
+  "name": "ScheduleBud",
+  "short_name": "ScheduleBud",
+  "description": "Student productivity micro-SaaS with Canvas Calendar sync and AI assistance",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff"
+}

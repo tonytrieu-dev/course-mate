@@ -143,16 +143,25 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
             
             <div className="mt-3">
               {!selectedClass.syllabus ? (
-                <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 p-5 text-center mb-5 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                  <p className="text-gray-700 dark:text-slate-300">
+                <div className="border border-gray-200 dark:border-slate-500 p-5 text-center mb-5 bg-gray-50 dark:bg-slate-700 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-gray-50 dark:hover:from-slate-600 dark:hover:to-slate-700 transition-all duration-200">
+                  <p className="text-gray-700 dark:text-slate-300 mb-4">
                     Drag and drop a syllabus file here, or click to select one
                   </p>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleSyllabusUpload}
-                    className="block mx-auto my-2.5 text-gray-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 dark:file:bg-slate-600 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-slate-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleSyllabusUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      id="syllabus-upload-standard"
+                    />
+                    <label
+                      htmlFor="syllabus-upload-standard"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg cursor-pointer transition-colors duration-200 shadow-sm"
+                    >
+                      Choose File
+                    </label>
+                  </div>
                   {isUploading && (
                     <div className="text-center my-2">
                       <p className="text-blue-600 dark:text-blue-400">Uploading syllabus...</p>
@@ -212,12 +221,21 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                   <p className="mt-4 text-gray-700 dark:text-slate-300">
                     Upload a new syllabus to replace the current one:
                   </p>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleSyllabusUpload}
-                    className="block my-2.5 text-gray-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 dark:file:bg-slate-600 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-slate-500"
-                  />
+                  <div className="relative my-2.5">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleSyllabusUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      id="syllabus-replace-upload"
+                    />
+                    <label
+                      htmlFor="syllabus-replace-upload"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg cursor-pointer transition-colors duration-200 shadow-sm"
+                    >
+                      Choose File
+                    </label>
+                  </div>
                   {isUploading && (
                     <div className="text-center my-2">
                       <p className="text-blue-600 dark:text-blue-400">Uploading syllabus...</p>

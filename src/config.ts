@@ -41,9 +41,10 @@ export class ConfigurationError extends Error {
 }
 
 // Required environment variables (only Supabase for personal mode)
+// Check both prefixed and non-prefixed versions
 const REQUIRED_ENV_VARS: RequiredEnvVars = {
-  SUPABASE_URL: 'Supabase project URL is required',
-  SUPABASE_ANON_KEY: 'Supabase anonymous key is required'
+  REACT_APP_SUPABASE_URL: 'Supabase project URL is required',
+  REACT_APP_SUPABASE_ANON_KEY: 'Supabase anonymous key is required'
 };
 
 // Fallback values for development - these should be loaded from .env file

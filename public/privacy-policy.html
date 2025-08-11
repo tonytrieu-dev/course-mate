@@ -51,16 +51,15 @@
 
     <h3>2.2 Educational Information (FERPA Protected)</h3>
     <ul>
-        <li><strong>Academic Records:</strong> Class schedules, assignments, grades, and academic progress</li>
+        <li><strong>Academic Records:</strong> Class schedules and assignments</li>
         <li><strong>Course Information:</strong> Class names, course codes, instructor information, and academic calendars</li>
-        <li><strong>Assignment Data:</strong> Task descriptions, due dates, completion status, and study session records</li>
-        <li><strong>Canvas Integration Data:</strong> Information imported from Canvas LMS with your explicit permission</li>
+        <li><strong>Assignment Data:</strong> Task descriptions, due dates, and completion status</li>
+        <li><strong>Canvas LMS ICS Data:</strong> Calendar information fetched from your Canvas LMS ICS feed URL via secure CORS proxies</li>
     </ul>
 
     <h3>2.3 Usage Information</h3>
     <ul>
         <li><strong>App Usage:</strong> Features used, time spent, and interaction patterns</li>
-        <li><strong>Study Analytics:</strong> Study session duration, effectiveness ratings, and productivity metrics</li>
         <li><strong>Device Information:</strong> Browser type, operating system, and device identifiers</li>
     </ul>
 
@@ -76,7 +75,7 @@
     <ul>
         <li>Provide academic task management and scheduling services</li>
         <li>Generate study schedules and workload analysis</li>
-        <li>Integrate with Canvas LMS to import assignments and grades</li>
+        <li>Fetch and parse Canvas LMS ICS calendar feeds via secure CORS proxies to import assignments</li>
         <li>Process syllabus documents to extract assignment information using AI</li>
         <li>Send assignment reminders and notifications</li>
     </ul>
@@ -98,19 +97,22 @@
     <h2>4. FERPA Compliance</h2>
     
     <div class="important">
-        <strong>Educational Records Protection:</strong> We comply with the Family Educational Rights and Privacy Act (FERPA) in our handling of student educational records.
+        <strong>Educational Records Protection:</strong> We comply with the Family Educational Rights and Privacy Act (FERPA) for academic information including course schedules, assignments, and syllabus content.
     </div>
 
-    <h3>4.1 Student Rights Under FERPA</h3>
+    <h3>4.1 FERPA-Protected Information</h3>
     <ul>
-        <li><strong>Access Right:</strong> You have the right to inspect and review your educational records</li>
-        <li><strong>Amendment Right:</strong> You may request correction of inaccurate or misleading records</li>
-        <li><strong>Disclosure Consent:</strong> We obtain your consent before disclosing personally identifiable information from educational records</li>
-        <li><strong>Complaint Right:</strong> You may file complaints with the U.S. Department of Education regarding alleged FERPA violations</li>
+        <li><strong>Course Information:</strong> Class names, course codes, and academic calendars from Canvas LMS</li>
+        <li><strong>Assignment Data:</strong> Task descriptions, due dates, and completion status</li>
+        <li><strong>Syllabus Content:</strong> Academic documents and AI-processed course requirements</li>
     </ul>
 
-    <h3>4.2 Directory Information</h3>
-    <p>We do not consider any information as "directory information" that can be disclosed without consent. All student information is treated as protected educational records.</p>
+    <h3>4.2 Student Rights</h3>
+    <ul>
+        <li><strong>Access:</strong> You can view and export all your academic information through account settings</li>
+        <li><strong>Correction:</strong> You may request correction of inaccurate academic records</li>
+        <li><strong>Consent:</strong> We do not disclose your academic information to third parties without consent</li>
+    </ul>
 
     <h2>5. Information Sharing and Disclosure</h2>
     
@@ -146,8 +148,8 @@
     <h3>6.2 Data Breach Response</h3>
     <p>In the event of a data security incident affecting student educational records, we will:</p>
     <ul>
-        <li>Notify affected students within 72 hours</li>
-        <li>Report the incident to relevant educational institutions</li>
+        <li>Notify affected students within 72 hours (GDPR requirement) or as required by applicable law</li>
+        <li>Report the incident to relevant educational institutions as required by FERPA</li>
         <li>Cooperate with investigations and provide necessary remediation</li>
         <li>Implement additional security measures to prevent future incidents</li>
     </ul>
@@ -188,7 +190,7 @@
     <h3>8.3 Privacy Controls</h3>
     <ul>
         <li>Control notification preferences and frequency</li>
-        <li>Manage Canvas integration and data sharing settings</li>
+        <li>Manage Canvas LMS ICS feed URL settings and proxy service preferences</li>
         <li>Set data retention preferences within legal limits</li>
     </ul>
 
@@ -242,7 +244,7 @@
     <p>We collect these categories of personal information from California residents:</p>
     <ul>
         <li><strong>Identifiers:</strong> Name, email address, account credentials</li>
-        <li><strong>Education Information:</strong> Academic records, grades, assignments, class schedules</li>
+        <li><strong>Education Information:</strong> Academic records, assignments, class schedules</li>
         <li><strong>Internet Activity:</strong> App usage patterns, device information, interaction data</li>
         <li><strong>Professional Information:</strong> Student status, educational institution</li>
         <li><strong>Sensitive Personal Information:</strong> Account login credentials (encrypted)</li>
@@ -251,7 +253,7 @@
     <h3>10.3 Business Purposes for Data Use</h3>
     <ul>
         <li>Providing educational task management services</li>
-        <li>Processing Canvas LMS integration and academic calendar imports</li>
+        <li>Processing Canvas LMS ICS calendar feeds via CORS proxies for academic calendar imports</li>
         <li>Sending assignment reminders and educational notifications</li>
         <li>Improving app functionality and developing new features</li>
         <li>Ensuring security and preventing fraud</li>
@@ -270,7 +272,7 @@
     <ul>
         <li><strong>Submit Requests:</strong> Email tonytrieu03@outlook.com or call (510) 305-1809</li>
         <li><strong>Verification Required:</strong> We will verify your identity before processing requests</li>
-        <li><strong>Response Time:</strong> We respond to requests within 45 days (may extend to 90 days)</li>
+        <li><strong>Response Time:</strong> We respond to requests within 5 business days for simple requests, up to 45 days for complex requests as required by California law</li>
         <li><strong>No Fees:</strong> We do not charge fees for processing privacy rights requests</li>
         <li><strong>Authorized Agents:</strong> You may use authorized agents to submit requests on your behalf</li>
     </ul>
@@ -330,7 +332,7 @@
     <ul>
         <li><strong>Supabase Analytics:</strong> Database performance and user authentication metrics</li>
         <li><strong>Google Gemini AI:</strong> Document processing analytics (no personal data retained)</li>
-        <li><strong>Canvas LMS Integration:</strong> Temporary tokens for academic calendar synchronization</li>
+        <li><strong>Canvas LMS ICS Processing:</strong> CORS proxy services (corsproxy.io, allorigins.win, cors.sh) for secure ICS feed fetching</li>
     </ul>
 
     <h3>12.3 Cookie Control</h3>

@@ -188,7 +188,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
               value={email}
               onChange={handleEmailChange}
               onBlur={handleEmailBlur}
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full p-2 border border-gray-300 rounded text-gray-900 bg-white"
               required
             />
             {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
@@ -205,7 +205,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
                 onBlur={handlePasswordBlur}
                 onKeyDown={handlePasswordKeyEvent}
                 onKeyUp={handlePasswordKeyEvent}
-                className="w-full p-2 pr-20 border border-gray-300 rounded"
+                className="w-full p-2 pr-20 border border-gray-300 rounded text-gray-900 bg-white"
                 required
                 minLength={6}
               />

@@ -14,7 +14,7 @@ import { getClasses } from './class/classOperations';
 import { getTaskTypes } from './taskType/taskTypeOperations';
 import { getCurrentUser } from './authService';
 import { supabase } from './supabaseClient';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { getTermDateRange, parseTermFromString, type AcademicTerm, type AcademicSystem } from '../utils/academicTermHelpers';
 
 // Export data structure types

@@ -73,14 +73,6 @@ export const useExportFunctionality = ({ academicSystem }: ExportFunctionalityPr
       let filename: string;
 
       switch (format) {
-        case 'pdf':
-          blob = await exportService.exportPDF(options, onProgress);
-          filename = generateExportFilename('pdf', 'academic-report', {
-            semester: exportOptions.semester,
-            year: exportOptions.semester ? exportOptions.year : undefined
-          });
-          break;
-
         case 'ics':
           blob = await exportService.exportCalendarICS(options, onProgress);
           filename = generateExportFilename('ics', 'calendar');

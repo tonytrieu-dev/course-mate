@@ -6,11 +6,11 @@ const LandingFAQ: React.FC = () => {
   const faqData = [
     {
       question: "Is this just another planner app?",
-      answer: "No, ScheduleBud is an app designed specifically for the chaos of college. It's built around the reality of Canvas integration and the need to connect your study habits directly to your grades which is something that generic planners don't do."
+      answer: "No, ScheduleBud is an app designed specifically for the chaos of college. It's built around Canvas calendar sync and AI syllabus processing to connect your study habits directly to your grades, which is something that generic planners don't do."
     },
     {
       question: "Does it work with all universities?",
-      answer: "ScheduleBud works with any university that uses Canvas LMS. Most major universities (UCR, UCLA, UCSB, Cal State schools, etc.) use Canvas. If your school uses a different system, the manual syllabus upload still works perfectly."
+      answer: "ScheduleBud works with any university that uses Canvas LMS for calendar sync. Most major universities (UCR, UCLA, UCSB, Cal State schools, etc.) use Canvas. If your school uses a different system, the AI syllabus upload still works perfectly."
     },
     {
       question: "How secure is my academic data?",
@@ -22,7 +22,7 @@ const LandingFAQ: React.FC = () => {
     },
     {
       question: "What if my Canvas assignments change?",
-      answer: "ScheduleBud syncs with Canvas when you refresh your Canvas integration. If your professor changes a due date or adds new assignments, you can re-sync your Canvas calendar to get the latest updates instantly. The sync is quick and handles duplicate detection automatically."
+      answer: "ScheduleBud syncs with your Canvas calendar when you refresh the connection. If your professor changes a due date or adds new assignments, you can re-sync your Canvas calendar feed to get the latest updates instantly. The sync is quick and handles duplicate detection automatically."
     },
     {
       question: "Why is it \"by a student\"?",
@@ -35,13 +35,10 @@ const LandingFAQ: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 relative overflow-hidden" style={{background: 'linear-gradient(135deg, var(--secondary-cream) 0%, #ffffff 40%, rgba(37, 99, 235, 0.03) 70%, rgba(37, 99, 235, 0.08) 100%)'}}>
-      {/* Enhanced Study Focus background with cream integration */}
+    <section className="py-20 relative overflow-hidden bg-gradient-to-br from-[var(--primary-cream)]/30 via-white to-[var(--primary-cream)]/20">
+      {/* Clean, student-focused background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0" style={{background: 'linear-gradient(135deg, rgba(255, 248, 220, 0.8) 0%, rgba(255, 255, 255, 0.6) 40%, rgba(37, 99, 235, 0.05) 70%, rgba(37, 99, 235, 0.08) 100%)'}}></div>
-        {/* Professional floating elements */}
-        <div className="absolute top-20 right-20 w-64 h-64 rounded-full mix-blend-multiply filter blur-2xl opacity-70" style={{background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(156, 175, 136, 0.08))'}}></div>
-        <div className="absolute bottom-20 left-20 w-48 h-48 rounded-full mix-blend-multiply filter blur-xl opacity-60" style={{background: 'linear-gradient(to top left, rgba(37, 99, 235, 0.12), rgba(255, 255, 255, 0.5))'}}></div>
+        <div className="absolute top-20 right-20 w-48 h-48 rounded-full filter blur-2xl opacity-25" style={{backgroundColor: 'var(--accent-sage)'}}></div>
       </div>
       
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

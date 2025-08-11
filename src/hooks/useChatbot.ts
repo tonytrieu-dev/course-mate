@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { ClassWithRelations } from '../types/database';
 import { supabase } from '../services/supabaseClient';
 import { useChatbotMentions } from './useChatbotMentions';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import { features } from '../utils/buildConfig';
 import { logger } from '../utils/logger';
 
 const CHAT_HISTORY_LIMIT = 8;
@@ -93,13 +95,30 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
   const [isProcessingMention, setIsProcessingMention] = useState<boolean>(false);
   
   const chatContentRef = useRef<HTMLDivElement>(null);
+  
+  // Conditionally use subscription context only if subscriptions are enabled
+  let useChatbotQuery, canUseFeature, chatbotQueriesUsed, chatbotQueriesLimit;
+  
+  if (features.subscriptions) {
+    const subscriptionContext = useSubscription();
+    useChatbotQuery = subscriptionContext.useChatbotQuery;
+    canUseFeature = subscriptionContext.canUseFeature;
+    chatbotQueriesUsed = subscriptionContext.chatbotQueriesUsed;
+    chatbotQueriesLimit = subscriptionContext.chatbotQueriesLimit;
+  } else {
+    // Default values when subscriptions are disabled (personal mode)
+    useChatbotQuery = async () => true; // Always allow in personal mode
+    canUseFeature = () => true; // Always allow all features in personal mode
+    chatbotQueriesUsed = 0;
+    chatbotQueriesLimit = -1; // Unlimited in personal mode
+  }
 
   // Initialize mention functionality - with proper class loading validation
   const mentionHook = useChatbotMentions({
     classes,
     onMentionedClassesChange: (mentionedClasses) => {
-      // Only log if there are actual changes to avoid startup spam
-      if (mentionedClasses.length > 0) {
+      // Skip logging during initialization when classes are empty and during startup
+      if (mentionedClasses.length > 0 && classes.length > 0) {
         logger.info('Classes mentioned in chat', {
           count: mentionedClasses.length,
           classes: mentionedClasses.map(c => c.name).join(', ')
@@ -154,6 +173,39 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
     e.preventDefault();
     const queryText = typeof chatQuery === 'string' ? chatQuery : (e.target as HTMLFormElement).textContent || '';
     if (!queryText.trim() || isChatLoading) return;
+
+    // Check if user can use chatbot (query limit)
+    if (!canUseFeature('chatbot')) {
+      const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: queryText }];
+      setChatHistory([
+        ...newHistory,
+        { 
+          role: 'assistant', 
+          content: `You've reached your daily query limit (${chatbotQueriesUsed}/${chatbotQueriesLimit}). Please upgrade to continue using the AI assistant or try again tomorrow!` 
+        }
+      ]);
+      setChatQuery('');
+      const chatInput = document.querySelector('[data-placeholder="Ask a question..."]') as HTMLElement;
+      if (chatInput) chatInput.textContent = '';
+      return;
+    }
+
+    // Use a query from the user's quota
+    const canProceed = await useChatbotQuery();
+    if (!canProceed) {
+      const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: queryText }];
+      setChatHistory([
+        ...newHistory,
+        { 
+          role: 'assistant', 
+          content: `You've reached your daily query limit (${chatbotQueriesLimit}). Please upgrade to continue using the AI assistant or try again tomorrow!` 
+        }
+      ]);
+      setChatQuery('');
+      const chatInput = document.querySelector('[data-placeholder="Ask a question..."]') as HTMLElement;
+      if (chatInput) chatInput.textContent = '';
+      return;
+    }
 
     // Parse @mentions in the query - with safety checks for class loading
     const mentionResult = mentionHook.parseMentions(queryText);

@@ -318,7 +318,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
           {/* Step 1: File Selection */}
           {currentStep === 'select' && (
             <div className="text-center">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-blue-500 transition-colors">
+              <div className="border border-gray-200 dark:border-slate-500 bg-gray-50 dark:bg-slate-700 rounded-lg p-8 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gradient-to-br hover:from-blue-50 hover:to-gray-50 dark:hover:from-slate-600 dark:hover:to-slate-700 transition-all duration-200">
                 <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>

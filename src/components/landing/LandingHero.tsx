@@ -9,17 +9,11 @@ interface LandingHeroProps {
 
 const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) => {
   return (
-    <section id="hero" className="relative min-h-screen flex items-center" style={{background: 'linear-gradient(135deg, #ffffff 0%, var(--primary-cream) 30%, rgba(37, 99, 235, 0.05) 70%, rgba(30, 58, 138, 0.08) 100%)'}}>
-      {/* ROYAL BLUE DOMINANT with Premium Cream Accents */}
+    <section id="hero" className="relative min-h-screen flex items-center bg-gradient-to-br from-white via-[var(--primary-cream)]/40 to-[var(--primary-cream)]/60">
+      {/* Clean, student-focused background with subtle cream warmth */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Royal blue dominant artistic elements */}
-        <div className="absolute bottom-32 left-32 w-96 h-96 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(37, 99, 235, 0.12)'}}></div>
-        <div className="absolute top-20 right-40 w-64 h-64 rounded-full filter blur-3xl" style={{backgroundColor: 'rgba(30, 58, 138, 0.15)'}}></div>
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full filter blur-3xl transform -translate-x-1/2 -translate-y-1/2" style={{backgroundColor: 'rgba(59, 130, 246, 0.08)'}}></div>
-        
-        {/* Premium cream accent touches for warmth */}
-        <div className="absolute top-40 left-1/4 w-48 h-48 rounded-full filter blur-2xl opacity-50" style={{backgroundColor: 'rgba(255, 248, 220, 0.6)'}}></div>
-        <div className="absolute bottom-40 right-1/3 w-40 h-40 rounded-full filter blur-xl opacity-40" style={{backgroundColor: 'rgba(212, 165, 116, 0.15)'}}></div>
+        <div className="absolute bottom-20 left-20 w-64 h-64 rounded-full filter blur-3xl opacity-30" style={{backgroundColor: 'var(--primary-navy)'}}></div>
+        <div className="absolute top-20 right-20 w-48 h-48 rounded-full filter blur-2xl opacity-20" style={{backgroundColor: 'var(--cta-orange)'}}></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
@@ -27,13 +21,13 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
           <div className="text-center lg:text-left relative z-40">
             <div className="mb-8">
               <h1 className="font-black leading-tight tracking-tight">
-                <div className="text-slate-900 text-4xl md:text-5xl lg:text-6xl mb-4">
-                  Your Canvas Assignments.
+                <div className="text-slate-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 leading-tight">
+                  Your Canvas Calendar.
                 </div>
-                <div className="text-4xl md:text-5xl lg:text-6xl mb-6 font-black" style={{color: 'var(--primary-navy)'}}>
-                  IMPORTED AUTOMATICALLY
+                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-6 font-black leading-tight" style={{color: 'var(--primary-navy)'}}>
+                  SYNCED AUTOMATICALLY
                 </div>
-                <div className="text-slate-800 text-xl md:text-2xl lg:text-3xl font-semibold">
+                <div className="text-slate-800 text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed">
                   Save 3+ hours every quarter. AI reads your syllabi instantly. More reliable than Canvas.
                 </div>
               </h1>
@@ -43,7 +37,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
               <div className="rounded-2xl p-6 shadow-xl" style={{backgroundColor: 'var(--primary-cream)', border: '1px solid rgba(37, 99, 235, 0.2)', backdropFilter: 'blur(8px)'}}>
                 <div className="font-bold mb-2" style={{color: 'var(--primary-navy)'}}>Built by a UCR student who actually uses it.</div>
                 <div className="text-slate-700">
-                  I built this because I was wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3-4 hours every quarter</span> setting up my planner. Now I paste my Canvas link, upload my syllabi, and I'm <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>done in 10 seconds</span>. 😎
+                  I built this because I was wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3-4 hours every quarter</span> setting up my planner. Now I sync my Canvas calendar, upload my syllabi, and I'm <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>done in 10 seconds</span>. 😎
                 </div>
               </div>
             </div>

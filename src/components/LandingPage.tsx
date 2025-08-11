@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import LandingNavigation from './landing/LandingNavigation';
 import LandingHero from './landing/LandingHero';
 import LandingSocialProof from './landing/LandingSocialProof';
@@ -7,21 +7,41 @@ import LandingPricing from './landing/LandingPricing';
 import LandingFAQ from './landing/LandingFAQ';
 import LandingCTA from './landing/LandingCTA';
 import LandingFooter from './landing/LandingFooter';
+import { analyticsService } from '../services/analyticsService';
 
 interface LandingPageProps {
   onGetStarted: () => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
-  // Analytics tracking function
+  // Track landing page view on component mount
+  useEffect(() => {
+    analyticsService.trackLandingPageView();
+  }, []);
+
+  // Enhanced analytics tracking function with A/B test support
   const trackEvent = (eventName: string, properties?: any) => {
-    // Placeholder for analytics tracking
+    // Handle specific conversion events
+    switch (eventName) {
+      case 'get_started_clicked':
+        analyticsService.trackGetStartedClick(properties?.location || 'unknown');
+        break;
+      case 'pricing_viewed':
+        analyticsService.trackPricingView();
+        break;
+      case 'plan_selected':
+        analyticsService.trackPlanSelection(properties?.plan || 'unknown');
+        break;
+      case 'feature_interaction':
+        analyticsService.trackFeatureInteraction(properties?.feature || 'unknown');
+        break;
+      default:
+        analyticsService.track(eventName, properties);
+    }
+
+    // Also send to external analytics
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', eventName, properties);
-    }
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
-      // Analytics event tracked
     }
   };
 

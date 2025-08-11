@@ -26,11 +26,7 @@ const ChatbotAutocomplete: React.FC<ChatbotAutocompleteProps> = ({
   showShortcuts = true,
   className
 }) => {
-  // Early return BEFORE any hooks are called to avoid hooks violations
-  if (!isVisible || suggestions.length === 0) {
-    return null;
-  }
-
+  // All hooks must be called before any conditional returns
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
@@ -221,6 +217,11 @@ const ChatbotAutocomplete: React.FC<ChatbotAutocompleteProps> = ({
 
   const displayedSuggestions = suggestions.slice(0, maxResults);
   const hasMoreResults = suggestions.length > maxResults;
+
+  // Early return after all hooks are defined
+  if (!isVisible || suggestions.length === 0) {
+    return null;
+  }
 
   return (
     <div

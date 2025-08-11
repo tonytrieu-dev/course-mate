@@ -74,6 +74,22 @@ Deno.serve(async (req) => {
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Get user context early for document filtering
+    const authHeader = req.headers.get('Authorization');
+    let user = null;
+    if (authHeader) {
+      try {
+        const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.getUser(
+          authHeader.replace('Bearer ', '')
+        );
+        if (!authError && authUser) {
+          user = authUser;
+        }
+      } catch (error) {
+        console.log('Auth error:', error);
+      }
+    }
+
     // SECTION 1: GENERATE EMBEDDING (Hugging Face)
     console.log('Calling HuggingFace embedding API for query:', query);
     const hfEmbeddingResponse = await fetch(
@@ -97,21 +113,188 @@ Deno.serve(async (req) => {
     const queryEmbedding = await hfEmbeddingResponse.json();
     console.log('Query embedding generated.');
 
-    // SECTION 2: MATCH DOCUMENTS (Supabase) - Multi-class support
+    // SECTION 2A: TASK DATA RETRIEVAL - Check if query is task-related
+    const isTaskQuery = (query: string): boolean => {
+      const taskKeywords = [
+        'due', 'deadline', 'assignment', 'homework', 'task', 'project',
+        'upcoming', 'overdue', 'tomorrow', 'today', 'week', 'month',
+        'schedule', 'calendar', 'what\'s', 'show me', 'list'
+      ];
+      const normalizedQuery = query.toLowerCase();
+      return taskKeywords.some(keyword => normalizedQuery.includes(keyword));
+    };
+
+    const getDateRange = (query: string): { start?: Date, end?: Date } | null => {
+      const normalizedQuery = query.toLowerCase();
+      const now = new Date();
+      
+      if (normalizedQuery.includes('next week')) {
+        const startOfNextWeek = new Date(now);
+        const daysUntilNextMonday = (8 - now.getDay()) % 7 || 7;
+        startOfNextWeek.setDate(now.getDate() + daysUntilNextMonday);
+        startOfNextWeek.setHours(0, 0, 0, 0);
+        
+        const endOfNextWeek = new Date(startOfNextWeek);
+        endOfNextWeek.setDate(startOfNextWeek.getDate() + 6);
+        endOfNextWeek.setHours(23, 59, 59, 999);
+        
+        return { start: startOfNextWeek, end: endOfNextWeek };
+      } else if (normalizedQuery.includes('this week')) {
+        const startOfWeek = new Date(now);
+        const daysFromMonday = (now.getDay() + 6) % 7;
+        startOfWeek.setDate(now.getDate() - daysFromMonday);
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        
+        return { start: startOfWeek, end: endOfWeek };
+      } else if (normalizedQuery.includes('tomorrow')) {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        
+        const endOfTomorrow = new Date(tomorrow);
+        endOfTomorrow.setHours(23, 59, 59, 999);
+        
+        return { start: tomorrow, end: endOfTomorrow };
+      } else if (normalizedQuery.includes('today')) {
+        const startOfToday = new Date(now);
+        startOfToday.setHours(0, 0, 0, 0);
+        
+        const endOfToday = new Date(now);
+        endOfToday.setHours(23, 59, 59, 999);
+        
+        return { start: startOfToday, end: endOfToday };
+      } else if (normalizedQuery.includes('overdue')) {
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        yesterday.setHours(23, 59, 59, 999);
+        
+        return { end: yesterday };
+      }
+      
+      return null;
+    };
+
+    // Get tasks if this is a task-related query
+    let taskData = '';
+    const needsTaskData = isTaskQuery(query);
+    
+    if (needsTaskData) {
+      console.log('Task query detected, fetching user tasks...');
+      
+      try {
+        if (!user) {
+          console.log('No authenticated user for task query');
+          taskData = '\n\nPlease log in to view your tasks.\n';
+        } else {
+          const dateRange = getDateRange(query);
+          let taskQuery = supabaseAdmin
+            .from('tasks')
+            .select('id, title, "dueDate", "dueTime", date, class, type, completed, priority, created_at')
+            .eq('user_id', user.id);
+
+          // Filter by class if specific classes were mentioned
+          if (targetClassIds.length > 0) {
+            // Get class names from class IDs for filtering
+            const { data: classData } = await supabaseAdmin
+              .from('classes')
+              .select('id, name')
+              .in('id', targetClassIds);
+            
+            if (classData && classData.length > 0) {
+              const classNames = classData.map(c => c.name);
+              taskQuery = taskQuery.in('class', classNames);
+              console.log('Filtering tasks by classes:', classNames);
+            }
+          }
+
+          // Apply date filtering if we detected a time range
+          if (dateRange) {
+            if (dateRange.start && dateRange.end) {
+              // Range filtering (this week, next week, etc.)
+              const startDateStr = dateRange.start.toISOString().split('T')[0];
+              const endDateStr = dateRange.end.toISOString().split('T')[0];
+              taskQuery = taskQuery.or(`date.gte.${dateRange.start.toISOString()},date.lte.${dateRange.end.toISOString()},dueDate.gte.${startDateStr},dueDate.lte.${endDateStr}`);
+            } else if (dateRange.end) {
+              // Before date (overdue)
+              const endDateStr = dateRange.end.toISOString().split('T')[0];
+              taskQuery = taskQuery.or(`date.lt.${dateRange.end.toISOString()},dueDate.lt.${endDateStr}`);
+            }
+          }
+
+          taskQuery = taskQuery
+            .order('date', { ascending: true, nullsFirst: false })
+            .order('"dueDate"', { ascending: true, nullsFirst: false });
+
+          const { data: tasks, error: tasksError } = await taskQuery.limit(20);
+
+          if (tasksError) {
+            console.error('Error fetching tasks:', tasksError);
+            taskData = '\n\nError retrieving tasks.\n';
+          } else if (tasks && tasks.length > 0) {
+            console.log(`Found ${tasks.length} tasks for query`);
+            
+            // Format tasks for AI response
+            const formattedTasks = tasks.map(task => {
+              const dueInfo = task.dueDate ? 
+                `Due: ${task.dueDate}${task.dueTime ? ` at ${task.dueTime}` : ''}` :
+                task.date ? `Date: ${new Date(task.date).toLocaleDateString()}` : 'No due date';
+              
+              const status = task.completed ? '✅ Completed' : '⏳ Pending';
+              const priority = task.priority ? ` [${task.priority.toUpperCase()}]` : '';
+              
+              return `• ${task.title}${priority}
+Class: ${task.class || 'No class'}
+Type: ${task.type || 'Task'}
+${dueInfo}
+Status: ${status}`;
+            }).join('\n\n');
+            
+            taskData = `\n\nStudent's Tasks:\n---\n${formattedTasks}\n---\n`;
+          } else {
+            console.log('No tasks found matching the query criteria');
+            taskData = '\n\nNo tasks found matching your criteria.\n';
+          }
+        }
+      } catch (taskError) {
+        console.error('Error in task data retrieval:', taskError);
+        taskData = '\n\nUnable to retrieve task information at this time.\n';
+      }
+    }
+
+    // SECTION 2B: MATCH DOCUMENTS (Supabase) - Multi-class support
     let allDocuments: Document[] = [];
     let contextText = '';
     let contextSummary = '';
     
-    if (targetClassIds.length === 0) {
-      console.log('No class IDs provided');
-    } else if (targetClassIds.length === 1) {
+    console.log('Starting document search section');
+    
+    try {
+      if (targetClassIds.length === 0) {
+        console.log('No class IDs provided');
+      } else if (targetClassIds.length === 1) {
       // Single class - use original logic
-      const { data: documents, error: rpcError } = await supabaseAdmin.rpc('match_documents', {
+      console.log('Calling match_documents with params:', {
         class_id_filter: targetClassIds[0],
         match_count: 5,
-        match_threshold: 0.3, // Lowered threshold for better matches
-        query_embedding: queryEmbedding,
+        match_threshold: 0.3,
+        query_embedding: queryEmbedding ? 'present' : 'missing'
       });
+      
+      let documents, rpcError;
+      
+      // Use 4-parameter signature (the one that exists in the database)
+      const result = await supabaseAdmin.rpc('match_documents', {
+        class_id_filter: targetClassIds[0],
+        match_count: 5,
+        match_threshold: 0.3,
+        query_embedding: queryEmbedding
+      });
+      documents = result.data;
+      rpcError = result.error;
 
       if (rpcError) {
         console.error('Error from match_documents:', rpcError);
@@ -185,12 +368,29 @@ Deno.serve(async (req) => {
       let totalDocuments = 0;
       
       for (const classId of targetClassIds) {
-        const { data: documents, error: rpcError } = await supabaseAdmin.rpc('match_documents', {
-          class_id_filter: classId,
-          match_count: 3, // Fewer per class to avoid overwhelming context
-          match_threshold: 0.3, // Lowered threshold for better matches
-          query_embedding: queryEmbedding,
-        });
+        let documents, rpcError;
+        try {
+          // Try 5-parameter signature first
+          const result = await supabaseAdmin.rpc('match_documents', {
+            class_id_filter: classId,
+            match_count: 3,
+            match_threshold: 0.3,
+            query_embedding: queryEmbedding,
+            user_id_filter: null
+          });
+          documents = result.data;
+          rpcError = result.error;
+        } catch (signatureError) {
+          // Fallback to 4-parameter signature
+          const result = await supabaseAdmin.rpc('match_documents', {
+            class_id_filter: classId,
+            match_count: 3,
+            match_threshold: 0.3,
+            query_embedding: queryEmbedding
+          });
+          documents = result.data;
+          rpcError = result.error;
+        }
 
         if (rpcError) {
           console.error(`Error from match_documents for class ${classId}:`, rpcError);
@@ -220,6 +420,13 @@ Deno.serve(async (req) => {
       contextSummary = `Searching across ${targetClassIds.length} classes: ${classNames.join(', ')}`;
       
       console.log(`Found ${totalDocuments} total documents from ${targetClassIds.length} classes:`, targetClassIds);
+    }
+    } catch (documentSearchError) {
+      console.error('Document search error:', documentSearchError);
+      // Continue execution with empty documents - don't fail the entire request
+      allDocuments = [];
+      contextText = '';
+      contextSummary = '';
     }
 
     // Build conversation context for better follow-up handling
@@ -341,12 +548,29 @@ Deno.serve(async (req) => {
           // Re-run the document search for all target classes
           if (targetClassIds.length === 1) {
             // Single class retry
-            const { data: retryDocuments, error: retryError } = await supabaseAdmin.rpc('match_documents', {
-              class_id_filter: targetClassIds[0],
-              match_count: 5,
-              match_threshold: 0.3, // Lowered threshold for better matches
-              query_embedding: queryEmbedding,
-            });
+            let retryDocuments, retryError;
+            try {
+              // Try 5-parameter signature first
+              const result = await supabaseAdmin.rpc('match_documents', {
+                class_id_filter: targetClassIds[0],
+                match_count: 5,
+                match_threshold: 0.3,
+                query_embedding: queryEmbedding,
+                user_id_filter: null
+              });
+              retryDocuments = result.data;
+              retryError = result.error;
+            } catch (signatureError) {
+              // Fallback to 4-parameter signature
+              const result = await supabaseAdmin.rpc('match_documents', {
+                class_id_filter: targetClassIds[0],
+                match_count: 5,
+                match_threshold: 0.3,
+                query_embedding: queryEmbedding
+              });
+              retryDocuments = result.data;
+              retryError = result.error;
+            }
 
             if (!retryError && retryDocuments && retryDocuments.length > 0) {
               allDocuments = retryDocuments;
@@ -359,12 +583,29 @@ Deno.serve(async (req) => {
             let retryTotalDocuments = 0;
             
             for (const classId of targetClassIds) {
-              const { data: retryDocuments, error: retryError } = await supabaseAdmin.rpc('match_documents', {
-                class_id_filter: classId,
-                match_count: 3,
-                match_threshold: 0.3, // Lowered threshold for better matches
-                query_embedding: queryEmbedding,
-              });
+              let retryDocuments, retryError;
+              try {
+                // Try 5-parameter signature first
+                const result = await supabaseAdmin.rpc('match_documents', {
+                  class_id_filter: classId,
+                  match_count: 3,
+                  match_threshold: 0.3,
+                  query_embedding: queryEmbedding,
+                  user_id_filter: null
+                });
+                retryDocuments = result.data;
+                retryError = result.error;
+              } catch (signatureError) {
+                // Fallback to 4-parameter signature
+                const result = await supabaseAdmin.rpc('match_documents', {
+                  class_id_filter: classId,
+                  match_count: 3,
+                  match_threshold: 0.3,
+                  query_embedding: queryEmbedding
+                });
+                retryDocuments = result.data;
+                retryError = result.error;
+              }
 
               if (!retryError && retryDocuments && retryDocuments.length > 0) {
                 retryClassDocuments[classId] = retryDocuments;
@@ -493,7 +734,8 @@ Try asking: "Can you explain [specific concept]?" or describe what you're workin
       isFollowUp: boolean, 
       hasRelevantDocuments: boolean,
       contextSummary: string,
-      mentionContext: any
+      mentionContext: any,
+      taskData: string
     ): string => {
       if (isFollowUp && hasConversation) {
         // For follow-up questions, prioritize conversation context
@@ -502,13 +744,13 @@ Try asking: "Can you explain [specific concept]?" or describe what you're workin
 Previous conversation:
 ${conversationContext}
 
-${hasRelevantDocuments ? `Additional course material context (use if relevant):\n---\n${contextText}\n---\n\n` : ''}Current follow-up question: ${query}
+${hasRelevantDocuments ? `Additional course material context (use if relevant):\n---\n${contextText}\n---\n\n` : ''}${taskData ? `${taskData}\n` : ''}Current follow-up question: ${query}
 
 Please respond to the student's follow-up question by:
 1. Referencing our previous conversation 
 2. Providing clarification, elaboration, or addressing their concerns
 3. Being conversational and helpful
-4. Using course materials only if they add value to your response
+4. Using course materials and task information only if they add value to your response
 
 Answer:`;
       } else if (hasRelevantDocuments) {
@@ -521,35 +763,35 @@ Answer:`;
           ? `\n\nNote: The student used @mentions to specify ${mentionContext.mentionedClasses?.length === 1 ? 'a specific class' : 'specific classes'}: ${mentionContext.mentionedClasses?.map((c: any) => c.name).join(', ')}.`
           : '';
           
-        return `You are an intelligent academic assistant. Answer the student's question using the provided course materials.
+        return `You are an intelligent academic assistant. Answer the student's question using the provided course materials and task information.
 
 ${conversationContext ? `Previous conversation for context:\n${conversationContext}\n\n` : ''}${contextHeader}
 ---
 ${contextText}
 ---
-
+${taskData ? `${taskData}\n` : ''}
 Current question: ${query}${mentionNote}
 
-Please provide a helpful answer based on the course materials. ${mentionContext?.hasMentions ? 'Focus on the mentioned classes when relevant. ' : ''}If the materials don't contain the specific information needed, let the student know what you found and suggest they might need additional resources.
+Please provide a helpful answer based on the course materials and task information. ${mentionContext?.hasMentions ? 'Focus on the mentioned classes when relevant. ' : ''}If the materials don't contain the specific information needed, let the student know what you found and suggest they might need additional resources.
 
 Answer:`;
       } else {
-        // For questions without relevant documents but with conversation history
-        return `You are an intelligent academic assistant. The student is asking a question, but I don't have specific course materials that directly address this topic.
+        // For questions without relevant documents but with conversation history or task data
+        return `You are an intelligent academic assistant. ${taskData ? 'Here is the student\'s task information:' : 'The student is asking a question, but I don\'t have specific course materials that directly address this topic.'}
 
-${conversationContext ? `Previous conversation:\n${conversationContext}\n\n` : ''}Current question: ${query}
+${conversationContext ? `Previous conversation:\n${conversationContext}\n\n` : ''}${taskData ? `${taskData}\n` : ''}Current question: ${query}
 
 Please provide a helpful response by:
-1. Using any relevant information from our conversation history
+1. Using any relevant information from our conversation history${taskData ? ' and task data' : ''}
 2. Providing general academic guidance if appropriate
-3. Suggesting the student upload relevant course materials if this is a course-specific question
+3. ${taskData ? 'Focusing on the student\'s actual tasks and deadlines when relevant' : 'Suggesting the student upload relevant course materials if this is a course-specific question'}
 4. Being honest about the limitations while still being helpful
 
 Answer:`;
       }
     };
 
-    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantDocuments, contextSummary, mentionContext);
+    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantDocuments, contextSummary, mentionContext, taskData);
 
     console.log('Sending request to Google Gemini API...');
 

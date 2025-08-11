@@ -55,12 +55,10 @@
     <p>ScheduleBud provides:</p>
     <ul>
         <li>Academic task and assignment management</li>
-        <li>Integration with Canvas Learning Management System</li>
+        <li>Canvas LMS calendar sync via ICS calendar feed proxy</li>
         <li>AI-powered syllabus processing and task extraction</li>
         <li>Study schedule optimization and workload analysis</li>
-        <li>Grade tracking and GPA calculation</li>
         <li>Assignment reminders and notifications</li>
-        <li>Study session tracking and analytics</li>
     </ul>
 
     <h3>2.2 Educational Purpose</h3>
@@ -68,7 +66,6 @@
     <ul>
         <li>Managing academic assignments and deadlines</li>
         <li>Organizing study schedules and materials</li>
-        <li>Tracking academic progress and grades</li>
         <li>Improving study habits and productivity</li>
     </ul>
 
@@ -128,8 +125,7 @@
     <ul>
         <li>Manage your own academic tasks and schedules</li>
         <li>Upload and process your own syllabi and academic documents</li>
-        <li>Connect your own Canvas LMS account with proper authorization</li>
-        <li>Track your own academic progress and grades</li>
+        <li>Sync your own Canvas LMS calendar feed URL with proper authorization</li>
         <li>Share study schedules with study groups (with consent)</li>
     </ul>
 
@@ -150,20 +146,22 @@
         <strong>Academic Integrity:</strong> ScheduleBud is designed to help you organize and manage your academic work, not to complete it for you. You are responsible for maintaining academic integrity and following your institution's honor code.
     </div>
 
-    <h2>6. Canvas LMS Integration</h2>
+    <h2>6. Canvas LMS Calendar Sync</h2>
     
-    <h3>6.1 Authorization</h3>
+    <h3>6.1 ICS Feed Authorization</h3>
     <ul>
-        <li>Canvas integration requires your explicit authorization and valid credentials</li>
-        <li>You must have legitimate access to the Canvas courses you connect</li>
-        <li>You are responsible for compliance with your institution's Canvas usage policies</li>
+        <li>Canvas LMS calendar sync requires you to provide your Canvas ICS calendar feed URL</li>
+        <li>You must have legitimate access to the Canvas LMS courses in your calendar feed</li>
+        <li>You are responsible for compliance with your institution's Canvas LMS usage policies</li>
+        <li>We use secure CORS proxies to fetch your calendar feed without accessing your Canvas account</li>
     </ul>
 
-    <h3>6.2 Data Import</h3>
+    <h3>6.2 ICS Feed Processing</h3>
     <ul>
-        <li>We import only course information, assignments, and grades that you have access to</li>
-        <li>We do not modify or interact with your Canvas account beyond read-only access</li>
-        <li>You can disconnect Canvas integration at any time through your account settings</li>
+        <li>We fetch your Canvas LMS ICS calendar feed through secure CORS proxy services</li>
+        <li>We parse calendar events and convert them to tasks within our application</li>
+        <li>We do not access your Canvas LMS account directly - only your public calendar feed</li>
+        <li>You can disconnect Canvas LMS calendar sync at any time by removing your ICS feed URL</li>
     </ul>
 
     <h2>7. AI-Powered Features</h2>
@@ -184,7 +182,7 @@
     <ul>
         <li><strong>Not Professional Advice:</strong> AI recommendations are automated suggestions only and do not constitute professional academic, educational, or tutoring advice</li>
         <li><strong>Individual Circumstances:</strong> AI cannot account for your specific learning style, health conditions, work schedule, or personal circumstances</li>
-        <li><strong>Academic Consequences:</strong> We are not liable for academic failure, poor grades, missed deadlines, burnout, or other negative outcomes from following AI recommendations</li>
+        <li><strong>Academic Consequences:</strong> We are not liable for academic failure, missed deadlines, burnout, or other negative outcomes from following AI recommendations</li>
         <li><strong>Consult Experts:</strong> For serious academic planning, consult qualified academic advisors, tutors, or educational professionals</li>
         <li><strong>Mental Health:</strong> AI cannot replace mental health support - seek professional help for stress, anxiety, or academic overwhelm</li>
     </ul>
@@ -290,7 +288,7 @@
     <ul>
         <li>The Service is provided "as is" without warranties of any kind</li>
         <li>We do not guarantee accuracy of AI-generated content or recommendations</li>
-        <li>We are not responsible for third-party services (Canvas, email providers, etc.)</li>
+        <li>We are not responsible for third-party services (Canvas LMS, email providers, etc.)</li>
         <li>Use of the Service is at your own risk</li>
     </ul>
 
@@ -361,7 +359,7 @@
     <ul>
         <li>Natural disasters, pandemics, or government actions</li>
         <li>Internet service provider outages or network failures</li>
-        <li>Third-party service failures (Supabase, Stripe, Canvas, Google APIs)</li>
+        <li>Third-party service failures (Supabase, Stripe, Canvas LMS, Google APIs)</li>
         <li>Cyber attacks, data breaches, or security incidents affecting our infrastructure</li>
         <li>Unexpected technical failures or system maintenance requirements</li>
     </ul>
@@ -371,18 +369,17 @@
     
     <div class="contact-info">
         <h3>General Support</h3>
-        <p><strong>Email:</strong> support@schedulebudapp.com<br>
-        <strong>Response Time:</strong> Within 2 business days</p>
+        <p><strong>Email:</strong> tonytrieu03@outlook.com<br>
+        <strong>Phone:</strong> (510) 305-1809<br>
+        <strong>Response Time:</strong> Within 5 business days</p>
         
         <h3>Legal Notices</h3>
-        <p><strong>Email:</strong> legal@schedulebudapp.com<br>
-        <strong>Mailing Address:</strong> ScheduleBud Legal Department<br>
-        1234 Student Plaza, Suite 567<br>
-        San Francisco, CA 94102<br>
-        United States</p>
+        <p><strong>Email:</strong> tonytrieu03@outlook.com<br>
+        <strong>Phone:</strong> (510) 305-1809<br>
+        <strong>Mailing Address:</strong> Available upon request for legal proceedings</p>
         
         <h3>Academic Affairs</h3>
-        <p><strong>Email:</strong> academic@schedulebudapp.com<br>
+        <p><strong>Email:</strong> tonytrieu03@outlook.com<br>
         <strong>For:</strong> Academic integrity questions, institutional partnerships</p>
     </div>
 
@@ -407,7 +404,7 @@
         <ul>
             <li><a href="privacy-policy.html">Privacy Policy</a> - How we protect your educational records</li>
             <li>Academic Integrity Guidelines - Best practices for ethical use</li>
-            <li>Canvas Integration Guide - How to safely connect your LMS</li>
+            <li>Canvas LMS Calendar Sync Guide - How to safely connect your Canvas LMS calendar</li>
             <li>Data Export Tools - How to download your information</li>
         </ul>
     </div>

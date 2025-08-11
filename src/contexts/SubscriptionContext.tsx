@@ -8,30 +8,48 @@ interface SubscriptionPlan {
   id: string;
   name: string;
   price: number;
+  billingCycle: 'monthly' | 'annual' | 'academic';
+  interval: string;
+  intervalCount?: number;
+  savings?: number;
   features: string[];
 }
 
 interface SubscriptionContextType {
   // Subscription state
   currentPlan: SubscriptionPlan | null;
+  availablePlans: SubscriptionPlan[];
+  billingCycle: 'monthly' | 'annual' | 'academic';
   isSubscribed: boolean;
-  subscriptionStatus: 'free' | 'trialing' | 'active' | 'canceled';
+  subscriptionStatus: 'free' | 'trialing' | 'active' | 'canceled' | 'lifetime';
   trialDaysRemaining: number | null;
   loading: boolean;
+  
+  // Academic year info
+  currentAcademicYear: {
+    start: Date;
+    end: Date;
+    monthsRemaining: number;
+  } | null;
   
   // Usage tracking (for SaaS mode)
   aiCreditsUsed: number;
   aiCreditsLimit: number;
+  chatbotQueriesUsed: number;
+  chatbotQueriesLimit: number;
   canUseFeature: (feature: string) => boolean;
+  useChatbotQuery: () => Promise<boolean>;
   
   // Actions
-  startFreeTrial: () => Promise<void>;
+  startFreeTrial: (planType?: 'monthly' | 'annual' | 'academic') => Promise<void>;
   manageBilling: () => Promise<void>;
+  switchBillingCycle: (newCycle: 'monthly' | 'annual' | 'academic') => Promise<void>;
   checkUsage: () => Promise<void>;
   refreshStatus: () => Promise<void>;
   
   // Student-specific
   getUpgradeMessage: () => Promise<string>;
+  getPlanByBillingCycle: (cycle: 'monthly' | 'annual' | 'academic') => SubscriptionPlan;
 }
 
 interface SubscriptionProviderProps {
@@ -41,30 +59,129 @@ interface SubscriptionProviderProps {
 // Create context
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
-// Plans
+// Academic year helper functions
+const getAcademicYear = (date: Date = new Date(), system: 'semester' | 'quarter' = 'semester') => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // JavaScript months are 0-based
+  
+  if (system === 'semester') {
+    // Semester system: August-May (10 months)
+    if (month >= 8) {
+      return { start: year, end: year + 1, system: 'semester' };
+    } else {
+      return { start: year - 1, end: year, system: 'semester' };
+    }
+  } else {
+    // Quarter system: September-June (9 months)
+    if (month >= 9) {
+      return { start: year, end: year + 1, system: 'quarter' };
+    } else {
+      return { start: year - 1, end: year, system: 'quarter' };
+    }
+  }
+};
+
+const getAcademicYearDates = (academicYear = getAcademicYear()) => {
+  if (academicYear.system === 'semester') {
+    return {
+      start: new Date(academicYear.start, 7, 1), // August 1st
+      end: new Date(academicYear.end, 4, 31), // May 31st
+      months: 10,
+      system: 'semester'
+    };
+  } else {
+    return {
+      start: new Date(academicYear.start, 8, 1), // September 1st
+      end: new Date(academicYear.end, 5, 30), // June 30th
+      months: 9,
+      system: 'quarter'
+    };
+  }
+};
+
+const calculateMonthsRemaining = (system: 'semester' | 'quarter' = 'semester') => {
+  const now = new Date();
+  const academicYear = getAcademicYear(now, system);
+  const { end, months } = getAcademicYearDates(academicYear);
+  
+  if (now > end) {
+    return months; // Full academic year for next year
+  }
+  
+  const monthsLeft = Math.max(1, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+  return Math.min(months, monthsLeft);
+};
+
+// Enhanced plan definitions with billing cycles
 const personalPlan: SubscriptionPlan = {
   id: 'personal',
   name: 'Personal (Unlimited)',
   price: 0,
+  billingCycle: 'monthly',
+  interval: 'month',
   features: [
     'Unlimited AI queries',
-    'Canvas integration',
+    'Canvas integration', 
     'File management',
     'All productivity features',
     'No usage limits'
   ]
 };
 
-const studentProPlan: SubscriptionPlan = {
-  id: 'student-pro',
-  name: 'ScheduleBud - Student Plan',
-  price: 5,
+const studentProMonthly: SubscriptionPlan = {
+  id: 'student-pro-monthly',
+  name: 'ScheduleBud Pro - Monthly',
+  price: 3.99,
+  billingCycle: 'monthly',
+  interval: 'month',
   features: [
+    'Unlimited AI study assistance',
+    'Advanced analytics & insights', 
+    'Smart schedule optimization',
+    'Premium Canvas calendar sync',
+    'Email support & community',
+    'Export to multiple formats',
+    'Bulk task operations'
+  ]
+};
+
+const studentProAnnual: SubscriptionPlan = {
+  id: 'student-pro-annual',
+  name: 'ScheduleBud Pro - Annual',
+  price: 24,
+  billingCycle: 'annual', 
+  interval: 'year',
+  savings: 50, // 50% savings vs monthly
+  features: [
+    'Everything in Monthly plan',
+    'Save 50% with annual billing',
+    'Unlimited AI study assistance',
+    'Advanced analytics & insights',
+    'Smart schedule optimization', 
+    'Premium Canvas calendar sync',
+    'Email support & community',
+    'Export to multiple formats',
+    'Bulk task operations'
+  ]
+};
+
+const studentProAcademic: SubscriptionPlan = {
+  id: 'student-pro-academic',
+  name: 'ScheduleBud Pro - Academic Year',
+  price: 24, // Updated to match annual pricing
+  billingCycle: 'academic',
+  interval: 'month',
+  intervalCount: 10, // Default to semester system
+  savings: 50, // 50% savings vs monthly equivalent  
+  features: [
+    'Pay for school year only (Aug-May or Sep-Jun)',
+    'No summer charges',
+    'Everything in Monthly plan',
     'Unlimited AI study assistance',
     'Advanced analytics & insights',
     'Smart schedule optimization',
-    'Premium Canvas features',
-    'Priority support during finals',
+    'Premium Canvas calendar sync', 
+    'Email support & community',
     'Export to multiple formats',
     'Bulk task operations'
   ]
@@ -74,20 +191,57 @@ const freePlan: SubscriptionPlan = {
   id: 'free',
   name: 'Free Student Plan',
   price: 0,
+  billingCycle: 'monthly',
+  interval: 'month',
   features: [
     'Basic task management',
-    'Canvas integration',
-    'Limited AI queries (5/day)',
-    'Basic analytics',
+    'Canvas calendar sync',
+    'Limited AI queries (3/day)',
+    'Basic file storage (25 files)', 
     'Community support'
   ]
 };
+
+// Available plans array
+const availablePlans = [studentProMonthly, studentProAnnual, studentProAcademic];
 
 // Provider component
 export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ children }) => {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({ status: 'free' });
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [chatbotQueriesUsed, setChatbotQueriesUsed] = useState<number>(0);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual' | 'academic'>('monthly');
+  const [currentAcademicYear, setCurrentAcademicYear] = useState<{
+    start: Date;
+    end: Date;
+    monthsRemaining: number;
+  } | null>(null);
+
+  // Initialize academic year info
+  useEffect(() => {
+    const updateAcademicYear = () => {
+      // TODO: Get academic system preference from user settings
+      // For now, default to semester system (more common)
+      const system = 'semester';
+      
+      const dates = getAcademicYearDates(getAcademicYear(new Date(), system));
+      const monthsRemaining = calculateMonthsRemaining(system);
+      
+      setCurrentAcademicYear({
+        start: dates.start,
+        end: dates.end,
+        monthsRemaining
+      });
+    };
+
+    updateAcademicYear();
+    
+    // Update daily (in case academic year changes)
+    const interval = setInterval(updateAcademicYear, 24 * 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Load initial subscription status
   useEffect(() => {
@@ -95,6 +249,10 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       try {
         const status = await subscriptionService.getSubscriptionStatus();
         setSubscriptionStatus(status);
+        
+        // Load billing cycle from user data if available
+        // TODO: This would come from subscriptionService.getUserBillingCycle()
+        // For now, default to monthly
         
         if (status.status === 'trialing') {
           const days = await subscriptionService.getTrialDaysRemaining();
@@ -125,7 +283,37 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     return unsubscribe;
   }, []);
 
-  // Get current plan based on status
+  // Get current chatbot query limit based on subscription status
+  const getCurrentChatbotLimit = (): number => {
+    if (features.isPersonalMode) {
+      return 999; // Unlimited for personal mode
+    }
+
+    // Free users: 3 queries per day  
+    // Paid users: 50 queries per day
+    const isSubscribed = subscriptionStatus.status === 'active' || subscriptionStatus.status === 'trialing';
+    return isSubscribed ? 50 : 3;
+  };
+
+  // Load daily query usage from localStorage
+  const loadQueryUsage = (): number => {
+    const today = new Date().toDateString();
+    const stored = localStorage.getItem(`chatbot_queries_${today}`);
+    return stored ? parseInt(stored, 10) : 0;
+  };
+
+  // Save daily query usage to localStorage
+  const saveQueryUsage = (count: number): void => {
+    const today = new Date().toDateString();
+    localStorage.setItem(`chatbot_queries_${today}`, count.toString());
+  };
+
+  // Initialize query usage on component mount
+  useEffect(() => {
+    setChatbotQueriesUsed(loadQueryUsage());
+  }, []);
+
+  // Get current plan based on status and billing cycle
   const getCurrentPlan = (): SubscriptionPlan => {
     if (features.isPersonalMode) {
       return personalPlan;
@@ -134,11 +322,25 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     switch (subscriptionStatus.status) {
       case 'trialing':
       case 'active':
-        return studentProPlan;
+        return getPlanByBillingCycle(billingCycle);
       case 'free':
       case 'canceled':
       default:
         return freePlan;
+    }
+  };
+
+  // Helper function to get plan by billing cycle
+  const getPlanByBillingCycle = (cycle: 'monthly' | 'annual' | 'academic'): SubscriptionPlan => {
+    switch (cycle) {
+      case 'monthly':
+        return studentProMonthly;
+      case 'annual':
+        return studentProAnnual;
+      case 'academic':
+        return studentProAcademic;
+      default:
+        return studentProMonthly;
     }
   };
 
@@ -158,6 +360,8 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     // Usage tracking
     aiCreditsUsed: 0, // TODO: Implement usage tracking
     aiCreditsLimit: features.aiCreditLimit,
+    chatbotQueriesUsed,
+    chatbotQueriesLimit: getCurrentChatbotLimit(),
     
     // Feature access control
     canUseFeature: (feature: string) => {
@@ -168,6 +372,11 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       // Use subscription service for feature checking
       if (loading) {
         return false; // Deny access while loading
+      }
+      
+      // Check chatbot query limits
+      if (feature === 'chatbot' || feature === 'aiQueries') {
+        return chatbotQueriesUsed < getCurrentChatbotLimit();
       }
       
       // Allow basic features for free users
@@ -223,8 +432,35 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         return; // No usage limits to check
       }
       
-      // TODO: Implement usage checking
-      logger.info('Usage check not yet implemented');
+      // Refresh daily query count
+      const currentUsage = loadQueryUsage();
+      setChatbotQueriesUsed(currentUsage);
+      logger.info('Usage refreshed', { chatbotQueriesUsed: currentUsage });
+    },
+
+    // Use a chatbot query (increments counter)
+    useChatbotQuery: async () => {
+      if (features.isPersonalMode) {
+        return true; // Unlimited in personal mode
+      }
+
+      const currentLimit = getCurrentChatbotLimit();
+      if (chatbotQueriesUsed >= currentLimit) {
+        return false; // Query limit exceeded
+      }
+
+      // Increment usage counter
+      const newCount = chatbotQueriesUsed + 1;
+      setChatbotQueriesUsed(newCount);
+      saveQueryUsage(newCount);
+      
+      logger.info('Chatbot query used', { 
+        used: newCount, 
+        limit: currentLimit, 
+        remaining: currentLimit - newCount 
+      });
+      
+      return true;
     },
 
     refreshStatus: async () => {
@@ -248,6 +484,27 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
 
     getUpgradeMessage: async () => {
       return await subscriptionService.getUpgradeMessage();
+    },
+    
+    // Missing properties
+    availablePlans: [personalPlan, studentProMonthly, studentProAnnual, studentProAcademic],
+    billingCycle: getCurrentPlan()?.billingCycle || 'monthly',
+    currentAcademicYear: getCurrentPlan()?.billingCycle === 'academic' ? {
+      start: new Date(),
+      end: new Date(),
+      monthsRemaining: calculateMonthsRemaining()
+    } : null,
+    switchBillingCycle: async (newCycle: 'monthly' | 'annual' | 'academic') => {
+      // TODO: Implement billing cycle switching
+      logger.info('Billing cycle switching not yet implemented', { newCycle });
+    },
+    getPlanByBillingCycle: (cycle: 'monthly' | 'annual' | 'academic') => {
+      switch (cycle) {
+        case 'monthly': return studentProMonthly;
+        case 'annual': return studentProAnnual;
+        case 'academic': return studentProAcademic; // Academic plan
+        default: return studentProMonthly;
+      }
     }
   };
 
