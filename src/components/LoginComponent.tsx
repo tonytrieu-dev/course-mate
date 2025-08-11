@@ -35,9 +35,16 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
 
   const toggleMode = useCallback((): void => {
     setIsRegistering((prev) => !prev);
+    // SECURITY FIX: Clear all form fields when switching modes
+    setEmail("");
+    setPassword("");
     setEmailFocused(false);
     setPasswordFocused(false);
+    setShowPassword(false);
     setAgeVerified(false);
+    // Clear all validation errors
+    setEmailError("");
+    setPasswordError("");
     setAgeError("");
   }, []);
 
@@ -82,14 +89,21 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
       return;
     }
     
-    if (isRegistering) {
-      await register(email, password);
-    } else {
-      await login(email, password);
-    }
-    
-    if (onClose) {
-      onClose();
+    try {
+      if (isRegistering) {
+        await register(email, password);
+      } else {
+        await login(email, password);
+      }
+      
+      // Only close if registration/login was successful (no error thrown)
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      // Error handling is managed by the AuthContext and displayed via authError
+      // The authError state will be updated by the auth context, so no need to handle here
+      console.error('Authentication error:', error);
     }
   }, [email, password, ageVerified, isRegistering, validateEmail, validatePassword, validateAge, register, login, onClose]);
 
@@ -151,11 +165,12 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
   }, [validateAge]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[9999]">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-[400px] max-w-lg relative">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[9999] p-4">
+      <div className="bg-white/95 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-full max-w-md relative border border-gray-100/50 animate-fadeIn">
+        {/* Close Button */}
         <button
           onClick={handleCloseClick}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 rounded-full p-1 transition-all duration-200 hover:bg-gray-50"
           aria-label="Close"
           type="button"
         >
@@ -170,32 +185,93 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
           </svg>
         </button>
 
-        <h3 className="text-xl font-semibold mb-4 text-blue-600">
-          {isRegistering ? "Sign up" : "Sign in"}
-        </h3>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {isRegistering ? "Create Account" : "Welcome Back"}
+          </h2>
+          <p className="text-gray-600 text-sm">
+            {isRegistering 
+              ? "Join thousands of students managing their academic life" 
+              : "Sign in to continue to your dashboard"}
+          </p>
+        </div>
 
+        {/* Error Display */}
         {authError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {authError}
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center space-x-2">
+            <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <div className="text-sm">
+              <span>{authError}</span>
+              {isRegistering && (authError.toLowerCase().includes('user') || authError.toLowerCase().includes('email') || authError.toLowerCase().includes('exists')) && (
+                <div className="mt-1 text-xs">
+                  <span>Already have an account? </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsRegistering(false)}
+                    className="underline hover:no-underline font-medium"
+                  >
+                    Sign in instead
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">Email:</label>
-            <input
-              type="email"
-              value={email}
-              onChange={handleEmailChange}
-              onBlur={handleEmailBlur}
-              className="w-full p-2 border border-gray-300 rounded text-gray-900 bg-white"
-              required
-            />
-            {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email Field */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Email Address
+            </label>
+            <div className="relative">
+              <input
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                onBlur={handleEmailBlur}
+                className={`w-full px-4 py-3 pl-11 border rounded-xl text-gray-900 bg-white/70 backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent placeholder-gray-400 ${
+                  emailError 
+                    ? 'border-red-300 focus:ring-red-500/20' 
+                    : email && !emailError
+                    ? 'border-green-300 focus:ring-blue-500/20'
+                    : 'border-gray-200 focus:ring-blue-500/20 hover:border-gray-300'
+                }`}
+                placeholder="Enter your email"
+                required
+              />
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+              {email && !emailError && (
+                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              )}
+            </div>
+            {emailError && (
+              <p className="text-red-500 text-xs flex items-center space-x-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>{emailError}</span>
+              </p>
+            )}
           </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-2">Password:</label>
+          {/* Password Field */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -205,19 +281,31 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
                 onBlur={handlePasswordBlur}
                 onKeyDown={handlePasswordKeyEvent}
                 onKeyUp={handlePasswordKeyEvent}
-                className="w-full p-2 pr-20 border border-gray-300 rounded text-gray-900 bg-white"
+                className={`w-full px-4 py-3 pl-11 pr-24 border rounded-xl text-gray-900 bg-white/70 backdrop-blur-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent placeholder-gray-400 ${
+                  passwordError 
+                    ? 'border-red-300 focus:ring-red-500/20' 
+                    : password && !passwordError
+                    ? 'border-green-300 focus:ring-blue-500/20'
+                    : 'border-gray-200 focus:ring-blue-500/20 hover:border-gray-300'
+                }`}
+                placeholder="Enter your password"
                 required
                 minLength={6}
               />
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              
               {capsLockOn && (
-                <div className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-600 text-xs font-medium px-1.5 py-0.5 bg-gray-100 rounded" title="Caps Lock is ON">
+                <div className="absolute right-12 top-1/2 -translate-y-1/2 text-amber-600 text-xs font-medium px-2 py-1 bg-amber-50 rounded-md border border-amber-200" title="Caps Lock is ON">
                   CAPS
                 </div>
               )}
+              
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 rounded p-1 transition-colors duration-200"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
@@ -233,66 +321,121 @@ const LoginComponent: React.FC<LoginComponentProps> = ({ onClose }) => {
                 )}
               </button>
             </div>
-            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
-            {isRegistering && !passwordError && (
-              <p className="text-gray-500 text-sm mt-1">
-                Password must be at least 6 characters
+            
+            {passwordError && (
+              <p className="text-red-500 text-xs flex items-center space-x-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>{passwordError}</span>
+              </p>
+            )}
+            
+            {isRegistering && !passwordError && password && (
+              <p className="text-gray-500 text-xs flex items-center space-x-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span>Password must be at least 6 characters</span>
               </p>
             )}
           </div>
 
+          {/* Age Verification for Registration */}
           {isRegistering && (
-            <div className="mb-6">
-              <div className="flex items-start space-x-3">
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
                 <input
                   type="checkbox"
                   id="ageVerification"
                   checked={ageVerified}
                   onChange={handleAgeCheckChange}
-                  className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                   required
                 />
-                <label htmlFor="ageVerification" className="text-sm text-gray-700 leading-5">
-                  <strong className="text-red-600">*</strong> I confirm that I am 18 years of age or older. 
-                  <span className="block text-xs text-gray-500 mt-1">
+                <label htmlFor="ageVerification" className="text-sm text-gray-700 leading-relaxed">
+                  <span className="font-medium text-gray-900">
+                    <span className="text-red-500">*</span> I confirm that I am 18 years of age or older
+                  </span>
+                  <span className="block text-xs text-gray-600 mt-1">
                     ScheduleBud is exclusively for adult users (18+). By checking this box, you certify that you meet this age requirement.
                   </span>
                 </label>
               </div>
-              {ageError && <p className="text-red-500 text-sm mt-2">{ageError}</p>}
+              {ageError && (
+                <p className="text-red-500 text-xs flex items-center space-x-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span>{ageError}</span>
+                </p>
+              )}
             </div>
           )}
 
-          <div className="flex justify-between items-center">
-            <button
-              type="button"
-              onClick={toggleMode}
-              className="text-blue-600 hover:text-blue-800"
-            >
-              {isRegistering
-                ? "Already have an account? Sign in"
-                : "Need an account? Register"}
-            </button>
-
+          {/* Submit Button */}
+          <div className="space-y-4">
             <button
               type="submit"
               disabled={loading || !formValid}
-              className="bg-blue-700 hover:bg-blue-800 disabled:bg-blue-500 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded transition"
+              className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                loading || !formValid
+                  ? 'bg-gray-400 cursor-not-allowed shadow-sm hover:shadow-sm hover:transform-none'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+              }`}
             >
-              {loading ? "Loading..." : isRegistering ? "Register" : "Sign in"}
+              {loading ? (
+                <span className="flex items-center justify-center space-x-2">
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Please wait...</span>
+                </span>
+              ) : (
+                isRegistering ? "Create Account" : "Sign In"
+              )}
             </button>
+
+            {/* Toggle Mode */}
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="text-sm text-gray-600 hover:text-blue-600 transition-colors duration-200 font-medium"
+              >
+                {isRegistering
+                  ? "Already have an account? Sign in"
+                  : "Need an account? Create one"}
+              </button>
+            </div>
           </div>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-gray-300">
-          <p className="text-center text-gray-500 mb-4">Or sign in with:</p>
+        {/* OAuth Section */}
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+            </div>
+          </div>
+          
           {isRegistering && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-              <p className="text-amber-800 text-sm text-center">
-                <strong>Age Requirement:</strong> By using social login, you confirm you are 18+ years old.
-              </p>
+            <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <p className="text-amber-800 text-sm font-medium">
+                  <strong>Age Requirement:</strong> By using social login, you confirm you are 18+ years old.
+                </p>
+              </div>
             </div>
           )}
+          
           <div className="flex justify-center gap-4">
             <OAuthButton provider="google" onClick={handleOAuthLogin} />
             <OAuthButton provider="discord" onClick={handleOAuthLogin} />
@@ -355,7 +498,7 @@ const OAuthButton: React.FC<OAuthButtonProps> = memo(({ provider, onClick }) => 
   return (
     <button
       onClick={handleClick}
-      className="bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-2xl p-3 w-14 h-14 flex items-center justify-center transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-lg group"
+      className="bg-white/80 hover:bg-white border border-gray-200 hover:border-gray-300 rounded-2xl p-4 w-16 h-16 flex items-center justify-center transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl group backdrop-blur-sm"
       aria-label={`Sign in with ${provider}`}
       type="button"
     >

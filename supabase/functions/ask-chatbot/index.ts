@@ -213,15 +213,32 @@ Deno.serve(async (req) => {
 
           // Apply date filtering if we detected a time range
           if (dateRange) {
+            console.log('Applying date filtering:', {
+              query: query.toLowerCase(),
+              dateRange: {
+                start: dateRange.start?.toISOString(),
+                end: dateRange.end?.toISOString()
+              }
+            });
             if (dateRange.start && dateRange.end) {
               // Range filtering (this week, next week, etc.)
               const startDateStr = dateRange.start.toISOString().split('T')[0];
               const endDateStr = dateRange.end.toISOString().split('T')[0];
-              taskQuery = taskQuery.or(`date.gte.${dateRange.start.toISOString()},date.lte.${dateRange.end.toISOString()},dueDate.gte.${startDateStr},dueDate.lte.${endDateStr}`);
+              console.log('Date range filtering applied:', {
+                startDate: startDateStr,
+                endDate: endDateStr,
+                startTimestamp: dateRange.start.toISOString(),
+                endTimestamp: dateRange.end.toISOString()
+              });
+              taskQuery = taskQuery.or(`date.gte.${dateRange.start.toISOString()},date.lte.${dateRange.end.toISOString()},"dueDate".gte.${startDateStr},"dueDate".lte.${endDateStr}`);
             } else if (dateRange.end) {
               // Before date (overdue)
               const endDateStr = dateRange.end.toISOString().split('T')[0];
-              taskQuery = taskQuery.or(`date.lt.${dateRange.end.toISOString()},dueDate.lt.${endDateStr}`);
+              console.log('Overdue filtering applied:', {
+                endDate: endDateStr,
+                endTimestamp: dateRange.end.toISOString()
+              });
+              taskQuery = taskQuery.or(`date.lt.${dateRange.end.toISOString()},"dueDate".lt.${endDateStr}`);
             }
           }
 
@@ -230,12 +247,36 @@ Deno.serve(async (req) => {
             .order('"dueDate"', { ascending: true, nullsFirst: false });
 
           const { data: tasks, error: tasksError } = await taskQuery.limit(20);
+          
+          console.log('Task query completed:', {
+            taskCount: tasks?.length || 0,
+            hasError: !!tasksError,
+            errorDetails: tasksError?.message || null,
+            appliedDateFilter: !!dateRange,
+            appliedClassFilter: targetClassIds.length > 0
+          });
 
           if (tasksError) {
             console.error('Error fetching tasks:', tasksError);
             taskData = '\n\nError retrieving tasks.\n';
           } else if (tasks && tasks.length > 0) {
             console.log(`Found ${tasks.length} tasks for query`);
+            
+            // Debug: Show sample task data for troubleshooting
+            if (tasks.length > 0) {
+              const sampleTask = tasks[0];
+              console.log('Sample task data:', {
+                id: sampleTask.id,
+                title: sampleTask.title?.substring(0, 50) + '...',
+                dueDate: sampleTask.dueDate,
+                dueTime: sampleTask.dueTime,
+                date: sampleTask.date,
+                class: sampleTask.class,
+                type: sampleTask.type,
+                completed: sampleTask.completed,
+                priority: sampleTask.priority
+              });
+            }
             
             // Format tasks for AI response
             const formattedTasks = tasks.map(task => {
@@ -265,12 +306,12 @@ Status: ${status}`;
       }
     }
 
-    // SECTION 2B: MATCH DOCUMENTS (Supabase) - Multi-class support
+    // SECTION 2B: MATCH CHUNKS (Supabase) - Multi-class support
     let allDocuments: Document[] = [];
     let contextText = '';
     let contextSummary = '';
     
-    console.log('Starting document search section');
+    console.log('Starting chunk search section');
     
     try {
       if (targetClassIds.length === 0) {
@@ -298,7 +339,7 @@ Status: ${status}`;
 
       if (rpcError) {
         console.error('Error from match_documents:', rpcError);
-        throw new Error(`Failed to find matching documents: ${rpcError.message}`);
+        throw new Error(`Failed to find matching chunks: ${rpcError.message}`);
       }
 
       allDocuments = documents || [];
@@ -306,17 +347,17 @@ Status: ${status}`;
         ? documents.map((doc: Document) => doc.content).join("\n\n---\n\n")
         : '';
       
-      console.log(`Found ${documents?.length || 0} matching documents for single class:`, targetClassIds[0]);
+      console.log(`Found ${documents?.length || 0} matching chunks for single class:`, targetClassIds[0]);
       if (documents && documents.length > 0) {
-        console.log('Document content samples:');
+        console.log('Chunk content samples:');
         documents.forEach((doc: Document, index: number) => {
-          console.log(`Document ${index + 1}: ${doc.content?.substring(0, 150)}...`);
+          console.log(`Chunk ${index + 1}: ${doc.content?.substring(0, 150)}...`);
         });
       }
 
       // If semantic search didn't find relevant documents, try text search as fallback
       if (!documents || documents.length === 0) {
-        console.log('Semantic search found no documents, trying text search and keyword fallback...');
+        console.log('Semantic search found no chunks, trying text search and keyword fallback...');
         
         // First try PostgreSQL full-text search
         const { data: textSearchDocs, error: textSearchError } = await supabaseAdmin
@@ -327,7 +368,7 @@ Status: ${status}`;
           .limit(5);
           
         if (!textSearchError && textSearchDocs && textSearchDocs.length > 0) {
-          console.log(`Text search found ${textSearchDocs.length} documents`);
+          console.log(`Text search found ${textSearchDocs.length} chunks`);
           allDocuments = textSearchDocs;
           contextText = textSearchDocs.map((doc: Document) => doc.content).join("\n\n---\n\n");
         } else {
@@ -355,7 +396,7 @@ Status: ${status}`;
             );
             
             if (relevantDocs.length > 0) {
-              console.log(`Keyword search found ${relevantDocs.length} relevant documents`);
+              console.log(`Keyword search found ${relevantDocs.length} relevant chunks`);
               allDocuments = relevantDocs;
               contextText = relevantDocs.map((doc: Document) => doc.content).join("\n\n---\n\n");
             }
@@ -408,7 +449,7 @@ Status: ${status}`;
       for (const [classId, documents] of Object.entries(classDocuments)) {
         if (documents.length > 0) {
           const classContext = documents.map((doc: Document) => doc.content).join("\n\n");
-          contextParts.push(`Documents from class ${classId}:\n${classContext}`);
+          contextParts.push(`Chunks from class ${classId}:\n${classContext}`);
         }
       }
       
@@ -419,10 +460,10 @@ Status: ${status}`;
       const classNames = mentionContext?.mentionedClasses?.map((c: any) => c.name) || targetClassIds;
       contextSummary = `Searching across ${targetClassIds.length} classes: ${classNames.join(', ')}`;
       
-      console.log(`Found ${totalDocuments} total documents from ${targetClassIds.length} classes:`, targetClassIds);
+      console.log(`Found ${totalDocuments} total chunks from ${targetClassIds.length} classes:`, targetClassIds);
     }
     } catch (documentSearchError) {
-      console.error('Document search error:', documentSearchError);
+      console.error('Chunk search error:', documentSearchError);
       // Continue execution with empty documents - don't fail the entire request
       allDocuments = [];
       contextText = '';
@@ -472,25 +513,25 @@ Status: ${status}`;
              (normalizedQuery.length < 15 && normalizedQuery.includes('?'));
     };
 
-    // Calculate document relevance confidence
-    let hasRelevantDocuments = allDocuments && allDocuments.length > 0;
+    // Calculate chunk relevance confidence
+    let hasRelevantChunks = allDocuments && allDocuments.length > 0;
     const hasConversation = conversationHistory && conversationHistory.length > 0;
     const isFollowUp = isFollowUpQuestion(query, hasConversation);
     
     console.log('Question analysis:', { 
       query: query.substring(0, 50) + (query.length > 50 ? '...' : ''),
       isFollowUp, 
-      hasRelevantDocuments, 
+      hasRelevantChunks, 
       hasConversation,
-      documentsCount: allDocuments?.length || 0,
+      chunksCount: allDocuments?.length || 0,
       conversationLength: conversationHistory?.length || 0,
       classCount: targetClassIds.length,
       hasMentions: mentionContext?.hasMentions || false
     });
 
     // AUTO-EMBEDDING: Check if files exist but embeddings are missing
-    if (!hasRelevantDocuments && !hasConversation && targetClassIds.length > 0) {
-      console.log('No documents found, checking for files without embeddings...');
+    if (!hasRelevantChunks && !hasConversation && targetClassIds.length > 0) {
+      console.log('No chunks found, checking for files without embeddings...');
       
       // Check if any uploaded files exist for these classes
       const { data: classFiles, error: filesError } = await supabaseAdmin
@@ -502,10 +543,41 @@ Status: ${status}`;
       if (filesError) {
         console.error('Error checking class_files:', filesError);
       } else if (classFiles && classFiles.length > 0) {
-        console.log(`Found ${classFiles.length} uploaded files without embeddings. Auto-triggering embedding process...`);
+        // DUPLICATE PREVENTION: Check which files actually need embedding
+        console.log(`Found ${classFiles.length} uploaded files, checking which need embeddings...`);
         
-        // Auto-trigger embedding for all files
-        const embeddingPromises = classFiles.map(async (file) => {
+        const { data: existingEmbeddings, error: embeddingCheckError } = await supabaseAdmin
+          .from('documents')
+          .select('file_name')
+          .in('class_id', targetClassIds);
+        
+        if (embeddingCheckError) {
+          console.error('Error checking existing embeddings:', embeddingCheckError);
+          // Continue with existing logic on error
+        }
+        
+        const embeddedFileNames = new Set(existingEmbeddings?.map(doc => 
+          doc.file_name.replace(/ \(chunk \d+\/\d+\)$/, '')) || []);
+        
+        // Filter out files that already have embeddings
+        const unembeddedFiles = classFiles.filter(file => 
+          !embeddedFileNames.has(file.name));
+        
+        console.log(`Embedding status: ${unembeddedFiles.length} need embedding, ${classFiles.length - unembeddedFiles.length} already embedded`);
+        
+        if (unembeddedFiles.length === 0) {
+          // All files already embedded, just no relevant matches for this specific query
+          console.log('All files already embedded but no relevant content found for query');
+          const noDocsMessage = "I have your course materials but couldn't find information specifically about your question. Try asking about topics covered in your uploaded documents.";
+          return new Response(JSON.stringify({ answer: noDocsMessage }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        console.log(`Auto-triggering embedding process for ${unembeddedFiles.length} unembedded files...`);
+        
+        // Auto-trigger embedding for unembedded files only
+        const embeddingPromises = unembeddedFiles.map(async (file) => {
           try {
             console.log(`Auto-embedding file: ${file.name} (ID: ${file.id})`);
             
@@ -539,11 +611,11 @@ Status: ${status}`;
           result.status === 'fulfilled' && result.value.success
         ).length;
         
-        console.log(`Auto-embedding completed: ${successfulEmbeddings}/${classFiles.length} files successfully embedded`);
+        console.log(`Auto-embedding completed: ${successfulEmbeddings}/${unembeddedFiles.length} files successfully embedded`);
         
         // If at least one file was successfully embedded, retry the document search
         if (successfulEmbeddings > 0) {
-          console.log('Retrying document search after auto-embedding...');
+          console.log('Retrying chunk search after auto-embedding...');
           
           // Re-run the document search for all target classes
           if (targetClassIds.length === 1) {
@@ -575,7 +647,7 @@ Status: ${status}`;
             if (!retryError && retryDocuments && retryDocuments.length > 0) {
               allDocuments = retryDocuments;
               contextText = retryDocuments.map((doc: Document) => doc.content).join("\n\n---\n\n");
-              console.log(`Retry successful: Found ${retryDocuments.length} documents after auto-embedding`);
+              console.log(`Retry successful: Found ${retryDocuments.length} chunks after auto-embedding`);
             }
           } else {
             // Multiple classes retry
@@ -624,16 +696,16 @@ Status: ${status}`;
               
               contextText = retryContextParts.join("\n\n---\n\n");
               allDocuments = Object.values(retryClassDocuments).flat();
-              console.log(`Retry successful: Found ${retryTotalDocuments} documents from ${targetClassIds.length} classes after auto-embedding`);
+              console.log(`Retry successful: Found ${retryTotalDocuments} chunks from ${targetClassIds.length} classes after auto-embedding`);
             }
           }
           
           // Update relevant documents status for continuation of the flow
-          hasRelevantDocuments = allDocuments && allDocuments.length > 0;
+          hasRelevantChunks = allDocuments && allDocuments.length > 0;
         }
         
         // If we still don't have documents after auto-embedding, check for scanned documents
-        if (!hasRelevantDocuments) {
+        if (!hasRelevantChunks) {
           // Check if any documents exist but contain scanned document indicators
           const { data: allEmbeddedDocs, error: allDocsError } = await supabaseAdmin
             .from('documents')
@@ -690,7 +762,7 @@ Try asking: "Can you explain [specific concept]?" or describe what you're workin
             autoEmbedMessage = `I found ${classFiles.length} uploaded file(s) for your class(es), but encountered issues processing them for search. Please try re-uploading your course materials or contact support if the problem persists.`;
           }
             
-          console.log('Auto-embedding completed but no relevant documents found', {
+          console.log('Auto-embedding completed but no relevant chunks found', {
             hasHandwrittenDocuments,
             handwrittenFileCount,
             successfulEmbeddings,
@@ -706,12 +778,12 @@ Try asking: "Can you explain [specific concept]?" or describe what you're workin
       } else {
         // No files exist - original "no documents" flow
         const noDocsMessage = targetClassIds.length > 1 
-          ? `I don't have any documents to reference for the classes you mentioned (${contextSummary}). Please upload course materials for these classes first.`
+          ? `I don't have any course material chunks to reference for the classes you mentioned (${contextSummary}). Please upload course materials for these classes first.`
           : targetClassIds.length === 1
-          ? "I don't have any documents to reference for this class yet. Please upload some course materials first."
+          ? "I don't have any course material chunks to reference for this class yet. Please upload some course materials first."
           : "Please select a class or use @ClassName to specify which class to ask about.";
           
-        console.log('No matching documents, no conversation history, and no uploaded files for classes:', targetClassIds);
+        console.log('No matching chunks, no conversation history, and no uploaded files for classes:', targetClassIds);
         return new Response(JSON.stringify({ 
           answer: noDocsMessage
         }), {
@@ -732,7 +804,7 @@ Try asking: "Can you explain [specific concept]?" or describe what you're workin
       contextText: string, 
       conversationContext: string, 
       isFollowUp: boolean, 
-      hasRelevantDocuments: boolean,
+      hasRelevantChunks: boolean,
       contextSummary: string,
       mentionContext: any,
       taskData: string
@@ -744,7 +816,7 @@ Try asking: "Can you explain [specific concept]?" or describe what you're workin
 Previous conversation:
 ${conversationContext}
 
-${hasRelevantDocuments ? `Additional course material context (use if relevant):\n---\n${contextText}\n---\n\n` : ''}${taskData ? `${taskData}\n` : ''}Current follow-up question: ${query}
+${hasRelevantChunks ? `Additional course material context (use if relevant):\n---\n${contextText}\n---\n\n` : ''}${taskData ? `${taskData}\n` : ''}Current follow-up question: ${query}
 
 Please respond to the student's follow-up question by:
 1. Referencing our previous conversation 
@@ -753,7 +825,7 @@ Please respond to the student's follow-up question by:
 4. Using course materials and task information only if they add value to your response
 
 Answer:`;
-      } else if (hasRelevantDocuments) {
+      } else if (hasRelevantChunks) {
         // For new questions with relevant documents
         const contextHeader = mentionContext?.hasMentions && contextSummary 
           ? `Course materials from ${contextSummary}:`
@@ -791,7 +863,7 @@ Answer:`;
       }
     };
 
-    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantDocuments, contextSummary, mentionContext, taskData);
+    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantChunks, contextSummary, mentionContext, taskData);
 
     console.log('Sending request to Google Gemini API...');
 

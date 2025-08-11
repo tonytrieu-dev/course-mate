@@ -20,10 +20,48 @@ export const signUp = async (email: string, password: string): Promise<AuthRespo
     const result = await supabase.auth.signUp({ email, password });
     
     if (result.error) {
+      // Enhanced error handling for different Supabase auth errors
+      const errorMessage = result.error.message.toLowerCase();
+      
+      if (errorMessage.includes('already registered') || 
+          errorMessage.includes('already exists') || 
+          errorMessage.includes('user already registered')) {
+        throw errorHandler.auth.invalidCredentials({
+          operation: 'signUp',
+          reason: 'An account with this email already exists. Please sign in instead.',
+          originalError: result.error.message
+        });
+      }
+      
+      if (errorMessage.includes('password')) {
+        throw errorHandler.auth.invalidCredentials({
+          operation: 'signUp',
+          reason: 'Password does not meet security requirements',
+          originalError: result.error.message
+        });
+      }
+      
+      if (errorMessage.includes('email')) {
+        throw errorHandler.auth.invalidCredentials({
+          operation: 'signUp',
+          reason: 'Please enter a valid email address',
+          originalError: result.error.message
+        });
+      }
+      
       throw errorHandler.auth.invalidCredentials({
         operation: 'signUp',
         originalError: result.error.message,
         email: email ? 'provided' : 'missing'
+      });
+    }
+    
+    // SECURITY CHECK: Verify no duplicate user was created
+    if (result.data.user && result.data.user.email) {
+      logger.auth('New user registered successfully', {
+        userId: result.data.user.id,
+        email: result.data.user.email,
+        emailConfirmed: result.data.user.email_confirmed_at ? 'yes' : 'pending'
       });
     }
     
@@ -47,16 +85,19 @@ export const signUp = async (email: string, password: string): Promise<AuthRespo
     
     // Create appropriate auth error based on message
     const message = err.message?.toLowerCase() || '';
-    if (message.includes('email already registered') || message.includes('already exists')) {
+    if (message.includes('email already registered') || 
+        message.includes('already exists') || 
+        message.includes('duplicate') || 
+        message.includes('user already registered')) {
       throw errorHandler.auth.invalidCredentials({
         operation: 'signUp',
-        reason: 'Email already exists',
+        reason: 'An account with this email already exists. Please sign in instead.',
         originalError: err.message
       });
     } else if (message.includes('password')) {
       throw errorHandler.auth.invalidCredentials({
         operation: 'signUp', 
-        reason: 'Invalid password',
+        reason: 'Password does not meet security requirements',
         originalError: err.message
       });
     }

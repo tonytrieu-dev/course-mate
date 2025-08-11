@@ -239,6 +239,17 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
       }
     }
 
+    // Check if this is a task/scheduling query that doesn't need class-specific documents
+    const isTaskSchedulingQuery = (query: string): boolean => {
+      const taskKeywords = [
+        'due', 'deadline', 'assignment', 'homework', 'task', 'project',
+        'upcoming', 'overdue', 'tomorrow', 'today', 'week', 'month',
+        'schedule', 'calendar', 'what\'s', 'show me', 'list'
+      ];
+      const normalizedQuery = query.toLowerCase();
+      return taskKeywords.some(keyword => normalizedQuery.includes(keyword));
+    };
+
     // Determine which classes to query against
     let classesToQuery: ClassWithRelations[] = [];
     let contextMessage = '';
@@ -252,8 +263,15 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
     } else if (selectedClass) {
       // Fallback to selected class
       classesToQuery = [selectedClass];
+    } else if (isTaskSchedulingQuery(cleanQuery)) {
+      // Allow task/scheduling queries without class selection
+      classesToQuery = [];
+      contextMessage = 'General task query';
+      logger.info('Allowing task/scheduling query without class selection', {
+        query: cleanQuery.substring(0, 50)
+      });
     } else {
-      // No class context available
+      // No class context available and not a task query
       const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: queryText }];
       setChatHistory([
         ...newHistory,

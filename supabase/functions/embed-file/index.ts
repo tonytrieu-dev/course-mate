@@ -667,6 +667,42 @@ Deno.serve(async (req) => {
       console.log('No existing embeddings found - proceeding with fresh embedding');
     }
     
+    // DUPLICATE PREVENTION: Also clean up document_extractions table
+    const { data: existingExtractions, error: checkExtractionsError } = await supabaseAdmin
+      .from('document_extractions')
+      .select('id')
+      .eq('file_id', file.id);
+    
+    if (!checkExtractionsError && existingExtractions && existingExtractions.length > 0) {
+      console.log(`Found ${existingExtractions.length} existing extraction records for file: ${file.name}`);
+      
+      const { error: deleteExtractionsError } = await supabaseAdmin
+        .from('document_extractions')
+        .delete()
+        .eq('file_id', file.id);
+      
+      if (deleteExtractionsError) {
+        console.error('Error deleting existing extractions:', deleteExtractionsError);
+        logSecurityEvent('warn', 'Failed to clean up existing extractions', {
+          fileName: file.name,
+          fileId: file.id,
+          error: deleteExtractionsError.message
+        });
+      } else {
+        console.log(`Successfully deleted ${existingExtractions.length} existing extraction records`);
+        logSecurityEvent('info', 'Cleaned up duplicate extractions', {
+          fileName: file.name,
+          fileId: file.id,
+          deletedExtractions: existingExtractions.length
+        });
+      }
+    } else if (checkExtractionsError) {
+      console.error('Error checking existing extractions:', checkExtractionsError);
+      // Continue processing - don't let this block the embedding process
+    } else {
+      console.log('No existing extraction records found - proceeding with fresh extraction');
+    }
+    
     // Process each chunk
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
