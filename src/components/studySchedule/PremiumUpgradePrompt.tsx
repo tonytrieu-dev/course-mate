@@ -84,7 +84,7 @@ const PremiumUpgradePrompt: React.FC = () => {
       <div className="text-center mb-6">
         <div className="bg-white rounded-lg border-2 border-purple-200 p-4">
           <div className="flex items-center justify-center space-x-2 mb-2">
-            <span className="text-2xl font-bold text-gray-900">$9.99</span>
+            <span className="text-2xl font-bold text-gray-900">$3.99</span>
             <span className="text-sm text-gray-600">/month</span>
             <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-medium">
               50% OFF
@@ -92,11 +92,11 @@ const PremiumUpgradePrompt: React.FC = () => {
           </div>
           
           <div className="text-xs text-gray-500 line-through mb-1">
-            Regular price: $19.99/month
+            Regular price: $7.99/month
           </div>
           
           <div className="text-xs text-gray-600">
-            Cancel anytime • 14-day free trial
+            Cancel anytime • 7-day free trial
           </div>
         </div>
       </div>

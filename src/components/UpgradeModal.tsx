@@ -149,7 +149,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
           
           <div className="text-center mb-4">
             <div className="text-3xl font-bold text-gray-900 dark:text-white">
-              $5<span className="text-lg font-normal text-gray-600 dark:text-slate-400">/month</span>
+              $3.99<span className="text-lg font-normal text-gray-600 dark:text-slate-400">/month</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-slate-400">
               Student-friendly pricing • Cancel anytime
@@ -224,7 +224,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
         {/* Fine print */}
         <div className="mt-4 text-center">
           <p className="text-xs text-gray-500 dark:text-slate-500">
-            No credit card required for trial • $5/month after trial • Cancel anytime
+            No credit card required for trial • $3.99/month after trial • Cancel anytime
           </p>
           <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
             Built for students, by a student who understand your budget

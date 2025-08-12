@@ -174,22 +174,22 @@ serve(async (req) => {
     
     // Calculate academic year proration for academic plan
     const academicInfo = plan === 'academic' ? calculateAcademicProration(new Date(), academicSystem) : null
-    const basePrice = academicSystem === 'semester' ? 3000 : 2700 // $30 for 10 months, $27 for 9 months
+    const basePrice = 2400 // $24 for academic year (both semester and quarter systems)
     const academicAmount = academicInfo ? Math.round(basePrice * academicInfo.prorationFactor) : basePrice
     
     // Plan configuration
     const planConfigs = {
       monthly: {
-        amount: 499, // $4.99
+        amount: 399, // $3.99
         interval: 'month',
         name: 'ScheduleBud Pro - Student Plan (Monthly)',
         description: 'Monthly subscription with unlimited AI assistance and advanced analytics'
       },
       annual: {
-        amount: 3600, // $36.00 ($3/month)
+        amount: 2400, // $24.00 ($2/month)
         interval: 'year', 
         name: 'ScheduleBud Pro - Student Plan (Annual)',
-        description: 'Annual subscription - save 40% with yearly billing'
+        description: 'Annual subscription - save 50% with yearly billing'
       },
       academic: {
         amount: academicAmount,

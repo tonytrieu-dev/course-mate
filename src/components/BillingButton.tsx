@@ -197,7 +197,7 @@ export const BillingSection: React.FC = () => {
         {subscriptionStatus === 'trialing' && (
           <div className="text-center sm:text-left">
             <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
-              ${currentPlan?.price || 5}/month after trial
+              ${currentPlan?.price || 3.99}/month after trial
             </p>
           </div>
         )}

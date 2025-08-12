@@ -32,7 +32,7 @@ A comprehensive student productivity micro-SaaS designed to streamline academic 
 - Smart deduplication system (27% duplicate reduction)
 
 ### 💳 **Micro-SaaS Features**
-- Stripe-powered subscription system ($5/month + 7-day trial)
+- Stripe-powered subscription system ($3.99/month + 7-day trial)
 - Comprehensive fraud protection via Stripe Radar
 - Student-focused pricing and billing
 - Secure webhook-based subscription management
