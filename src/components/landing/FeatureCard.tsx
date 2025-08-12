@@ -103,7 +103,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
                 </div>
               </div>
               <div className="text-[var(--cta-orange)] font-bold text-lg mb-2">Drop Your Syllabus Here</div>
-              <div className="text-slate-600 text-sm">PDF → Task List in 30 Seconds</div>
+              <div className="text-slate-600 text-sm">PDF to Task List in 30 Seconds</div>
             </div>
           </div>
           
@@ -160,7 +160,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             {/* BEFORE */}
             <div className="p-6 bg-red-50/50 border-r border-[var(--warm-beige)]">
               <div className="text-red-600 font-bold mb-3 text-center">❌ BEFORE</div>
-              <div className="text-xs text-red-700 space-y-2">
+              <div className="text-xs text-red-600 space-y-2">
                 <div>• Manual Canvas copying</div>
                 <div>• 1+ hour setup time</div>
                 <div>• Missing assignments</div>
@@ -169,8 +169,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             
             {/* AFTER */}
             <div className="p-6 bg-green-50/50">
-              <div className="text-[var(--accent-sage)] font-bold mb-3 text-center">✅ AFTER</div>
-              <div className="text-xs text-green-700 space-y-2">
+              <div className="text-green-600 font-bold mb-3 text-center">✅ AFTER</div>
+              <div className="text-xs text-green-600 space-y-2">
                 <div>• Copy-paste Canvas link</div>
                 <div>• 10 seconds total</div>
                 <div>• Perfect sync</div>

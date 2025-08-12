@@ -11,6 +11,7 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const crypto = require('crypto');
 
 // Configuration
 const BACKUP_CONFIG = {
@@ -42,7 +43,18 @@ const BACKUP_CONFIG = {
   // Retention policy
   dailyRetention: 30,    // Keep daily backups for 30 days
   weeklyRetention: 12,   // Keep weekly backups for 12 weeks
-  monthlyRetention: 12   // Keep monthly backups for 12 months
+  monthlyRetention: 12,  // Keep monthly backups for 12 months
+  
+  // Cloudflare R2 configuration (free tier: 10GB storage)
+  cloudflare: {
+    enabled: process.env.CLOUDFLARE_R2_ENABLED === 'true',
+    accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+    bucketName: process.env.CLOUDFLARE_R2_BUCKET_NAME || 'schedulebud-backups',
+    endpoint: process.env.CLOUDFLARE_R2_ENDPOINT, // e.g., https://accountid.r2.cloudflarestorage.com
+    region: 'auto' // Cloudflare R2 uses 'auto' region
+  }
 };
 
 // Colors for console output
@@ -309,7 +321,7 @@ function cleanupOldBackups() {
 }
 
 /**
- * Verify backup integrity
+ * Verify backup integrity (basic check)
  */
 async function verifyBackup(backupPath) {
   log(colors.blue, `🔍 Verifying backup: ${path.basename(backupPath)}`);
@@ -355,6 +367,350 @@ async function verifyBackup(backupPath) {
   } catch (error) {
     log(colors.red, `❌ Backup verification failed: ${error.message}`);
     return false;
+  }
+}
+
+/**
+ * Comprehensive backup integrity verification
+ */
+async function verifyBackupIntegrity(backupPath) {
+  log(colors.blue, `🔬 Running comprehensive backup verification: ${path.basename(backupPath)}`);
+  
+  const results = {
+    fileExists: false,
+    fileSize: 0,
+    checksumValid: false,
+    contentValid: false,
+    structureValid: false,
+    dataValid: false,
+    errors: []
+  };
+  
+  try {
+    // 1. File existence and size check
+    if (!fs.existsSync(backupPath)) {
+      results.errors.push('Backup file does not exist');
+      return results;
+    }
+    
+    const stats = fs.statSync(backupPath);
+    results.fileExists = true;
+    results.fileSize = stats.size;
+    
+    if (stats.size === 0) {
+      results.errors.push('Backup file is empty');
+      return results;
+    }
+    
+    log(colors.blue, `📏 File size: ${Math.round(stats.size / 1024 / 1024 * 100) / 100} MB`);
+    
+    // 2. Checksum verification (for future integrity)
+    const fileContent = fs.readFileSync(backupPath);
+    const checksum = crypto.createHash('sha256').update(fileContent).digest('hex');
+    results.checksum = checksum;
+    results.checksumValid = true;
+    log(colors.blue, `🔐 SHA256: ${checksum.substring(0, 16)}...`);
+    
+    // 3. Content format verification
+    if (backupPath.endsWith('.gz')) {
+      // Compressed file verification
+      const zcat = spawn('zcat', [backupPath]);
+      
+      return new Promise((resolve) => {
+        let contentSize = 0;
+        let hasValidContent = false;
+        
+        zcat.stdout.on('data', (chunk) => {
+          contentSize += chunk.length;
+          const content = chunk.toString();
+          
+          // Check for SQL or JSON markers
+          if (content.includes('INSERT INTO') || 
+              content.includes('CREATE TABLE') ||
+              content.includes('"backup_info"')) {
+            hasValidContent = true;
+          }
+        });
+        
+        zcat.on('close', (code) => {
+          results.contentValid = code === 0 && contentSize > 0;
+          results.structureValid = hasValidContent;
+          
+          if (results.contentValid && results.structureValid) {
+            log(colors.green, `✅ Compressed backup verification passed (${Math.round(contentSize / 1024)} KB uncompressed)`);
+          } else {
+            results.errors.push('Compressed backup content invalid');
+          }
+          
+          resolve(results);
+        });
+        
+        zcat.on('error', (error) => {
+          results.errors.push(`Decompression error: ${error.message}`);
+          resolve(results);
+        });
+      });
+      
+    } else if (backupPath.endsWith('.sql')) {
+      // JSON backup verification
+      try {
+        const content = fs.readFileSync(backupPath, 'utf8');
+        const backup = JSON.parse(content);
+        
+        results.contentValid = true;
+        
+        // 4. Structure validation
+        const hasBackupInfo = backup.backup_info && backup.backup_info.created_at;
+        const hasTables = backup.tables && typeof backup.tables === 'object';
+        const hasTableData = hasTables && Object.keys(backup.tables).length > 0;
+        
+        results.structureValid = hasBackupInfo && hasTables;
+        
+        if (results.structureValid) {
+          log(colors.blue, `📊 Backup contains ${Object.keys(backup.tables).length} tables`);
+          
+          // 5. Data validation
+          let totalRows = 0;
+          let validTables = 0;
+          
+          for (const [tableName, tableData] of Object.entries(backup.tables)) {
+            if (tableData.data && Array.isArray(tableData.data)) {
+              totalRows += tableData.data.length;
+              validTables++;
+              log(colors.gray, `   📋 ${tableName}: ${tableData.data.length} rows`);
+            }
+          }
+          
+          results.dataValid = validTables > 0 && totalRows > 0;
+          results.totalRows = totalRows;
+          results.validTables = validTables;
+          
+          if (results.dataValid) {
+            log(colors.green, `✅ Comprehensive verification passed: ${validTables} tables, ${totalRows} total rows`);
+          } else {
+            results.errors.push('No valid table data found');
+          }
+        } else {
+          results.errors.push('Invalid backup structure');
+        }
+        
+      } catch (parseError) {
+        results.errors.push(`JSON parsing error: ${parseError.message}`);
+      }
+    } else {
+      results.errors.push('Unknown backup file format');
+    }
+    
+  } catch (error) {
+    results.errors.push(`Verification error: ${error.message}`);
+  }
+  
+  // Summary
+  if (results.errors.length > 0) {
+    log(colors.red, `❌ Verification failed with ${results.errors.length} errors:`);
+    results.errors.forEach(error => log(colors.red, `   • ${error}`));
+  }
+  
+  return results;
+}
+
+/**
+ * Verify all backups in backup directory
+ */
+async function verifyAllBackups() {
+  log(colors.blue, '🔍 Verifying all backups in backup directory...');
+  
+  try {
+    const files = fs.readdirSync(BACKUP_CONFIG.backupDir);
+    const backupFiles = files
+      .filter(file => file.startsWith('schedulebud_') && (file.endsWith('.sql') || file.endsWith('.sql.gz')))
+      .sort();
+    
+    if (backupFiles.length === 0) {
+      log(colors.yellow, '⚠️  No backup files found');
+      return { success: false, error: 'No backups to verify' };
+    }
+    
+    log(colors.blue, `📁 Found ${backupFiles.length} backup files`);
+    
+    const results = [];
+    let passedCount = 0;
+    let failedCount = 0;
+    
+    for (const file of backupFiles) {
+      const filePath = path.join(BACKUP_CONFIG.backupDir, file);
+      const result = await verifyBackup(filePath);
+      
+      results.push({
+        file,
+        passed: result,
+        size: fs.statSync(filePath).size
+      });
+      
+      if (result) {
+        passedCount++;
+      } else {
+        failedCount++;
+      }
+    }
+    
+    // Summary
+    log(colors.blue, '\n📊 Verification Summary:');
+    log(colors.green, `   ✅ Passed: ${passedCount}`);
+    if (failedCount > 0) {
+      log(colors.red, `   ❌ Failed: ${failedCount}`);
+    }
+    
+    const totalSize = results.reduce((sum, r) => sum + r.size, 0);
+    log(colors.blue, `   📦 Total size: ${Math.round(totalSize / 1024 / 1024 * 100) / 100} MB`);
+    
+    return {
+      success: failedCount === 0,
+      passed: passedCount,
+      failed: failedCount,
+      results
+    };
+    
+  } catch (error) {
+    log(colors.red, `❌ Backup verification failed: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Upload backup to Cloudflare R2
+ */
+async function uploadToCloudflareR2(backupPath) {
+  if (!BACKUP_CONFIG.cloudflare.enabled) {
+    log(colors.gray, '⏭️  Cloudflare R2 upload disabled');
+    return null;
+  }
+
+  if (!BACKUP_CONFIG.cloudflare.accessKeyId || !BACKUP_CONFIG.cloudflare.secretAccessKey) {
+    log(colors.yellow, '⚠️  Cloudflare R2 credentials not configured, skipping upload');
+    return null;
+  }
+
+  log(colors.blue, '☁️  Uploading backup to Cloudflare R2...');
+
+  try {
+    // Generate S3-compatible request for Cloudflare R2
+    const filename = path.basename(backupPath);
+    const fileContent = fs.readFileSync(backupPath);
+    const stats = fs.statSync(backupPath);
+    
+    // Create S3-compatible signature for Cloudflare R2
+    const timestamp = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const region = BACKUP_CONFIG.cloudflare.region;
+    const service = 's3';
+    
+    // Build the request
+    const method = 'PUT';
+    const host = BACKUP_CONFIG.cloudflare.endpoint.replace('https://', '');
+    const uri = `/${BACKUP_CONFIG.cloudflare.bucketName}/${filename}`;
+    
+    // Calculate content hash
+    const contentHash = crypto.createHash('sha256').update(fileContent).digest('hex');
+    
+    // Build canonical request for signing
+    const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${contentHash}\nx-amz-date:${timestamp}T000000Z\n`;
+    const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+    const canonicalRequest = `${method}\n${uri}\n\n${canonicalHeaders}\n${signedHeaders}\n${contentHash}`;
+    
+    // Create string to sign
+    const algorithm = 'AWS4-HMAC-SHA256';
+    const credentialScope = `${timestamp}/${region}/${service}/aws4_request`;
+    const stringToSign = `${algorithm}\n${timestamp}T000000Z\n${credentialScope}\n${crypto.createHash('sha256').update(canonicalRequest).digest('hex')}`;
+    
+    // Calculate signature
+    const kDate = crypto.createHmac('sha256', `AWS4${BACKUP_CONFIG.cloudflare.secretAccessKey}`).update(timestamp).digest();
+    const kRegion = crypto.createHmac('sha256', kDate).update(region).digest();
+    const kService = crypto.createHmac('sha256', kRegion).update(service).digest();
+    const kSigning = crypto.createHmac('sha256', kService).update('aws4_request').digest();
+    const signature = crypto.createHmac('sha256', kSigning).update(stringToSign).digest('hex');
+    
+    // Build authorization header
+    const authorization = `${algorithm} Credential=${BACKUP_CONFIG.cloudflare.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+    
+    // Make the request using native HTTPS
+    const https = require('https');
+    const url = require('url');
+    
+    const uploadUrl = `${BACKUP_CONFIG.cloudflare.endpoint}${uri}`;
+    const urlParts = url.parse(uploadUrl);
+    
+    const options = {
+      hostname: urlParts.hostname,
+      port: urlParts.port || 443,
+      path: urlParts.path,
+      method: method,
+      headers: {
+        'Host': host,
+        'X-Amz-Content-Sha256': contentHash,
+        'X-Amz-Date': `${timestamp}T000000Z`,
+        'Authorization': authorization,
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': stats.size
+      }
+    };
+    
+    return new Promise((resolve, reject) => {
+      const req = https.request(options, (res) => {
+        let responseData = '';
+        
+        res.on('data', (chunk) => {
+          responseData += chunk;
+        });
+        
+        res.on('end', () => {
+          if (res.statusCode === 200 || res.statusCode === 201) {
+            const sizeMB = Math.round(stats.size / 1024 / 1024 * 100) / 100;
+            log(colors.green, `✅ Backup uploaded to Cloudflare R2: ${filename} (${sizeMB} MB)`);
+            resolve({
+              success: true,
+              filename,
+              size: stats.size,
+              url: uploadUrl
+            });
+          } else {
+            log(colors.red, `❌ R2 upload failed: ${res.statusCode} ${responseData}`);
+            resolve({ success: false, error: `HTTP ${res.statusCode}: ${responseData}` });
+          }
+        });
+      });
+      
+      req.on('error', (error) => {
+        log(colors.red, `❌ R2 upload error: ${error.message}`);
+        resolve({ success: false, error: error.message });
+      });
+      
+      // Write the file content
+      req.write(fileContent);
+      req.end();
+    });
+    
+  } catch (error) {
+    log(colors.red, `❌ R2 upload failed: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Clean up old backups from Cloudflare R2
+ */
+async function cleanupCloudflareR2() {
+  if (!BACKUP_CONFIG.cloudflare.enabled) {
+    return;
+  }
+
+  log(colors.blue, '🧹 Cleaning up old R2 backups...');
+  
+  try {
+    // This would require listing objects from R2 and deleting old ones
+    // For simplicity, we'll rely on local cleanup and R2's lifecycle policies
+    log(colors.gray, '💡 Set up R2 lifecycle policies in Cloudflare dashboard for automatic cleanup');
+  } catch (error) {
+    log(colors.yellow, `⚠️  R2 cleanup warning: ${error.message}`);
   }
 }
 
@@ -423,9 +779,16 @@ async function runBackup(options = {}) {
       throw new Error('Backup verification failed');
     }
     
+    // Upload to Cloudflare R2 if enabled
+    let cloudUploadResult = null;
+    if (!options.noCloudUpload) {
+      cloudUploadResult = await uploadToCloudflareR2(backupPath);
+    }
+    
     // Cleanup old backups
     if (!options.noCleanup) {
       cleanupOldBackups();
+      await cleanupCloudflareR2();
     }
     
     const duration = Date.now() - startTime;
@@ -441,7 +804,8 @@ async function runBackup(options = {}) {
       success: true,
       filepath: backupPath,
       size: stats.size,
-      duration
+      duration,
+      cloudUpload: cloudUploadResult
     };
   } catch (error) {
     log(colors.red, `❌ Backup failed: ${error.message}`);
@@ -462,7 +826,8 @@ async function main() {
     case 'backup':
       const options = {
         tableOnly: args.includes('--table-only'),
-        noCleanup: args.includes('--no-cleanup')
+        noCleanup: args.includes('--no-cleanup'),
+        noCloudUpload: args.includes('--no-cloud-upload')
       };
       await runBackup(options);
       break;
@@ -486,18 +851,47 @@ async function main() {
       await verifyBackup(backupPath);
       break;
       
+    case 'verify-integrity':
+      const integityPath = args[1];
+      if (!integityPath) {
+        console.error('❌ Please provide backup file path');
+        process.exit(1);
+      }
+      const integrityResult = await verifyBackupIntegrity(integityPath);
+      console.log('\n🔬 Integrity Check Results:');
+      console.log(JSON.stringify(integrityResult, null, 2));
+      break;
+      
+    case 'verify-all':
+      const allResults = await verifyAllBackups();
+      if (!allResults.success) {
+        process.exit(1);
+      }
+      break;
+      
     default:
       console.log(`
-🗄️  ScheduleBud Database Backup Tool
+🗄️  ScheduleBud Database Backup Tool with Cloudflare R2 Support
 
 Usage:
-  npm run db:backup              # Run full backup
+  npm run db:backup              # Run full backup with cloud upload
   npm run db:backup -- --table-only    # Table-level backup only
   npm run db:backup -- --no-cleanup    # Skip cleanup
+  npm run db:backup -- --no-cloud-upload  # Skip Cloudflare R2 upload
   
   node scripts/backup-database.js status   # Show backup status
   node scripts/backup-database.js cleanup  # Clean old backups
-  node scripts/backup-database.js verify <file>  # Verify backup
+  node scripts/backup-database.js verify <file>  # Basic backup verification
+  node scripts/backup-database.js verify-integrity <file>  # Comprehensive integrity check
+  node scripts/backup-database.js verify-all  # Verify all backups in directory
+
+Environment Variables for Cloudflare R2:
+  CLOUDFLARE_R2_ENABLED=true
+  CLOUDFLARE_ACCOUNT_ID=your-account-id
+  CLOUDFLARE_R2_ACCESS_KEY_ID=your-access-key
+  CLOUDFLARE_R2_SECRET_ACCESS_KEY=your-secret-key
+  CLOUDFLARE_R2_BUCKET_NAME=schedulebud-backups
+  CLOUDFLARE_R2_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
       `);
       break;
   }
@@ -510,7 +904,11 @@ module.exports = {
   performTableBackup,
   getBackupStatus,
   verifyBackup,
+  verifyBackupIntegrity,
+  verifyAllBackups,
+  uploadToCloudflareR2,
   cleanupOldBackups,
+  cleanupCloudflareR2,
   BACKUP_CONFIG
 };
 

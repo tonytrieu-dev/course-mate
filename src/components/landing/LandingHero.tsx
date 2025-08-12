@@ -21,23 +21,22 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
           <div className="text-center lg:text-left relative z-40">
             <div className="mb-8">
               <h1 className="font-black leading-tight tracking-tight">
-                <div className="text-slate-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 leading-tight">
+                <div className="text-slate-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-3 leading-tight font-black">
                   Your Canvas Calendar.
                 </div>
                 <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-6 font-black leading-tight" style={{color: 'var(--primary-navy)'}}>
-                  SYNCED AUTOMATICALLY
+                  Synced Automatically.
                 </div>
                 <div className="text-slate-800 text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed">
-                  Save 3+ hours every quarter. AI reads your syllabi instantly. More reliable than Canvas.
+                  Eliminate the soul-crushing, 3-hour process of manually setting up your academic calendar every quarter.
                 </div>
               </h1>
             </div>
             
             <div className="mb-8">
               <div className="rounded-2xl p-6 shadow-xl" style={{backgroundColor: 'var(--primary-cream)', border: '1px solid rgba(37, 99, 235, 0.2)', backdropFilter: 'blur(8px)'}}>
-                <div className="font-bold mb-2" style={{color: 'var(--primary-navy)'}}>Built by a UCR student who actually uses it.</div>
                 <div className="text-slate-700">
-                  I built this because I was wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3-4 hours every quarter</span> setting up my planner. Now I sync my Canvas calendar, upload my syllabi, and I'm <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>done in 10 seconds</span>. 😎
+                  I'm a UCR student who got tired of wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3-4 hours on manual setup every quarter</span>. So I built this. Now, I sync my Canvas calendar, upload my syllabi, and have my entire quarter planned in <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>under 30 seconds</span>. 😎
                 </div>
               </div>
             </div>

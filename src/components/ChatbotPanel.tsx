@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useCallback } from 'react';
 import type { ClassWithRelations, Position } from '../types/database';
 import { useChatbot } from '../hooks/useChatbot';
-import { useDragAndResize } from '../hooks/useDragAndResize';
+import { useDragAndResizeAdvanced } from '../hooks/useDragAndResizeAdvanced';
 import ChatbotAutocomplete from './ChatbotAutocomplete';
 import { logger } from '../utils/logger';
 
@@ -14,6 +14,8 @@ interface ChatbotPanelProps {
   onPositionChange: (position: Position) => void;
   height: number;
   onHeightChange: (height: number) => void;
+  width: number;
+  onWidthChange: (width: number) => void;
   fontSize: number;
 }
 
@@ -26,6 +28,8 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
   onPositionChange,
   height,
   onHeightChange,
+  width,
+  onWidthChange,
   fontSize 
 }) => {
   const chatbotRef = useRef<HTMLDivElement>(null);
@@ -49,14 +53,20 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
   // Custom hook for drag and resize functionality
   const {
     isResizing,
+    isResizingWidth,
+    isResizingHeight,
     isDragging,
     handleDragStart,
-    handleResizeStart,
-  } = useDragAndResize({
+    handleHeightResizeStart,
+    handleWidthResizeStart,
+    handleCornerResizeStart,
+  } = useDragAndResizeAdvanced({
     position,
     onPositionChange,
     height,
     onHeightChange,
+    width,
+    onWidthChange,
   });
 
   // Handle autocomplete selection
@@ -232,18 +242,20 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       aria-label="Smart Assistant"
       aria-modal="true"
       style={{
-        width: '400px',
+        width: `${width}px`,
         height: `${height}px`,
+        maxWidth: '800px',
+        minWidth: '300px',
         maxHeight: '600px',
         minHeight: '200px',
         left: `${position.x}px`,
         bottom: `${position.y}px`
       }}
     >
-      {/* Resize Handle */}
+      {/* Height Resize Handle */}
       <div
         className="h-1 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 cursor-ns-resize flex items-center justify-center rounded-t-lg"
-        onMouseDown={handleResizeStart}
+        onMouseDown={handleHeightResizeStart}
         role="separator"
         aria-label="Resize panel"
         aria-orientation="horizontal"
@@ -251,6 +263,37 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       >
         <div className="w-8 h-1 bg-gray-400 dark:bg-slate-500 rounded-full"></div>
       </div>
+
+      {/* Width Resize Handle */}
+      <div
+        className="absolute top-0 right-0 h-full w-1 cursor-ew-resize bg-transparent hover:bg-gray-300 dark:hover:bg-slate-600"
+        style={{
+          right: 0,
+          width: '4px',
+          zIndex: 1,
+        }}
+        onMouseDown={handleWidthResizeStart}
+        role="separator"
+        aria-label="Resize panel width"
+        aria-orientation="vertical"
+        tabIndex={0}
+        title="Drag to resize width"
+      />
+
+      {/* Invisible Corner Resize Handle */}
+      <div
+        className="absolute bottom-0 right-0 w-3 h-3 cursor-nw-resize bg-transparent"
+        style={{
+          right: '2px',
+          bottom: '2px',
+          zIndex: 2,
+        }}
+        onMouseDown={handleCornerResizeStart}
+        role="separator"
+        aria-label="Resize panel diagonally"
+        tabIndex={0}
+        title="Drag to resize both width and height"
+      />
 
       {/* Header */}
       <div 

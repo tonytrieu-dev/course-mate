@@ -861,11 +861,12 @@ Try asking: "Can you explain [specific concept]?" or describe what you're workin
       hasRelevantChunks: boolean,
       contextSummary: string,
       mentionContext: any,
-      taskData: string
+      taskData: string,
+      currentDate: string
     ): string => {
       if (isFollowUp && hasConversation) {
         // For follow-up questions, prioritize conversation context
-        return `You are an intelligent academic assistant helping a student. The student is asking a follow-up question to continue our conversation.
+        return `You are an intelligent academic assistant helping a student. ${currentDate}. The student is asking a follow-up question to continue our conversation.
 
 Previous conversation:
 ${conversationContext}
@@ -889,7 +890,7 @@ Answer:`;
           ? `\n\nNote: The student used @mentions to specify ${mentionContext.mentionedClasses?.length === 1 ? 'a specific class' : 'specific classes'}: ${mentionContext.mentionedClasses?.map((c: any) => c.name).join(', ')}.`
           : '';
           
-        return `You are an intelligent academic assistant. Answer the student's question using the provided course materials and task information.
+        return `You are an intelligent academic assistant. ${currentDate}. Answer the student's question using the provided course materials and task information.
 
 ${conversationContext ? `Previous conversation for context:\n${conversationContext}\n\n` : ''}${contextHeader}
 ---
@@ -903,7 +904,7 @@ Please provide a helpful answer based on the course materials and task informati
 Answer:`;
       } else {
         // For questions without relevant documents but with conversation history or task data
-        return `You are an intelligent academic assistant. ${taskData ? 'Here is the student\'s task information:' : 'The student is asking a question, but I don\'t have specific course materials that directly address this topic.'}
+        return `You are an intelligent academic assistant. ${currentDate}. ${taskData ? 'Here is the student\'s task information:' : 'The student is asking a question, but I don\'t have specific course materials that directly address this topic.'}
 
 ${conversationContext ? `Previous conversation:\n${conversationContext}\n\n` : ''}${taskData ? `${taskData}\n` : ''}Current question: ${query}
 
@@ -917,7 +918,16 @@ Answer:`;
       }
     };
 
-    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantChunks, contextSummary, mentionContext, taskData);
+    // Get current date in human-readable format for AI context
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    const todayContext = `Today's date is ${currentDate}`;
+
+    const prompt = buildPrompt(query, contextText, conversationContext, isFollowUp, hasRelevantChunks, contextSummary, mentionContext, taskData, todayContext);
 
     console.log('Sending request to Google Gemini API...');
 

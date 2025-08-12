@@ -25,6 +25,12 @@ interface ConversionMetrics {
   bounceRate: number;
 }
 
+interface CompetitiveMetrics {
+  pricingAdvantage: string;
+  featureAdvantage: string[];
+  conversionFactors: string[];
+}
+
 class AnalyticsService {
   private sessionId: string;
   private variants: Map<string, ABTestVariant> = new Map();
@@ -187,11 +193,7 @@ class AnalyticsService {
   /**
    * Get competitive positioning metrics
    */
-  getCompetitiveMetrics(): {
-    pricingAdvantage: string;
-    featureAdvantage: string[];
-    conversionFactors: string[];
-  } {
+  getCompetitiveMetrics(): CompetitiveMetrics {
     return {
       pricingAdvantage: '$3.99/month vs MyStudyLife (Free) and Todoist ($4/month)',
       featureAdvantage: [
@@ -216,7 +218,7 @@ class AnalyticsService {
     events: ConversionEvent[];
     metrics: ConversionMetrics;
     variants: ABTestVariant[];
-    competitive: ReturnType<typeof this.getCompetitiveMetrics>;
+    competitive: CompetitiveMetrics;
   } {
     return {
       events: this.getStoredEvents(),
@@ -329,4 +331,4 @@ class AnalyticsService {
 export const analyticsService = new AnalyticsService();
 
 // Export types for use in components
-export type { ConversionEvent, ConversionMetrics, ABTestVariant };
+export type { ConversionEvent, ConversionMetrics, ABTestVariant, CompetitiveMetrics };

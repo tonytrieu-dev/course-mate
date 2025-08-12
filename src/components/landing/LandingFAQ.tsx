@@ -6,11 +6,11 @@ const LandingFAQ: React.FC = () => {
   const faqData = [
     {
       question: "Is this just another planner app?",
-      answer: "No, ScheduleBud is an app designed specifically for the chaos of college. It's built around Canvas calendar sync and AI syllabus processing to connect your study habits directly to your grades, which is something that generic planners don't do."
+      answer: "No, other generic planners are digital notebooks. ScheduleBud is an automation engine for your academic life. It's built around two things that other planners don't have: a direct Canvas sync and an AI that actually reads your syllabi for you. It's designed to save you time, not just help you organize it."
     },
     {
       question: "Does it work with all universities?",
-      answer: "ScheduleBud works with any university that uses Canvas LMS for calendar sync. Most major universities (UCR, UCLA, UCSB, Cal State schools, etc.) use Canvas. If your school uses a different system, the AI syllabus upload still works perfectly."
+      answer: "ScheduleBud works with any university that uses Canvas LMS for calendar sync. Most major universities (UCR, UCSD, CSUs, etc.) use Canvas. If your school uses a different system, the AI syllabus upload still works perfectly."
     },
     {
       question: "How secure is my academic data?",

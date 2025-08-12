@@ -19,6 +19,7 @@ CLAUDE.md
 .env.test.local
 .env.production
 .env.staging
+.env.backup
 
 # OS generated files
 .DS_Store
@@ -86,3 +87,7 @@ PRODUCTION_LAUNCH_CHECKLIST.md
 supabase/migrations/20250105000000_add_subscription_columns.sql
 src/components/AssignmentImportModal.tsx
 FEATURE_FLAGS.md
+UPTIMEROBOT_SETUP.md
+DISASTER_RECOVERY_SUMMARY.md
+DISASTER_RECOVERY_RUNBOOK.md
+CLOUDFLARE_R2_SETUP.md

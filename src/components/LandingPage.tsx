@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingNavigation from './landing/LandingNavigation';
 import LandingHero from './landing/LandingHero';
 import LandingSocialProof from './landing/LandingSocialProof';
@@ -7,18 +8,16 @@ import LandingPricing from './landing/LandingPricing';
 import LandingFAQ from './landing/LandingFAQ';
 import LandingCTA from './landing/LandingCTA';
 import LandingFooter from './landing/LandingFooter';
+import CreatorPortfolio from './portfolio/CreatorPortfolio';
+import ProjectCaseStudy from './portfolio/ProjectCaseStudy';
 import { analyticsService } from '../services/analyticsService';
 
 interface LandingPageProps {
   onGetStarted: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
-  // Track landing page view on component mount
-  useEffect(() => {
-    analyticsService.trackLandingPageView();
-  }, []);
-
+// Main landing page content component (preserves existing functionality)
+const MainLandingContent: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   // Enhanced analytics tracking function with A/B test support
   const trackEvent = (eventName: string, properties?: any) => {
     // Handle specific conversion events
@@ -56,6 +55,42 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       <LandingCTA onGetStarted={onGetStarted} />
       <LandingFooter />
     </div>
+  );
+};
+
+const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
+  // Track landing page view on component mount
+  useEffect(() => {
+    analyticsService.trackLandingPageView();
+  }, []);
+
+  return (
+    <Router>
+      <Routes>
+        {/* Main landing page - default route */}
+        <Route 
+          path="/" 
+          element={<MainLandingContent onGetStarted={onGetStarted} />} 
+        />
+        
+        {/* Portfolio routes */}
+        <Route 
+          path="/portfolio" 
+          element={<CreatorPortfolio />} 
+        />
+        
+        <Route 
+          path="/case-study" 
+          element={<ProjectCaseStudy />} 
+        />
+        
+        {/* Catch-all route - redirect to main landing page */}
+        <Route 
+          path="*" 
+          element={<MainLandingContent onGetStarted={onGetStarted} />} 
+        />
+      </Routes>
+    </Router>
   );
 };
 

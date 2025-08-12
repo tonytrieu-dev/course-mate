@@ -27,16 +27,11 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
       </div>
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20 relative z-10">
-          {/* Simple Value Badge */}
-          <div className="inline-flex items-center bg-gradient-to-r from-[var(--primary-navy)] to-[var(--royal-blue)] text-white px-6 py-3 rounded-full text-base font-bold mb-6 shadow-lg hover:scale-105 transition-all duration-300">
-            <span>Simple Pricing</span>
-          </div>
-          
-          {/* Clean title focused on choice */}
+          {/* Clean title focused on honesty and trust */}
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-12 tracking-tight leading-tight">
-            <span className="text-slate-800">Choose Your </span>
+            <span className="text-slate-800">Simple, Honest </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-navy)] via-[var(--deep-navy)] to-[var(--accent-navy)] hover:from-[var(--deep-navy)] hover:via-[var(--accent-navy)] hover:to-[var(--deep-navy)] transition-all duration-500 drop-shadow-sm">
-              Plan
+              Pricing
             </span>
           </h2>
           
@@ -48,9 +43,9 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
               
               <div className="relative z-10">
                 <p className="text-xl md:text-2xl text-slate-700 font-medium leading-relaxed">
-                  <span className="font-bold" style={{color: 'var(--accent-navy)'}}>Start automating your assignments today.</span>
+                  <span className="font-bold" style={{color: 'var(--accent-navy)'}}>Start with a powerful free plan.</span>
                   <br />
-                  Free forever plan gets you started. Upgrade to Student for full automation power.
+                  Upgrade only when you're ready to put your entire academic workflow on autopilot.
                 </p>
               </div>
             </div>

@@ -4,13 +4,13 @@ import FeatureCard from './FeatureCard';
 const LandingFeatures: React.FC = () => {
   const features = [
     {
-      title: "Smart Syllabus Upload",
-      subtitle: "PDF → Task List in 30 Seconds, Save 2+ Hours Every Quarter",
-      description: "Drop PDF syllabus → AI reads everything → instant task list. Works even when professors forget to update Canvas. The syllabus is always accurate.",
+      title: "The 30-Second Syllabus",
+      subtitle: "The most reliable way to plan your entire quarter.",
+      description: "Just drop in your syllabus. My AI reads everything, even messy, 20-page PDFs, and instantly creates your complete task list. It works when Canvas is out of date, making the syllabus your main source of truth.",
       features: [
-        "Turn any PDF into your task list instantly",
-        "More reliable than Canvas updates", 
-        "Works with messy professor formatting"
+        "✅ Instantly extract every assignment, quiz, and exam.",
+        "✅ More accurate than waiting for professor updates on Canvas.", 
+        "✅ Deciphers even the most confusing professor formatting."
       ],
       imageAlt: "AI syllabus upload showing automatic task generation from PDF documents",
       icon: (
@@ -21,13 +21,13 @@ const LandingFeatures: React.FC = () => {
       colorScheme: 'orange' as const
     },
     {
-      title: "Canvas Calendar Sync",
-      subtitle: "Copy-Paste Your Canvas Feed URL, Save 1+ Hour Per Quarter",
-      description: "Canvas calendar sync → boom, everything's parsed automatically. Perfect when professors actually keep Canvas updated. No official integration needed.",
+      title: "The 10-Second Setup",
+      subtitle: "Your entire Canvas calendar, perfectly synced.",
+      description: "Stop wasting the first day of class manually copying deadlines. Just paste your Canvas calendar feed URL once, and your entire quarter is planned automatically.",
       features: [
-        "Sync Canvas calendar feed in 10 seconds",
-        "Works when professors update Canvas",
-        "Cross-device sync included"
+        "✅ No official university integration needed, it just works.",
+        "✅ Automatically detects and avoids duplicate assignments.",
+        "✅ Syncs across all your devices."
       ],
       imageAlt: "Canvas calendar import showing automatic assignment parsing from ICS feeds",
       icon: (
@@ -39,12 +39,12 @@ const LandingFeatures: React.FC = () => {
     },
     {
       title: "Smart Assistant",
-      subtitle: "Ask Your Documents Anything, Stop Endlessly Searching",
-      description: "\"When's the midterm?\" \"What's the late policy?\" Get instant answers from your course files instead of scrolling through your slides.",
+      subtitle: "Ask your course materials anything.",
+      description: "",
       features: [
-        "Chat with your syllabi and course docs",
-        "Find policies and deadlines instantly",
-        "No more searching through endless lecture slides"
+        "✅ Instantly find the late policy buried on page 17 of the syllabus.",
+        "✅ Ask for a list of all high-weight assignments for a specific class.",
+        "✅ Stop scrubbing through lecture slides to find that one specific detail."
       ],
       imageAlt: "AI document assistant providing answers based on uploaded course materials",
       icon: (
@@ -66,10 +66,10 @@ const LandingFeatures: React.FC = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 tracking-tight text-slate-900 leading-tight">
-            Three Features That Actually <span style={{color: 'var(--primary-navy)'}}>Matter</span>
+            Your Entire Academic Life, <span style={{color: 'var(--primary-navy)'}}>Automated</span>
           </h2>
-          <p className="text-lg sm:text-xl text-slate-700 max-w-2xl mx-auto font-medium leading-relaxed">
-            Smart syllabus upload, Canvas sync, and Smart Assistant. That's it. No feature bloat.
+          <p className="text-lg sm:text-xl text-slate-700 max-w-3xl mx-auto font-medium leading-relaxed">
+            I focused on the 3 features that'll save you the most time and nothing else.
           </p>
         </div>
 

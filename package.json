@@ -45,6 +45,8 @@
     "db:backup:tables": "node scripts/backup-database.js backup --table-only",
     "db:status": "node scripts/backup-database.js status",
     "db:cleanup": "node scripts/backup-database.js cleanup",
+    "db:verify": "node scripts/backup-database.js verify-all",
+    "db:verify:integrity": "node scripts/backup-database.js verify-integrity",
     "security:scan": "npm audit && npm run lint && npm run typecheck",
     "monitoring:test": "npm run health-check && npm run uptime:check && npm run db:status"
   },

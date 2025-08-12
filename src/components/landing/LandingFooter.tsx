@@ -10,7 +10,7 @@ const LandingFooter: React.FC = () => {
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-5 gap-8">
           {/* Brand Section */}
           <div className="md:col-span-2">
             <h3 className="text-2xl font-bold mb-4 transition-all duration-300" style={{color: 'var(--primary-navy)'}}>
@@ -81,6 +81,33 @@ const LandingFooter: React.FC = () => {
               <li>
                 <a href="mailto:tony@schedulebud.com" className="hover:font-semibold font-medium transition-all duration-200 hover:underline" onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--primary-navy)'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#475569'}>
                   Contact Me
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          {/* About the Creator */}
+          <div>
+            <h4 className="text-lg font-bold mb-4" style={{color: 'var(--primary-navy)'}}>About the Creator</h4>
+            <ul className="space-y-2 text-slate-700">
+              <li>
+                <a href="#/portfolio" className="hover:font-semibold font-medium transition-all duration-200 hover:underline" onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--primary-navy)'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#475569'}>
+                  My Portfolio
+                </a>
+              </li>
+              <li>
+                <a href="#/case-study" className="hover:font-semibold font-medium transition-all duration-200 hover:underline" onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--primary-navy)'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#475569'}>
+                  Project Case Study
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/tonytrieu-dev/schedule-bud" target="_blank" rel="noopener noreferrer" className="hover:font-semibold font-medium transition-all duration-200 hover:underline" onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--primary-navy)'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#475569'}>
+                  GitHub
+                </a>
+              </li>
+              <li>
+                <a href="https://www.linkedin.com/in/tony-trieu2503/" target="_blank" rel="noopener noreferrer" className="hover:font-semibold font-medium transition-all duration-200 hover:underline" onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--primary-navy)'} onMouseLeave={(e) => (e.target as HTMLElement).style.color = '#475569'}>
+                  LinkedIn
                 </a>
               </li>
             </ul>

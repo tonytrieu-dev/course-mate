@@ -70,6 +70,8 @@ const SidebarInner: React.FC<SidebarProps> = ({
     setShowChatbotPanel,
     chatbotPanelHeight,
     setChatbotPanelHeight,
+    chatbotPanelWidth,
+    setChatbotPanelWidth,
     chatbotPosition,
     setChatbotPosition,
     isSidebarCollapsed,
@@ -548,7 +550,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
       {/* Chatbot Panel */}
       <Suspense fallback={
         showChatbotPanel ? (
-          <div className="fixed bottom-4 right-4 bg-white dark:bg-slate-800/90 dark:backdrop-blur-md rounded-lg shadow-lg dark:shadow-slate-900/40 border border-gray-200 dark:border-slate-600/50 p-4" style={{ width: '400px', height: `${chatbotPanelHeight}px` }}>
+          <div className="fixed bottom-4 right-4 bg-white dark:bg-slate-800/90 dark:backdrop-blur-md rounded-lg shadow-lg dark:shadow-slate-900/40 border border-gray-200 dark:border-slate-600/50 p-4" style={{ width: `${chatbotPanelWidth}px`, height: `${chatbotPanelHeight}px` }}>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mt-8" />
             <p className="text-center mt-4 text-gray-600 dark:text-slate-400">Loading chatbot...</p>
           </div>
@@ -563,6 +565,8 @@ const SidebarInner: React.FC<SidebarProps> = ({
           onPositionChange={setChatbotPosition}
           height={chatbotPanelHeight}
           onHeightChange={setChatbotPanelHeight}
+          width={chatbotPanelWidth}
+          onWidthChange={setChatbotPanelWidth}
           fontSize={fontSize}
         />
       </Suspense>

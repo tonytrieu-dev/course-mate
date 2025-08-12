@@ -41,6 +41,8 @@ interface UseSidebarStateReturn {
   setShowChatbotPanel: (show: boolean) => void;
   chatbotPanelHeight: number;
   setChatbotPanelHeight: (height: number) => void;
+  chatbotPanelWidth: number;
+  setChatbotPanelWidth: (width: number) => void;
   chatbotPosition: Position;
   setChatbotPosition: (position: Position) => void;
   
@@ -88,6 +90,7 @@ export const useSidebarState = (): UseSidebarStateReturn => {
   // Chatbot states
   const [showChatbotPanel, setShowChatbotPanel] = useState<boolean>(false);
   const [chatbotPanelHeight, setChatbotPanelHeight] = useState<number>(400);
+  const [chatbotPanelWidth, setChatbotPanelWidth] = useState<number>(400);
   const [chatbotPosition, setChatbotPosition] = useState<Position>({ x: 320, y: 16 });
   
   // Size control states
@@ -152,6 +155,8 @@ export const useSidebarState = (): UseSidebarStateReturn => {
     setShowChatbotPanel,
     chatbotPanelHeight,
     setChatbotPanelHeight,
+    chatbotPanelWidth,
+    setChatbotPanelWidth,
     chatbotPosition,
     setChatbotPosition,
     

@@ -1,0 +1,140 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC (low traffic time)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allow manual triggering
+    inputs:
+      backup_type:
+        description: 'Backup type'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - table-only
+      skip_cloud_upload:
+        description: 'Skip cloud upload'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    name: Backup ScheduleBud Database
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci --production
+          # Install only required dependencies for backup
+          npm install @supabase/supabase-js
+          
+      - name: Setup PostgreSQL client (for pg_dump fallback)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          
+      - name: Create backups directory
+        run: mkdir -p backups
+        
+      - name: Run database backup
+        env:
+          # Supabase configuration
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          REACT_APP_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          
+          # Cloudflare R2 configuration
+          CLOUDFLARE_R2_ENABLED: 'true'
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_R2_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          CLOUDFLARE_R2_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_R2_BUCKET_NAME: ${{ secrets.CLOUDFLARE_R2_BUCKET_NAME }}
+          CLOUDFLARE_R2_ENDPOINT: ${{ secrets.CLOUDFLARE_R2_ENDPOINT }}
+          
+          # Backup configuration
+          MAX_BACKUPS: 30
+        run: |
+          # Determine backup options based on inputs
+          BACKUP_ARGS=""
+          if [[ "${{ github.event.inputs.backup_type }}" == "table-only" ]]; then
+            BACKUP_ARGS="--table-only"
+          fi
+          if [[ "${{ github.event.inputs.skip_cloud_upload }}" == "true" ]]; then
+            BACKUP_ARGS="$BACKUP_ARGS --no-cloud-upload"
+          fi
+          
+          # Run the backup
+          echo "🚀 Starting database backup with options: $BACKUP_ARGS"
+          node scripts/backup-database.js backup $BACKUP_ARGS
+          
+      - name: Check backup status
+        run: |
+          echo "📊 Backup Status:"
+          node scripts/backup-database.js status
+          
+      - name: Upload backup artifacts (GitHub storage)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ github.run_number }}
+          path: backups/
+          retention-days: 7  # Keep for 7 days as secondary backup
+          
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Database Backup Failed';
+            const body = `
+            Database backup failed for ScheduleBud.
+            
+            **Details:**
+            - Repository: ${{ github.repository }}
+            - Run ID: ${{ github.run_id }}
+            - Trigger: ${{ github.event_name }}
+            - Time: ${{ github.event.head_commit.timestamp }}
+            
+            **Actions Required:**
+            1. Check the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            2. Verify Cloudflare R2 credentials and connectivity
+            3. Check Supabase database accessibility
+            4. Run manual backup if needed: \`npm run db:backup\`
+            
+            **Quick Recovery:**
+            \`\`\`bash
+            # Manual backup command
+            npm run db:backup
+            \`\`\`
+            `;
+            
+            // Create issue for backup failure
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'backup-failure', 'urgent']
+            });
+            
+      - name: Report backup success
+        if: success()
+        run: |
+          echo "✅ Backup completed successfully!"
+          echo "📊 Final backup status:"
+          node scripts/backup-database.js status

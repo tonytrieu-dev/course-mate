@@ -13,7 +13,7 @@ const LandingSocialProof: React.FC = () => {
             </h2>
             <div className="rounded-2xl p-6 sm:p-8 shadow-xl max-w-3xl mx-auto" style={{backgroundColor: 'rgba(255, 248, 220, 0.95)', border: '1px solid rgba(37, 99, 235, 0.3)'}}>
               <p className="text-lg sm:text-xl text-slate-700 leading-relaxed">
-                Every quarter starts the same way: <span className="font-semibold text-slate-800">wasting 2-4 hours</span> setting up your planner instead of studying. Manually typing Canvas deadlines, scanning through 5 different PDFs for dates, and hunting through emails for assignment details.
+                You know the drill: spending the first week of every quarter manually typing deadlines from Canvas, hunting through multiple syllabi, and trying to remember what your professor said in that one email.
               </p>
             </div>
           </div>
@@ -46,12 +46,12 @@ const LandingSocialProof: React.FC = () => {
             <div className="text-center p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundColor: 'var(--secondary-cream)', border: '1px solid rgba(156, 175, 136, 0.3)'}}>
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{backgroundColor: 'rgba(156, 175, 136, 0.2)'}}>
                 <svg className="w-8 h-8" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-3" style={{color: 'var(--primary-navy)'}}>Did I Submit That?</h3>
+              <h3 className="text-lg sm:text-xl font-bold mb-3" style={{color: 'var(--primary-navy)'}}>The Post-it Note Graveyard</h3>
               <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
-                It's 1 AM and I'm refreshing Canvas for the fifth time because I swear something's due tomorrow but can't remember what. The submission page looks different than usual. Did it actually go through? Why is there no confirmation email?
+                You have Canvas synced perfectly. But you're still juggling Post-it notes for the weekly reading, a reminder on your phone for the study group, and a vague memory of a presentation the prof only mentioned in lecture. Your "single source of truth" is actually three different apps and a pile of paper.
               </p>
             </div>
           </div>
