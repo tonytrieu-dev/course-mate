@@ -38,7 +38,7 @@ const LandingFeatures: React.FC = () => {
       colorScheme: 'sage' as const
     },
     {
-      title: "AI Class Chatbot",
+      title: "Smart Assistant",
       subtitle: "Ask Your Documents Anything, Stop Endlessly Searching",
       description: "\"When's the midterm?\" \"What's the late policy?\" Get instant answers from your course files instead of scrolling through your slides.",
       features: [
@@ -69,7 +69,7 @@ const LandingFeatures: React.FC = () => {
             Three Features That Actually <span style={{color: 'var(--primary-navy)'}}>Matter</span>
           </h2>
           <p className="text-lg sm:text-xl text-slate-700 max-w-2xl mx-auto font-medium leading-relaxed">
-            Smart syllabus upload, Canvas sync, and AI chatbot. That's it. No feature bloat.
+            Smart syllabus upload, Canvas sync, and Smart Assistant. That's it. No feature bloat.
           </p>
         </div>
 
@@ -105,7 +105,7 @@ const LandingFeatures: React.FC = () => {
             layout="comparison"
           />
           
-          {/* AI Chatbot - CHAT layout */}
+          {/* Smart Assistant - CHAT layout */}
           <FeatureCard
             key={2}
             title={features[2].title}

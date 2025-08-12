@@ -229,7 +229,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       ref={chatbotRef}
       className="fixed bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-xl dark:shadow-slate-900/40 z-50 flex flex-col animate-scaleIn backdrop-blur-sm"
       role="dialog"
-      aria-label="Class Chatbot"
+      aria-label="Smart Assistant"
       aria-modal="true"
       style={{
         width: '400px',
@@ -259,7 +259,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
       >
         <div className="flex items-center space-x-2">
           <span className="text-gray-600 text-base">🤖</span>
-          <span className="text-gray-700 dark:text-slate-200 text-sm font-medium">Class Chatbot</span>
+          <span className="text-gray-700 dark:text-slate-200 text-sm font-medium">Smart Assistant</span>
           {mentionHook.mentionState.hasValidMentions && (
             <span className="text-blue-600 text-xs bg-blue-100 px-2 py-1 rounded-full">
               @{mentionHook.mentionState.referencedClasses.length}

@@ -16,11 +16,11 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
   const controlButtons = [
     {
       id: 'chatbot',
-      label: 'Class Chatbot',
+      label: 'Smart Assistant',
       icon: '🤖',
       onClick: onShowChatbot,
       description: 'Get AI assistance with your coursework and study questions',
-      ariaLabel: 'Open AI class chatbot for study assistance'
+      ariaLabel: 'Open Smart Assistant for intelligent academic support'
     },
     {
       id: 'settings',

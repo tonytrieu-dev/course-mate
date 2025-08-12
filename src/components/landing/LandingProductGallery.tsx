@@ -113,8 +113,8 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
       )
     },
     {
-      id: 'class-chatbot',
-      title: 'Class Chatbot',
+      id: 'smart-assistant',
+      title: 'Smart Assistant',
       description: 'Chat with your course materials and get instant answers from uploaded syllabi and documents',
       type: 'screenshot',
       placeholder: (
@@ -194,7 +194,7 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
               <div className="text-xs mt-2 space-y-1" style={{color: '#C7D7E8'}}>
                 <div>• Canvas sync in real-time</div>
                 <div>• AI syllabus upload process</div>
-                <div>• Class chatbot Q&A demo</div>
+                <div>• Smart Assistant Q&A demo</div>
                 <div>• Mobile interface walkthrough</div>
               </div>
             </div>
