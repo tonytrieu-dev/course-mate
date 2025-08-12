@@ -8,6 +8,11 @@ import type { Class, ClassFile, ClassSyllabus } from '../types/database';
 type SuccessCallback<T> = (result: T) => void;
 
 /**
+ * File opening callback type for document viewer
+ */
+type FileOpenCallback = (fileUrl: string, fileName: string, fileType: string) => void;
+
+/**
  * Return type for useFileManager hook
  */
 interface UseFileManagerReturn {
@@ -37,6 +42,12 @@ interface UseFileManagerReturn {
     files: ClassFile[];
     syllabus: ClassSyllabus | null;
   }>;
+  openFile: (
+    filePath: string, 
+    fileName: string, 
+    fileType: string, 
+    onOpenInViewer?: FileOpenCallback
+  ) => Promise<void>;
   downloadFile: (filePath: string) => Promise<void>;
 }
 
@@ -148,11 +159,63 @@ export const useFileManager = (): UseFileManagerReturn => {
     }
   }, []);
 
+  // Helper function to determine if file should open in viewer
+  const shouldOpenInViewer = useCallback((fileName: string, fileType: string): boolean => {
+    const lowerFileName = fileName.toLowerCase();
+    const supportedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    // Check by MIME type
+    if (supportedTypes.includes(fileType)) {
+      return true;
+    }
+    
+    // Check by file extension as fallback
+    if (lowerFileName.endsWith('.pdf') || lowerFileName.endsWith('.docx')) {
+      return true;
+    }
+    
+    return false;
+  }, []);
+
+  const openFile = useCallback(async (
+    filePath: string, 
+    fileName: string, 
+    fileType: string, 
+    onOpenInViewer?: FileOpenCallback
+  ) => {
+    try {
+      const fileUrl = await fileService.downloadFile(filePath);
+      
+      // Determine how to open the file
+      if (shouldOpenInViewer(fileName, fileType) && onOpenInViewer) {
+        // Open in the in-app document viewer
+        onOpenInViewer(fileUrl, fileName, fileType);
+      } else {
+        // Open in new tab (fallback for unsupported types)
+        window.open(fileUrl, '_blank');
+      }
+    } catch (error) {
+      console.error("Error opening file:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert("Error opening file: " + errorMessage);
+      throw error;
+    }
+  }, [shouldOpenInViewer]);
+
   const downloadFile = useCallback(async (filePath: string) => {
     try {
       const downloadUrl = await fileService.downloadFile(filePath);
-      // Open the file in a new tab/window
-      window.open(downloadUrl, '_blank');
+      
+      // Force download by creating a temporary link
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filePath.split('/').pop() || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error("Error downloading file:", error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -169,6 +232,7 @@ export const useFileManager = (): UseFileManagerReturn => {
     deleteFile,
     deleteSyllabus,
     getClassData,
+    openFile,
     downloadFile,
   };
 };

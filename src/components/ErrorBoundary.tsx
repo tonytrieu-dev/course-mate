@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { logger } from '../utils/logger';
-import { captureError, addSentryBreadcrumb } from '../config/sentry';
+// import { captureError, addSentryBreadcrumb } from '../config/sentry';
 
 // Define comprehensive interfaces for ErrorBoundary
 interface ErrorBoundaryProps {
@@ -42,25 +42,25 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       props: this.props.name ? { boundaryName: this.props.name } : {}
     });
 
-    // Send to Sentry with full context
-    captureError(error, {
-      component: this.props.name || 'ErrorBoundary',
-      action: 'componentDidCatch',
-      metadata: {
-        componentStack: errorInfo.componentStack,
-        errorBoundaryName: this.props.name
-      }
-    });
+    // Send to Sentry with full context (disabled)
+    // captureError(error, {
+    //   component: this.props.name || 'ErrorBoundary',
+    //   action: 'componentDidCatch',
+    //   metadata: {
+    //     componentStack: errorInfo.componentStack,
+    //     errorBoundaryName: this.props.name
+    //   }
+    // });
 
-    // Add breadcrumb for debugging context
-    addSentryBreadcrumb(
-      `Error caught by ${this.props.name || 'ErrorBoundary'}`,
-      'error',
-      {
-        errorMessage: error.message,
-        componentStack: errorInfo.componentStack?.slice(0, 500) // Truncate for readability
-      }
-    );
+    // Add breadcrumb for debugging context (disabled)
+    // addSentryBreadcrumb(
+    //   `Error caught by ${this.props.name || 'ErrorBoundary'}`,
+    //   'error',
+    //   {
+    //     errorMessage: error.message,
+    //     componentStack: errorInfo.componentStack?.slice(0, 500) // Truncate for readability
+    //   }
+    // );
 
     this.setState({
       error,

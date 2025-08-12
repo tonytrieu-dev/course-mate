@@ -2,6 +2,8 @@
 import React, { useCallback, useState } from 'react';
 import type { ClassWithRelations, ClassSyllabus, ClassFile } from '../types/database';
 import { useFileManager } from '../hooks/useFileManager';
+import { useDocumentViewer } from '../hooks/useDocumentViewer';
+import { DocumentViewer } from './DocumentViewer';
 import { SyllabusUploadModal } from './SyllabusUploadModal';
 import { logger } from '../utils/logger';
 
@@ -31,8 +33,11 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
     uploadFile,
     deleteFile,
     deleteSyllabus,
+    openFile,
     downloadFile,
   } = useFileManager();
+
+  const { viewerState, openDocument, closeDocument } = useDocumentViewer();
 
   const handleSyllabusUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,12 +78,17 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
   const handleSyllabusClick = useCallback(async () => {
     if (!selectedClass?.syllabus) return;
     
-    await downloadFile(selectedClass.syllabus.path);
-  }, [selectedClass, downloadFile]);
+    await openFile(
+      selectedClass.syllabus.path, 
+      selectedClass.syllabus.name, 
+      selectedClass.syllabus.type || 'application/pdf',
+      openDocument
+    );
+  }, [selectedClass, openFile, openDocument]);
 
-  const handleFileClick = useCallback(async (filePath: string) => {
-    await downloadFile(filePath);
-  }, [downloadFile]);
+  const handleFileClick = useCallback(async (filePath: string, fileName: string, fileType: string) => {
+    await openFile(filePath, fileName, fileType, openDocument);
+  }, [openFile, openDocument]);
 
   const handleTasksGenerated = useCallback((taskCount: number) => {
     // Handle successful task generation
@@ -341,7 +351,7 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                       <div className="flex-1 min-w-0">
                         <span 
                           className="text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium block truncate"
-                          onClick={() => handleFileClick(file.path)}
+                          onClick={() => handleFileClick(file.path, file.name, file.type || '')}
                           title="Click to open file"
                         >
                           {file.name || 'No filename found'}
@@ -396,6 +406,15 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
         classId={selectedClass.id}
         className={selectedClass.name}
         onTasksGenerated={handleTasksGenerated}
+      />
+
+      {/* Document Viewer Modal */}
+      <DocumentViewer
+        isOpen={viewerState.isOpen}
+        onClose={closeDocument}
+        fileUrl={viewerState.fileUrl}
+        fileName={viewerState.fileName}
+        fileType={viewerState.fileType}
       />
     </div>
   );

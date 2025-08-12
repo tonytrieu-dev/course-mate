@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router';
 import LandingNavigation from './landing/LandingNavigation';
 import LandingHero from './landing/LandingHero';
 import LandingSocialProof from './landing/LandingSocialProof';

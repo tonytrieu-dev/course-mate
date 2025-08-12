@@ -2,10 +2,10 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./components/App";
-import { initSentry } from "./config/sentry";
+// import { initSentry } from "./config/sentry";
 
 // Initialize Sentry before anything else
-initSentry();
+// initSentry(); // Disabled for production build
 
 // Validate configuration on startup
 try {

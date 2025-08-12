@@ -108,12 +108,23 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs'],
     alias: {
-      'pdfjs-dist': path.resolve(__dirname, 'node_modules/pdfjs-dist')
+      'pdfjs-dist': path.resolve(__dirname, 'node_modules/pdfjs-dist'),
+      'process/browser': require.resolve('process/browser.js')
+    },
+    fallback: {
+      "process": require.resolve("process/browser.js"),
+      "buffer": require.resolve("buffer"),
+      "util": require.resolve("util"),
+      "stream": require.resolve("stream-browserify"),
+      "path": require.resolve("path-browserify"),
+      "os": require.resolve("os-browserify/browser"),
+      "crypto": require.resolve("crypto-browserify")
     }
   },
   plugins: [
     new webpack.ProvidePlugin({
       process: 'process/browser',
+      Buffer: ['buffer', 'Buffer'],
     }),
     new Dotenv(),
     new webpack.DefinePlugin({

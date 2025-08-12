@@ -6,7 +6,7 @@
  */
 
 import { onCLS, onINP, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
-import { captureMessage, addSentryBreadcrumb, measurePerformance } from '../config/sentry';
+// import { captureMessage, addSentryBreadcrumb, measurePerformance } from '../config/sentry';
 import { logger } from './logger';
 
 interface PerformanceMetrics {
@@ -87,26 +87,26 @@ class PerformanceMonitor {
         navigationType: metric.navigationType
       });
 
-      // Send to Sentry if performance is poor
-      if (rating === 'poor' && process.env.NODE_ENV === 'production') {
-        captureMessage(
-          `Poor Core Web Vital: ${metric.name} = ${metric.value}`,
-          'warning',
-          {
-            metricName: metric.name,
-            value: metric.value,
-            rating,
-            navigationType: metric.navigationType
-          }
-        );
-      }
+      // Send to Sentry if performance is poor (disabled)
+      // if (rating === 'poor' && process.env.NODE_ENV === 'production') {
+      //   captureMessage(
+      //     `Poor Core Web Vital: ${metric.name} = ${metric.value}`,
+      //     'warning',
+      //     {
+      //       metricName: metric.name,
+      //       value: metric.value,
+      //       rating,
+      //       navigationType: metric.navigationType
+      //     }
+      //   );
+      // }
 
-      // Add breadcrumb for context
-      addSentryBreadcrumb(
-        `${metric.name}: ${metric.value} (${rating})`,
-        'navigation',
-        { value: metric.value, rating }
-      );
+      // Add breadcrumb for context (disabled)
+      // addSentryBreadcrumb(
+      //   `${metric.name}: ${metric.value} (${rating})`,
+      //   'navigation',
+      //   { value: metric.value, rating }
+      // );
     };
 
     // Collect all Core Web Vitals
@@ -137,17 +137,17 @@ class PerformanceMonitor {
               encodedBodySize: resourceEntry.encodedBodySize
             });
 
-            if (process.env.NODE_ENV === 'production') {
-              captureMessage(
-                `Slow resource loading: ${resourceEntry.name}`,
-                'warning',
-                {
-                  duration: resourceEntry.duration,
-                  transferSize: resourceEntry.transferSize,
-                  resourceType: this.getResourceType(resourceEntry.name)
-                }
-              );
-            }
+            // if (process.env.NODE_ENV === 'production') {
+            //   captureMessage(
+            //     `Slow resource loading: ${resourceEntry.name}`,
+            //     'warning',
+            //     {
+            //       duration: resourceEntry.duration,
+            //       transferSize: resourceEntry.transferSize,
+            //       resourceType: this.getResourceType(resourceEntry.name)
+            //     }
+            //   );
+            // }
           }
         }
       }
@@ -182,13 +182,13 @@ class PerformanceMonitor {
           if (timings.loadComplete > 5000) {
             logger.warn('Slow page load detected:', timings);
             
-            if (process.env.NODE_ENV === 'production') {
-              captureMessage(
-                'Slow page load performance',
-                'warning',
-                timings
-              );
-            }
+            // if (process.env.NODE_ENV === 'production') {
+            //   captureMessage(
+            //     'Slow page load performance',
+            //     'warning',
+            //     timings
+            //   );
+            // }
           }
         }
       }
@@ -284,11 +284,18 @@ class PerformanceMonitor {
     componentName: string,
     renderFunction: () => Promise<T>
   ): Promise<T> {
-    return measurePerformance(
-      `component:${componentName}`,
-      renderFunction,
-      { component: componentName }
-    );
+    // return measurePerformance(
+    //   `component:${componentName}`,
+    //   renderFunction,
+    //   { component: componentName }
+    // );
+    
+    // Fallback without Sentry integration
+    const start = performance.now();
+    const result = await renderFunction();
+    const duration = performance.now() - start;
+    logger.debug(`Component render: ${componentName}`, { duration });
+    return result;
   }
 
   /**
@@ -298,11 +305,18 @@ class PerformanceMonitor {
     endpoint: string,
     apiCall: () => Promise<T>
   ): Promise<T> {
-    return measurePerformance(
-      `api:${endpoint}`,
-      apiCall,
-      { endpoint }
-    );
+    // return measurePerformance(
+    //   `api:${endpoint}`,
+    //   apiCall,
+    //   { endpoint }
+    // );
+    
+    // Fallback without Sentry integration
+    const start = performance.now();
+    const result = await apiCall();
+    const duration = performance.now() - start;
+    logger.debug(`API call: ${endpoint}`, { duration });
+    return result;
   }
 
   /**
