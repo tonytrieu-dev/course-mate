@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import type { ClassWithRelations, ClassSyllabus, ClassFile } from '../types/database';
 import { useFileManager } from '../hooks/useFileManager';
 import { useDocumentViewer } from '../hooks/useDocumentViewer';
-import { DocumentViewer } from './DocumentViewer';
+import { DocumentViewer } from './DocumentViewer'; // Updated: no printer button, dark mode fixed
 import { SyllabusUploadModal } from './SyllabusUploadModal';
 import { logger } from '../utils/logger';
 
