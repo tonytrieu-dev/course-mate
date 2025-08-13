@@ -7,46 +7,6 @@ interface LandingHeroProps {
 }
 
 const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const slides = [
-    {
-      title: "Your Quarter Starts Here.",
-      subtitle: "An empty calendar and hours of manual setup ahead.",
-      visual: "empty-calendar-screenshot",
-      showCTA: false
-    },
-    {
-      title: "Step 1: Sync Canvas in 10 Seconds.",
-      subtitle: "Your official deadlines, imported, and organized automatically.",
-      visual: "canvas-sync-gif",
-      showCTA: false
-    },
-    {
-      title: "Step 2: Let AI Read Your Syllabus.",
-      subtitle: "ScheduleBud finds the assignments and deadlines that Canvas misses.",
-      visual: "syllabus-upload-gif",
-      showCTA: false
-    },
-    {
-      title: "Your Entire Quarter, Automated.",
-      subtitle: "Zero manual entry. Zero stress. Click below to try it yourself.",
-      visual: "full-calendar-screenshot",
-      showCTA: true
-    }
-  ];
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center bg-gradient-to-br from-white via-[var(--primary-cream)]/40 to-[var(--primary-cream)]/60">
@@ -123,10 +83,10 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
 
           </div>
           
-          {/* Interactive "Golden Path" Demo */}
+          {/* YouTube Demo Video */}
           <div className="text-center lg:text-right flex flex-col justify-center">
             <div className="relative">
-              {/* Interactive Carousel Container */}
+              {/* Video Container */}
               <div className="relative rounded-3xl p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden" 
                    style={{
                      background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, var(--primary-cream) 30%, rgba(255, 248, 220, 0.8) 60%, rgba(37, 99, 235, 0.08) 100%)',
@@ -135,90 +95,46 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
                      maxWidth: '100%'
                    }}>
                 
-                {/* Carousel Content */}
-                <div className="h-full flex flex-col justify-between">
-                  {/* Slide Content */}
-                  <div className="text-center mb-8">
+                <div className="h-full flex flex-col justify-center">
+                  {/* Video Header */}
+                  <div className="text-center mb-6">
                     <h3 className="text-2xl md:text-3xl font-black mb-4 text-slate-900 leading-tight">
-                      {slides[currentSlide].title}
+                      See All Three Features in Action
                     </h3>
                     <p className="text-lg text-slate-700 leading-relaxed max-w-md mx-auto">
-                      {slides[currentSlide].subtitle}
+                      Canvas Calendar Sync, AI Syllabus Upload & Document Assistant
                     </p>
                   </div>
 
-                  {/* Visual Placeholder - Expanded Size */}
-                  <div className="flex-1 flex items-start justify-center mb-6">
-                    <div className="w-full max-w-lg h-80 bg-gradient-to-br from-white to-gray-100 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      {/* TODO: Replace with final asset */}
-                      <div className="text-center text-gray-500">
-                        <div className="text-sm font-medium mb-2">
-                          {slides[currentSlide].visual === 'empty-calendar-screenshot' && 'Empty Calendar Screenshot'}
-                          {slides[currentSlide].visual === 'canvas-sync-gif' && 'Canvas Sync GIF'}
-                          {slides[currentSlide].visual === 'syllabus-upload-gif' && 'Syllabus Upload GIF'}
-                          {slides[currentSlide].visual === 'full-calendar-screenshot' && 'Full Calendar Screenshot'}
-                        </div>
-                        <div className="text-xs text-gray-400">Placeholder for {slides[currentSlide].visual}</div>
+                  {/* YouTube Video Player */}
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="w-full max-w-2xl rounded-2xl overflow-hidden shadow-xl bg-black">
+                      <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+                        <iframe
+                          src="https://www.youtube.com/embed/J8pDNQu-hQQ?rel=0&modestbranding=1&showinfo=0&controls=1"
+                          title="Your Quarter, Automated in 45 Seconds"
+                          className="absolute top-0 left-0 w-full h-full"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
                       </div>
                     </div>
                   </div>
 
-                  {/* CTA Button for final slide */}
-                  {slides[currentSlide].showCTA && (
-                    <div className="mb-6">
-                      <Button
-                        text="Get Started Free"
-                        onClick={() => {
-                          trackEvent('get_started_clicked', { location: 'carousel_final_slide' });
-                          onGetStarted();
-                        }}
-                        variant="cta-orange"
-                        size="md"
-                        ariaLabel="Start using ScheduleBud for free"
-                        className="transform hover:-translate-y-0.5 transition-all duration-200 px-6 py-3 text-base font-semibold"
-                      />
-                    </div>
-                  )}
-
-                  {/* Navigation Controls */}
-                  <div className="flex items-center justify-between">
-                    {/* Previous Button */}
-                    <button
-                      onClick={prevSlide}
-                      className="p-3 rounded-full bg-white/80 hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 group"
-                      aria-label="Previous slide"
-                    >
-                      <svg className="w-5 h-5 text-gray-600 group-hover:text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
-
-                    {/* Indicator Dots */}
-                    <div className="flex space-x-3">
-                      {slides.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => goToSlide(index)}
-                          className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                            index === currentSlide 
-                              ? 'bg-blue-600 scale-125' 
-                              : 'bg-gray-300 hover:bg-gray-400'
-                          }`}
-                          aria-label={`Go to slide ${index + 1}`}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Next Button */}
-                    <button
-                      onClick={nextSlide}
-                      className="p-3 rounded-full bg-white/80 hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 group"
-                      aria-label="Next slide"
-                    >
-                      <svg className="w-5 h-5 text-gray-600 group-hover:text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
+                  {/* CTA Button below video */}
+                  <div className="mt-6 text-center">
+                    <Button
+                      text="Try These Features Free"
+                      onClick={() => {
+                        trackEvent('get_started_clicked', { location: 'video_demo' });
+                        onGetStarted();
+                      }}
+                      variant="cta-orange"
+                      size="md"
+                      ariaLabel="Start using ScheduleBud for free"
+                      className="transform hover:-translate-y-0.5 transition-all duration-200 px-6 py-3 text-base font-semibold"
+                    />
                   </div>
                 </div>
               </div>

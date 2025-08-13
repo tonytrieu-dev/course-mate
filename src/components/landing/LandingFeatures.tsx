@@ -1,7 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import FeatureCard from './FeatureCard';
 
 const LandingFeatures: React.FC = () => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const handleImageClick = (imageSrc: string) => {
+    setSelectedImage(imageSrc);
+  };
+
+  const closeModal = () => {
+    setSelectedImage(null);
+  };
+
+  // Handle ESC key to close modal
+  React.useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    if (selectedImage) {
+      document.addEventListener('keydown', handleEscKey);
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedImage]);
+
   const features = [
     {
       title: "The 30-Second Syllabus",
@@ -66,7 +95,7 @@ const LandingFeatures: React.FC = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 tracking-tight text-slate-900 leading-tight">
-            Take Back Your <span style={{color: 'var(--primary-navy)'}}>Free Time</span>
+            Canvas Sync is Just the <span style={{color: 'var(--primary-navy)'}}>Beginning</span>
           </h2>
           <p className="text-lg sm:text-xl text-slate-700 max-w-3xl mx-auto font-medium leading-relaxed">
             I focused on the 3 features that'll save you the most time and nothing else.
@@ -119,95 +148,236 @@ const LandingFeatures: React.FC = () => {
           />
         </div>
 
-        {/* "Manage It All" Section - Annotated Screenshots */}
-        <div className="mt-24 max-w-6xl mx-auto">
-          <div className="text-center mb-12">
+        {/* "See ScheduleBud In Action" Section - High-Quality Screenshots */}
+        <div className="mt-24 max-w-7xl mx-auto">
+          <div className="text-center mb-16">
             <h3 className="text-3xl sm:text-4xl font-black mb-4 tracking-tight text-slate-900 leading-tight">
-              Manage It All
+              See ScheduleBud In Action
             </h3>
             <p className="text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed">
-              Everything you need to stay organized, all in one place.
+              Real screenshots from the actual app. See exactly what your academic workspace will look like.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Dashboard View Screenshot */}
-            <div className="relative">
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-                <div className="p-6 border-b border-gray-100">
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">See Your Week at a Glance.</h4>
-                  <p className="text-slate-600">Your personalized dashboard with everything that matters.</p>
+          {/* High-Quality Screenshot Gallery */}
+          <div className="space-y-16">
+            {/* Calendar Views - Before & After */}
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+              {/* Empty Calendar */}
+              <div className="group">
+                <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-500 hover:-translate-y-2">
+                  {/* Header */}
+                  <div className="p-6 border-b border-gray-100 bg-[#FFF8DC]/40">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="px-3 py-1.5 bg-[#2563EB]/10 text-[#2563EB] rounded-full text-xs font-bold uppercase tracking-wide">
+                        Before Setup
+                      </div>
+                      <div className="w-6 h-6 rounded-lg bg-[#2563EB]/10 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-[#2563EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-black text-slate-900 mb-1">Empty Calendar</h4>
+                    <p className="text-slate-600 text-sm">The dreaded blank start. Nothing planned, stress levels rising.</p>
+                  </div>
+                  
+                  {/* Screenshot - Ultra Sharp Settings */}
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/calendar-empty.png')}>
+                    <img 
+                      src="/images/calendar-empty.png" 
+                      alt="Empty ScheduleBud calendar showing blank month view before any setup or assignment import"
+                      className="w-full h-auto block hover:opacity-90 transition-opacity"
+                      style={{ 
+                        imageRendering: 'crisp-edges',
+                        objectFit: 'contain',
+                        maxHeight: '600px'
+                      } as React.CSSProperties}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-5 transition-all duration-200 flex items-center justify-center">
+                      <div className="opacity-0 hover:opacity-100 transition-opacity bg-white bg-opacity-90 rounded-full p-2">
+                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Disclaimer Caption */}
+                  <div className="p-4 text-center">
+                    <p className="text-xs italic text-gray-500 leading-relaxed">
+                      Browser zoomed out for demonstration purposes <span className="font-semibold">ONLY</span>. Actual UI size and experience remain exactly the same.
+                    </p>
+                  </div>
                 </div>
-                
-                {/* Screenshot Placeholder */}
-                <div className="relative h-80 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-                  {/* TODO: Replace with final asset */}
-                  <div className="text-center text-gray-500">
-                    <div className="text-sm font-medium mb-2">Dashboard Screenshot</div>
-                    <div className="text-xs text-gray-400">Placeholder for dashboard view image</div>
+              </div>
+
+              {/* Full Calendar */}
+              <div className="group">
+                <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-500 hover:-translate-y-2">
+                  {/* Header */}
+                  <div className="p-6 border-b border-gray-100 bg-[#9CAF88]/20">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="px-3 py-1.5 bg-[#9CAF88]/20 text-[#6B7F5A] rounded-full text-xs font-bold uppercase tracking-wide">
+                        After 30 Seconds
+                      </div>
+                      <div className="w-6 h-6 rounded-lg bg-[#9CAF88]/20 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-[#6B7F5A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-black text-slate-900 mb-1">Fully Organized</h4>
+                    <p className="text-slate-600 text-sm">Every assignment, every deadline. Your entire quarter planned automatically.</p>
                   </div>
                   
-                  {/* Annotation Labels */}
-                  <div className="absolute top-4 left-4">
-                    <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Upcoming Tasks
+                  {/* Screenshot - Ultra Sharp Settings */}
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/calendar-full.png')}>
+                    <img 
+                      src="/images/calendar-full.png" 
+                      alt="ScheduleBud calendar filled with organized assignments and deadlines from multiple classes showing comprehensive academic schedule"
+                      className="w-full h-auto block hover:opacity-90 transition-opacity"
+                      style={{ 
+                        imageRendering: 'crisp-edges',
+                        objectFit: 'contain',
+                        maxHeight: '600px'
+                      } as React.CSSProperties}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-5 transition-all duration-200 flex items-center justify-center">
+                      <div className="opacity-0 hover:opacity-100 transition-opacity bg-white bg-opacity-90 rounded-full p-2">
+                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </div>
                     </div>
-                    <div className="w-0.5 h-8 bg-blue-600 ml-6 mt-1"></div>
                   </div>
                   
-                  <div className="absolute bottom-16 right-4">
-                    <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Overdue Items
-                    </div>
-                    <div className="w-0.5 h-8 bg-red-500 ml-6 mt-1"></div>
-                  </div>
-                  
-                  <div className="absolute bottom-4 left-8">
-                    <div className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Performance by Class
-                    </div>
-                    <div className="w-0.5 h-8 bg-green-600 ml-6 mt-1"></div>
+                  {/* Disclaimer Caption */}
+                  <div className="p-4 text-center">
+                    <p className="text-xs italic text-gray-500 leading-relaxed">
+                      Browser zoomed out for demonstration purposes <span className="font-semibold">ONLY</span>. Actual UI size and experience remain exactly the same.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Task Management View Screenshot */}
-            <div className="relative">
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
-                <div className="p-6 border-b border-gray-100">
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">All Your Tasks, Perfectly Organized.</h4>
-                  <p className="text-slate-600">Powerful tools to find, filter, and manage everything.</p>
+            {/* Dashboard View */}
+            <div className="max-w-5xl mx-auto">
+              <div className="group">
+                <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-500 hover:-translate-y-2">
+                  {/* Header */}
+                  <div className="p-6 border-b border-gray-100 bg-[#2563EB]/10">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="px-3 py-1.5 bg-[#2563EB]/15 text-[#2563EB] rounded-full text-xs font-bold uppercase tracking-wide">
+                        Dashboard View
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-black text-slate-900 mb-1">Academic Command Center</h4>
+                    <p className="text-slate-600 text-sm">Overview stats, upcoming deadlines, and quick insights. Everything at a glance.</p>
+                  </div>
+                  
+                  {/* Screenshot - Ultra Sharp Settings */}
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/dashboard-view.png')}>
+                    <img 
+                      src="/images/dashboard-view.png" 
+                      alt="ScheduleBud dashboard view showing academic statistics, upcoming assignments, and class overview for comprehensive student management"
+                      className="w-full h-auto block hover:opacity-90 transition-opacity"
+                      style={{ 
+                        imageRendering: 'crisp-edges',
+                        objectFit: 'contain',
+                        maxHeight: '700px'
+                      } as React.CSSProperties}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-5 transition-all duration-200 flex items-center justify-center">
+                      <div className="opacity-0 hover:opacity-100 transition-opacity bg-white bg-opacity-90 rounded-full p-2">
+                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
-                {/* Screenshot Placeholder */}
-                <div className="relative h-80 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-                  {/* TODO: Replace with final asset */}
-                  <div className="text-center text-gray-500">
-                    <div className="text-sm font-medium mb-2">Task Management Screenshot</div>
-                    <div className="text-xs text-gray-400">Placeholder for task view image</div>
+              </div>
+            </div>
+
+            {/* Task Views - Uncompleted & Completed */}
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+              {/* Uncompleted Tasks */}
+              <div className="group">
+                <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-500 hover:-translate-y-2">
+                  {/* Header */}
+                  <div className="p-6 border-b border-gray-100 bg-[#2563EB]/10">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="px-3 py-1.5 bg-[#2563EB]/15 text-[#2563EB] rounded-full text-xs font-bold uppercase tracking-wide">
+                        Task Management
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-black text-slate-900 mb-1">Active Tasks</h4>
+                    <p className="text-slate-600 text-sm">What needs to be done. Filter, sort, and manage your workload efficiently.</p>
                   </div>
                   
-                  {/* Annotation Labels */}
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Smart Search
+                  {/* Screenshot - Ultra Sharp Settings */}
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/tasks-view-uncompleted.png')}>
+                    <img 
+                      src="/images/tasks-view-uncompleted.png" 
+                      alt="ScheduleBud tasks view showing uncompleted assignments with filtering, sorting, and task management features"
+                      className="w-full h-auto block hover:opacity-90 transition-opacity"
+                      style={{ 
+                        imageRendering: 'crisp-edges',
+                        objectFit: 'contain',
+                        maxHeight: '550px'
+                      } as React.CSSProperties}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-5 transition-all duration-200 flex items-center justify-center">
+                      <div className="opacity-0 hover:opacity-100 transition-opacity bg-white bg-opacity-90 rounded-full p-2">
+                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </div>
                     </div>
-                    <div className="w-0.5 h-8 bg-purple-600 ml-6 mt-1"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Completed Tasks */}
+              <div className="group">
+                <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200/50 hover:shadow-3xl transition-all duration-500 hover:-translate-y-2">
+                  {/* Header */}
+                  <div className="p-6 border-b border-gray-100 bg-[#9CAF88]/15">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="px-3 py-1.5 bg-[#9CAF88]/20 text-[#6B7F5A] rounded-full text-xs font-bold uppercase tracking-wide">
+                        Accomplishments
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-black text-slate-900 mb-1">Completed Tasks</h4>
+                    <p className="text-slate-600 text-sm">Track your progress. See what you've accomplished and stay motivated.</p>
                   </div>
                   
-                  <div className="absolute top-20 left-4">
-                    <div className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Quick Filters
+                  {/* Screenshot - Ultra Sharp Settings */}
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/tasks-view-completed.png')}>
+                    <img 
+                      src="/images/tasks-view-completed.png" 
+                      alt="ScheduleBud completed tasks view showing finished assignments and academic progress tracking with satisfaction ratings"
+                      className="w-full h-auto block hover:opacity-90 transition-opacity"
+                      style={{ 
+                        imageRendering: 'crisp-edges',
+                        objectFit: 'contain',
+                        maxHeight: '550px'
+                      } as React.CSSProperties}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-5 transition-all duration-200 flex items-center justify-center">
+                      <div className="opacity-0 hover:opacity-100 transition-opacity bg-white bg-opacity-90 rounded-full p-2">
+                        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                        </svg>
+                      </div>
                     </div>
-                    <div className="w-0.5 h-8 bg-indigo-600 ml-6 mt-1"></div>
-                  </div>
-                  
-                  <div className="absolute bottom-4 right-8">
-                    <div className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Bulk Actions (Select All)
-                    </div>
-                    <div className="w-0.5 h-8 bg-orange-600 ml-6 mt-1"></div>
                   </div>
                 </div>
               </div>
@@ -215,6 +385,42 @@ const LandingFeatures: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          onClick={closeModal}
+        >
+          <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center">
+            {/* Close button */}
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Modal image */}
+            <img
+              src={selectedImage}
+              alt="Expanded screenshot view"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on image
+              style={{ 
+                imageRendering: 'crisp-edges'
+              } as React.CSSProperties}
+            />
+            
+            {/* Instructions */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-4 py-2 rounded-full">
+              Press ESC or click outside to close
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

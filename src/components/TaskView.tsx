@@ -439,7 +439,7 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
     <>
     <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 dark:border-slate-700/50 p-4 h-full flex flex-col hover:shadow-xl transition-smooth">
       {/* Header */}
-      <div className="flex items-center mb-6">
+      <div className="flex items-center justify-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Task Management</h1>
       </div>
 

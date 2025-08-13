@@ -18,7 +18,7 @@ const LandingSocialProof: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-12 max-w-4xl mx-auto">
             <div className="text-center p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundColor: 'var(--secondary-cream)', border: '1px solid rgba(156, 175, 136, 0.3)'}}>
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{backgroundColor: 'rgba(156, 175, 136, 0.2)'}}>
                 <svg className="w-8 h-8" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,24 +34,12 @@ const LandingSocialProof: React.FC = () => {
             <div className="text-center p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundColor: 'var(--secondary-cream)', border: '1px solid rgba(156, 175, 136, 0.3)'}}>
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{backgroundColor: 'rgba(156, 175, 136, 0.2)'}}>
                 <svg className="w-8 h-8" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-                </svg>
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-3" style={{color: 'var(--primary-navy)'}}>Sunday Night Regret</h3>
-              <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
-                Spent three hours copying assignments from Canvas to my calendar. Found out Monday morning I missed the quiz that was only mentioned in a random PDF. Also somehow entered the same midterm date twice but for different classes.
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundColor: 'var(--secondary-cream)', border: '1px solid rgba(156, 175, 136, 0.3)'}}>
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{backgroundColor: 'rgba(156, 175, 136, 0.2)'}}>
-                <svg className="w-8 h-8" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <h3 className="text-lg sm:text-xl font-bold mb-3" style={{color: 'var(--primary-navy)'}}>The Post-it Note Graveyard</h3>
               <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
-                You have Canvas synced perfectly. But you're still juggling Post-it notes for the weekly reading, a reminder on your phone for the study group, and a vague memory of a presentation the prof only mentioned in lecture. Your "single source of truth" is actually three different apps and a pile of paper.
+                Your Canvas has been synced perfectly. But you're still juggling Post-it notes for the weekly reading, a reminder on your phone for the study group, and a vague memory of a presentation the prof only mentioned in lecture. Your "single source of truth" is actually just three different apps and a pile of paper.
               </p>
             </div>
           </div>

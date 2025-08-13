@@ -294,7 +294,7 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
     <div className={`relative ${className}`}>
       {/* Main Gallery Container */}
       <div 
-        className="relative bg-slate-900/95 rounded-2xl overflow-hidden focus:outline-none focus:ring-2"
+        className="relative bg-slate-900/95 rounded-2xl focus:outline-none focus:ring-2 border border-slate-700/30 overflow-hidden shadow-2xl"
         style={{height: '450px', '--tw-ring-color': '#2563EB'} as React.CSSProperties}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -317,11 +317,11 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
         </div>
 
         {/* Gallery Content */}
-        <div className="relative w-full h-full flex flex-col justify-center items-center p-6 pt-12" 
+        <div className="relative w-full h-full flex flex-col justify-center items-center p-6 pt-12 pb-20" 
              style={{background: 'linear-gradient(135deg, #F8F9FA 0%, #FFF8DC 50%, #F3F7F0 100%)'}}>
           
           {/* Slide Content */}
-          <div className="relative z-10 w-full max-w-lg h-full flex flex-col justify-center">
+          <div className="relative z-10 w-full max-w-lg flex flex-col justify-center items-center min-h-0">
             {currentSlideData.placeholder}
           </div>
 
@@ -364,7 +364,7 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
       </div>
 
       {/* Enhanced Navigation Controls */}
-      <div className="absolute inset-y-0 left-4 flex items-center z-30">
+      <div className="absolute inset-y-0 left-2 flex items-center z-30">
         <button
           onClick={goToPrevSlide}
           className="bg-white/80 hover:bg-white text-slate-800 rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm transform hover:scale-110 active:scale-95 group"
@@ -376,7 +376,7 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
         </button>
       </div>
 
-      <div className="absolute inset-y-0 right-4 flex items-center z-30">
+      <div className="absolute inset-y-0 right-2 flex items-center z-30">
         <button
           onClick={goToNextSlide}
           className="bg-white/80 hover:bg-white text-slate-800 rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm transform hover:scale-110 active:scale-95 group"
@@ -389,7 +389,7 @@ const LandingProductGallery: React.FC<LandingProductGalleryProps> = ({ className
       </div>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-3 z-50">
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-50 bg-black/20 backdrop-blur-sm rounded-full px-4 py-2">
         {slides.map((_, index) => (
           <button
             key={index}
