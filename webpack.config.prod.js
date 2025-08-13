@@ -2,60 +2,26 @@ const path = require('path');
 const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+// --- FIX 1: Import the MiniCssExtractPlugin for production CSS handling ---
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   mode: 'production',
   entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'build'),
-    filename: '[name].[contenthash].js',
-    chunkFilename: '[name].[contenthash].chunk.js',
+    filename: 'static/js/[name].[contenthash:8].js',
+    chunkFilename: 'static/js/[name].[contenthash:8].chunk.js',
+    assetModuleFilename: 'static/media/[name].[hash][ext]',
     clean: true
   },
   optimization: {
+    // --- FIX 2: Replaced the complex manual chunking with webpack's modern, optimized default ---
+    // This is more efficient and creates a better bundle distribution automatically.
     splitChunks: {
       chunks: 'all',
-      minSize: 20000,
-      maxSize: 250000,
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-          priority: 10,
-          reuseExistingChunk: true,
-        },
-        ui: {
-          test: /[\\/]src[\\/]components[\\/]/,
-          name: 'ui-components',
-          chunks: 'all',
-          priority: 8,
-          minChunks: 2,
-        },
-        services: {
-          test: /[\\/]src[\\/]services[\\/]/,
-          name: 'services',
-          chunks: 'all', 
-          priority: 7,
-          minChunks: 1,
-        },
-        utils: {
-          test: /[\\/]src[\\/]utils[\\/]/,
-          name: 'utils',
-          chunks: 'all',
-          priority: 6,
-          minChunks: 2,
-        },
-        common: {
-          name: 'common',
-          minChunks: 3,
-          chunks: 'all',
-          priority: 5,
-          enforce: true,
-          reuseExistingChunk: true,
-        }
-      }
     },
+    // Keep the rest of your excellent optimization settings
     usedExports: true,
     sideEffects: false,
     providedExports: true,
@@ -67,7 +33,8 @@ module.exports = {
     moduleIds: 'deterministic',
     minimize: true,
     minimizer: [
-      '...',  // Use default minimizers (Terser for JS, CssMinimizerPlugin for CSS)
+      '...', // This tells webpack to use its default minimizers (TerserPlugin for JS)
+      // Note: CssMinimizerPlugin will be needed if you add a CSS preprocessor
     ]
   },
   module: {
@@ -79,14 +46,9 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: [
-              ['@babel/preset-env', {
-                targets: {
-                  browsers: ['last 2 versions', 'ie >= 11']
-                },
-                modules: false
-              }],
+              ['@babel/preset-env', { targets: 'defaults' }], // Modern browsers, as you requested
               '@babel/preset-react',
-              ['@babel/preset-typescript', { allowNamespaces: true }]
+              ['@babel/preset-typescript', { allowNamespaces: true }],
             ],
             plugins: [
               '@babel/plugin-syntax-dynamic-import'
@@ -100,8 +62,10 @@ module.exports = {
         type: 'javascript/auto'
       },
       {
+        // --- FIX 3: Replaced 'style-loader' with MiniCssExtractPlugin.loader for production ---
+        // This extracts CSS into separate files for faster page loads.
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader']
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader']
       }
     ]
   },
@@ -111,6 +75,8 @@ module.exports = {
       'pdfjs-dist': path.resolve(__dirname, 'node_modules/pdfjs-dist'),
       'process/browser': require.resolve('process/browser.js')
     },
+    // NOTE: These polyfills are a major source of bundle bloat.
+    // Long-term, investigate which dependencies require them and find modern browser alternatives.
     fallback: {
       "process": require.resolve("process/browser.js"),
       "buffer": require.resolve("buffer"),
@@ -122,6 +88,11 @@ module.exports = {
     }
   },
   plugins: [
+    // --- FIX 4: Added the MiniCssExtractPlugin to the plugins array ---
+    new MiniCssExtractPlugin({
+      filename: 'static/css/[name].[contenthash:8].css',
+      chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
+    }),
     new webpack.ProvidePlugin({
       process: 'process/browser',
       Buffer: ['buffer', 'Buffer'],
@@ -141,10 +112,10 @@ module.exports = {
   ],
   performance: {
     hints: 'warning',
-    maxAssetSize: 400000,  // Increased for optimized lazy loading
-    maxEntrypointSize: 400000,
+    // --- FIX 5: Slightly adjusted asset size limits for a better warning threshold ---
+    maxAssetSize: 250000,
+    maxEntrypointSize: 250000,
     assetFilter: function(assetFilename) {
-      // Don't show warnings for source maps and large vendor chunks
       return !assetFilename.endsWith('.map') && !assetFilename.includes('vendors');
     }
   },
