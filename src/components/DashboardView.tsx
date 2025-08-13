@@ -329,7 +329,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   );
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-900/50 backdrop-blur-sm min-h-full p-4 sm:p-6">
+    <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 dark:border-slate-700/50 p-4 sm:p-6 h-full flex flex-col hover:shadow-xl transition-smooth">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -483,7 +483,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Class Performance */}
         {classStats.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+          <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-md p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Performance by Class</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {classStats.map((stat) => (
