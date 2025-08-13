@@ -381,9 +381,9 @@ Status: ${status}`;
       
       let documents, rpcError;
       
-      // Use 4-parameter signature (the one that exists in the database)
+      // Use correct signature for existing match_documents function
       const result = await supabaseAdmin.rpc('match_documents', {
-        class_id_filter: targetClassIds[0],
+        class_id_filter: targetClassIds[0], // Should be UUID string
         match_count: 5,
         match_threshold: 0.3,
         query_embedding: queryEmbedding
@@ -464,28 +464,15 @@ Status: ${status}`;
       
       for (const classId of targetClassIds) {
         let documents, rpcError;
-        try {
-          // Try 5-parameter signature first
-          const result = await supabaseAdmin.rpc('match_documents', {
-            class_id_filter: classId,
-            match_count: 3,
-            match_threshold: 0.3,
-            query_embedding: queryEmbedding,
-            user_id_filter: null
-          });
-          documents = result.data;
-          rpcError = result.error;
-        } catch (signatureError) {
-          // Fallback to 4-parameter signature
-          const result = await supabaseAdmin.rpc('match_documents', {
-            class_id_filter: classId,
-            match_count: 3,
-            match_threshold: 0.3,
-            query_embedding: queryEmbedding
-          });
-          documents = result.data;
-          rpcError = result.error;
-        }
+        // Use the existing 4-parameter signature
+        const result = await supabaseAdmin.rpc('match_documents', {
+          class_id_filter: classId,
+          match_count: 3,
+          match_threshold: 0.3,
+          query_embedding: queryEmbedding
+        });
+        documents = result.data;
+        rpcError = result.error;
 
         if (rpcError) {
           console.error(`Error from match_documents for class ${classId}:`, rpcError);
@@ -675,28 +662,14 @@ Status: ${status}`;
           if (targetClassIds.length === 1) {
             // Single class retry
             let retryDocuments, retryError;
-            try {
-              // Try 5-parameter signature first
-              const result = await supabaseAdmin.rpc('match_documents', {
-                class_id_filter: targetClassIds[0],
-                match_count: 5,
-                match_threshold: 0.3,
-                query_embedding: queryEmbedding,
-                user_id_filter: null
-              });
-              retryDocuments = result.data;
-              retryError = result.error;
-            } catch (signatureError) {
-              // Fallback to 4-parameter signature
-              const result = await supabaseAdmin.rpc('match_documents', {
-                class_id_filter: targetClassIds[0],
-                match_count: 5,
-                match_threshold: 0.3,
-                query_embedding: queryEmbedding
-              });
-              retryDocuments = result.data;
-              retryError = result.error;
-            }
+            const result = await supabaseAdmin.rpc('match_documents', {
+              class_id_filter: targetClassIds[0],
+              match_count: 5,
+              match_threshold: 0.3,
+              query_embedding: queryEmbedding
+            });
+            retryDocuments = result.data;
+            retryError = result.error;
 
             if (!retryError && retryDocuments && retryDocuments.length > 0) {
               allDocuments = retryDocuments;
@@ -710,28 +683,14 @@ Status: ${status}`;
             
             for (const classId of targetClassIds) {
               let retryDocuments, retryError;
-              try {
-                // Try 5-parameter signature first
-                const result = await supabaseAdmin.rpc('match_documents', {
-                  class_id_filter: classId,
-                  match_count: 3,
-                  match_threshold: 0.3,
-                  query_embedding: queryEmbedding,
-                  user_id_filter: null
-                });
-                retryDocuments = result.data;
-                retryError = result.error;
-              } catch (signatureError) {
-                // Fallback to 4-parameter signature
-                const result = await supabaseAdmin.rpc('match_documents', {
-                  class_id_filter: classId,
-                  match_count: 3,
-                  match_threshold: 0.3,
-                  query_embedding: queryEmbedding
-                });
-                retryDocuments = result.data;
-                retryError = result.error;
-              }
+              const result = await supabaseAdmin.rpc('match_documents', {
+                class_id_filter: classId,
+                match_count: 3,
+                match_threshold: 0.3,
+                query_embedding: queryEmbedding
+              });
+              retryDocuments = result.data;
+              retryError = result.error;
 
               if (!retryError && retryDocuments && retryDocuments.length > 0) {
                 retryClassDocuments[classId] = retryDocuments;

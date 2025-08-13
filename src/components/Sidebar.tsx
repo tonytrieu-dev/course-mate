@@ -557,7 +557,6 @@ const SidebarInner: React.FC<SidebarProps> = ({
         ) : null
       }>
         <ChatbotPanel
-          selectedClass={selectedClass}
           classes={classes}
           show={showChatbotPanel}
           onClose={() => setShowChatbotPanel(false)}

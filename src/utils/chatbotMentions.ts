@@ -119,9 +119,12 @@ export class ChatbotMentionParser {
    * Extract @mention patterns from text
    */
   private extractMentions(text: string): MentionMatch[] {
-    // Conservative regex that matches @ClassName (single words only) followed by word boundary
-    // This prevents over-matching while allowing proper class name detection
-    const mentionRegex = /@([A-Za-z0-9_-]+)(?=\s|$|[.!?,:;])/g;
+    // Enhanced regex that handles course codes and class names:
+    // @EE -> matches "EE"
+    // @EE123 -> matches "EE123" 
+    // @EE 123 -> matches "EE 123"
+    // @CS 101 -> matches "CS 101"
+    const mentionRegex = /@([A-Za-z]+\s*\d+|[A-Za-z0-9_-]+)(?=\s|$|[.!?,:;])/g;
     const mentions: MentionMatch[] = [];
     let match;
 
@@ -307,14 +310,14 @@ export const mentionUtils = {
    * Check if text contains any @mentions
    */
   hasAtMentions(text: string): boolean {
-    return /@[a-zA-Z0-9_-]+/.test(text);
+    return /@([A-Za-z]+\s+\d+|[A-Za-z0-9_-]+)/.test(text);
   },
 
   /**
    * Extract all @mention patterns from text (without resolution)
    */
   extractMentionPatterns(text: string): string[] {
-    const matches = text.match(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g);
+    const matches = text.match(/@([A-Za-z]+\s+\d+|[A-Za-z0-9_-]+)(?=\s|$|[.!?,:;])/g);
     return matches || [];
   },
 
@@ -322,13 +325,13 @@ export const mentionUtils = {
    * Remove all @mentions from text
    */
   stripMentions(text: string): string {
-    return text.replace(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g, '').replace(/\s+/g, ' ').trim();
+    return text.replace(/@([A-Za-z]+\s+\d+|[A-Za-z0-9_-]+)(?=\s|$|[.!?,:;])/g, '').replace(/\s+/g, ' ').trim();
   },
 
   /**
    * Replace @mentions with placeholder text
    */
   replaceMentions(text: string, replacement: string = '[CLASS]'): string {
-    return text.replace(/@[A-Za-z0-9_-]+(?=\s|$|[.!?,:;])/g, replacement);
+    return text.replace(/@([A-Za-z]+\s+\d+|[A-Za-z0-9_-]+)(?=\s|$|[.!?,:;])/g, replacement);
   }
 };

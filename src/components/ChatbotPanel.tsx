@@ -6,7 +6,6 @@ import ChatbotAutocomplete from './ChatbotAutocomplete';
 import { logger } from '../utils/logger';
 
 interface ChatbotPanelProps {
-  selectedClass: ClassWithRelations | null;
   classes: ClassWithRelations[];
   show: boolean;
   onClose: () => void;
@@ -20,7 +19,6 @@ interface ChatbotPanelProps {
 }
 
 const ChatbotPanel: React.FC<ChatbotPanelProps> = ({ 
-  selectedClass,
   classes,
   show, 
   onClose,
@@ -48,7 +46,7 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
     currentCursor,
     setCursorPosition,
     setIsProcessingMention,
-  } = useChatbot({ selectedClass, classes });
+  } = useChatbot({ selectedClass: null, classes });
 
   // Custom hook for drag and resize functionality
   const {

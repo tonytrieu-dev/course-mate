@@ -262,9 +262,6 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
       contextMessage = mentionedClasses.length === 1 
         ? `Asking about ${mentionedClasses[0].name}` 
         : `Asking about ${mentionedClasses.length} classes: ${mentionedClasses.map(c => c.name).join(', ')}`;
-    } else if (selectedClass) {
-      // Fallback to selected class
-      classesToQuery = [selectedClass];
     } else if (isTaskSchedulingQuery(queryText)) {
       // Allow task/scheduling queries without class selection (check original query, not processed cleanQuery)
       classesToQuery = [];
@@ -278,7 +275,7 @@ export const useChatbot = ({ selectedClass, classes }: UseChatbotProps): UseChat
       const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: queryText }];
       setChatHistory([
         ...newHistory,
-        { role: 'assistant', content: 'Please select a class or use @ClassName to specify which class to ask about.' },
+        { role: 'assistant', content: 'Please use @ClassName to specify which class to ask about (e.g., "@Math101 what is due tomorrow?").' },
       ]);
       setIsChatLoading(false);
       return;
