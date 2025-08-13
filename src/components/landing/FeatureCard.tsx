@@ -94,26 +94,19 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-br from-white to-[var(--primary-cream)]/50 opacity-95"></div>
         
         <div className="relative z-10 p-10">
-          {/* Large Document Upload Area - Demo Preview */}
-          <div className="mb-8 p-8 rounded-2xl border-2 border-dashed border-[var(--cta-orange)]/40 bg-[var(--primary-cream)]/90 transition-all duration-300 group-hover:scale-105 relative">
-            <div className="text-center">
-              <div className={`w-16 h-16 ${colors.icon} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+          {/* Content */}
+          <div className="mb-6">
+            <div className="flex items-center mb-6">
+              <div className={`w-16 h-16 ${colors.icon} rounded-2xl flex items-center justify-center mr-4 shadow-lg group-hover:shadow-xl transition-all duration-300`}>
                 <div className={`${colors.iconText} group-hover:scale-110 transition-transform duration-300`}>
                   {icon}
                 </div>
               </div>
-              <div className="text-[var(--cta-orange)] font-bold text-lg mb-2">Drop Your Syllabus Here</div>
-              <div className="text-slate-600 text-sm">PDF to Task List in 30 Seconds</div>
-              <div className="absolute top-2 right-2 bg-[var(--primary-navy)]/90 text-white text-xs px-2 py-1 rounded-full font-medium">
-                Demo
+              <div>
+                <h3 className="text-3xl font-black text-[var(--primary-navy)] mb-2">{title}</h3>
+                <p className="text-[var(--cta-orange)] font-bold text-lg">{subtitle}</p>
               </div>
             </div>
-          </div>
-          
-          {/* Content */}
-          <div className="mb-6">
-            <h3 className="text-3xl font-black text-[var(--primary-navy)] mb-3">{title}</h3>
-            <p className="text-[var(--cta-orange)] font-bold text-lg mb-4">{subtitle}</p>
             <p className="text-slate-700 leading-relaxed text-lg">{description}</p>
           </div>
           

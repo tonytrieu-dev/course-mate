@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
-import { updateTask, deleteTask } from "../services/dataService";
+// Removed updateTask, deleteTask imports - now using taskService methods to avoid race conditions
 import type { TaskWithMeta, TaskType, ClassWithRelations } from "../types/database";
 import { useAuth } from "../contexts/AuthContext";
 import { getEventStyle } from "../utils/taskStyles";
@@ -270,27 +270,20 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
 
   // Task completion toggle
   const toggleTaskCompletion = useCallback(async (task: TaskWithMeta): Promise<void> => {
-    const originalCompleted = task.completed;
-    
-    // Optimistically update local state
-    setTasks((prevTasks) =>
-      prevTasks.map((t) =>
-        t.id === task.id ? { ...t, completed: !t.completed } : t
-      )
-    );
-    
     try {
+      // Use taskService.updateTask instead of direct updateTask to avoid race conditions
+      // This will update the service state and notify all subscribers consistently
       const updatedTask = { ...task, completed: !task.completed };
-      await updateTask(task.id, updatedTask, isAuthenticated);
-      setLastCalendarSyncTimestamp(Date.now());
+      const result = await taskService.updateTask(task.id, updatedTask, isAuthenticated);
+      
+      if (result) {
+        setLastCalendarSyncTimestamp(Date.now());
+      } else {
+        logger.error('Failed to update task completion - no result returned');
+      }
     } catch (error) {
       logger.error('Failed to update task completion', error);
-      // Revert optimistic update on error
-      setTasks((prevTasks) =>
-        prevTasks.map((t) =>
-          t.id === task.id ? { ...t, completed: originalCompleted } : t
-        )
-      );
+      // No need for revert - service subscription will maintain consistent state
     }
   }, [isAuthenticated, setLastCalendarSyncTimestamp]);
 
@@ -317,18 +310,14 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
 
       let result: TaskWithMeta | null = null;
       if (editingTask) {
-        result = await updateTask(
+        // Use taskService to ensure consistent state updates
+        result = await taskService.updateTask(
           editingTask.id,
           completeTaskData,
           isAuthenticated
         ) as TaskWithMeta;
         
         if (result) {
-          setTasks(prevTasks => 
-            prevTasks.map(task => 
-              task.id === editingTask.id ? { ...task, ...result } : task
-            )
-          );
           setLastCalendarSyncTimestamp(Date.now());
           setShowTaskModal(false);
           setEditingTask(null);
@@ -346,9 +335,9 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
   const handleDeleteTask = async (): Promise<void> => {
     if (editingTask) {
       try {
-        const success = await deleteTask(editingTask.id, isAuthenticated);
+        // Use taskService to ensure consistent state updates
+        const success = await taskService.deleteTask(editingTask.id, isAuthenticated);
         if (success) {
-          setTasks(prevTasks => prevTasks.filter(task => task.id !== editingTask.id));
           setLastCalendarSyncTimestamp(Date.now());
         }
         setShowTaskModal(false);
@@ -365,21 +354,18 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
   const handleBulkComplete = async () => {
     const tasksToUpdate = Array.from(selectedTasks);
     try {
+      // Use taskService to ensure consistent state updates
       await Promise.all(
         tasksToUpdate.map(taskId => {
           const task = tasks.find(t => t.id === taskId);
           if (task) {
-            return updateTask(taskId, { ...task, completed: true }, isAuthenticated);
+            return taskService.updateTask(taskId, { ...task, completed: true }, isAuthenticated);
           }
           return Promise.resolve();
         })
       );
       
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          selectedTasks.has(task.id) ? { ...task, completed: true } : task
-        )
-      );
+      // Service subscription will update tasks state, just clear selection
       setSelectedTasks(new Set());
       setLastCalendarSyncTimestamp(Date.now());
     } catch (error) {
@@ -395,11 +381,12 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
 
     const tasksToDelete = Array.from(selectedTasks);
     try {
+      // Use taskService to ensure consistent state updates
       await Promise.all(
-        tasksToDelete.map(taskId => deleteTask(taskId, isAuthenticated))
+        tasksToDelete.map(taskId => taskService.deleteTask(taskId, isAuthenticated))
       );
       
-      setTasks(prevTasks => prevTasks.filter(task => !selectedTasks.has(task.id)));
+      // Service subscription will update tasks state, just clear selection
       setSelectedTasks(new Set());
       setLastCalendarSyncTimestamp(Date.now());
     } catch (error) {
@@ -604,35 +591,54 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
                   onClick={() => handleTaskEdit(task)}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Checkbox */}
-                    <input
-                      type="checkbox"
-                      checked={selectedTasks.has(task.id)}
-                      onChange={(e) => {
+                    {/* Checkbox - with expanded clickable area */}
+                    <div 
+                      className="flex-shrink-0 flex items-center justify-center w-8 h-8 mt-0.5 cursor-pointer"
+                      onClick={(e) => {
                         e.stopPropagation();
                         toggleTaskSelection(task.id);
                       }}
-                      className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600/50 rounded touch-manipulation bg-white dark:bg-slate-700/50"
-                    />
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTasks.has(task.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          toggleTaskSelection(task.id);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600/50 rounded touch-manipulation bg-white dark:bg-slate-700/50 cursor-pointer"
+                      />
+                    </div>
                     
-                    {/* Task completion toggle */}
-                    <button
+                    {/* Task completion toggle - with expanded clickable area */}
+                    <div 
+                      className="flex-shrink-0 flex items-center justify-center w-8 h-8 mt-0.5 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleTaskCompletion(task);
                       }}
-                      className={`mt-1 h-6 w-6 rounded border-2 flex items-center justify-center transition-colors touch-manipulation hover:scale-105 active:scale-95 ${
-                        task.completed
-                          ? 'bg-green-500 border-green-500 text-white'
-                          : 'border-gray-300 dark:border-slate-600/50 hover:border-green-400 dark:hover:border-green-500 bg-white dark:bg-slate-700/50'
-                      }`}
                     >
-                      {task.completed && (
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleTaskCompletion(task);
+                        }}
+                        className={`h-6 w-6 rounded border-2 flex items-center justify-center transition-colors touch-manipulation hover:scale-105 active:scale-95 cursor-pointer ${
+                          task.completed
+                            ? 'bg-green-500 border-green-500 text-white'
+                            : 'border-gray-300 dark:border-slate-600/50 hover:border-green-400 dark:hover:border-green-500 bg-white dark:bg-slate-700/50'
+                        }`}
+                      >
+                        {task.completed && (
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                     
                     {/* Task content */}
                     <div className="flex-1">

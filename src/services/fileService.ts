@@ -770,8 +770,8 @@ export const fileService = {
   },
 
   async getClassData(classId: string): Promise<ClassFilesData> {
-    // Fetch latest syllabus
-    const { data: syllabusArr, error: syllabusError } = await supabase
+    // Fetch latest syllabus from both old class_syllabi table and new class_files table
+    const { data: legacySyllabusArr, error: syllabusError } = await supabase
       .from("class_syllabi")
       .select("*")
       .eq("class_id", classId)
@@ -779,11 +779,11 @@ export const fileService = {
       .limit(1);
 
     if (syllabusError) {
-      console.warn('Error fetching syllabus:', syllabusError.message);
+      console.warn('Error fetching legacy syllabus:', syllabusError.message);
     }
 
-    // Fetch latest files
-    const { data: filesArr, error: filesError } = await supabase
+    // Fetch all files from class_files table
+    const { data: allFilesArr, error: filesError } = await supabase
       .from("class_files")
       .select("*")
       .eq("class_id", classId)
@@ -793,9 +793,21 @@ export const fileService = {
       console.warn('Error fetching class files:', filesError.message);
     }
 
+    // Separate syllabus files from regular files
+    const syllabusFiles = (allFilesArr || []).filter(file => file.type === "syllabus");
+    const regularFiles = (allFilesArr || []).filter(file => file.type !== "syllabus");
+
+    // Determine which syllabus to use (prefer newer syllabus from class_files)
+    let latestSyllabus = null;
+    if (syllabusFiles.length > 0) {
+      latestSyllabus = syllabusFiles[0]; // Already ordered by uploaded_at desc
+    } else if (legacySyllabusArr && legacySyllabusArr.length > 0) {
+      latestSyllabus = legacySyllabusArr[0];
+    }
+
     return {
-      syllabus: syllabusArr && syllabusArr.length > 0 ? syllabusArr[0] : null,
-      files: filesArr || [],
+      syllabus: latestSyllabus,
+      files: regularFiles, // Only return non-syllabus files
     };
   },
 

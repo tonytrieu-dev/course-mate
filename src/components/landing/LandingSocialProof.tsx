@@ -13,7 +13,7 @@ const LandingSocialProof: React.FC = () => {
             </h2>
             <div className="rounded-2xl p-6 sm:p-8 shadow-xl max-w-3xl mx-auto" style={{backgroundColor: 'rgba(255, 248, 220, 0.95)', border: '1px solid rgba(37, 99, 235, 0.3)'}}>
               <p className="text-lg sm:text-xl text-slate-700 leading-relaxed">
-                You know the drill: spending the first week of every quarter manually typing deadlines from Canvas, hunting through multiple syllabi, and trying to remember what your professor said in that one email.
+                You know the drill: spending the first week of every quarter manually typing deadlines from Canvas, hunting through 5 different syllabi, and trying to remember what your professor said in that one email.
               </p>
             </div>
           </div>

@@ -47,10 +47,23 @@ export const getClasses = async (userId?: string, useSupabase = false): Promise<
       logger.debug(`Retrieved ${data?.length || 0} classes from Supabase for user ${userId}`);
       return data.map(cls => {
         const { istaskclass, class_syllabi, class_files, ...cleanCls } = cls;
+        
+        // Separate syllabus files from regular files
+        const syllabusFiles = (class_files || []).filter(file => file.type === "syllabus");
+        const regularFiles = (class_files || []).filter(file => file.type !== "syllabus");
+        
+        // Determine which syllabus to use (prefer newer syllabus from class_files)
+        let latestSyllabus = null;
+        if (syllabusFiles.length > 0) {
+          latestSyllabus = syllabusFiles[0]; // Already ordered by created_at desc
+        } else if (class_syllabi && class_syllabi.length > 0) {
+          latestSyllabus = class_syllabi[0];
+        }
+        
         return {
           ...cleanCls,
-          syllabus: class_syllabi && class_syllabi.length > 0 ? class_syllabi[0] : null,
-          files: class_files || [],
+          syllabus: latestSyllabus,
+          files: regularFiles, // Only return non-syllabus files
           isTaskClass: istaskclass
         } as ClassWithRelations;
       });
