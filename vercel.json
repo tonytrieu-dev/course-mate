@@ -7,7 +7,7 @@
   "devCommand": "npm start",
   "rewrites": [
     {
-      "source": "/((?!.*\\.).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
@@ -30,7 +30,14 @@
       ]
     },
     {
-      "source": "/(.*\\\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))",
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(text/css|application/javascript|image/.*|font/.*)"
+        }
+      ],
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
