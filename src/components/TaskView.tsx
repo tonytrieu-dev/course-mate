@@ -436,24 +436,11 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
   };
 
   return (
+    <>
     <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 dark:border-slate-700/50 p-4 h-full flex flex-col hover:shadow-xl transition-smooth">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div className="flex items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Task Management</h1>
-        
-        <button
-          onClick={() => {
-            setSelectedDate(new Date());
-            setEditingTask(null);
-            setShowTaskModal(true);
-          }}
-          className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 active:bg-blue-800 text-white px-4 py-3 sm:py-2 rounded-lg transition-colors flex items-center gap-2 min-h-[44px] touch-manipulation shadow-sm hover:shadow-md"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Task
-        </button>
       </div>
 
       {/* Advanced Filtering and Search */}
@@ -469,12 +456,17 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
       {/* Sort Controls */}
       <div className="bg-gray-50 dark:bg-slate-700/50 backdrop-blur-sm rounded-lg p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 dark:text-slate-400">Sort by:</span>
+          <div className="flex items-center gap-4">
+            <span className="text-base font-medium text-gray-800 dark:text-slate-200">Sort by:</span>
             <select
               value={sortType}
               onChange={(e) => setSortType(e.target.value as SortType)}
-              className="px-2 py-1 border border-gray-300 dark:border-slate-600/50 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700/50 backdrop-blur-sm text-gray-900 dark:text-slate-100"
+              className="appearance-none px-3 py-2 border border-gray-300 dark:border-slate-600/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700/50 backdrop-blur-sm text-gray-900 dark:text-slate-100 min-h-[44px] touch-manipulation"
+              style={{ 
+                backgroundImage: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none'
+              }}
             >
               <option value="dueDate">Due Date</option>
               <option value="created">Created</option>
@@ -535,21 +527,21 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
       {/* Task List Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600 dark:text-slate-400">
+          <span className="text-base font-semibold text-gray-800 dark:text-slate-200">
             {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
           </span>
           {filteredTasks.length > 0 && (
             <div className="flex items-center gap-2">
               <button
                 onClick={selectAllTasks}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                className="text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
               >
                 Select All
               </button>
               {selectedTasks.size > 0 && (
                 <button
                   onClick={clearSelection}
-                  className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 transition-colors"
+                  className="text-base font-medium text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 transition-colors"
                 >
                   Clear Selection
                 </button>
@@ -557,6 +549,21 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
             </div>
           )}
         </div>
+        
+        {/* Add Task Button - positioned at the end of first task area */}
+        <button
+          onClick={() => {
+            setSelectedDate(new Date());
+            setEditingTask(null);
+            setShowTaskModal(true);
+          }}
+          className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 active:bg-blue-800 text-white px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 min-h-[44px] touch-manipulation shadow-sm hover:shadow-md opacity-0 hover:opacity-100"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Task
+        </button>
       </div>
 
       {/* Task List */}
@@ -687,35 +694,36 @@ const TaskView: React.FC<TaskViewProps> = ({ onTaskEdit }) => {
           </div>
         )}
       </div>
-
-      {/* Task Modal */}
-      <Suspense fallback={
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-white dark:bg-slate-800/90 backdrop-blur-md rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
-            <p className="text-center mt-4 text-gray-600 dark:text-slate-300">Loading task editor...</p>
-          </div>
-        </div>
-      }>
-        <TaskModal
-          showModal={showTaskModal}
-          onClose={() => {
-            setShowTaskModal(false);
-            setEditingTask(null);
-          }}
-          onSubmit={handleTaskSubmit}
-          onDelete={handleDeleteTask}
-          editingTask={editingTask}
-          selectedDate={selectedDate}
-          classes={classes.filter(cls => cls.isTaskClass === true)}
-          taskTypes={taskTypes}
-          isAuthenticated={isAuthenticated}
-          setTaskTypes={setTaskTypes}
-          setClasses={setClasses}
-          user={user}
-        />
-      </Suspense>
     </div>
+
+    {/* Task Modal - Rendered outside main container for proper positioning */}
+    <Suspense fallback={
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10050]">
+        <div className="bg-white dark:bg-slate-800/90 backdrop-blur-md rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+          <p className="text-center mt-4 text-gray-600 dark:text-slate-300">Loading task editor...</p>
+        </div>
+      </div>
+    }>
+      <TaskModal
+        showModal={showTaskModal}
+        onClose={() => {
+          setShowTaskModal(false);
+          setEditingTask(null);
+        }}
+        onSubmit={handleTaskSubmit}
+        onDelete={handleDeleteTask}
+        editingTask={editingTask}
+        selectedDate={selectedDate}
+        classes={classes.filter(cls => cls.isTaskClass === true)}
+        taskTypes={taskTypes}
+        isAuthenticated={isAuthenticated}
+        setTaskTypes={setTaskTypes}
+        setClasses={setClasses}
+        user={user}
+      />
+    </Suspense>
+    </>
   );
 };
 

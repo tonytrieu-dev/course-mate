@@ -127,7 +127,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-start sm:items-center z-[9999] p-1 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[10050] p-4"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       role="dialog"
@@ -135,9 +135,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
       data-testid="modal-backdrop"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div 
-        className="bg-white dark:bg-slate-800/95 backdrop-blur-md p-3 sm:p-4 md:p-6 rounded-t-lg sm:rounded-lg w-full max-w-lg sm:max-w-2xl max-h-[100vh] sm:max-h-[95vh] overflow-y-auto mt-auto sm:mt-0 shadow-xl animate-scaleIn"
+        className="bg-white dark:bg-slate-800/95 backdrop-blur-md p-3 sm:p-4 md:p-6 rounded-lg w-full max-w-lg sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 

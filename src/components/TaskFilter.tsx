@@ -330,17 +330,6 @@ const TaskFilter: React.FC<TaskFilterProps> = ({
           </button>
         )}
 
-        {/* Results Count */}
-        <div className="ml-auto text-sm text-gray-500 dark:text-gray-400">
-          {filteredCount !== undefined && taskCount !== undefined && (
-            <span>
-              {filteredCount === taskCount 
-                ? `${taskCount} tasks`
-                : `${filteredCount} of ${taskCount} tasks`
-              }
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Active Filter Chips */}
