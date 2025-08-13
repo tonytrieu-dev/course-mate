@@ -77,12 +77,14 @@ export function parseICS(icsData: string): CanvasEvent[] {
 
         // Process common keys
         if (mainKey === 'SUMMARY') {
-          currentEvent.summary = valuePart;
+          // Basic unescaping for common ICS characters (same as DESCRIPTION)
+          currentEvent.summary = valuePart.replace(/\\n/g, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
         } else if (mainKey === 'DESCRIPTION') {
           // Basic unescaping for common ICS characters
-          currentEvent.description = valuePart.replace(/\\n/g, '\n').replace(/\\,/g, ',');
+          currentEvent.description = valuePart.replace(/\\n/g, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
         } else if (mainKey === 'LOCATION') {
-          currentEvent.location = valuePart;
+          // Basic unescaping for common ICS characters (same as SUMMARY/DESCRIPTION)
+          currentEvent.location = valuePart.replace(/\\n/g, '\n').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\');
         } else if (mainKey === 'UID') {
           currentEvent.uid = valuePart;
         } else if (mainKey === 'DTSTART') {

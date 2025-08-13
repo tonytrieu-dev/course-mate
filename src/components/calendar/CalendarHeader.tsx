@@ -249,7 +249,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = React.memo(({
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           {/* View toggle buttons */}
           <div 
-            className="flex bg-gray-100 dark:bg-slate-700/50 rounded-lg p-1 gap-2 sm:gap-3 border border-gray-200 dark:border-slate-600/30"
+            className="flex bg-gray-100 dark:bg-slate-700/50 rounded-lg p-1 gap-2 sm:gap-3 border border-gray-300 dark:border-slate-600/30"
             role="group"
             aria-label="Calendar view options"
           >

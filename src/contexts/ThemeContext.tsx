@@ -42,14 +42,27 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
 
   const [isDark, setIsDark] = useState(false);
 
-  const setMode = useCallback((newMode: ThemeMode) => {
+  const setMode = useCallback(async (newMode: ThemeMode) => {
     try {
       localStorage.setItem('theme', newMode);
       setModeState(newMode);
+      
+      // Sync to Supabase if user is authenticated  
+      if (userId) {
+        try {
+          console.log(`🎨 Syncing theme '${newMode}' to Supabase for user: ${userId}`);
+          await updateTheme(newMode, userId);
+          console.log(`✅ Theme '${newMode}' successfully saved to Supabase`);
+        } catch (error) {
+          console.error('❌ Failed to sync theme to Supabase:', error);
+        }
+      } else {
+        console.log(`🎨 Theme '${newMode}' saved locally only (no user authentication)`);
+      }
     } catch (error) {
       console.error('Failed to save theme preference:', error);
     }
-  }, []);
+  }, [userId]);
 
   // Optional Supabase sync function for authenticated users
   const syncToSupabase = useCallback(async (userId: string) => {

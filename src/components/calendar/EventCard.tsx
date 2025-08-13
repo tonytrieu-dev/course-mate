@@ -56,7 +56,7 @@ const EventCard: React.FC<EventCardProps> = React.memo(({
     >
       {/* Edit button - always visible on mobile for better accessibility */}
       <button
-        className="absolute top-0.5 right-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-0.5 sm:p-1 rounded hover:bg-white/50 min-h-[24px] min-w-[24px] sm:min-h-[28px] sm:min-w-[28px] touch-manipulation"
+        className="absolute top-0.5 right-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-0.5 sm:p-1 rounded hover:bg-white/50 min-h-[24px] min-w-[24px] sm:min-h-[28px] sm:min-w-[28px] touch-manipulation text-gray-600 hover:text-gray-800 dark:text-gray-700 dark:hover:text-gray-900"
         onClick={handleEdit}
         aria-label="Edit task"
         type="button"

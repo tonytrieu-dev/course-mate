@@ -542,7 +542,7 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({ view: initialView = 'mo
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800/50 dark:backdrop-blur-sm rounded-xl shadow-lg dark:shadow-slate-900/20 border border-gray-100 dark:border-slate-700/50 p-2 sm:p-4">
+    <div className="bg-gray-100 dark:bg-slate-800/50 dark:backdrop-blur-sm rounded-xl shadow-lg dark:shadow-slate-900/20 border border-gray-300 dark:border-slate-700/50 p-2 sm:p-4">
       <CalendarHeader
         currentDate={currentDate}
         onDateChange={setCurrentDate}

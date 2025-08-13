@@ -252,16 +252,15 @@ const ChatbotPanel: React.FC<ChatbotPanelProps> = ({
         bottom: `${position.y}px`
       }}
     >
-      {/* Height Resize Handle */}
+      {/* Height Resize Handle - Invisible but functional */}
       <div
-        className="h-1 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 cursor-ns-resize flex items-center justify-center rounded-t-lg"
+        className="h-1 bg-transparent cursor-ns-resize"
         onMouseDown={handleHeightResizeStart}
         role="separator"
         aria-label="Resize panel"
         aria-orientation="horizontal"
         tabIndex={0}
       >
-        <div className="w-8 h-1 bg-gray-400 dark:bg-slate-500 rounded-full"></div>
       </div>
 
       {/* Width Resize Handle */}

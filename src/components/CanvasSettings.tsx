@@ -32,6 +32,9 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
     const settings = getSettings();
     return settings.classNamingStyle || 'technical';
   });
+  const [isQuickGuideExpanded, setIsQuickGuideExpanded] = useState<boolean>(() => 
+    localStorage.getItem("canvas_quick_guide_expanded") !== "false"
+  );
 
   const handleDebugICS = useCallback(async () => {
     if (!canvasUrl) {
@@ -70,6 +73,12 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
       classNamingStyle: newStyle
     });
   }, []);
+
+  const toggleQuickGuide = useCallback(() => {
+    const newExpanded = !isQuickGuideExpanded;
+    setIsQuickGuideExpanded(newExpanded);
+    localStorage.setItem("canvas_quick_guide_expanded", newExpanded.toString());
+  }, [isQuickGuideExpanded]);
 
   const handleSyncNow = useCallback(async () => {
     if (!canvasUrl) {
@@ -182,51 +191,61 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
           </button>
         )}
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full mb-4">
-            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Canvas Calendar Sync</h2>
-          <p className="text-gray-600 dark:text-slate-400 text-sm leading-relaxed">
-            Imports assignments from your Canvas calendar feed URL.
-          </p>
-        </div>
 
         <div className="mb-6">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg p-4 mb-4">
-            <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center">
-              <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Quick Setup Guide
-            </h3>
-            <div className="space-y-2 text-sm text-gray-700 dark:text-slate-300">
-              <div className="flex items-start">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
-                <span>Go to Canvas → Calendar → Calendar Feed</span>
-              </div>
-              <div className="flex items-start">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
-                <span>Copy the full calendar feed URL</span>
-              </div>
-              <div className="flex items-start">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
-                <span>Paste URL below and click "Sync Now"</span>
-              </div>
-            </div>
-            <div className="mt-3 p-3 bg-white dark:bg-slate-800/50 border border-blue-200 dark:border-blue-700/50 rounded-md">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg mb-4">
+            <button
+              onClick={toggleQuickGuide}
+              className="w-full p-4 text-left focus:outline-none transition-colors hover:bg-blue-50/50 dark:hover:bg-blue-900/30 rounded-lg"
+              aria-expanded={isQuickGuideExpanded}
+              aria-controls="quick-setup-guide"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-slate-100 flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Quick Setup Guide
+                </div>
+                <svg 
+                  className={`w-5 h-5 text-blue-600 transition-transform duration-200 ${isQuickGuideExpanded ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-                <span className="text-xs text-gray-600 dark:text-slate-400">
-                  Uses secure proxy service to parse Canvas ICS calendar feeds
-                </span>
+              </h3>
+            </button>
+            
+            {isQuickGuideExpanded && (
+              <div id="quick-setup-guide" className="px-4 pb-4">
+                <div className="space-y-2 text-sm text-gray-700 dark:text-slate-300">
+                  <div className="flex items-start">
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">1</span>
+                    <span>Go to Canvas → Calendar → Calendar Feed</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">2</span>
+                    <span>Copy the full calendar feed URL</span>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold mr-3 mt-0.5 flex-shrink-0">3</span>
+                    <span>Paste URL below and click "Sync Now"</span>
+                  </div>
+                </div>
+                <div className="mt-3 p-3 bg-white dark:bg-slate-800/50 border border-blue-200 dark:border-blue-700/50 rounded-md">
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span className="text-xs text-gray-600 dark:text-slate-400">
+                      Uses secure proxy service to parse Canvas ICS calendar feeds
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <label htmlFor="canvasUrl" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">

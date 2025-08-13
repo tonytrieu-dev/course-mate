@@ -7,7 +7,7 @@
 
 /* Global dark mode styles with improved aesthetics */
 body {
-  @apply bg-gray-50 text-gray-900 transition-colors duration-300;
+  @apply bg-gray-100 text-gray-900 transition-colors duration-300;
 }
 
 .dark body {
@@ -17,12 +17,12 @@ body {
 
 /* PREMIUM CREAM-DOMINANT PALETTE - Luxury Student Experience */
 :root {
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-tertiary: #f1f5f9;
+  --color-bg-primary: #f9fafb;
+  --color-bg-secondary: #f3f4f6;
+  --color-bg-tertiary: #e5e7eb;
   --color-text-primary: #1e293b;
   --color-text-secondary: #475569;
-  --color-border: #e2e8f0;
+  --color-border: #d1d5db;
   --color-accent: #3b82f6;
   
   /* BALANCED ROYAL BLUE + PREMIUM CREAM PALETTE */
@@ -233,7 +233,7 @@ body {
 }
 
 .modal-content {
-  @apply bg-white rounded-xl shadow-2xl relative z-[10000];
+  @apply bg-gray-50 rounded-xl shadow-2xl relative z-[10000];
   @apply dark:bg-gray-800 dark:shadow-gray-900/50;
 }
 
@@ -323,12 +323,12 @@ body {
 
 /* Enhanced card styles with modern dark mode */
 .card {
-  @apply bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-smooth;
+  @apply bg-gray-50 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-smooth;
   @apply dark:bg-slate-800/50 dark:border-slate-700/50 dark:shadow-slate-900/20 dark:backdrop-blur-sm;
 }
 
 .card-elevated {
-  @apply bg-white rounded-xl shadow-xl border border-gray-100 hover:shadow-2xl transition-smooth;
+  @apply bg-gray-50 rounded-xl shadow-xl border border-gray-200 hover:shadow-2xl transition-smooth;
   @apply dark:bg-slate-800/80 dark:border-slate-600/50 dark:shadow-slate-900/40 dark:backdrop-blur-md;
 }
 
@@ -658,7 +658,7 @@ input[type="date"] {
 @layer components {
   /* Card Components */
   .card-base {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700;
+    @apply bg-gray-50 dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700;
   }
   
   .card-hover {
@@ -696,7 +696,7 @@ input[type="date"] {
   }
   
   .modal-content {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-auto;
+    @apply bg-gray-50 dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-auto;
   }
 
   /* Text Components */

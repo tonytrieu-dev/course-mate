@@ -63,54 +63,15 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
     <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
       <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3">🎨 Appearance</h3>
       <div className="space-y-4">
-        {/* Theme Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">Theme</label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleThemeChange('light')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
-                settings.theme === 'light'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              ☀️ Light
-            </button>
-            <button
-              onClick={() => handleThemeChange('dark')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
-                settings.theme === 'dark'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              🌙 Dark
-            </button>
-            <button
-              onClick={() => handleThemeChange('auto')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-smooth ${
-                settings.theme === 'auto'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              🔄 Auto
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {settings.theme === 'auto' 
-              ? `Currently: ${isDark ? 'Dark' : 'Light'} (follows system preference)`
-              : `Always ${settings.theme} mode`
-            }
-            {hasChanges && settings.theme !== contextMode && (
-              <span className="block text-orange-600 dark:text-orange-400 text-xs mt-1">
-                Preview only - click "Save Changes" to apply
-              </span>
-            )}
+        {/* Theme moved to navigation bar */}
+        <div className="bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
+          <p className="text-sm text-blue-700 dark:text-blue-300 font-medium mb-1">
+            Theme Controls Moved
+          </p>
+          <p className="text-xs text-blue-600 dark:text-blue-400">
+            Theme toggle buttons are now available in the navigation bar. Hover over the navigation area to access them.
           </p>
         </div>
-        
 
         {/* Default View */}
         <div className="border border-blue-200 dark:border-blue-700/50 rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/20">

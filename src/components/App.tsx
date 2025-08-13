@@ -1,11 +1,12 @@
 import React, { useState, useEffect, Suspense, lazy, memo, ReactNode, useCallback } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { SubscriptionProvider } from "../contexts/SubscriptionContext";
-import { SimpleThemeProvider } from "../contexts/ThemeContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 import { features } from "../utils/buildConfig";
 import { logger } from "../utils/logger";
 import AnalyticsDashboard from "./AnalyticsDashboard";
 import ErrorBoundary from "./ErrorBoundary";
+import ThemeToggle from "./ThemeToggle";
 import { getSettingsWithSync, updateNavigationOrder, updateSelectedView } from "../services/settings/settingsOperations";
 import { SyllabusSecurityService } from "../services/syllabusSecurityService";
 import {
@@ -318,7 +319,7 @@ const CalendarApp: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900 animate-fadeIn">
+      <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900 animate-fadeIn">
         <LoadingSpinner 
           message="Loading your calendar..." 
           size="medium"
@@ -364,7 +365,7 @@ const CalendarApp: React.FC = () => {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 relative">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 relative">
       {/* Reorder mode overlay - covers everything */}
       {isReorderMode && (
         <div 
@@ -375,7 +376,7 @@ const CalendarApp: React.FC = () => {
       {/* Mobile Sidebar Overlay */}
       <div className={`lg:hidden fixed inset-0 z-50 ${isNavCollapsed ? 'hidden' : 'block'}`}>
         <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsNavCollapsed(true)} />
-        <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-gray-900">
+        <div className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-gray-50 dark:bg-gray-900">
           <ErrorBoundary 
             name="Sidebar" 
             fallback={sidebarErrorFallback}
@@ -407,9 +408,9 @@ const CalendarApp: React.FC = () => {
         </ErrorBoundary>
       </div>
       
-      <div className="flex-1 bg-gray-100 dark:bg-gray-900 overflow-auto box-border min-w-0">
+      <div className="flex-1 bg-gray-200 dark:bg-gray-900 overflow-auto box-border min-w-0">
         {/* Main Navigation Header */}
-        <div className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out relative ${
+        <div className={`bg-gray-50 dark:bg-gray-800 transition-all duration-300 ease-in-out relative ${
           isReorderMode ? 'z-50' : 'z-10'
         } ${
           isNavCollapsed ? 'h-0 overflow-hidden border-b-0' : 'px-2 sm:px-4 lg:px-6 py-3'
@@ -423,7 +424,7 @@ const CalendarApp: React.FC = () => {
             </div>
           )}
           <div 
-            className="flex justify-between lg:justify-center items-center"
+            className="flex justify-between lg:justify-center items-center group"
             onClick={(e) => {
               // Exit reorder mode when clicking outside nav buttons
               if (isReorderMode && e.target === e.currentTarget) {
@@ -525,8 +526,12 @@ const CalendarApp: React.FC = () => {
               ))}
             </nav>
 
-            {/* Right spacer for mobile */}
-            <div className="lg:hidden w-2" />
+            {/* Theme toggle - appears on hover */}
+            <div className="flex items-center ml-6 sm:ml-8">
+              <ThemeToggle />
+              {/* Right spacer for mobile */}
+              <div className="lg:hidden w-2" />
+            </div>
           </div>
         </div>
 
@@ -577,7 +582,7 @@ const CalendarApp: React.FC = () => {
             {appView === 'grades' && features.showGradeAnalytics && (
                 <div className="space-y-4 animate-fadeIn">
                   {/* Grade View Toggle */}
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-4 hover:shadow-xl transition-smooth">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-xl transition-smooth">
                     <div className="flex gap-2">
                       <button
                         onClick={() => setGradeView('dashboard')}
@@ -648,6 +653,17 @@ interface AppProps {
   children?: ReactNode;
 }
 
+// Theme provider that has access to auth context
+const ThemeProviderWithAuth: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  
+  return (
+    <ThemeProvider userId={user?.id}>
+      {children}
+    </ThemeProvider>
+  );
+};
+
 // Wrap the app with the AuthProvider and top-level Error Boundary
 const App: React.FC<AppProps> = ({ children }) => {
   const appErrorFallback: ReactNode = (
@@ -674,8 +690,8 @@ const App: React.FC<AppProps> = ({ children }) => {
       showDetails={true}
       fallback={appErrorFallback}
     >
-      <SimpleThemeProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <ThemeProviderWithAuth>
           {features.subscriptions ? (
             <SubscriptionProvider>
               <MemoizedCalendarApp />
@@ -687,8 +703,8 @@ const App: React.FC<AppProps> = ({ children }) => {
               {children}
             </>
           )}
-        </AuthProvider>
-      </SimpleThemeProvider>
+        </ThemeProviderWithAuth>
+      </AuthProvider>
     </ErrorBoundary>
   );
 };
