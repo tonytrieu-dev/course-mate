@@ -7,6 +7,8 @@ import { parseICS, parseICSDate, CanvasEvent } from './canvas/icsParser';
 import { fetchWithProxyFallback } from './canvas/proxyManager';
 import { CanvasSecurityUtils } from './canvas/canvasSecurity';
 import { convertEventToTask, ensureClassExists } from './canvas/taskConverter';
+import { getLocalData } from '../utils/storageHelpers';
+import { STORAGE_KEYS } from '../types/database';
 
 // Debug utility to test ICS parsing manually
 export const debugICSParsing = async (icsUrl: string): Promise<{ success: boolean; data?: any; error?: string }> => {
@@ -288,6 +290,21 @@ export const fetchCanvasCalendar = async (
           completed: task.completed
         });
         
+        // Check if this Canvas task already exists before trying to add it
+        let wasExisting = false;
+        if (task.canvas_uid && String(task.canvas_uid).trim() !== "") {
+          const canvasUIDString = String(task.canvas_uid).trim();
+          const existingLocalTasks = getLocalData(STORAGE_KEYS.TASKS, []);
+          const existingTask = existingLocalTasks.find(t => 
+            t.canvas_uid && String(t.canvas_uid) === canvasUIDString
+          );
+          
+          if (existingTask) {
+            wasExisting = true;
+            logger.debug(`[fetchCanvasCalendar] Task with canvas_uid ${canvasUIDString} already exists locally`);
+          }
+        }
+        
         const addedTask = await addTask(task, useSupabase, user);
         // Task added successfully
         
@@ -297,19 +314,12 @@ export const fetchCanvasCalendar = async (
         }
         
         if (addedTask) {
-          // Check if this is a newly created task or an existing one
-          // If the task was just created, it should have a very recent created_at timestamp
-          const taskCreatedAt = new Date(addedTask.created_at || 0);
-          const now = new Date();
-          const timeDiffMinutes = (now.getTime() - taskCreatedAt.getTime()) / (1000 * 60);
-          
-          // If created within the last 5 minutes, consider it "new"
-          if (timeDiffMinutes <= 5) {
-            addedTasks.push(addedTask);
-            // Task added as new
-          } else {
+          if (wasExisting) {
             existingTasks.push(addedTask);
-            // Task found as existing
+            logger.debug(`[fetchCanvasCalendar] Found existing task: ${addedTask.title}`);
+          } else {
+            addedTasks.push(addedTask);
+            logger.debug(`[fetchCanvasCalendar] Added new task: ${addedTask.title}`);
           }
         }
       } catch (error) {
@@ -332,11 +342,11 @@ export const fetchCanvasCalendar = async (
     
     let successMessage: string;
     if (addedTasks.length > 0 && existingTasks.length > 0) {
-      successMessage = `Canvas sync completed! Found ${addedTasks.length} new task${addedTasks.length === 1 ? '' : 's'} and ${existingTasks.length} existing task${existingTasks.length === 1 ? '' : 's'}. The new tasks have been added to your calendar.`;
+      successMessage = `Canvas sync completed! Imported ${addedTasks.length} new task${addedTasks.length === 1 ? '' : 's'} and found ${existingTasks.length} existing task${existingTasks.length === 1 ? '' : 's'} already in your calendar.`;
     } else if (addedTasks.length > 0) {
       successMessage = `Successfully imported ${addedTasks.length} new task${addedTasks.length === 1 ? '' : 's'} from Canvas calendar. Check your calendar for the new assignments!`;
     } else if (existingTasks.length > 0) {
-      successMessage = `Canvas sync completed! All ${existingTasks.length} assignment${existingTasks.length === 1 ? '' : 's'} from Canvas ${existingTasks.length === 1 ? 'is' : 'are'} already in your calendar. No new tasks to import.`;
+      successMessage = `Canvas sync completed! All ${existingTasks.length} task${existingTasks.length === 1 ? '' : 's'} from Canvas ${existingTasks.length === 1 ? 'is' : 'are'} already in your calendar. No new tasks to import.`;
     } else {
       successMessage = `Canvas sync completed, but no tasks were found in the feed. This could mean no upcoming assignments are available or the feed format has changed.`;
     }

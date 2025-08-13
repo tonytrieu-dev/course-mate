@@ -50,7 +50,12 @@ export const useSidebarData = ({
     const autoSyncCanvas = async (): Promise<void> => {
       const canvasUrl = localStorage.getItem("canvas_calendar_url");
       const autoSync = localStorage.getItem("canvas_auto_sync") === "true";
-      logger.debug('AutoSyncCanvas triggered', { canvasUrl: !!canvasUrl, autoSync, userAuthenticated: !!user });
+      
+      logger.debug('AutoSyncCanvas triggered', { 
+        canvasUrl: !!canvasUrl, 
+        autoSync, 
+        userAuthenticated: !!user
+      });
 
       if (user && canvasUrl && autoSync) {
         try {
@@ -79,7 +84,7 @@ export const useSidebarData = ({
     }, AUTO_SYNC_DELAY); 
 
     return () => clearTimeout(timerId);
-  }, [isAuthenticated, user, setLastCalendarSyncTimestamp, setIsCanvasSyncing]);
+  }, [isAuthenticated, user]);
 
   // Load data
   useEffect(() => {

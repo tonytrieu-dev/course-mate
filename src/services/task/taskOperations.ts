@@ -68,6 +68,7 @@ export const addTask = async (
 ): Promise<Task> => {
   logger.debug('[addTask] Entered function. Task summary for identification:', task?.title || 'Task undefined', 'useSupabase:', useSupabase, 'User provided:', !!providedUser);
   
+  
   try {
     const taskWithTimestamp: Partial<TaskInsert> = {
       ...task,
@@ -93,7 +94,7 @@ export const addTask = async (
         });
       }
 
-      // De-duplication logic for canvas_uid
+      // Enhanced de-duplication logic for canvas_uid with upsert behavior
       if (task.canvas_uid && String(task.canvas_uid).trim() !== "") {
         const canvasUIDString = String(task.canvas_uid).trim();
         logger.debug(`[addTask] Checking for existing task. User ID: ${userToUse.id}, Canvas UID: '${canvasUIDString}'`);
@@ -120,8 +121,9 @@ export const addTask = async (
 
         if (existingTasks && existingTasks.length > 0) {
           const existingSupabaseTask = existingTasks[0];
-          logger.debug(`[addTask] Task with canvas_uid ${canvasUIDString} already exists in Supabase. DB record:`, existingSupabaseTask);
+          logger.debug(`[addTask] Task with canvas_uid ${canvasUIDString} already exists in Supabase. Using existing task.`);
           
+          // Sync the existing task to local storage
           const currentLocalTasks = getLocalData<Task[]>(TASKS_KEY, []);
           const taskIndex = currentLocalTasks.findIndex(t => 
             t.id === existingSupabaseTask.id || 
@@ -182,6 +184,38 @@ export const addTask = async (
           errorHint: insertError.hint,
           taskToSave: taskToSave
         });
+        
+        // Handle unique constraint violation specifically
+        if (insertError.code === '23505' && insertError.message.includes('tasks_user_id_canvas_uid_key')) {
+          logger.warn('[addTask] Duplicate canvas_uid constraint violation, attempting to fetch existing task');
+          
+          if (taskToSave.canvas_uid) {
+            try {
+              const { data: existingTask, error: fetchError } = await supabase
+                .from("tasks")
+                .select("*")
+                .eq("user_id", taskToSave.user_id)
+                .eq("canvas_uid", taskToSave.canvas_uid)
+                .single();
+              
+              if (!fetchError && existingTask) {
+                logger.debug('[addTask] Found existing task after constraint violation, returning it');
+                // Sync to local storage
+                const currentLocalTasks = getLocalData<Task[]>(TASKS_KEY, []);
+                const taskIndex = currentLocalTasks.findIndex(t => t.id === existingTask.id);
+                if (taskIndex !== -1) {
+                  currentLocalTasks[taskIndex] = existingTask;
+                } else {
+                  currentLocalTasks.push(existingTask);
+                }
+                saveLocalData(TASKS_KEY, currentLocalTasks);
+                return existingTask;
+              }
+            } catch (fetchError) {
+              logger.error('[addTask] Failed to fetch existing task after constraint violation:', fetchError);
+            }
+          }
+        }
         
         const handled = errorHandler.handle(
           insertError,
@@ -344,8 +378,27 @@ export const updateTask = async (
 };
 
 export const deleteTask = async (taskId: string, useSupabase = false): Promise<boolean> => {
+  logger.debug('[deleteTask] Starting task deletion', { taskId, useSupabase });
+  
   if (useSupabase) {
     try {
+      // First get the task to see if it's a Canvas task
+      const { data: taskToDelete, error: fetchError } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("id", taskId)
+        .single();
+
+      if (fetchError) {
+        logger.warn('[deleteTask] Could not fetch task before deletion:', fetchError);
+      } else {
+        logger.debug('[deleteTask] Task being deleted:', { 
+          title: taskToDelete?.title, 
+          canvas_uid: taskToDelete?.canvas_uid,
+          isCanvasTask: !!taskToDelete?.canvas_uid 
+        });
+      }
+
       const { error } = await supabase.from("tasks").delete().eq("id", taskId);
 
       if (error) {
@@ -361,9 +414,13 @@ export const deleteTask = async (taskId: string, useSupabase = false): Promise<b
         });
       }
 
+      logger.debug('[deleteTask] Successfully deleted from Supabase');
+
       const tasks = getLocalData<Task[]>(TASKS_KEY, []);
       const updatedTasks = tasks.filter((task) => task.id !== taskId);
       saveLocalData(TASKS_KEY, updatedTasks);
+      
+      logger.debug('[deleteTask] Local storage updated');
       return true;
     } catch (error: unknown) {
       if ((error as ServiceError).name === 'ServiceError') {
@@ -382,6 +439,7 @@ export const deleteTask = async (taskId: string, useSupabase = false): Promise<b
       });
     }
   } else {
+    logger.debug('[deleteTask] Deleting from local storage only');
     const tasks = getLocalData<Task[]>(TASKS_KEY, []);
     const updatedTasks = tasks.filter((task) => task.id !== taskId);
     saveLocalData(TASKS_KEY, updatedTasks);
