@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build:react",
   "outputDirectory": "build", 
-  "framework": null,
+  "framework": "create-react-app",
   "installCommand": "npm install",
   "devCommand": "npm start",
   "rewrites": [
