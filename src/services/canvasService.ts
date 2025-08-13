@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js';
-import type { TaskInsert } from '../types/database';
+import type { TaskInsert, Task } from '../types/database';
 import { addTask, getTasks, deleteTask, getTaskTypes } from './dataService';
 import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
@@ -85,8 +85,7 @@ interface FetchCanvasResult {
 export const fetchCanvasCalendar = async (
   icsUrl: string, 
   useSupabase = false, 
-  user: User | null = null,
-  forceUpdate = false
+  user: User | null = null
 ): Promise<FetchCanvasResult> => {
   // Reduced logging for startup performance
   try {
@@ -197,28 +196,6 @@ export const fetchCanvasCalendar = async (
       });
     });
     
-    // If force update is requested, delete existing Canvas tasks first
-    if (forceUpdate && user) {
-      logger.debug(`[fetchCanvasCalendar] Force update requested. Removing existing Canvas tasks.`);
-      try {
-        const existingTasks = await getTasks(user.id, useSupabase);
-        const canvasTasks = existingTasks.filter(task => task.canvas_uid && task.canvas_uid.trim() !== '');
-        
-        logger.debug(`[fetchCanvasCalendar] Found ${canvasTasks.length} existing Canvas tasks to remove.`);
-        
-        for (const task of canvasTasks) {
-          try {
-            await deleteTask(task.id, useSupabase);
-            logger.debug(`[fetchCanvasCalendar] Deleted existing Canvas task: ${task.title}`);
-          } catch (error) {
-            logger.warn(`[fetchCanvasCalendar] Failed to delete Canvas task ${task.title}:`, error);
-          }
-        }
-      } catch (error) {
-        logger.warn(`[fetchCanvasCalendar] Error during force update cleanup:`, error);
-      }
-    }
-    
     const addedTasks = [];
     const existingTasks = [];
     const processedUIDs = new Set<string>(); // Track processed UIDs to avoid duplicates
@@ -294,7 +271,7 @@ export const fetchCanvasCalendar = async (
         let wasExisting = false;
         if (task.canvas_uid && String(task.canvas_uid).trim() !== "") {
           const canvasUIDString = String(task.canvas_uid).trim();
-          const existingLocalTasks = getLocalData(STORAGE_KEYS.TASKS, []);
+          const existingLocalTasks = getLocalData<Task[]>(STORAGE_KEYS.TASKS, []);
           const existingTask = existingLocalTasks.find(t => 
             t.canvas_uid && String(t.canvas_uid) === canvasUIDString
           );

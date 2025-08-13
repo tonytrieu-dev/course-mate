@@ -26,7 +26,6 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
   const [autoSync, setAutoSync] = useState<boolean>(() => 
     localStorage.getItem("canvas_auto_sync") === "true"
   );
-  const [forceSync, setForceSync] = useState<boolean>(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [classNamingStyle, setClassNamingStyle] = useState<'technical' | 'descriptive'>(() => {
     const settings = getSettings();
@@ -120,15 +119,12 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
       setSyncProgress('Fetching calendar data...');
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user, forceSync);
+      const result = await fetchCanvasCalendar(canvasUrl, isAuthenticated, user);
       
       setSyncProgress('Processing events...');
       await new Promise(resolve => setTimeout(resolve, 300));
       
       setSyncStatus(result);
-      
-      // Reset force sync after use
-      setForceSync(false);
       // Update calendar sync timestamp to trigger calendar refresh
       if (result.success) {
         setSyncProgress('Sync completed successfully!');
@@ -303,25 +299,6 @@ const CanvasSettings: React.FC<CanvasSettingsProps> = ({ onClose }) => {
             </label>
           </div>
           
-          <div className="flex items-center mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800/50">
-            <input
-              type="checkbox"
-              id="forceSync"
-              checked={forceSync}
-              onChange={(e) => setForceSync(e.target.checked)}
-              className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded mr-3"
-            />
-            <label htmlFor="forceSync" className="text-sm text-gray-700 dark:text-slate-300 flex-1">
-              <span className="font-medium">Force re-import</span>
-              <span className="block text-xs text-gray-500 dark:text-slate-400 mt-1">Delete existing Canvas tasks and re-import from scratch</span>
-            </label>
-          </div>
-          
-          {forceSync && (
-            <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-sm rounded">
-              ⚠️ Warning: This will delete all existing Canvas tasks and re-import them from scratch.
-            </div>
-          )}
 
           <div className="flex items-center mt-3 pt-3 border-t border-gray-200 dark:border-slate-700/50">
             <input
