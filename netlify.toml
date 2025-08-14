@@ -83,9 +83,9 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Plugin configuration
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
+# Plugin configuration disabled for troubleshooting
+# [[plugins]]
+#   package = "@netlify/plugin-lighthouse"
 
 # Build processing configuration
 [build.processing]
