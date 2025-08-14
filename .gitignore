@@ -117,3 +117,6 @@ supabase/functions/send-email-notification/deno.json
 supabase/functions/send-email-notification/index.ts
 supabase/functions/stripe-webhook/deno.json
 supabase/functions/stripe-webhook/index.ts
+NETLIFY_ENV_MIGRATION.md
+NETLIFY_DEPLOYMENT_CHECKLIST.md
+NETLIFY_DEPLOYMENT_GUIDE.md
