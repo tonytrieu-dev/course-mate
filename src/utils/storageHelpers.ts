@@ -64,3 +64,68 @@ export const clearLocalData = (): boolean => {
     return false;
   }
 };
+
+/**
+ * Clears all user-specific data and resets application state to blank slate
+ * This function should be called on logout and before new user registration
+ * to prevent data leakage between user sessions
+ * @returns True if successful, false if an error occurred
+ */
+export const clearLocalUserData = async (): Promise<boolean> => {
+  try {
+    // Reset all in-memory service states to prevent data leakage
+    try {
+      const { default: taskService } = await import('../services/taskService');
+      taskService.reset();
+      logger.debug('TaskService reset successfully');
+    } catch (error) {
+      logger.warn('Could not reset taskService:', error);
+    }
+
+    try {
+      const { default: classService } = await import('../services/classService');
+      classService.reset();
+      logger.debug('ClassService reset successfully');
+    } catch (error) {
+      logger.warn('Could not reset classService:', error);
+    }
+
+    try {
+      const { default: taskTypeService } = await import('../services/taskTypeService');
+      taskTypeService.reset();
+      logger.debug('TaskTypeService reset successfully');
+    } catch (error) {
+      logger.warn('Could not reset taskTypeService:', error);
+    }
+
+    // Clear all user-specific localStorage keys
+    const userDataKeys = [
+      // Core application data (matches STORAGE_KEYS from database.ts)
+      'calendar_tasks',
+      'calendar_classes', 
+      'calendar_task_types',
+      'calendar_settings',
+      
+      // Canvas integration data
+      'canvas_calendar_url',
+      'canvas_auto_sync',
+      
+      // User preferences and session data
+      'userDisplayName',
+      'last_sync_timestamp',
+      
+      // Note: We preserve theme preferences as they're not user-data specific
+    ];
+
+    userDataKeys.forEach(key => {
+      localStorage.removeItem(key);
+      logger.debug(`Removed localStorage key: ${key}`);
+    });
+
+    logger.info('Local user data and application state have been cleared successfully');
+    return true;
+  } catch (error) {
+    logger.error('Error during local data cleanup:', { error: error instanceof Error ? error.message : String(error) });
+    return false;
+  }
+};

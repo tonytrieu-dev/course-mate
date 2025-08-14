@@ -162,16 +162,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     return withSyncOperation(async () => {
       try {
+        // ENHANCED: Clear any existing local data BEFORE creating new user
+        // This prevents the previous user's data from being assigned to the new user
+        const { clearLocalUserData } = await import('../utils/storageHelpers');
+        await clearLocalUserData();
+        logger.auth('Local data cleared before new user registration');
+
+        // ENHANCED: Add more detailed logging for debugging
+        logger.auth('Attempting user registration', { 
+          email: email ? 'provided' : 'missing', 
+          emailLength: email?.length || 0,
+          timestamp: new Date().toISOString()
+        });
+
         const { user: authUser } = await signUp(email, password);
-        setUser(authUser);
-        if (authUser) {
-          await syncData(authUser.id);
-          return true;
+        
+        if (!authUser) {
+          logger.warn('Registration returned no user object');
+          setAuthError('Registration failed. Please try again.');
+          return false;
         }
-        return false;
+
+        setUser(authUser);
+        
+        // ENHANCED: More robust success handling
+        logger.auth('New user registered successfully', { 
+          userId: authUser.id,
+          email: authUser.email,
+          emailConfirmed: authUser.email_confirmed_at ? 'confirmed' : 'pending'
+        });
+
+        // CLEAN SLATE: New user gets empty state instead of inheriting previous user's data
+        // No sync operation needed - user starts with blank calendar
+        
+        return true;
       } catch (error) {
-        const errorMessage = handleAuthError(error instanceof Error ? error : new Error('Registration failed'), 'user registration');
-        setAuthError(errorMessage);
+        // ENHANCED: Better error logging and handling
+        logger.error('Registration error details:', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          email: email ? 'provided' : 'missing',
+          timestamp: new Date().toISOString()
+        });
+
+        const errorMessage = handleAuthError(
+          error instanceof Error ? error : new Error('Registration failed'), 
+          'user registration'
+        );
+        
+        // ENHANCED: Provide more specific error messages based on common Supabase errors
+        if (errorMessage.includes('500') || errorMessage.includes('Internal Server Error')) {
+          setAuthError('Server error during registration. Please try again in a moment.');
+        } else if (errorMessage.includes('already exists') || errorMessage.includes('already registered')) {
+          setAuthError('An account with this email already exists. Please sign in instead.');
+        } else if (errorMessage.includes('password')) {
+          setAuthError('Password must be at least 6 characters long.');
+        } else if (errorMessage.includes('email')) {
+          setAuthError('Please enter a valid email address.');
+        } else {
+          setAuthError(errorMessage);
+        }
+        
         return false;
       }
     }, setSyncing, setLastCalendarSyncTimestamp);
@@ -183,6 +234,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await signOut();
       logger.auth('User logged out successfully');
       setUser(null);
+      
+      // CRITICAL FIX: Clear all local user data to prevent data leakage to next user
+      const { clearLocalUserData } = await import('../utils/storageHelpers');
+      await clearLocalUserData();
+      logger.auth('Local user data cleared after logout');
+      
       return true;
     } catch (error) {
       const errorMessage = handleAuthError(error instanceof Error ? error : new Error('Logout failed'), 'user logout');

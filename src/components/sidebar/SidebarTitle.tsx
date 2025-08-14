@@ -6,6 +6,8 @@ interface ColorOption {
   name: string;
   class: string;
   hoverClass: string;
+  bgClass: string;
+  hoverBgClass: string;
 }
 
 interface SidebarTitleProps {
@@ -75,6 +77,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
               onClick={onTitleClick}
               onContextMenu={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 setShowTitleColorPicker(true);
               }}
               className={isEditingTitle 
@@ -100,13 +103,13 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
             <>
               {/* Enhanced backdrop */}
               <div 
-                className="fixed inset-0 z-40 bg-black/30 dark:bg-black/50 backdrop-blur-sm"
+                className="fixed inset-0 z-[10100] bg-black/30 dark:bg-black/50 backdrop-blur-sm"
                 onClick={() => setShowTitleColorPicker(false)}
                 aria-label="Close color picker"
               />
               
               {/* Ultra-compact color picker */}
-              <div className="absolute z-50 top-full mt-2 bg-slate-800/95 backdrop-blur-lg 
+              <div className="absolute z-[10101] top-full mt-2 bg-slate-800/95 backdrop-blur-lg 
                              border border-slate-600/50 rounded-lg shadow-xl p-3 
                              left-1/2 transform -translate-x-1/2 w-[140px] animate-fadeIn">
                 
@@ -122,7 +125,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
                         setTitleColor(color.name);
                         setShowTitleColorPicker(false);
                       }}
-                      className={`w-5 h-5 rounded border ${color.class.replace('text-', 'bg-')} 
+                      className={`w-5 h-5 rounded border ${color.bgClass} 
                                  transition-all duration-150 hover:scale-110 active:scale-95
                                  focus:outline-none focus:ring-1 focus:ring-blue-400 focus:ring-offset-1
                                  shadow-sm ${
@@ -160,10 +163,10 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
       {isSidebarCollapsed && (
         <div className="flex justify-center mb-3">
           <button 
-            className={`group w-12 h-12 ${getColorClasses(titleColor).class.replace('text-', 'bg-')} 
+            className={`group w-12 h-12 ${getColorClasses(titleColor).bgClass} 
                        rounded-xl flex items-center justify-center text-white dark:text-slate-900 font-bold text-lg 
                        cursor-pointer transition-all duration-300 transform hover:scale-110 active:scale-95
-                       ${getColorClasses(titleColor).hoverClass.replace('text-', 'bg-').replace('hover:', 'hover:')} 
+                       ${getColorClasses(titleColor).hoverBgClass} 
                        shadow-md hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 
                        dark:focus:ring-blue-400 focus:ring-offset-2 border-2 border-white/20 dark:border-slate-800/20 
                        hover:border-white/40 dark:hover:border-slate-600/40 backdrop-blur-sm touch-manipulation`}

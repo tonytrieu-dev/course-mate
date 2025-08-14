@@ -135,18 +135,78 @@ const SidebarInner: React.FC<SidebarProps> = ({
     };
   }, []);
 
-  // Standard color options with dark mode support
+  // Standard color options with dark mode support and background variants
   const colorOptions = [
-    { name: 'blue', class: 'text-blue-700 dark:text-blue-400', hoverClass: 'hover:text-blue-800 dark:hover:text-blue-300' },
-    { name: 'red', class: 'text-red-700 dark:text-red-400', hoverClass: 'hover:text-red-800 dark:hover:text-red-300' },
-    { name: 'green', class: 'text-green-700 dark:text-green-400', hoverClass: 'hover:text-green-800 dark:hover:text-green-300' },
-    { name: 'yellow', class: 'text-yellow-600 dark:text-yellow-400', hoverClass: 'hover:text-yellow-700 dark:hover:text-yellow-300' },
-    { name: 'purple', class: 'text-purple-700 dark:text-purple-400', hoverClass: 'hover:text-purple-800 dark:hover:text-purple-300' },
-    { name: 'pink', class: 'text-pink-700 dark:text-pink-400', hoverClass: 'hover:text-pink-800 dark:hover:text-pink-300' },
-    { name: 'indigo', class: 'text-indigo-700 dark:text-indigo-400', hoverClass: 'hover:text-indigo-800 dark:hover:text-indigo-300' },
-    { name: 'gray', class: 'text-gray-700 dark:text-gray-400', hoverClass: 'hover:text-gray-800 dark:hover:text-gray-300' },
-    { name: 'orange', class: 'text-orange-700 dark:text-orange-400', hoverClass: 'hover:text-orange-800 dark:hover:text-orange-300' },
-    { name: 'teal', class: 'text-teal-700 dark:text-teal-400', hoverClass: 'hover:text-teal-800 dark:hover:text-teal-300' }
+    { 
+      name: 'blue', 
+      class: 'text-blue-700 dark:text-blue-400', 
+      hoverClass: 'hover:text-blue-800 dark:hover:text-blue-300',
+      bgClass: 'bg-blue-700 dark:bg-blue-400',
+      hoverBgClass: 'hover:bg-blue-800 dark:hover:bg-blue-300'
+    },
+    { 
+      name: 'red', 
+      class: 'text-red-700 dark:text-red-400', 
+      hoverClass: 'hover:text-red-800 dark:hover:text-red-300',
+      bgClass: 'bg-red-700 dark:bg-red-400',
+      hoverBgClass: 'hover:bg-red-800 dark:hover:bg-red-300'
+    },
+    { 
+      name: 'green', 
+      class: 'text-green-700 dark:text-green-400', 
+      hoverClass: 'hover:text-green-800 dark:hover:text-green-300',
+      bgClass: 'bg-green-700 dark:bg-green-400',
+      hoverBgClass: 'hover:bg-green-800 dark:hover:bg-green-300'
+    },
+    { 
+      name: 'yellow', 
+      class: 'text-yellow-600 dark:text-yellow-400', 
+      hoverClass: 'hover:text-yellow-700 dark:hover:text-yellow-300',
+      bgClass: 'bg-yellow-600 dark:bg-yellow-400',
+      hoverBgClass: 'hover:bg-yellow-700 dark:hover:bg-yellow-300'
+    },
+    { 
+      name: 'purple', 
+      class: 'text-purple-700 dark:text-purple-400', 
+      hoverClass: 'hover:text-purple-800 dark:hover:text-purple-300',
+      bgClass: 'bg-purple-700 dark:bg-purple-400',
+      hoverBgClass: 'hover:bg-purple-800 dark:hover:bg-purple-300'
+    },
+    { 
+      name: 'pink', 
+      class: 'text-pink-700 dark:text-pink-400', 
+      hoverClass: 'hover:text-pink-800 dark:hover:text-pink-300',
+      bgClass: 'bg-pink-700 dark:bg-pink-400',
+      hoverBgClass: 'hover:bg-pink-800 dark:hover:bg-pink-300'
+    },
+    { 
+      name: 'indigo', 
+      class: 'text-indigo-700 dark:text-indigo-400', 
+      hoverClass: 'hover:text-indigo-800 dark:hover:text-indigo-300',
+      bgClass: 'bg-indigo-700 dark:bg-indigo-400',
+      hoverBgClass: 'hover:bg-indigo-800 dark:hover:bg-indigo-300'
+    },
+    { 
+      name: 'gray', 
+      class: 'text-gray-700 dark:text-gray-400', 
+      hoverClass: 'hover:text-gray-800 dark:hover:text-gray-300',
+      bgClass: 'bg-gray-700 dark:bg-gray-400',
+      hoverBgClass: 'hover:bg-gray-800 dark:hover:bg-gray-300'
+    },
+    { 
+      name: 'orange', 
+      class: 'text-orange-700 dark:text-orange-400', 
+      hoverClass: 'hover:text-orange-800 dark:hover:text-orange-300',
+      bgClass: 'bg-orange-700 dark:bg-orange-400',
+      hoverBgClass: 'hover:bg-orange-800 dark:hover:bg-orange-300'
+    },
+    { 
+      name: 'teal', 
+      class: 'text-teal-700 dark:text-teal-400', 
+      hoverClass: 'hover:text-teal-800 dark:hover:text-teal-300',
+      bgClass: 'bg-teal-700 dark:bg-teal-400',
+      hoverBgClass: 'hover:bg-teal-800 dark:hover:bg-teal-300'
+    }
   ];
 
   // Get color classes for a given color name
@@ -394,12 +454,12 @@ const SidebarInner: React.FC<SidebarProps> = ({
                   <>
                     {/* Enhanced backdrop */}
                     <div 
-                      className="fixed inset-0 z-40 bg-black/30 dark:bg-black/50 backdrop-blur-sm"
+                      className="fixed inset-0 z-[10100] bg-black/30 dark:bg-black/50 backdrop-blur-sm"
                       onClick={() => setShowClassesHeaderColorPicker(false)}
                       aria-label="Close color picker"
                     />
                     {/* Ultra-compact color picker positioned to the right of text */}
-                    <div className="absolute z-50 left-full ml-3 top-0 bg-slate-800/95 backdrop-blur-lg 
+                    <div className="absolute z-[10101] left-full ml-3 top-0 bg-slate-800/95 backdrop-blur-lg 
                                    border border-slate-600/50 rounded-lg shadow-xl p-3 
                                    w-[140px] animate-fadeIn">
                       {/* Minimal header */}
@@ -414,7 +474,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
                               setClassesHeaderColor(color.name);
                               setShowClassesHeaderColorPicker(false);
                             }}
-                            className={`w-5 h-5 rounded border ${color.class.replace('text-', 'bg-')} 
+                            className={`w-5 h-5 rounded border ${color.bgClass} 
                                        transition-all duration-150 hover:scale-110 active:scale-95
                                        focus:outline-none focus:ring-1 focus:ring-blue-400 focus:ring-offset-1
                                        shadow-sm ${
