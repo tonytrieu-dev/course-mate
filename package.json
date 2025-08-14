@@ -5,7 +5,7 @@
   "description": "ScheduleBud - Academic productivity companion for students",
   "scripts": {
     "start": "webpack-dev-server --mode development",
-    "build:react": "webpack --config webpack.config.prod.js",
+    "build:react": "npx webpack --config webpack.config.prod.js",
     "test": "jest",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/ --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write src/",
