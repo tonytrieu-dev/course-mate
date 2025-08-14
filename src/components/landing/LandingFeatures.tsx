@@ -183,9 +183,9 @@ const LandingFeatures: React.FC = () => {
                   </div>
                   
                   {/* Screenshot - Ultra Sharp Settings */}
-                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/calendar-empty.png')}>
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('build/images/calendar-empty.png')}>
                     <img 
-                      src="/images/calendar-empty.png" 
+                      src="build/images/calendar-empty.png" 
                       alt="Empty ScheduleBud calendar showing blank month view before any setup or assignment import"
                       className="w-full h-auto block hover:opacity-90 transition-opacity"
                       style={{ 
@@ -233,9 +233,9 @@ const LandingFeatures: React.FC = () => {
                   </div>
                   
                   {/* Screenshot - Ultra Sharp Settings */}
-                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/calendar-full.png')}>
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('build/images/calendar-full.png')}>
                     <img 
-                      src="/images/calendar-full.png" 
+                      src="build/images/calendar-full.png" 
                       alt="ScheduleBud calendar filled with organized assignments and deadlines from multiple classes showing comprehensive academic schedule"
                       className="w-full h-auto block hover:opacity-90 transition-opacity"
                       style={{ 
@@ -280,9 +280,9 @@ const LandingFeatures: React.FC = () => {
                   </div>
                   
                   {/* Screenshot - Ultra Sharp Settings */}
-                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/dashboard-view.png')}>
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('build/images/dashboard-view.png')}>
                     <img 
-                      src="/images/dashboard-view.png" 
+                      src="build/images/dashboard-view.png" 
                       alt="ScheduleBud dashboard view showing academic statistics, upcoming assignments, and class overview for comprehensive student management"
                       className="w-full h-auto block hover:opacity-90 transition-opacity"
                       style={{ 
@@ -321,9 +321,9 @@ const LandingFeatures: React.FC = () => {
                   </div>
                   
                   {/* Screenshot - Ultra Sharp Settings */}
-                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/tasks-view-uncompleted.png')}>
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('build/images/tasks-view-uncompleted.png')}>
                     <img 
-                      src="/images/tasks-view-uncompleted.png" 
+                      src="build/images/tasks-view-uncompleted.png" 
                       alt="ScheduleBud tasks view showing uncompleted assignments with filtering, sorting, and task management features"
                       className="w-full h-auto block hover:opacity-90 transition-opacity"
                       style={{ 
@@ -359,9 +359,9 @@ const LandingFeatures: React.FC = () => {
                   </div>
                   
                   {/* Screenshot - Ultra Sharp Settings */}
-                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('/images/tasks-view-completed.png')}>
+                  <div className="relative bg-white cursor-pointer" onClick={() => handleImageClick('build/images/tasks-view-completed.png')}>
                     <img 
-                      src="/images/tasks-view-completed.png" 
+                      src="build/images/tasks-view-completed.png" 
                       alt="ScheduleBud completed tasks view showing finished assignments and academic progress tracking with satisfaction ratings"
                       className="w-full h-auto block hover:opacity-90 transition-opacity"
                       style={{ 
