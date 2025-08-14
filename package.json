@@ -58,7 +58,13 @@
     "postcss-loader": "^8.1.1",
     "style-loader": "^4.0.0",
     "dotenv-webpack": "^8.1.0",
-    "webpack-bundle-analyzer": "^4.10.2"
+    "webpack-bundle-analyzer": "^4.10.2",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "stream-browserify": "^3.0.0",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2",
@@ -70,20 +76,11 @@
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "autoprefixer": "^10.4.21",
-    "buffer": "^6.0.3",
-    "crypto-browserify": "^3.12.1",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
-    "os-browserify": "^0.3.0",
-    "path-browserify": "^1.0.1",
-    "postcss": "^8.5.3",
-    "postcss-loader": "^8.1.1",
-    "stream-browserify": "^3.0.0",
-    "style-loader": "^4.0.0",
     "supabase": "^2.20.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
-    "util": "^0.12.5",
     "webpack-dev-server": "^5.2.2"
   }
 }
