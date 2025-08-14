@@ -54,6 +54,7 @@ const DEVELOPMENT_FALLBACKS: Record<string, string> = {
 
 /**
  * Validates environment variables and provides fallbacks for development
+ * In production, operates silently to prevent console clutter
  */
 function validateEnvironment(): void {
   const missing: string[] = [];
@@ -64,14 +65,15 @@ function validateEnvironment(): void {
     }
   }
   
-  if (missing.length > 0) {
+  // Only warn in development environment - production uses fallback values silently
+  if (missing.length > 0 && process.env.NODE_ENV === 'development') {
     console.warn(
       `Missing required environment variables:\n${missing.join('\n')}\n\n` +
       'Please set these variables in your environment or .env file'
     );
-    // Don't throw in production for Netlify deployment - use fallback values
-    // Throwing errors prevents the app from loading completely
   }
+  
+  // Use fallback values without warnings in production for clean user experience
 }
 
 /**

@@ -64,7 +64,8 @@
     "web-vitals": "^5.1.0",
     "webpack": "^5.98.0",
     "webpack-bundle-analyzer": "^4.10.2",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "copy-webpack-plugin": "^13.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2",
@@ -75,7 +76,6 @@
     "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
-    "copy-webpack-plugin": "^13.0.1",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "supabase": "^2.20.5",
