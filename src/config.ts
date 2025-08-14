@@ -69,13 +69,8 @@ function validateEnvironment(): void {
       `Missing required environment variables:\n${missing.join('\n')}\n\n` +
       'Please set these variables in your environment or .env file'
     );
-    // Don't throw in development to allow fallback to localStorage
-    if (process.env.NODE_ENV === 'production') {
-      throw new ConfigurationError(
-        `Missing required environment variables:\n${missing.join('\n')}\n\n` +
-        'Please set these variables in your environment or .env file'
-      );
-    }
+    // Don't throw in production for Netlify deployment - use fallback values
+    // Throwing errors prevents the app from loading completely
   }
 }
 
@@ -89,8 +84,8 @@ function createConfig(): Config {
   
   return {
     supabase: {
-      url: process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL,
-      key: process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY
+      url: process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || 'https://adkrfpcmfvqhctlvizxw.supabase.co',
+      key: process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFka3JmcGNtZnZxaGN0bHZpenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0ODM5ODYsImV4cCI6MjA1OTA1OTk4Nn0.avFXOP9di5ehRMdqwvF38uSmyCFAXGJyjzdAe5zne6A'
     },
     stripe: {
       publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY,
