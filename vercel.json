@@ -43,14 +43,6 @@
       ]
     }
   ],
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "GENERATE_SOURCEMAP": "false",
-      "DISABLE_ESLINT_PLUGIN": "true",
-      "CI": "true"
-    }
-  },
   "regions": ["iad1"],
   "cleanUrls": true,
   "trailingSlash": false

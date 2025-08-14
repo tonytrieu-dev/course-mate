@@ -1,97 +1,75 @@
 {
   "name": "schedulebud",
   "version": "1.0.0",
+  "private": true,
   "description": "ScheduleBud - Academic productivity companion for students",
-  "main": "main.js",
   "scripts": {
     "start": "webpack-dev-server --mode development",
-    "electron": "electron .",
-    "build": "node scripts/build.js",
     "build:react": "webpack --config webpack.config.prod.js",
-    "build:electron": "electron-builder",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:linux": "npm run build && electron-builder --linux",
-    "dist:all": "npm run build && electron-builder -wl",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:prod": "electron main-prod.js",
-    "test:prod:unix": "NODE_ENV=production electron main-prod.js",
-    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/ --ext .js,.jsx,.ts,.tsx",
-    "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint src/ --ext .js,.jsx,.ts,.tsx --fix",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/ --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write src/",
-    "format:check": "prettier --check src/",
     "typecheck": "tsc --noEmit",
-    "ts:build": "tsc",
     "analyze": "npm run build:react -- --analyze",
-    "analyze:serve": "npx webpack-bundle-analyzer build/static/js/*.js",
     "e2e": "npx playwright test",
-    "e2e:headed": "npx playwright test --headed",
-    "e2e:ui": "playwright test --ui",
-    "e2e:debug": "playwright test --debug",
     "e2e:report": "playwright show-report",
     "e2e:install": "playwright install",
-    "build:staging": "env-cmd -f .env.staging npm run build",
-    "build:production": "env-cmd -f .env.production npm run build",
-    "deploy:staging": "npm run build:staging && npm run deploy:supabase:staging",
-    "deploy:production": "npm run build:production && npm run deploy:supabase:production",
-    "deploy:supabase:staging": "supabase functions deploy --project-ref adkrfpcmfvqhctlvizxw",
-    "deploy:supabase:production": "supabase functions deploy --project-ref adkrfpcmfvqhctlvizxw",
-    "vercel:build": "npm run build:production && npm run deploy:supabase:production",
-    "health-check": "node scripts/health-check.js",
-    "uptime:monitor": "node scripts/uptime-monitor.js",
-    "uptime:check": "node scripts/uptime-monitor.js --once",
-    "db:backup": "node scripts/backup-database.js",
-    "db:backup:tables": "node scripts/backup-database.js backup --table-only",
-    "db:status": "node scripts/backup-database.js status",
-    "db:cleanup": "node scripts/backup-database.js cleanup",
-    "db:verify": "node scripts/backup-database.js verify-all",
-    "db:verify:integrity": "node scripts/backup-database.js verify-integrity",
-    "security:scan": "npm audit && npm run lint && npm run typecheck",
-    "monitoring:test": "npm run health-check && npm run uptime:check && npm run db:status"
+    "deploy:supabase": "supabase functions deploy --project-ref adkrfpcmfvqhctlvizxw",
+    "security:scan": "npm audit && npm run lint && npm run typecheck"
   },
   "keywords": [],
-  "author": "",
+  "author": "Tony Trieu",
   "license": "ISC",
+  "dependencies": {
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/preset-env": "^7.26.9",
+    "@headlessui/react": "^2.2.0",
+    "@sentry/react": "^10.1.0",
+    "@sentry/tracing": "^7.120.4",
+    "@supabase/supabase-js": "^2.49.3",
+    "@tailwindcss/forms": "^0.5.10",
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
+    "axios": "^1.8.4",
+    "date-fns": "^4.1.0",
+    "docx-preview": "^0.3.6",
+    "ical.js": "^2.1.0",
+    "jspdf": "^3.0.1",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.10.0",
+    "pdfjs-dist": "^2.16.105",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "web-vitals": "^5.1.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.26.10",
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.27.1",
     "@playwright/test": "^1.54.2",
-    "@sentry/webpack-plugin": "^4.0.2",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "autoprefixer": "^10.4.21",
     "babel-loader": "^10.0.0",
-    "better-sqlite3": "^11.9.1",
     "buffer": "^6.0.3",
-    "copy-webpack-plugin": "^13.0.0",
     "crypto-browserify": "^3.12.1",
     "css-loader": "^7.1.2",
     "dotenv-webpack": "^8.1.0",
-    "electron": "^35.7.2",
-    "electron-builder": "^25.1.8",
-    "env-cmd": "^10.1.0",
-    "express": "^5.1.0",
-    "firebase": "^11.5.0",
     "html-webpack-plugin": "^5.6.3",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "mini-css-extract-plugin": "^2.9.4",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
-    "playwright": "^1.54.2",
     "postcss": "^8.5.3",
     "postcss-loader": "^8.1.1",
-    "prop-types": "^15.8.1",
-    "sqlite3": "^5.1.7",
     "stream-browserify": "^3.0.0",
     "style-loader": "^4.0.0",
     "supabase": "^2.20.5",
@@ -101,122 +79,6 @@
     "webpack": "^5.98.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2",
-    "worker-loader": "^3.0.8"
-  },
-  "dependencies": {
-    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
-    "@babel/preset-env": "^7.26.9",
-    "@cyntler/react-doc-viewer": "^1.17.0",
-    "@fullcalendar/daygrid": "^6.1.15",
-    "@fullcalendar/react": "^6.1.15",
-    "@fullcalendar/timegrid": "^6.1.15",
-    "@headlessui/react": "^2.2.0",
-    "@sentry/react": "^10.1.0",
-    "@sentry/tracing": "^7.120.4",
-    "@supabase/supabase-js": "^2.49.3",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tiptap/react": "^2.11.5",
-    "axios": "^1.8.4",
-    "compromise": "^14.14.4",
-    "date-fns": "^4.1.0",
-    "docx-preview": "^0.3.6",
-    "ical.js": "^2.1.0",
-    "jspdf": "^3.0.1",
-    "jspdf-autotable": "^5.0.2",
-    "jszip": "^3.10.1",
-    "mammoth": "^1.10.0",
-    "pdfjs-dist": "^2.16.105",
-    "process": "^0.11.10",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-icons": "^5.5.0",
-    "react-router": "^7.8.0",
-    "web-vitals": "^5.1.0"
-  },
-  "build": {
-    "appId": "com.yourcompany.schedulebud",
-    "productName": "ScheduleBud",
-    "directories": {
-      "output": "dist-electron"
-    },
-    "files": [
-      "**/*",
-      "!src",
-      "!scripts",
-      "!webpack.config.js",
-      "!webpack.config.prod.js",
-      "!.gitignore",
-      "!supabase",
-      "!**/*.map",
-      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
-      "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-      "!node_modules/**/*.d.ts",
-      "!node_modules/**/build/node_gyp_bins/**/*",
-      "!node_modules/**/build/binding.target.mk",
-      "!node_modules/**/build/Makefile",
-      "!node_modules/**/build/config.gypi",
-      "!node_modules/**/build/**/*.target.mk",
-      "!node_modules/**/build/**/*.Makefile",
-      "!node_modules/**/build/**/*.mk",
-      "!node_modules/**/build/**/python*",
-      "!node_modules/**/prebuilds/**/*",
-      "!node_modules/**/.deps/**/*",
-      "!node_modules/**/deps/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "assets",
-        "to": "assets",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "mac": {
-      "category": "public.app-category.productivity"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        },
-        {
-          "target": "portable"
-        }
-      ]
-    },
-    "nodeGypRebuild": false,
-    "buildDependenciesFromSource": false,
-    "npmRebuild": false,
-    "afterSign": "electron-builder-notarize",
-    "beforeBuild": "scripts/before-build.js",
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "deb",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "category": "Office"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+    "webpack-dev-server": "^5.2.2"
   }
 }
