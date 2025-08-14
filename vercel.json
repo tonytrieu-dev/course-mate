@@ -3,7 +3,7 @@
   "buildCommand": "npm run build:react",
   "outputDirectory": "build", 
   "framework": "create-react-app",
-  "installCommand": "npm install",
+  "installCommand": "npm install --no-audit --prefer-offline",
   "devCommand": "npm start",
   "rewrites": [
     {
@@ -45,5 +45,11 @@
   ],
   "regions": ["iad1"],
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "functions": {
+    "app/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
 }

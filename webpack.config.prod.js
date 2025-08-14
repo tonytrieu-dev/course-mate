@@ -15,6 +15,13 @@ module.exports = {
     chunkFilename: 'static/js/[name].[contenthash:8].chunk.js',
     assetModuleFilename: 'static/media/[name].[hash][ext]',
     clean: true,
+    publicPath: '/',
+  },
+  // Performance and timeout optimizations
+  performance: {
+    hints: false,
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000,
   },
   cache: {
     type: 'filesystem',
@@ -26,10 +33,19 @@ module.exports = {
   optimization: {
     splitChunks: {
       chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
     },
     usedExports: true,
     minimize: true,
     minimizer: ['...'],
+    // Prevent build hanging on large bundles
+    sideEffects: false,
   },
   module: {
     rules: [
@@ -60,6 +76,9 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs'],
+    alias: {
+      'process/browser': require.resolve('process/browser.js'),
+    },
     fallback: {
       "process": require.resolve("process/browser.js"),
       "buffer": require.resolve("buffer"),
@@ -82,7 +101,7 @@ module.exports = {
       chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
     }),
     new webpack.ProvidePlugin({
-      process: 'process/browser',
+      process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],
     }),
     new Dotenv(),
