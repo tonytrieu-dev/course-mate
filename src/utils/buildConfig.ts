@@ -58,11 +58,23 @@ export const getAppDescription = (): string => {
     : 'Academic productivity platform for students';
 };
 
+// Sidebar title configuration
+export const getDefaultSidebarTitle = (): string => {
+  return isPersonalMode() ? 'UCR 🐻' : 'Your School';
+};
+
+// Classes title configuration  
+export const getDefaultClassesTitle = (): string => {
+  return isPersonalMode() ? 'Current Classes' : 'Classes';
+};
+
 export default {
   getBuildMode,
   isPersonalMode,
   isSaaSMode,
   features,
   getAppName,
-  getAppDescription
+  getAppDescription,
+  getDefaultSidebarTitle,
+  getDefaultClassesTitle
 };

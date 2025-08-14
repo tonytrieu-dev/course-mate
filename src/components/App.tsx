@@ -348,6 +348,7 @@ const CalendarApp: React.FC = () => {
     );
   }
 
+  // Force login component for unauthenticated users, regardless of other conditions
   if (!isAuthenticated) {
     return (
       <Suspense fallback={<AuthLoadingFallback />}>

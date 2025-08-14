@@ -20,6 +20,14 @@ export const signUp = async (email: string, password: string): Promise<AuthRespo
     const result = await supabase.auth.signUp({ email, password });
     
     if (result.error) {
+      // Log the full error details for debugging
+      console.error('🚨 Supabase signup error details:', {
+        message: result.error.message,
+        status: result.error.status,
+        code: result.error.code || 'NO_CODE',
+        details: result.error
+      });
+      
       // Enhanced error handling for different Supabase auth errors
       const errorMessage = result.error.message.toLowerCase();
       

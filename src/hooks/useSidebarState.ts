@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { ClassWithRelations, Position } from '../types/database';
+import { getDefaultSidebarTitle, getDefaultClassesTitle } from '../utils/buildConfig';
 
 interface UseSidebarStateReturn {
   // Core state
@@ -67,14 +68,14 @@ interface UseSidebarStateReturn {
 
 export const useSidebarState = (): UseSidebarStateReturn => {
   // Core state
-  const [title, setTitle] = useState<string>("UCR 🐻");
+  const [title, setTitle] = useState<string>(getDefaultSidebarTitle());
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
   
   // Classes state
   const [classes, setClasses] = useState<ClassWithRelations[]>([]);
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
   const [hoveredClassId, setHoveredClassId] = useState<string | null>(null);
-  const [classesTitle, setClassesTitle] = useState<string>("Current Classes");
+  const [classesTitle, setClassesTitle] = useState<string>(getDefaultClassesTitle());
   const [isEditingClassesTitle, setIsEditingClassesTitle] = useState<boolean>(false);
   
   // Modal states
