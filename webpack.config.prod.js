@@ -131,16 +131,10 @@ module.exports = {
       filename: 'static/css/[name].[contenthash:8].css',
       chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
     }),
-    // Define environment variables (excluding NODE_ENV to avoid conflict)
-    new webpack.DefinePlugin({
-      'process.env': JSON.stringify({
-        ...Object.keys(process.env)
-          .filter(key => key.startsWith('REACT_APP_') || ['CI', 'GENERATE_SOURCEMAP', 'DISABLE_ESLINT_PLUGIN'].includes(key))
-          .reduce((obj, key) => {
-            obj[key] = process.env[key];
-            return obj;
-          }, {})
-      })
+    new Dotenv({
+      systemvars: true,  // Vercel environment variables take precedence
+      silent: true,      // Don't fail if .env file is missing  
+      override: false,   // Don't override Vercel's environment variables
     }),
     new webpack.ProvidePlugin({
       process: 'process/browser.js',
