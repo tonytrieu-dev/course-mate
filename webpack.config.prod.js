@@ -132,9 +132,20 @@ module.exports = {
       chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
     }),
     new Dotenv({
-      systemvars: true,  // Vercel environment variables take precedence
+      systemvars: true,  // Netlify environment variables take precedence
       silent: true,      // Don't fail if .env file is missing  
-      override: false,   // Don't override Vercel's environment variables
+      override: false,   // Don't override Netlify's environment variables
+    }),
+    // Ensure critical environment variables are defined for production
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(
+        process.env.REACT_APP_SUPABASE_URL || process.env.SUPABASE_URL || 'https://adkrfpcmfvqhctlvizxw.supabase.co'
+      ),
+      'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(
+        process.env.REACT_APP_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFka3JmcGNtZnZxaGN0bHZpenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0ODM5ODYsImV4cCI6MjA1OTA1OTk4Nn0.avFXOP9di5ehRMdqwvF38uSmyCFAXGJyjzdAe5zne6A'
+      ),
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.REACT_APP_BUILD_MODE': JSON.stringify('saas')
     }),
     new webpack.ProvidePlugin({
       process: 'process/browser.js',
