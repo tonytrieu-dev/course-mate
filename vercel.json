@@ -45,11 +45,5 @@
   ],
   "regions": ["iad1"],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "functions": {
-    "app/**/*.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  }
+  "trailingSlash": false
 }
