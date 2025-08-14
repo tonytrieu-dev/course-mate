@@ -60,7 +60,7 @@ export const getAppDescription = (): string => {
 
 // Sidebar title configuration
 export const getDefaultSidebarTitle = (): string => {
-  return isPersonalMode() ? 'UCR 🐻' : 'Your School';
+  return isPersonalMode() ? 'UCR 🐻' : 'Your College';
 };
 
 // Classes title configuration  

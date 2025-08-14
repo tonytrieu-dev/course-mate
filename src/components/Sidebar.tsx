@@ -105,6 +105,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
   });
   const [showTitleColorPicker, setShowTitleColorPicker] = React.useState(false);
   const [showClassesHeaderColorPicker, setShowClassesHeaderColorPicker] = React.useState(false);
+  const [classesColorPickerPosition, setClassesColorPickerPosition] = React.useState({ x: 0, y: 0 });
 
   // Track font size with local state that syncs with context
   const [classesHeaderSize, setClassesHeaderSize] = React.useState(() => {
@@ -206,6 +207,20 @@ const SidebarInner: React.FC<SidebarProps> = ({
       hoverClass: 'hover:text-teal-800 dark:hover:text-teal-300',
       bgClass: 'bg-teal-700 dark:bg-teal-400',
       hoverBgClass: 'hover:bg-teal-800 dark:hover:bg-teal-300'
+    },
+    { 
+      name: 'black', 
+      class: 'text-gray-900 dark:text-gray-100', 
+      hoverClass: 'hover:text-gray-800 dark:hover:text-gray-200',
+      bgClass: 'bg-gray-900 dark:bg-gray-100',
+      hoverBgClass: 'hover:bg-gray-800 dark:hover:bg-gray-200'
+    },
+    { 
+      name: 'royal', 
+      class: 'text-[#4169E1] dark:text-[#4169E1]', 
+      hoverClass: 'hover:text-[#3659C7] dark:hover:text-[#3659C7]',
+      bgClass: 'bg-[#4169E1] dark:bg-[#4169E1]',
+      hoverBgClass: 'hover:bg-[#3659C7] dark:hover:bg-[#3659C7]'
     }
   ];
 
@@ -403,18 +418,13 @@ const SidebarInner: React.FC<SidebarProps> = ({
           onMouseLeave={() => setIsHoveringClassArea(false)}
         >
           {!isSidebarCollapsed && (
-            <div className={`mb-4 px-8 sidebar-content-fade ${
+            <div className={`mb-4 px-6 sidebar-content-fade ${
               isSidebarCollapsed ? 'collapsed' : 'expanded'
             }`} style={{ maxWidth: '100%', overflow: 'hidden' }}>
-              <div className="flex items-center max-w-full">
+              <div className="relative">
                 <div 
                   className="relative min-w-0 flex-shrink"
                   style={{ maxWidth: '100%' }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowClassesHeaderColorPicker(true);
-                  }}
                 >
                   <EditableText
                     key={`classes-header-${classesHeaderSize}`} // Force re-render when font size changes
@@ -433,6 +443,19 @@ const SidebarInner: React.FC<SidebarProps> = ({
                     }}
                     isEditing={isEditingClassesTitle}
                     onClick={() => setIsEditingClassesTitle(true)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      // Calculate position relative to the clicked element
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setClassesColorPickerPosition({
+                        x: rect.left + (rect.width / 2), // Center horizontally on the text
+                        y: rect.bottom + 8 // Position below the text with 8px gap
+                      });
+                      
+                      setShowClassesHeaderColorPicker(true);
+                    }}
                     className={isEditingClassesTitle
                       ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none block break-words`
                       : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} block break-words`
@@ -449,62 +472,6 @@ const SidebarInner: React.FC<SidebarProps> = ({
                     aria-label={`Classes section header: ${classesTitle}. Click to edit, right-click to change color, focus and use Ctrl+Plus/Minus to resize.`}
                   />
                 </div>
-                {/* Ultra-Compact Classes Header Color Picker */}
-                {showClassesHeaderColorPicker && (
-                  <>
-                    {/* Enhanced backdrop */}
-                    <div 
-                      className="fixed inset-0 z-[10100] bg-black/30 dark:bg-black/50 backdrop-blur-sm"
-                      onClick={() => setShowClassesHeaderColorPicker(false)}
-                      aria-label="Close color picker"
-                    />
-                    {/* Ultra-compact color picker positioned to the right of text */}
-                    <div className="absolute z-[10101] left-full ml-3 top-0 bg-slate-800/95 backdrop-blur-lg 
-                                   border border-slate-600/50 rounded-lg shadow-xl p-3 
-                                   w-[140px] animate-fadeIn">
-                      {/* Minimal header */}
-                      <div className="text-xs font-medium text-slate-200 mb-2 text-center">Color</div>
-                      
-                      {/* Ultra-compact 2-row grid */}
-                      <div className="grid grid-cols-5 gap-1.5 mb-2">
-                        {colorOptions.map((color) => (
-                          <button
-                            key={color.name}
-                            onClick={() => {
-                              setClassesHeaderColor(color.name);
-                              setShowClassesHeaderColorPicker(false);
-                            }}
-                            className={`w-5 h-5 rounded border ${color.bgClass} 
-                                       transition-all duration-150 hover:scale-110 active:scale-95
-                                       focus:outline-none focus:ring-1 focus:ring-blue-400 focus:ring-offset-1
-                                       shadow-sm ${
-                              classesHeaderColor === color.name 
-                                ? 'border-slate-200 ring-1 ring-blue-400 scale-110' 
-                                : 'border-slate-500 hover:border-slate-400'
-                            }`}
-                            title={color.name.charAt(0).toUpperCase() + color.name.slice(1)}
-                          >
-                            {classesHeaderColor === color.name && (
-                              <svg className="w-2.5 h-2.5 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      {/* Minimal close button */}
-                      <button
-                        onClick={() => setShowClassesHeaderColorPicker(false)}
-                        className="w-full text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 
-                                  hover:text-slate-200 transition-all duration-150 py-1.5 rounded 
-                                  focus:outline-none focus:ring-1 focus:ring-blue-400"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
           )}
@@ -629,6 +596,68 @@ const SidebarInner: React.FC<SidebarProps> = ({
           fontSize={fontSize}
         />
       </Suspense>
+
+      {/* Classes Header Color Picker - Outside sidebar container */}
+      {showClassesHeaderColorPicker && (
+        <>
+          {/* Enhanced backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm z-[10100]"
+            onClick={() => setShowClassesHeaderColorPicker(false)}
+            aria-label="Close color picker"
+          />
+          {/* Ultra-compact color picker - positioned near the text */}
+          <div className="fixed bg-slate-800/95 backdrop-blur-lg border border-slate-600/50 
+                         rounded-lg shadow-xl p-3 w-[140px] animate-fadeIn z-[10101]"
+               style={{
+                 left: `${classesColorPickerPosition.x}px`,
+                 top: `${classesColorPickerPosition.y}px`,
+                 transform: 'translateX(-50%)' // Center horizontally on the calculated x position
+               }}>
+            {/* Minimal header */}
+            <div className="text-xs font-medium text-slate-200 mb-2 text-center">Choose Color</div>
+            
+            {/* Ultra-compact 2-row grid */}
+            <div className="grid grid-cols-5 gap-1.5 mb-2">
+              {colorOptions.map((color) => (
+                <button
+                  key={color.name}
+                  onClick={() => {
+                    setClassesHeaderColor(color.name);
+                    setShowClassesHeaderColorPicker(false);
+                  }}
+                  className={`w-5 h-5 rounded border ${color.bgClass} 
+                             transition-all duration-150 hover:scale-110 active:scale-95
+                             focus:outline-none focus:ring-1 focus:ring-blue-400 focus:ring-offset-1
+                             shadow-sm ${
+                    classesHeaderColor === color.name 
+                      ? 'border-slate-200 ring-1 ring-blue-400 scale-110' 
+                      : 'border-slate-500 hover:border-slate-400'
+                  }`}
+                  title={color.name.charAt(0).toUpperCase() + color.name.slice(1)}
+                  aria-label={`Set color to ${color.name}`}
+                >
+                  {classesHeaderColor === color.name && (
+                    <svg className="w-2.5 h-2.5 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            {/* Minimal close button */}
+            <button
+              onClick={() => setShowClassesHeaderColorPicker(false)}
+              className="w-full text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 
+                        hover:text-slate-200 transition-all duration-150 py-1.5 rounded 
+                        focus:outline-none focus:ring-1 focus:ring-blue-400"
+            >
+              Close
+            </button>
+          </div>
+        </>
+      )}
     </>
   );
 };

@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from '../../types/database';
 import { supabase } from '../supabaseClient';
 import { logger } from '../../utils/logger';
 import { errorHandler } from '../../utils/errorHandler';
+import { getDefaultSidebarTitle } from '../../utils/buildConfig';
 
 const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;
 
@@ -11,7 +12,7 @@ const SETTINGS_KEY = STORAGE_KEYS.SETTINGS;
 const DEFAULT_NAV_ORDER = ['dashboard', 'calendar', 'tasks', 'grades'];
 
 export const getDefaultSettings = (): AppSettings => ({
-  title: "UCR", 
+  title: getDefaultSidebarTitle(), 
   classNamingStyle: 'technical',
   navigationOrder: DEFAULT_NAV_ORDER,
   selectedView: 'dashboard',
