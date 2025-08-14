@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:react",
+  "buildCommand": "NODE_OPTIONS='--max-old-space-size=4096' npm run build:react",
   "outputDirectory": "build", 
   "framework": "create-react-app",
-  "installCommand": "npm install --no-audit --prefer-offline",
+  "installCommand": "npm install --no-audit --prefer-offline --no-fund",
   "devCommand": "npm start",
   "rewrites": [
     {

@@ -27,25 +27,42 @@ module.exports = {
     type: 'filesystem',
     buildDependencies: {
       config: [__filename],
-      packageLock: ['package-lock.json'],
     },
+    // Vercel-specific cache optimizations
+    maxMemoryGenerations: 1,
+  },
+  // AGGRESSIVE TIMEOUT PREVENTION FOR VERCEL
+  watchOptions: {
+    ignored: /node_modules/,
+    poll: false,
   },
   optimization: {
     splitChunks: {
       chunks: 'all',
+      maxSize: 200000, // Prevent huge chunks that hang Vercel
       cacheGroups: {
         vendor: {
           test: /[\\/]node_modules[\\/]/,
           name: 'vendors',
           chunks: 'all',
+          maxSize: 200000,
+        },
+        reactRouter: {
+          test: /[\\/]node_modules[\\/]react-router[\\/]/,
+          name: 'react-router',
+          chunks: 'all',
+          priority: 10,
         },
       },
     },
     usedExports: true,
     minimize: true,
     minimizer: ['...'],
-    // Prevent build hanging on large bundles
+    // AGGRESSIVE VERCEL OPTIMIZATIONS
     sideEffects: false,
+    removeAvailableModules: false,
+    removeEmptyChunks: false,
+    mergeDuplicateChunks: false,
   },
   module: {
     rules: [
@@ -77,7 +94,9 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs'],
     alias: {
+      // AGGRESSIVE REACT ROUTER V7 FIXES FOR VERCEL
       'process/browser': require.resolve('process/browser.js'),
+      'react-router': path.resolve(__dirname, 'node_modules/react-router/dist/production'),
     },
     fallback: {
       "process": require.resolve("process/browser.js"),
@@ -87,8 +106,20 @@ module.exports = {
       "path": require.resolve("path-browserify"),
       "os": require.resolve("os-browserify/browser"),
       "crypto": require.resolve("crypto-browserify"),
+      "fs": false,
+      "net": false,
+      "tls": false,
     },
+    // Force ESM module resolution for React Router v7
+    fullySpecified: false,
   },
+  // Suppress React Router dynamic import warnings
+  ignoreWarnings: [
+    {
+      module: /react-router/,
+      message: /Critical dependency: the request of a dependency is an expression/,
+    },
+  ],
   plugins: [
     // --- CRITICAL FIX: Add the HtmlWebpackPlugin to your plugins array ---
     // This tells Webpack to use your public/index.html as a template
@@ -100,13 +131,20 @@ module.exports = {
       filename: 'static/css/[name].[contenthash:8].css',
       chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
     }),
+    // Define environment variables (excluding NODE_ENV to avoid conflict)
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify({
+        ...Object.keys(process.env)
+          .filter(key => key.startsWith('REACT_APP_') || ['CI', 'GENERATE_SOURCEMAP', 'DISABLE_ESLINT_PLUGIN'].includes(key))
+          .reduce((obj, key) => {
+            obj[key] = process.env[key];
+            return obj;
+          }, {})
+      })
+    }),
     new webpack.ProvidePlugin({
       process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],
-    }),
-    new Dotenv(),
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
     }),
     ...(process.argv.includes('--analyze') ? [new BundleAnalyzerPlugin()] : []),
   ],
