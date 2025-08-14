@@ -7,10 +7,6 @@
   NODE_OPTIONS = "--max-old-space-size=4096"
   NPM_FLAGS = "--no-audit --prefer-offline --no-fund"
 
-# Build optimization settings
-[build.processing]
-  skip_processing = false
-
 # SPA routing - redirect all requests to index.html
 [[redirects]]
   from = "/*"
@@ -90,6 +86,7 @@
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
 
+# Build processing configuration
 [build.processing]
   skip_processing = false
 
