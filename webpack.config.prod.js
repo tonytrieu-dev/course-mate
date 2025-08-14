@@ -3,8 +3,9 @@ const webpack = require('webpack');
 const Dotenv = require('dotenv-webpack');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-// --- CRITICAL FIX: Import the plugin that creates your index.html file ---
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+// --- CRITICAL FIX: Import the plugin to copy your public assets ---
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'production',
@@ -17,52 +18,14 @@ module.exports = {
     clean: true,
     publicPath: '/',
   },
-  // Performance and timeout optimizations
-  performance: {
-    hints: false,
-    maxEntrypointSize: 512000,
-    maxAssetSize: 512000,
-  },
-  cache: {
-    type: 'filesystem',
-    buildDependencies: {
-      config: [__filename],
-    },
-    // Vercel-specific cache optimizations
-    maxMemoryGenerations: 1,
-  },
-  // AGGRESSIVE TIMEOUT PREVENTION FOR VERCEL
-  watchOptions: {
-    ignored: /node_modules/,
-    poll: false,
-  },
+  // Use Vercel/Netlify's managed cache. No need for manual cache config here.
   optimization: {
+    // Rely on Webpack's battle-tested default code splitting. It's simpler and smarter.
     splitChunks: {
       chunks: 'all',
-      maxSize: 200000, // Prevent huge chunks that hang Vercel
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-          maxSize: 200000,
-        },
-        reactRouter: {
-          test: /[\\/]node_modules[\\/]react-router[\\/]/,
-          name: 'react-router',
-          chunks: 'all',
-          priority: 10,
-        },
-      },
     },
-    usedExports: true,
     minimize: true,
-    minimizer: ['...'],
-    // AGGRESSIVE VERCEL OPTIMIZATIONS
-    sideEffects: false,
-    removeAvailableModules: false,
-    removeEmptyChunks: false,
-    mergeDuplicateChunks: false,
+    minimizer: ['...'], // Use default TerserPlugin for JS and CssMinimizerPlugin for CSS
   },
   module: {
     rules: [
@@ -93,11 +56,8 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs'],
-    alias: {
-      // AGGRESSIVE REACT ROUTER V7 FIXES FOR VERCEL
-      'process/browser': require.resolve('process/browser.js'),
-      'react-router': path.resolve(__dirname, 'node_modules/react-router/dist/production'),
-    },
+    // NOTE: These polyfills are a major source of bundle bloat.
+    // Long-term, investigate which dependencies require them and find modern browser alternatives.
     fallback: {
       "process": require.resolve("process/browser.js"),
       "buffer": require.resolve("buffer"),
@@ -106,24 +66,10 @@ module.exports = {
       "path": require.resolve("path-browserify"),
       "os": require.resolve("os-browserify/browser"),
       "crypto": require.resolve("crypto-browserify"),
-      "fs": false,
-      "net": false,
-      "tls": false,
+      "fs": false, // Explicitly disable fs for browser
     },
-    // Force ESM module resolution for React Router v7
-    fullySpecified: false,
   },
-  // Suppress React Router dynamic import warnings
-  ignoreWarnings: [
-    {
-      module: /react-router/,
-      message: /Critical dependency: the request of a dependency is an expression/,
-    },
-  ],
   plugins: [
-    // --- CRITICAL FIX: Add the HtmlWebpackPlugin to your plugins array ---
-    // This tells Webpack to use your public/index.html as a template
-    // and inject the final JS and CSS files into it.
     new HtmlWebpackPlugin({
       template: 'public/index.html',
     }),
@@ -131,14 +77,25 @@ module.exports = {
       filename: 'static/css/[name].[contenthash:8].css',
       chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
     }),
-    new Dotenv({
-      systemvars: true,  // Netlify environment variables take precedence
-      silent: true,      // Don't fail if .env file is missing  
-      override: false,   // Don't override Netlify's environment variables
+    // --- CRITICAL FIX: Add this plugin to copy your images and other public assets ---
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'public',
+          globOptions: {
+            // Ignore the index.html template file, as HtmlWebpackPlugin handles it
+            ignore: ['**/index.html'],
+          },
+        },
+      ],
     }),
     new webpack.ProvidePlugin({
       process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],
+    }),
+    new Dotenv({
+      systemvars: true,
+      silent: true,
     }),
     ...(process.argv.includes('--analyze') ? [new BundleAnalyzerPlugin()] : []),
   ],
