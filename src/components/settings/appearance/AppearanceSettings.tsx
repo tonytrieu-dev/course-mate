@@ -61,7 +61,7 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
 
   return (
     <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-lg p-6">
-      <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3">🎨 Appearance</h3>
+      <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-3">Appearance 🎨</h3>
       <div className="space-y-4">
         {/* Theme moved to navigation bar */}
         <div className="bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
