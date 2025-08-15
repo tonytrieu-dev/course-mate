@@ -164,7 +164,7 @@ const SubscriptionSettingsTab: React.FC = () => {
             {/* Academic Year Plan */}
             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-200 dark:border-orange-700 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 relative">
               {/* Compact Back to School Badge */}
-              <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2">
+              <div className="absolute -top-0.5 left-1/2 transform -translate-x-1/2">
                 <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-3 py-0.5 rounded-lg text-xs font-bold shadow-lg whitespace-nowrap">
                   🎓 Back to School Special • Ends Sept 30th!
                 </div>
