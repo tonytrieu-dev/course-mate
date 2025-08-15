@@ -162,9 +162,9 @@ const SubscriptionSettingsTab: React.FC = () => {
                 </div>
                 
                 {/* Coupon Code Highlight */}
-                <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-800/30 border border-green-300 dark:border-green-600 rounded-lg p-2 mt-3">
-                  <div className="text-xs font-bold text-green-800 dark:text-green-300">Use code: BACKTOSCHOOL2025</div>
-                  <div className="text-xs text-green-700 dark:text-green-400">Additional $4.01 off</div>
+                <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-800/30 border border-green-300 dark:border-green-600 rounded-lg p-3 mt-3">
+                  <div className="text-sm font-bold text-green-800 dark:text-green-300">Use code: BACKTOSCHOOL2025</div>
+                  <div className="text-xs text-green-700 dark:text-green-400">For $4.01 off</div>
                 </div>
                 
                 <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-2">
