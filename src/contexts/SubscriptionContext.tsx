@@ -59,49 +59,31 @@ interface SubscriptionProviderProps {
 // Create context
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
-// Academic year helper functions
-const getAcademicYear = (date: Date = new Date(), system: 'semester' | 'quarter' = 'semester') => {
+// Academic year helper functions - Semester system only (10 months)
+const getAcademicYear = (date: Date = new Date()) => {
   const year = date.getFullYear();
   const month = date.getMonth() + 1; // JavaScript months are 0-based
   
-  if (system === 'semester') {
-    // Semester system: August-May (10 months)
-    if (month >= 8) {
-      return { start: year, end: year + 1, system: 'semester' };
-    } else {
-      return { start: year - 1, end: year, system: 'semester' };
-    }
+  // Semester system: August-May (10 months)
+  if (month >= 8) {
+    return { start: year, end: year + 1, system: 'semester' };
   } else {
-    // Quarter system: September-June (9 months)
-    if (month >= 9) {
-      return { start: year, end: year + 1, system: 'quarter' };
-    } else {
-      return { start: year - 1, end: year, system: 'quarter' };
-    }
+    return { start: year - 1, end: year, system: 'semester' };
   }
 };
 
 const getAcademicYearDates = (academicYear = getAcademicYear()) => {
-  if (academicYear.system === 'semester') {
-    return {
-      start: new Date(academicYear.start, 7, 1), // August 1st
-      end: new Date(academicYear.end, 4, 31), // May 31st
-      months: 10,
-      system: 'semester'
-    };
-  } else {
-    return {
-      start: new Date(academicYear.start, 8, 1), // September 1st
-      end: new Date(academicYear.end, 5, 30), // June 30th
-      months: 9,
-      system: 'quarter'
-    };
-  }
+  return {
+    start: new Date(academicYear.start, 7, 1), // August 1st
+    end: new Date(academicYear.end, 4, 31), // May 31st
+    months: 10,
+    system: 'semester'
+  };
 };
 
-const calculateMonthsRemaining = (system: 'semester' | 'quarter' = 'semester') => {
+const calculateMonthsRemaining = () => {
   const now = new Date();
-  const academicYear = getAcademicYear(now, system);
+  const academicYear = getAcademicYear(now);
   const { end, months } = getAcademicYearDates(academicYear);
   
   if (now > end) {
@@ -174,7 +156,7 @@ const studentProAcademic: SubscriptionPlan = {
   intervalCount: 10, // Default to semester system
   savings: 50, // 50% savings vs monthly equivalent  
   features: [
-    'Pay for school year only (Aug-May or Sep-Jun)',
+    'Pay for school year only (Aug-May)',
     'No summer charges',
     'Everything in Monthly plan',
     'Unlimited AI study assistance',
@@ -221,12 +203,8 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   // Initialize academic year info
   useEffect(() => {
     const updateAcademicYear = () => {
-      // TODO: Get academic system preference from user settings
-      // For now, default to semester system (more common)
-      const system = 'semester';
-      
-      const dates = getAcademicYearDates(getAcademicYear(new Date(), system));
-      const monthsRemaining = calculateMonthsRemaining(system);
+      const dates = getAcademicYearDates(getAcademicYear(new Date()));
+      const monthsRemaining = calculateMonthsRemaining();
       
       setCurrentAcademicYear({
         start: dates.start,
@@ -377,6 +355,11 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       // Check chatbot query limits
       if (feature === 'chatbot' || feature === 'aiQueries') {
         return chatbotQueriesUsed < getCurrentChatbotLimit();
+      }
+      
+      // Grade analytics feature - auto-enabled for paid users
+      if (feature === 'grade_analytics' || feature === 'gradeAnalytics') {
+        return isSubscribed || subscriptionStatus.status === 'trialing' || subscriptionStatus.status === 'active' || subscriptionStatus.status === 'lifetime';
       }
       
       // Allow basic features for free users

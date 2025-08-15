@@ -1,26 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
+import { subscriptionService } from '../../services/subscriptionService';
 
 const SubscriptionSettingsTab: React.FC = () => {
   const { user } = useAuth();
   const { subscriptionStatus, currentPlan, trialDaysRemaining } = useSubscription();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   // Don't show this tab if user is already subscribed
   const shouldShowUpgrade = subscriptionStatus === 'free' || subscriptionStatus === 'trialing';
 
-  const handleUpgradeClick = (url: string, planName: string) => {
-    // TODO: Uncomment for payment analytics
-    // Track the upgrade click for analytics
-    // if (window.gtag) {
-    //   window.gtag('event', 'upgrade_clicked', {
-    //     plan: planName,
-    //     source: 'settings'
-    //   });
-    // }
-    
-    // Open Stripe payment link in new tab
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const handleUpgradeClick = async (plan: 'monthly' | 'academic', planName: string) => {
+    try {
+      setLoadingPlan(plan);
+      
+      // TODO: Uncomment for payment analytics
+      // Track the upgrade click for analytics
+      // if (window.gtag) {
+      //   window.gtag('event', 'upgrade_clicked', {
+      //     plan: planName,
+      //     source: 'settings'
+      //   });
+      // }
+      
+      // Create dynamic checkout session with user metadata
+      const { url } = await subscriptionService.createCheckoutSession(plan);
+      
+      // Redirect to Stripe checkout
+      window.location.href = url;
+    } catch (error) {
+      console.error('Failed to create checkout session:', error);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   const getTrialStatusMessage = () => {
@@ -148,10 +162,21 @@ const SubscriptionSettingsTab: React.FC = () => {
               </ul>
 
               <button
-                onClick={() => handleUpgradeClick('https://buy.stripe.com/9B63cugQDaf96dva6Yf7i00', 'monthly')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                onClick={() => handleUpgradeClick('monthly', 'monthly')}
+                disabled={loadingPlan !== null}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2"
               >
-                Upgrade to Student
+                {loadingPlan === 'monthly' ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Checkout...
+                  </>
+                ) : (
+                  'Upgrade to Student'
+                )}
               </button>
               
               <div className="text-center mt-3">
@@ -218,10 +243,21 @@ const SubscriptionSettingsTab: React.FC = () => {
               </ul>
 
               <button
-                onClick={() => handleUpgradeClick('https://buy.stripe.com/28E5kCdErcnhbxP0wof7i01', 'academic-year')}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-lg hover:shadow-xl"
+                onClick={() => handleUpgradeClick('academic', 'academic-year')}
+                disabled={loadingPlan !== null}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-orange-300 disabled:to-orange-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
               >
-                Upgrade to Academic Year
+                {loadingPlan === 'academic' ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Checkout...
+                  </>
+                ) : (
+                  'Upgrade to Academic Year'
+                )}
               </button>
               
               <div className="text-center mt-3">

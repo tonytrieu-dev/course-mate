@@ -35,8 +35,8 @@ export const features = {
   upgradePrompts: getFeatureFlag('SHOW_UPGRADE_PROMPTS') || isSaaSMode(),
   analytics: getFeatureFlag('SHOW_ANALYTICS') || isSaaSMode(),
   
-  // Advanced feature visibility flags
-  showGradeAnalytics: getFeatureFlag('SHOW_GRADE_ANALYTICS'),
+  // Advanced feature visibility flags - Auto-enable for paid users
+  showGradeAnalytics: getFeatureFlag('SHOW_GRADE_ANALYTICS') || isSaaSMode(),
   showEmailNotifications: getFeatureFlag('SHOW_EMAIL_NOTIFICATIONS'),
   showAdvancedFeatures: getFeatureFlag('SHOW_ADVANCED_FEATURES'),
   

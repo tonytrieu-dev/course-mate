@@ -14,22 +14,23 @@ export interface SubscriptionStatus {
 
 export class SubscriptionService {
   /**
-   * Create a Stripe Checkout session for the student plan
+   * Create a Stripe Checkout session for the specified plan
    */
-  async createCheckoutSession(): Promise<{ url: string }> {
+  async createCheckoutSession(plan: 'monthly' | 'academic' = 'monthly'): Promise<{ url: string }> {
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         method: 'POST',
+        body: { plan },
       });
 
       if (error) {
-        logger.error('Failed to create checkout session', { error });
+        logger.error('Failed to create checkout session', { error, plan });
         throw new Error('Failed to create checkout session');
       }
 
       return data;
     } catch (error) {
-      logger.error('Error in createCheckoutSession', { error });
+      logger.error('Error in createCheckoutSession', { error, plan });
       throw error;
     }
   }
