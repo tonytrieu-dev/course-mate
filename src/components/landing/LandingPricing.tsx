@@ -45,7 +45,7 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                 <p className="text-xl md:text-2xl text-slate-700 font-medium leading-relaxed">
                   <span className="font-bold" style={{color: 'var(--accent-navy)'}}>Start with a powerful free plan.</span>
                   <br />
-                  Upgrade only when you're ready to put your entire academic workflow on autopilot.
+                  Upgrade only when you're ready to automate your academic scheduling workflow.
                 </p>
               </div>
             </div>
@@ -132,122 +132,30 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
             </div>
           </div>
 
-          {/* Student Monthly Plan - PREMIUM CREAM with luxurious gold and navy accents */}
+          {/* Student Academic Year Plan - Middle position with BACKTOSCHOOL2025 coupon - PREMIUM HIGHLIGHTED */}
           <div className="backdrop-blur-lg rounded-3xl p-6 lg:p-8 border-4 relative shadow-3xl transform scale-105 hover:scale-110 transition-all duration-500 overflow-hidden" style={{background: 'linear-gradient(135deg, var(--rich-cream) 0%, var(--primary-cream) 40%, var(--secondary-cream) 80%, var(--tertiary-cream) 100%)', borderColor: 'var(--premium-gold)'}}>
+            {/* Back to School Special Banner */}
+            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-6 py-2 rounded-lg text-xs font-bold shadow-lg border border-orange-300 animate-pulse">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">🎓</span>
+                  <span className="whitespace-nowrap">Back to School Special • Ends Sept 30th!</span>
+                </div>
+              </div>
+            </div>
+            
             {/* Premium cream with gold highlight elements */}
             <div className="absolute inset-0 opacity-50" style={{background: 'linear-gradient(to bottom right, var(--premium-gold) 0%, var(--rich-cream) 50%, var(--primary-cream) 100%)', opacity: '0.15'}}></div>
             <div className="absolute top-4 right-4 w-20 h-20 rounded-full" style={{background: 'linear-gradient(135deg, var(--premium-gold), transparent)', opacity: '0.3'}}></div>
             <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full" style={{background: 'linear-gradient(to top left, var(--warm-gold), transparent)', opacity: '0.25'}}></div>
             
-            <div className="relative z-10">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mb-2">Student Monthly</h3>
-                <div className="text-4xl lg:text-5xl font-black mb-2 drop-shadow-sm" style={{color: 'var(--accent-navy)'}}>
-                  $3.99<span className="text-xl lg:text-2xl">/month</span>
-                </div>
-                <p className="text-lg mb-2 font-semibold" style={{color: 'var(--accent-navy)'}}>🚀 Recommended</p>
-                <p className="text-sm font-medium" style={{color: 'var(--accent-navy)'}}>7-day free trial • Cancel anytime</p>
-              </div>
-            
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center group">
-                  <div className="w-5 h-5 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3 h-3 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-800 text-base lg:text-lg font-semibold">Everything in Free</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-5 h-5 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3 h-3 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-800 text-base lg:text-lg font-medium">50 document Q&A queries per day</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-800 text-lg font-medium">Grade analytics & GPA tracking</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-800 text-lg font-medium">Unlimited syllabus AI extraction</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-800 text-lg font-medium">Custom task types & colors</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-800 text-lg font-medium">Email support & community</span>
-                </li>
-              </ul>
-
-              <Button
-                text="Start Your 7-Day Free Trial"
-                onClick={() => {
-                  // TODO: Uncomment for landing page analytics
-                  // trackEvent('get_started_clicked', { location: 'pricing', plan: 'student-monthly' });
-                  onGetStarted();
-                }}
-                variant="cta-orange"
-                className="w-full font-bold py-3 lg:py-4 text-base lg:text-lg transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-3xl"
-                ariaLabel="Start Student Monthly plan free trial"
-                dataTestId="student-monthly-plan-btn"
-              />
-              
-              {/* No Credit Card Required Text */}
-              <p className="text-center mt-3 text-sm font-medium text-green-600 flex items-center justify-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                No credit card required to start
-              </p>
-            </div>
-          </div>
-          {/* Student Academic Year Plan - Best value */}
-          <div className="backdrop-blur-lg rounded-3xl p-6 lg:p-8 border-4 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden" style={{background: 'linear-gradient(135deg, var(--primary-cream) 0%, var(--rich-cream) 50%, var(--secondary-cream) 100%)', borderColor: 'var(--premium-gold)'}}>
-            {/* Back to School Special Banner */}
-            <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20">
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-xs lg:text-sm font-bold shadow-lg animate-pulse">
-                🎓 Back to School Special: Ends Sept 30th!
-              </div>
-            </div>
-            
-            {/* Best Value Badge - Positioned below special banner */}
-            <div className="absolute top-12 left-1/2 transform -translate-x-1/2 z-20">
-              <div className="bg-gradient-to-r from-[var(--accent-navy)] to-[var(--primary-navy)] text-white px-4 py-2 rounded-full text-xs lg:text-sm font-bold shadow-lg">
-                💰 Best Value
-              </div>
-            </div>
-            
-            {/* Premium cream background elements */}
-            <div className="absolute inset-0 opacity-60" style={{background: 'linear-gradient(to bottom right, var(--rich-cream) 0%, var(--primary-cream) 100%)'}}></div>
-            <div className="absolute top-4 right-4 w-12 h-12 rounded-full" style={{background: 'linear-gradient(135deg, var(--premium-gold), transparent)', opacity: '0.3'}}></div>
-            
-            <div className="relative z-10 pt-20">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mb-2">Academic Year</h3>
+            {/* --- CHANGE 1: Reduced top padding from pt-24 to pt-16 --- */}
+            <div className="relative z-10 pt-16"> 
+              <div className="text-center mb-10">
+                <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mb-6">Academic Year</h3>
                 
                 {/* Promotional Pricing Display */}
-                <div className="mb-3">
+                <div className="mb-4">
                   <div className="text-4xl lg:text-5xl font-black drop-shadow-sm" style={{color: 'var(--accent-navy)'}}>
                     $19.99<span className="text-xl lg:text-2xl">/year</span>
                   </div>
@@ -256,42 +164,45 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   </div>
                 </div>
                 
-                <div className="text-sm font-semibold text-orange-600 bg-orange-50 rounded-full px-3 py-1 inline-block mb-2">
-                  Save over 50% vs. monthly!
-                </div>
-                <p className="text-lg mb-2 font-semibold" style={{color: 'var(--accent-navy)'}}>📚 Pay for school year only</p>
-                <div className="text-sm font-medium mb-2" style={{color: 'var(--accent-navy)'}}>
-                  <div className="font-semibold">Fair Pricing for All Students:</div>
-                  <div>• Semester (10 months): $2.00/month</div>
-                  <div>• Quarter (9 months): $2.22/month</div>
-                  <div>• No summer charges • Cancel anytime</div>
+                {/* Coupon Code Highlight */}
+                <div className="bg-gradient-to-r from-green-100 to-green-50 border border-green-300 rounded-lg p-3 mb-4">
+                  <div className="text-sm font-bold text-green-800">Use code: BACKTOSCHOOL2025</div>
+                  <div className="text-xs text-green-700">For $4.01 off</div>
                 </div>
               </div>
             
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center group">
-                  <div className="w-5 h-5 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3 h-3 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-5 h-5 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3 h-3 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-slate-700 text-base lg:text-lg font-semibold">Everything in Student</span>
+                  <span className="text-slate-800 text-base lg:text-lg font-semibold">10 month access</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-5 h-5 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3 h-3 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-5 h-5 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3 h-3 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-slate-700 text-base lg:text-lg font-medium">60% savings vs monthly</span>
+                  <span className="text-slate-800 text-base lg:text-lg font-semibold">Everything in Student</span>
                 </li>
                 <li className="flex items-center group">
-                  <div className="w-5 h-5 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3 h-3 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <div className="w-5 h-5 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3 h-3 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-slate-700 text-base lg:text-lg font-medium">No recurring payment stress</span>
+                  <span className="text-slate-800 text-base lg:text-lg font-medium">60% savings vs monthly</span>
+                </li>
+                <li className="flex items-center group">
+                  <div className="w-5 h-5 bg-[var(--primary-navy)]/40 border border-[var(--primary-navy)]/70 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3 h-3 text-blue-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-800 text-base lg:text-lg font-medium">No recurring payment stress</span>
                 </li>
               </ul>
 
@@ -302,40 +213,111 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                   // trackEvent('get_started_clicked', { location: 'pricing', plan: 'student-academic' });
                   onGetStarted();
                 }}
-                variant="outline"
-                className="w-full border-2 border-[var(--primary-navy)] text-[var(--primary-navy)] bg-white hover:bg-[var(--primary-navy)] hover:text-white font-bold py-3 lg:py-4 text-base lg:text-lg transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                variant="cta-orange"
+                className="w-full font-bold py-3 lg:py-4 text-base lg:text-lg transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-3xl"
                 ariaLabel="Start Academic Year plan free trial"
                 dataTestId="student-academic-plan-btn"
               />
               
-              {/* No Credit Card Required Text */}
-              <p className="text-center mt-3 text-sm font-medium text-green-600 flex items-center justify-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                No credit card required to start
-              </p>
+              {/* --- CHANGE 2: Combined the two text lines into one, removed checkmarks --- */}
+              <div className="text-center mt-3">
+                <p className="text-sm font-medium text-gray-600">
+                  No credit card required for trial • Cancel anytime
+                </p>
+              </div>
+              
+            </div>
+          </div>
+
+          {/* Student Monthly Plan - Toned down styling */}
+          <div className="backdrop-blur-lg rounded-3xl p-6 lg:p-8 border-2 shadow-2xl transition-all duration-300 relative overflow-hidden" style={{background: 'linear-gradient(135deg, var(--primary-cream) 0%, var(--rich-cream) 50%, var(--secondary-cream) 100%)', borderColor: 'var(--warm-beige)'}}>
+            {/* Subtle background elements */}
+            <div className="absolute inset-0 opacity-60" style={{background: 'linear-gradient(to bottom right, var(--rich-cream) 0%, var(--primary-cream) 100%)'}}></div>
+            <div className="absolute top-4 right-4 w-12 h-12 rounded-full" style={{background: 'linear-gradient(135deg, var(--premium-gold), transparent)', opacity: '0.3'}}></div>
+            
+            <div className="relative z-10">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mb-2">Student</h3>
+                <div className="text-4xl lg:text-5xl font-black mb-2 drop-shadow-sm" style={{color: 'var(--accent-navy)'}}>
+                  $3.99<span className="text-xl lg:text-2xl">/month</span>
+                </div>
+              </div>
+            
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center group">
+                  <div className="w-5 h-5 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3 h-3 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-700 text-base lg:text-lg font-semibold">Everything in Free</span>
+                </li>
+                <li className="flex items-center group">
+                  <div className="w-5 h-5 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3 h-3 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-700 text-base lg:text-lg font-medium">50 document Q&A queries per day</span>
+                </li>
+                <li className="flex items-center group">
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-700 text-lg font-medium">Grade analytics & GPA tracking</span>
+                </li>
+                <li className="flex items-center group">
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-700 text-lg font-medium">Unlimited syllabus AI extraction</span>
+                </li>
+                <li className="flex items-center group">
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-700 text-lg font-medium">Custom task types & colors</span>
+                </li>
+                <li className="flex items-center group">
+                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
+                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-slate-700 text-lg font-medium">Email support & community</span>
+                </li>
+              </ul>
+
+              <Button
+                text="Start Your 7-Day Free Trial"
+                onClick={() => {
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('get_started_clicked', { location: 'pricing', plan: 'student-monthly' });
+                  onGetStarted();
+                }}
+                variant="outline"
+                className="w-full border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 font-bold py-3 lg:py-4 text-base lg:text-lg transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                ariaLabel="Start Student plan free trial"
+                dataTestId="student-monthly-plan-btn"
+              />
+              
+              {/* Combined badges */}
+              <div className="text-center mt-3">
+                <p className="text-sm font-medium text-gray-600">
+                  No credit card required for trial • Cancel anytime
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
 
-        <div className="text-center mt-16 relative z-10">
-          <div className="flex items-center justify-center gap-6 text-lg font-medium" style={{color: 'var(--accent-navy)'}}>
-            <span className="flex items-center px-4 py-2 rounded-full shadow-lg border-2" style={{backgroundColor: 'var(--rich-cream)', borderColor: 'var(--warm-beige)'}}>
-              <svg className="w-5 h-5 mr-2" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              7-day free trial
-            </span>
-            <span className="flex items-center px-4 py-2 rounded-full shadow-lg border-2" style={{backgroundColor: 'var(--rich-cream)', borderColor: 'var(--warm-beige)'}}>
-              <svg className="w-5 h-5 mr-2" style={{color: 'var(--accent-sage)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Cancel anytime
-            </span>
-          </div>
-        </div>
       </div>
     </section>
   );

@@ -97,7 +97,7 @@ const SubscriptionSettingsTab: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
               <div className="text-center mb-4">
                 <h4 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Student Monthly
+                  Student
                 </h4>
                 <div className="text-3xl font-black text-blue-600 dark:text-blue-400 mt-2">
                   $3.99
@@ -133,20 +133,23 @@ const SubscriptionSettingsTab: React.FC = () => {
                 onClick={() => handleUpgradeClick('https://buy.stripe.com/9B63cugQDaf96dva6Yf7i00', 'monthly')}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                Upgrade to Monthly
+                Upgrade to Student
               </button>
             </div>
 
             {/* Academic Year Plan */}
             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-200 dark:border-orange-700 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 relative">
-              {/* Best Value Badge */}
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                  🎓 Back to School Special
-                </span>
+              {/* Improved Back to School Special Badge - Shorter and Wider */}
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-4 py-1 rounded-xl text-xs font-bold shadow-xl border border-orange-300">
+                  <div className="flex items-center gap-1.5">
+                    <span>🎓</span>
+                    <span>Back to School Special • Ends Sept 30th!</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="text-center mb-4 mt-2">
+              <div className="text-center mb-4 mt-4">
                 <h4 className="text-lg font-bold text-gray-900 dark:text-white">
                   Academic Year
                 </h4>
@@ -157,8 +160,15 @@ const SubscriptionSettingsTab: React.FC = () => {
                 <div className="text-sm text-gray-500 line-through">
                   $24/year
                 </div>
-                <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-1">
-                  Save over 50% vs. monthly!
+                
+                {/* Coupon Code Highlight */}
+                <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-800/30 border border-green-300 dark:border-green-600 rounded-lg p-2 mt-3">
+                  <div className="text-xs font-bold text-green-800 dark:text-green-300">Use code: BACKTOSCHOOL2025</div>
+                  <div className="text-xs text-green-700 dark:text-green-400">Additional $4.01 off</div>
+                </div>
+                
+                <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-2">
+                  📚 Pay for 10 months only
                 </p>
               </div>
 
@@ -173,13 +183,13 @@ const SubscriptionSettingsTab: React.FC = () => {
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-gray-700 dark:text-slate-300">Pay once per school year</span>
+                  <span className="text-gray-700 dark:text-slate-300">60% savings vs monthly</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-gray-700 dark:text-slate-300">No summer charges</span>
+                  <span className="text-gray-700 dark:text-slate-300">No recurring payment stress</span>
                 </li>
               </ul>
 
@@ -191,7 +201,7 @@ const SubscriptionSettingsTab: React.FC = () => {
               </button>
 
               <p className="text-center mt-2 text-xs text-orange-600 dark:text-orange-400 font-medium">
-                🔥 Limited time offer - Ends Sept 30th!
+                🔥 Limited time offer!
               </p>
             </div>
           </div>
