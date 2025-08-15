@@ -19,16 +19,6 @@ export const isSaaSMode = (): boolean => {
 
 export const getFeatureFlag = (flag: string): boolean => {
   const value = process.env[`REACT_APP_${flag}`];
-  // Temporary debug logging for production
-  if (flag === 'ENABLE_SUBSCRIPTIONS') {
-    console.log('🔍 Subscription Debug:', {
-      flag,
-      envKey: `REACT_APP_${flag}`,
-      value,
-      result: value === 'true',
-      buildMode: process.env.REACT_APP_BUILD_MODE
-    });
-  }
   return value === 'true';
 };
 
@@ -39,11 +29,11 @@ export const getAICreditLimit = (): number => {
 
 // Feature flags
 export const features = {
-  stripe: getFeatureFlag('ENABLE_STRIPE'),
-  subscriptions: getFeatureFlag('ENABLE_SUBSCRIPTIONS'),
-  usageLimits: getFeatureFlag('ENABLE_USAGE_LIMITS'),
-  upgradePrompts: getFeatureFlag('SHOW_UPGRADE_PROMPTS'),
-  analytics: getFeatureFlag('SHOW_ANALYTICS'),
+  stripe: getFeatureFlag('ENABLE_STRIPE') || isSaaSMode(),
+  subscriptions: getFeatureFlag('ENABLE_SUBSCRIPTIONS') || isSaaSMode(),
+  usageLimits: getFeatureFlag('ENABLE_USAGE_LIMITS') || isSaaSMode(),
+  upgradePrompts: getFeatureFlag('SHOW_UPGRADE_PROMPTS') || isSaaSMode(),
+  analytics: getFeatureFlag('SHOW_ANALYTICS') || isSaaSMode(),
   
   // Advanced feature visibility flags
   showGradeAnalytics: getFeatureFlag('SHOW_GRADE_ANALYTICS'),
