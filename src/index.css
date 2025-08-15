@@ -406,6 +406,7 @@ body {
   background: #94a3b8;
 }
 
+
 /* Cross-browser scrollbar utilities for calendar day cells */
 .scrollbar-thin {
   scrollbar-width: thin; /* Firefox */

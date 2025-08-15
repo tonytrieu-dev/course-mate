@@ -11,8 +11,8 @@ interface SupabaseConfig {
 
 interface StripeConfig {
   publishableKey: string | undefined;
-  studentPriceId: string | undefined;
-  proPriceId: string | undefined;
+  studentMonthlyPriceId: string | undefined;
+  academicYearPriceId: string | undefined;
 }
 
 interface AppConfig {
@@ -91,8 +91,8 @@ function createConfig(): Config {
     },
     stripe: {
       publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY,
-      studentPriceId: process.env.STRIPE_STUDENT_PRICE_ID || process.env.REACT_APP_STRIPE_STUDENT_PRICE_ID,
-      proPriceId: process.env.STRIPE_PRO_PRICE_ID || process.env.REACT_APP_STRIPE_PRO_PRICE_ID
+      studentMonthlyPriceId: process.env.STRIPE_STUDENT_MONTHLY_PRICE_ID || process.env.REACT_APP_STRIPE_STUDENT_MONTHLY_PRICE_ID,
+      academicYearPriceId: process.env.STRIPE_ACADEMIC_YEAR_PRICE_ID || process.env.REACT_APP_STRIPE_ACADEMIC_YEAR_PRICE_ID
     },
     app: {
       nodeEnv: process.env.NODE_ENV || 'development',

@@ -46,7 +46,7 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
                          hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 
                          dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20
                          hover:shadow-sm hover:scale-[1.02] active:scale-[0.98]
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2
+                         focus:outline-none
                          border border-transparent hover:border-blue-100 dark:hover:border-blue-800
                          min-h-[44px] touch-manipulation"
               type="button"
@@ -95,7 +95,7 @@ const SidebarControls: React.FC<SidebarControlsProps> = ({
                            dark:hover:from-blue-800/30 dark:hover:to-indigo-800/30 rounded-xl
                            flex items-center justify-center transition-all duration-200 
                            hover:scale-110 active:scale-95 shadow-sm hover:shadow-md
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2
+                           focus:outline-none
                            border border-transparent hover:border-blue-200 dark:hover:border-blue-800
                            touch-manipulation group"
                 title={`${button.label}: ${button.description}`}

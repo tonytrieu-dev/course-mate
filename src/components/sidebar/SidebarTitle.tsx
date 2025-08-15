@@ -41,8 +41,9 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
   colorOptions,
   getColorClasses,
 }) => {
-  const { getFontSize } = useTextFormatting();
+  const { getFontSize, getFontWeight } = useTextFormatting();
   const [titleSize, setTitleSize] = useState(() => getFontSize('sidebar-title'));
+  const [titleWeight, setTitleWeight] = useState(() => getFontWeight('sidebar-title'));
 
   // Listen for font size changes from keyboard shortcuts
   useEffect(() => {
@@ -58,11 +59,31 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
     };
   }, []);
 
+  // Listen for font weight changes from keyboard shortcuts
+  useEffect(() => {
+    const handleFontWeightChange = (event: CustomEvent) => {
+      if (event.detail.elementType === 'sidebar-title') {
+        setTitleWeight(event.detail.fontWeight);
+      }
+    };
+
+    window.addEventListener('fontWeightChanged', handleFontWeightChange as EventListener);
+    return () => {
+      window.removeEventListener('fontWeightChanged', handleFontWeightChange as EventListener);
+    };
+  }, []);
+
   // Update font size if it changes in context
   useEffect(() => {
     const currentFontSize = getFontSize('sidebar-title');
     setTitleSize(currentFontSize);
   }, [getFontSize]);
+
+  // Update font weight if it changes in context
+  useEffect(() => {
+    const currentFontWeight = getFontWeight('sidebar-title');
+    setTitleWeight(currentFontWeight);
+  }, [getFontWeight]);
   return (
     <div className="pt-16">
       {!isSidebarCollapsed && (
@@ -81,13 +102,13 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
                 setShowTitleColorPicker(true);
               }}
               className={isEditingTitle 
-                ? `text-4xl font-bold w-[90%] p-1 ${getColorClasses(titleColor).class} mt-0 mb-3 font-inherit 
+                ? `text-4xl w-[90%] p-1 ${getColorClasses(titleColor).class} mt-0 mb-3 
                    outline-none ring-2 ring-blue-500 ring-offset-2 rounded-md bg-transparent`
-                : `${getColorClasses(titleColor).class} cursor-pointer leading-tight font-inherit font-bold 
+                : `${getColorClasses(titleColor).class} cursor-pointer leading-tight 
                    transition-all duration-300 ${getColorClasses(titleColor).hoverClass} inline-block
                    focus:outline-none rounded-md px-2 py-1 hover:shadow-lg hover:bg-white/20 backdrop-blur-sm`
               }
-              style={{ fontSize: `${titleSize}px` }}
+              style={{ fontSize: `${titleSize}px`, fontWeight: titleWeight }}
               title="Click to edit • Right-click for color options • Focus and use Ctrl+Plus/Minus to resize"
               tabIndex={0}
               role="heading"

@@ -32,6 +32,12 @@ const tabs: SettingsTabInfo[] = [
     label: 'Data Export/Import',
     icon: '💾',
     description: 'Backup and restore your data'
+  },
+  {
+    id: 'subscription',
+    label: 'Subscription',
+    icon: '💳',
+    description: 'Upgrade plans and billing'
   }
 ];
 
@@ -41,6 +47,9 @@ const SettingsTabNavigation: React.FC<SettingsTabNavigationProps> = ({
 }) => {
   // Filter tabs based on feature flags
   const availableTabs = tabs.filter(tab => {
+    if (tab.id === 'subscription' && !features.subscriptions) {
+      return false;
+    }
     if (tab.id === 'notifications' && !features.showEmailNotifications) {
       return false;
     }

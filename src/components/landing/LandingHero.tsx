@@ -46,7 +46,8 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
               <Button
                 text="Try ScheduleBud for Free"
                 onClick={() => {
-                  trackEvent('get_started_clicked', { location: 'hero' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('get_started_clicked', { location: 'hero' });
                   onGetStarted();
                 }}
                 variant="cta-orange"
@@ -127,7 +128,8 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
                     <Button
                       text="Try These Features Free"
                       onClick={() => {
-                        trackEvent('get_started_clicked', { location: 'video_demo' });
+                        // TODO: Uncomment for landing page analytics
+                        // trackEvent('get_started_clicked', { location: 'video_demo' });
                         onGetStarted();
                       }}
                       variant="cta-orange"

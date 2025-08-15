@@ -37,7 +37,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
   onTasksRefresh
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
-  const { getFontSize, elementFormatting, setElementFormatting } = useTextFormatting();
+  const { getFontSize, getFontWeight, elementFormatting, setElementFormatting } = useTextFormatting();
   
   // Custom hooks for state management
   const sidebarState = useSidebarState();
@@ -112,6 +112,12 @@ const SidebarInner: React.FC<SidebarProps> = ({
     const formatting = elementFormatting['classes-header'];
     return formatting?.fontSize || getFontSize('classes-header');
   });
+
+  // Track font weight with local state that syncs with context
+  const [classesHeaderWeight, setClassesHeaderWeight] = React.useState(() => {
+    const formatting = elementFormatting['classes-header'];
+    return formatting?.bold ? 'bold' : getFontWeight('classes-header');
+  });
   
   // Update local state when context changes
   useEffect(() => {
@@ -120,7 +126,12 @@ const SidebarInner: React.FC<SidebarProps> = ({
     if (newSize !== classesHeaderSize) {
       setClassesHeaderSize(newSize);
     }
-  }, [elementFormatting, getFontSize, classesHeaderSize]);
+    
+    const newWeight = formatting?.bold ? 'bold' : getFontWeight('classes-header');
+    if (newWeight !== classesHeaderWeight) {
+      setClassesHeaderWeight(newWeight);
+    }
+  }, [elementFormatting, getFontSize, getFontWeight, classesHeaderSize, classesHeaderWeight]);
   
   // Listen for font size change events
   useEffect(() => {
@@ -136,84 +147,119 @@ const SidebarInner: React.FC<SidebarProps> = ({
     };
   }, []);
 
-  // Standard color options with dark mode support and background variants
+  // Listen for font weight change events
+  useEffect(() => {
+    const handleFontWeightChange = (event: CustomEvent) => {
+      if (event.detail.elementType === 'classes-header') {
+        setClassesHeaderWeight(event.detail.fontWeight);
+      }
+    };
+    
+    window.addEventListener('fontWeightChanged', handleFontWeightChange as EventListener);
+    return () => {
+      window.removeEventListener('fontWeightChanged', handleFontWeightChange as EventListener);
+    };
+  }, []);
+
+  // Standard color options with consistent shades across light and dark themes
   const colorOptions = [
     { 
       name: 'blue', 
-      class: 'text-blue-700 dark:text-blue-400', 
-      hoverClass: 'hover:text-blue-800 dark:hover:text-blue-300',
-      bgClass: 'bg-blue-700 dark:bg-blue-400',
-      hoverBgClass: 'hover:bg-blue-800 dark:hover:bg-blue-300'
+      class: 'text-[#1D4ED8] dark:text-[#1D4ED8]', 
+      hoverClass: 'hover:text-[#1E40AF] dark:hover:text-[#1E40AF]',
+      bgClass: 'bg-[#1D4ED8] dark:bg-[#1D4ED8]',
+      hoverBgClass: 'hover:bg-[#1E40AF] dark:hover:bg-[#1E40AF]'
     },
     { 
       name: 'red', 
-      class: 'text-red-700 dark:text-red-400', 
-      hoverClass: 'hover:text-red-800 dark:hover:text-red-300',
-      bgClass: 'bg-red-700 dark:bg-red-400',
-      hoverBgClass: 'hover:bg-red-800 dark:hover:bg-red-300'
+      class: 'text-[#DC2626] dark:text-[#DC2626]', 
+      hoverClass: 'hover:text-[#B91C1C] dark:hover:text-[#B91C1C]',
+      bgClass: 'bg-[#DC2626] dark:bg-[#DC2626]',
+      hoverBgClass: 'hover:bg-[#B91C1C] dark:hover:bg-[#B91C1C]'
     },
     { 
       name: 'green', 
-      class: 'text-green-700 dark:text-green-400', 
-      hoverClass: 'hover:text-green-800 dark:hover:text-green-300',
-      bgClass: 'bg-green-700 dark:bg-green-400',
-      hoverBgClass: 'hover:bg-green-800 dark:hover:bg-green-300'
+      class: 'text-[#16A34A] dark:text-[#16A34A]', 
+      hoverClass: 'hover:text-[#15803D] dark:hover:text-[#15803D]',
+      bgClass: 'bg-[#16A34A] dark:bg-[#16A34A]',
+      hoverBgClass: 'hover:bg-[#15803D] dark:hover:bg-[#15803D]'
     },
     { 
       name: 'yellow', 
-      class: 'text-yellow-600 dark:text-yellow-400', 
-      hoverClass: 'hover:text-yellow-700 dark:hover:text-yellow-300',
-      bgClass: 'bg-yellow-600 dark:bg-yellow-400',
-      hoverBgClass: 'hover:bg-yellow-700 dark:hover:bg-yellow-300'
+      class: 'text-[#CA8A04] dark:text-[#CA8A04]', 
+      hoverClass: 'hover:text-[#A16207] dark:hover:text-[#A16207]',
+      bgClass: 'bg-[#CA8A04] dark:bg-[#CA8A04]',
+      hoverBgClass: 'hover:bg-[#A16207] dark:hover:bg-[#A16207]'
     },
     { 
       name: 'purple', 
-      class: 'text-purple-700 dark:text-purple-400', 
-      hoverClass: 'hover:text-purple-800 dark:hover:text-purple-300',
-      bgClass: 'bg-purple-700 dark:bg-purple-400',
-      hoverBgClass: 'hover:bg-purple-800 dark:hover:bg-purple-300'
+      class: 'text-[#9333EA] dark:text-[#9333EA]', 
+      hoverClass: 'hover:text-[#7C3AED] dark:hover:text-[#7C3AED]',
+      bgClass: 'bg-[#9333EA] dark:bg-[#9333EA]',
+      hoverBgClass: 'hover:bg-[#7C3AED] dark:hover:bg-[#7C3AED]'
     },
     { 
       name: 'pink', 
-      class: 'text-pink-700 dark:text-pink-400', 
-      hoverClass: 'hover:text-pink-800 dark:hover:text-pink-300',
-      bgClass: 'bg-pink-700 dark:bg-pink-400',
-      hoverBgClass: 'hover:bg-pink-800 dark:hover:bg-pink-300'
+      class: 'text-[#DB2777] dark:text-[#DB2777]', 
+      hoverClass: 'hover:text-[#BE185D] dark:hover:text-[#BE185D]',
+      bgClass: 'bg-[#DB2777] dark:bg-[#DB2777]',
+      hoverBgClass: 'hover:bg-[#BE185D] dark:hover:bg-[#BE185D]'
+    },
+    { 
+      name: 'rose', 
+      class: 'text-[#F43F5E] dark:text-[#F43F5E]', 
+      hoverClass: 'hover:text-[#E11D48] dark:hover:text-[#E11D48]',
+      bgClass: 'bg-[#F43F5E] dark:bg-[#F43F5E]',
+      hoverBgClass: 'hover:bg-[#E11D48] dark:hover:bg-[#E11D48]'
+    },
+    { 
+      name: 'lavender', 
+      class: 'text-[#C084FC] dark:text-[#C084FC]', 
+      hoverClass: 'hover:text-[#A855F7] dark:hover:text-[#A855F7]',
+      bgClass: 'bg-[#C084FC] dark:bg-[#C084FC]',
+      hoverBgClass: 'hover:bg-[#A855F7] dark:hover:bg-[#A855F7]'
     },
     { 
       name: 'indigo', 
-      class: 'text-indigo-700 dark:text-indigo-400', 
-      hoverClass: 'hover:text-indigo-800 dark:hover:text-indigo-300',
-      bgClass: 'bg-indigo-700 dark:bg-indigo-400',
-      hoverBgClass: 'hover:bg-indigo-800 dark:hover:bg-indigo-300'
+      class: 'text-[#4F46E5] dark:text-[#4F46E5]', 
+      hoverClass: 'hover:text-[#4338CA] dark:hover:text-[#4338CA]',
+      bgClass: 'bg-[#4F46E5] dark:bg-[#4F46E5]',
+      hoverBgClass: 'hover:bg-[#4338CA] dark:hover:bg-[#4338CA]'
     },
     { 
       name: 'gray', 
-      class: 'text-gray-700 dark:text-gray-400', 
-      hoverClass: 'hover:text-gray-800 dark:hover:text-gray-300',
-      bgClass: 'bg-gray-700 dark:bg-gray-400',
-      hoverBgClass: 'hover:bg-gray-800 dark:hover:bg-gray-300'
+      class: 'text-[#6B7280] dark:text-[#6B7280]', 
+      hoverClass: 'hover:text-[#4B5563] dark:hover:text-[#4B5563]',
+      bgClass: 'bg-[#6B7280] dark:bg-[#6B7280]',
+      hoverBgClass: 'hover:bg-[#4B5563] dark:hover:bg-[#4B5563]'
     },
     { 
       name: 'orange', 
-      class: 'text-orange-700 dark:text-orange-400', 
-      hoverClass: 'hover:text-orange-800 dark:hover:text-orange-300',
-      bgClass: 'bg-orange-700 dark:bg-orange-400',
-      hoverBgClass: 'hover:bg-orange-800 dark:hover:bg-orange-300'
+      class: 'text-[#EA580C] dark:text-[#EA580C]', 
+      hoverClass: 'hover:text-[#C2410C] dark:hover:text-[#C2410C]',
+      bgClass: 'bg-[#EA580C] dark:bg-[#EA580C]',
+      hoverBgClass: 'hover:bg-[#C2410C] dark:hover:bg-[#C2410C]'
     },
     { 
       name: 'teal', 
-      class: 'text-teal-700 dark:text-teal-400', 
-      hoverClass: 'hover:text-teal-800 dark:hover:text-teal-300',
-      bgClass: 'bg-teal-700 dark:bg-teal-400',
-      hoverBgClass: 'hover:bg-teal-800 dark:hover:bg-teal-300'
+      class: 'text-[#0D9488] dark:text-[#0D9488]', 
+      hoverClass: 'hover:text-[#0F766E] dark:hover:text-[#0F766E]',
+      bgClass: 'bg-[#0D9488] dark:bg-[#0D9488]',
+      hoverBgClass: 'hover:bg-[#0F766E] dark:hover:bg-[#0F766E]'
+    },
+    { 
+      name: 'white', 
+      class: 'text-[#FFFFFF] dark:text-[#FFFFFF]', 
+      hoverClass: 'hover:text-[#F3F4F6] dark:hover:text-[#F3F4F6]',
+      bgClass: 'bg-[#FFFFFF] dark:bg-[#FFFFFF]',
+      hoverBgClass: 'hover:bg-[#F3F4F6] dark:hover:bg-[#F3F4F6]'
     },
     { 
       name: 'black', 
-      class: 'text-gray-900 dark:text-gray-100', 
-      hoverClass: 'hover:text-gray-800 dark:hover:text-gray-200',
-      bgClass: 'bg-gray-900 dark:bg-gray-100',
-      hoverBgClass: 'hover:bg-gray-800 dark:hover:bg-gray-200'
+      class: 'text-[#000000] dark:text-[#000000]', 
+      hoverClass: 'hover:text-[#1F2937] dark:hover:text-[#1F2937]',
+      bgClass: 'bg-[#000000] dark:bg-[#000000]',
+      hoverBgClass: 'hover:bg-[#1F2937] dark:hover:bg-[#1F2937]'
     },
     { 
       name: 'royal', 
@@ -247,6 +293,8 @@ const SidebarInner: React.FC<SidebarProps> = ({
   // Data management hook
   const {
     handleTitleBlur,
+    handleTitleBlurWithFormatting,
+    handleClassesTitleBlur: handleClassesTitleBlurData,
     handleClassClick,
     handleSyllabusUpdate,
     handleFileUpdate,
@@ -393,7 +441,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
           isEditingTitle={isEditingTitle}
           onTitleClick={handleTitleClick}
           onTitleBlur={() => {
-            handleTitleBlur();
+            handleTitleBlurWithFormatting();
             setIsEditingTitle(false);
           }}
           isSidebarCollapsed={isSidebarCollapsed}
@@ -431,6 +479,7 @@ const SidebarInner: React.FC<SidebarProps> = ({
                     value={classesTitle}
                     onChange={setClassesTitle}
                     onBlur={() => {
+                      handleClassesTitleBlurData();
                       handleClassesTitleBlur();
                       setIsEditingClassesTitle(false);
                       // Force a re-render to pick up font size changes
@@ -457,11 +506,12 @@ const SidebarInner: React.FC<SidebarProps> = ({
                       setShowClassesHeaderColorPicker(true);
                     }}
                     className={isEditingClassesTitle
-                      ? `${getColorClasses(classesHeaderColor).class} font-medium normal-case bg-transparent outline-none block break-words`
-                      : `${getColorClasses(classesHeaderColor).class} font-medium normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} block break-words`
+                      ? `${getColorClasses(classesHeaderColor).class} normal-case bg-transparent outline-none block break-words`
+                      : `${getColorClasses(classesHeaderColor).class} normal-case cursor-pointer transition-all duration-200 ${getColorClasses(classesHeaderColor).hoverClass} block break-words`
                     }
                     style={{ 
                       fontSize: `${classesHeaderSize}px`,
+                      fontWeight: classesHeaderWeight,
                       wordBreak: 'break-word',
                       overflowWrap: 'break-word',
                       hyphens: 'auto'

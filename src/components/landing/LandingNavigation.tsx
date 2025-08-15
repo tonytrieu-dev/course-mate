@@ -33,35 +33,48 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
             <a 
               href="#features" 
               className="text-slate-700 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-3 min-h-[44px] flex items-center hover:text-[var(--primary-navy)]"
-              onClick={() => trackEvent('nav_click', { section: 'features' })}
+              onClick={() => {
+                // TODO: Uncomment for landing page analytics
+                // trackEvent('nav_click', { section: 'features' });
+              }}
             >
               Features
             </a>
             <a 
               href="#pricing" 
               className="text-slate-700 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-3 min-h-[44px] flex items-center hover:text-[var(--primary-navy)]"
-              onClick={() => trackEvent('nav_click', { section: 'pricing' })}
+              onClick={() => {
+                // TODO: Uncomment for landing page analytics
+                // trackEvent('nav_click', { section: 'pricing' });
+              }}
             >
               Pricing
             </a>
             <a 
               href="#hero" 
               className="text-slate-700 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-3 min-h-[44px] flex items-center hover:text-[var(--primary-navy)]"
-              onClick={() => trackEvent('nav_click', { section: 'about' })}
+              onClick={() => {
+                // TODO: Uncomment for landing page analytics
+                // trackEvent('nav_click', { section: 'about' });
+              }}
             >
               About
             </a>
             <a 
               href="#faq" 
               className="text-slate-700 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded px-4 py-3 min-h-[44px] flex items-center hover:text-[var(--primary-navy)]"
-              onClick={() => trackEvent('nav_click', { section: 'faq' })}
+              onClick={() => {
+                // TODO: Uncomment for landing page analytics
+                // trackEvent('nav_click', { section: 'faq' });
+              }}
             >
               FAQ
             </a>
             <Button
               text="Get Started"
               onClick={() => {
-                trackEvent('get_started_clicked', { location: 'nav' });
+                // TODO: Uncomment for landing page analytics
+                // trackEvent('get_started_clicked', { location: 'nav' });
                 onGetStarted();
               }}
               variant="primary"
@@ -76,7 +89,8 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
             <Button
               text="Get Started"
               onClick={() => {
-                trackEvent('get_started_clicked', { location: 'mobile_nav' });
+                // TODO: Uncomment for landing page analytics
+                // trackEvent('get_started_clicked', { location: 'mobile_nav' });
                 onGetStarted();
               }}
               size="sm"
@@ -110,7 +124,8 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 href="#features" 
                 className="text-slate-700 hover:bg-[var(--primary-navy)]/10 hover:text-[var(--primary-navy)] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded-lg px-4 py-4 min-h-[48px] flex items-center"
                 onClick={() => {
-                  trackEvent('nav_click', { section: 'features', device: 'mobile' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('nav_click', { section: 'features', device: 'mobile' });
                   closeMobileMenu();
                 }}
               >
@@ -120,7 +135,8 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 href="#pricing" 
                 className="text-slate-700 hover:bg-[var(--primary-navy)]/10 hover:text-[var(--primary-navy)] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded-lg px-4 py-4 min-h-[48px] flex items-center"
                 onClick={() => {
-                  trackEvent('nav_click', { section: 'pricing', device: 'mobile' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('nav_click', { section: 'pricing', device: 'mobile' });
                   closeMobileMenu();
                 }}
               >
@@ -130,7 +146,8 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 href="#hero" 
                 className="text-slate-700 hover:bg-[var(--primary-navy)]/10 hover:text-[var(--primary-navy)] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded-lg px-4 py-4 min-h-[48px] flex items-center"
                 onClick={() => {
-                  trackEvent('nav_click', { section: 'about', device: 'mobile' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('nav_click', { section: 'about', device: 'mobile' });
                   closeMobileMenu();
                 }}
               >
@@ -140,7 +157,8 @@ const LandingNavigation: React.FC<LandingNavigationProps> = ({ onGetStarted, tra
                 href="#faq" 
                 className="text-slate-700 hover:bg-[var(--primary-navy)]/10 hover:text-[var(--primary-navy)] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary-navy)] focus:ring-offset-2 rounded-lg px-4 py-4 min-h-[48px] flex items-center"
                 onClick={() => {
-                  trackEvent('nav_click', { section: 'faq', device: 'mobile' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('nav_click', { section: 'faq', device: 'mobile' });
                   closeMobileMenu();
                 }}
               >

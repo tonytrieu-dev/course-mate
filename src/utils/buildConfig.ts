@@ -47,6 +47,7 @@ export const features = {
   aiCreditLimit: getAICreditLimit(),
 };
 
+
 // UI text based on mode
 export const getAppName = (): string => {
   return isPersonalMode() ? 'ScheduleBud' : 'ScheduleBud';

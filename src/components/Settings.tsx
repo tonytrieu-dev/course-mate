@@ -8,6 +8,7 @@ import { features } from '../utils/buildConfig';
 import {
   SettingsTabNavigation,
   GeneralSettingsTab,
+  SubscriptionSettingsTab,
   StudyScheduleSettingsTab,
   type SettingsModalProps,
   type SettingsTab
@@ -34,6 +35,8 @@ const Settings: React.FC<SettingsModalProps> = ({
             setIsNavCollapsed={setIsNavCollapsed}
           />
         );
+      case 'subscription':
+        return features.subscriptions ? <SubscriptionSettingsTab /> : null;
       case 'canvas':
         return <CanvasSettings />;
       case 'notifications':

@@ -47,31 +47,34 @@ const PortfolioLayout: React.FC<PortfolioLayoutProps> = ({ children, title, desc
       </main>
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <p className="text-gray-600 dark:text-gray-400">
-              © {new Date().getFullYear()} {getAppName()}. Built with ❤️ for students, by a student.
-            </p>
-            <div className="mt-4 flex justify-center space-x-6">
-              <button
-                onClick={handleBackToScheduleBud}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200"
-              >
-                Try {getAppName()}
-              </button>
-              <a
-                href="https://github.com/tonytrieu-dev/schedule-bud"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200"
-              >
-                View Code
-              </a>
+      {/**
+       * 
+        <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center">
+              <p className="text-gray-600 dark:text-gray-400">
+                © {new Date().getFullYear()} {getAppName()}. Built for students, by a student.
+              </p>
+              <div className="mt-4 flex justify-center space-x-6">
+                <button
+                  onClick={handleBackToScheduleBud}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200"
+                >
+                  Try {getAppName()}
+                </button>
+                <a
+                  href="https://github.com/tonytrieu-dev/schedule-bud"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200"
+                >
+                  View Code
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
+          </footer>
+        */}
     </div>
   );
 };

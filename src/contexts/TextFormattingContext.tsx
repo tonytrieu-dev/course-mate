@@ -46,6 +46,10 @@ interface TextFormattingContextType {
   increaseFontSize: (elementType: string) => void;
   decreaseFontSize: (elementType: string) => void;
   getFontSize: (elementType: string) => number;
+  // Font weight specific methods
+  toggleFontWeight: (elementType: string) => void;
+  getFontWeight: (elementType: string) => 'normal' | 'bold';
+  setFontWeight: (elementType: string, weight: 'normal' | 'bold') => void;
 }
 
 // Provider props interface
@@ -202,6 +206,36 @@ export const TextFormattingProvider: React.FC<TextFormattingProviderProps> = ({ 
     }
   }, [elementFormatting, getFontSize, fontSizeConfigs, activeElement]);
 
+  // Font weight methods - following the same pattern as font size
+  const getFontWeight = useCallback((elementType: string): 'normal' | 'bold' => {
+    const formatting = elementFormatting[elementType];
+    return formatting?.bold ? 'bold' : 'normal';
+  }, [elementFormatting]);
+
+  const setFontWeight = useCallback((elementType: string, weight: 'normal' | 'bold'): void => {
+    const currentFormatting = elementFormatting[elementType] || {};
+    const isBold = weight === 'bold';
+    const newFormatting = { ...currentFormatting, bold: isBold };
+    
+    setElementFormatting(prev => ({ ...prev, [elementType]: newFormatting }));
+    
+    // Apply to active element if it matches the type
+    if (activeElement && activeElement.getAttribute('data-element-type') === elementType) {
+      activeElement.style.fontWeight = weight;
+    }
+    
+    // Trigger custom event for components to listen to
+    window.dispatchEvent(new CustomEvent('fontWeightChanged', { 
+      detail: { elementType, fontWeight: weight } 
+    }));
+  }, [elementFormatting, activeElement]);
+
+  const toggleFontWeight = useCallback((elementType: string): void => {
+    const currentWeight = getFontWeight(elementType);
+    const newWeight = currentWeight === 'bold' ? 'normal' : 'bold';
+    setFontWeight(elementType, newWeight);
+  }, [getFontWeight, setFontWeight]);
+
   const handleKeyDown = useCallback((e: KeyboardEvent): void => {
     const isCtrlPressed = e.ctrlKey || e.metaKey;
     
@@ -291,7 +325,10 @@ export const TextFormattingProvider: React.FC<TextFormattingProviderProps> = ({ 
     handleKeyDown,
     increaseFontSize,
     decreaseFontSize,
-    getFontSize
+    getFontSize,
+    toggleFontWeight,
+    getFontWeight,
+    setFontWeight
   };
 
   return (

@@ -1,8 +1,10 @@
 import { useEffect, useCallback } from 'react';
 import type { ClassWithRelations, ClassSyllabus, ClassFile } from '../types/database';
 import { useAuth } from '../contexts/AuthContext';
+import { useTextFormatting } from '../contexts/TextFormattingContext';
 import { useFileManager } from './useFileManager';
 import { getSettings, updateSettings } from '../services/dataService';
+import { getSettingsWithSync, updateSettingsWithSync } from '../services/settings/settingsOperations';
 import { supabase } from '../services/supabaseClient';
 import { fetchCanvasCalendar } from '../services/canvasService';
 import classService from '../services/classService';
@@ -25,6 +27,8 @@ interface UseSidebarDataProps {
 
 interface UseSidebarDataReturn {
   handleTitleBlur: () => void;
+  handleTitleBlurWithFormatting: () => void;
+  handleClassesTitleBlur: () => void;
   handleClassClick: (classId: string) => Promise<void>;
   handleSyllabusUpdate: (syllabusRecord: ClassSyllabus | null) => Promise<void>;
   handleFileUpdate: (fileRecord: ClassFile | null, remainingFiles?: ClassFile[]) => Promise<void>;
@@ -43,6 +47,7 @@ export const useSidebarData = ({
   setIsCanvasSyncing,
 }: UseSidebarDataProps): UseSidebarDataReturn => {
   const { user, isAuthenticated, setLastCalendarSyncTimestamp } = useAuth();
+  const { elementFormatting, setElementFormatting } = useTextFormatting();
   const { getClassData } = useFileManager();
 
   // Auto-sync Canvas calendar
@@ -94,17 +99,26 @@ export const useSidebarData = ({
       const sidebarClasses = fetchedClasses.filter(cls => !cls.isTaskClass);
       setClasses(sidebarClasses);
 
-      const settings = getSettings();
+      // Load settings with Supabase sync if user is authenticated
+      const settings = user?.id 
+        ? await getSettingsWithSync(user.id) 
+        : getSettings();
+        
       if (settings && settings.title) {
         setTitle(settings.title);
       }
       if (settings && settings.classesTitle) {
         setClassesTitle(settings.classesTitle);
       }
+      
+      // Load formatting from settings into the context
+      if (settings && settings.elementFormatting) {
+        setElementFormatting(settings.elementFormatting);
+      }
     };
 
     loadData();
-  }, [isAuthenticated, setClasses, setTitle, setClassesTitle]);
+  }, [isAuthenticated, setClasses, setTitle, setClassesTitle, setElementFormatting]);
 
   // Subscribe to class changes
   useEffect(() => {
@@ -122,10 +136,30 @@ export const useSidebarData = ({
   }, [isAuthenticated, setClasses]);
 
   // Event handlers
-  const handleTitleBlur = useCallback(() => {
-    const currentSettings = getSettings();
-    updateSettings({ ...currentSettings, title });
-  }, [title]);
+  const handleTitleBlur = useCallback(async () => {
+    const currentSettings = await getSettingsWithSync(user?.id);
+    await updateSettingsWithSync({ ...currentSettings, title }, user?.id);
+  }, [title, user?.id]);
+
+  const handleTitleBlurWithFormatting = useCallback(async () => {
+    const currentSettings = await getSettingsWithSync(user?.id);
+    const updatedSettings = {
+      ...currentSettings,
+      title,
+      elementFormatting: { ...(currentSettings.elementFormatting || {}), ...elementFormatting }
+    };
+    await updateSettingsWithSync(updatedSettings, user?.id);
+  }, [title, elementFormatting, user?.id]);
+
+  const handleClassesTitleBlur = useCallback(async () => {
+    const currentSettings = await getSettingsWithSync(user?.id);
+    const updatedSettings = {
+      ...currentSettings,
+      classesTitle,
+      elementFormatting: { ...(currentSettings.elementFormatting || {}), ...elementFormatting }
+    };
+    await updateSettingsWithSync(updatedSettings, user?.id);
+  }, [classesTitle, elementFormatting, user?.id]);
 
   const handleClassClick = useCallback(async (classId: string) => {
     const classObj = classes.find((c) => c.id === classId);
@@ -173,6 +207,8 @@ export const useSidebarData = ({
 
   return {
     handleTitleBlur,
+    handleTitleBlurWithFormatting,
+    handleClassesTitleBlur,
     handleClassClick,
     handleSyllabusUpdate,
     handleFileUpdate,

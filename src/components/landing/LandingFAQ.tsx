@@ -90,7 +90,7 @@ const LandingFAQ: React.FC = () => {
           <div className="text-center mt-8">
             <div className="backdrop-blur-sm rounded-2xl p-4 shadow-lg inline-block" style={{backgroundColor: 'rgba(255, 248, 220, 0.9)', border: '1px solid rgba(37, 99, 235, 0.3)'}}>
               <p className="text-slate-700 text-sm font-medium">
-                Have more questions? <a href="https://discord.gg/schedulebud" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:no-underline transition-all duration-200" style={{color: 'var(--primary-navy)'}}>Ask me on Discord</a>
+                Have more questions? <a href="https://discord.gg/UYxNeYrA4S" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:no-underline transition-all duration-200" style={{color: 'var(--primary-navy)'}}>Ask me on Discord</a>
               </p>
             </div>
           </div>

@@ -216,6 +216,18 @@ export const STORAGE_KEYS = {
   SETTINGS: 'calendar_settings',
 } as const;
 
+// Element formatting configuration for text elements
+export interface ElementFormatting {
+  bold?: boolean;
+  underline?: boolean;
+  fontSize?: number;
+}
+
+// Element formatting map (element type -> formatting config)
+export interface ElementFormattingMap {
+  [elementType: string]: ElementFormatting;
+}
+
 // Settings interface
 export interface AppSettings {
   title: string;
@@ -230,5 +242,7 @@ export interface AppSettings {
   // Sidebar color customization
   titleColor?: string;
   classesHeaderColor?: string;
+  // Text formatting configuration
+  elementFormatting?: ElementFormattingMap;
   // Add other settings as needed
 }

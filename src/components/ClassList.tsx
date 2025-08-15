@@ -158,7 +158,7 @@ const ClassList: React.FC<ClassListProps> = ({
                       onChange={(newName) => handleClassChange(c.id, newName)}
                       onBlur={handleClassBlur}
                       isEditing={true}
-                      className="flex-1 p-2 bg-white border-2 border-blue-300 font-medium text-gray-900 outline-none focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200"
+                      className="flex-1 p-2 bg-white dark:bg-slate-800 border-2 border-blue-300 dark:border-blue-500 font-medium text-gray-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-blue-400 rounded-lg shadow-sm transition-all duration-200"
                       style={{ fontSize: `${classNameSize}px` }}
                     />
                   ) : (
@@ -190,7 +190,13 @@ const ClassList: React.FC<ClassListProps> = ({
                             }
                           }}
                         >
-                          {c.name}
+                          {c.name ? (
+                            c.name
+                          ) : (
+                            <span className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-slate-500 italic transition-opacity duration-200">
+                              Click to name class...
+                            </span>
+                          )}
                         </span>
                         {showClassNameSizeControl === c.id && (
                           <InlineSizeControl 

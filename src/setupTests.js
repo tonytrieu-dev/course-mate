@@ -1,8 +1,8 @@
 // Jest setup file for React Testing Library
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Mock Supabase client for tests
-jest.mock('./services/supabaseClient', () => ({
+jest.mock("./services/supabaseClient", () => ({
   supabase: {
     auth: {
       getUser: jest.fn(() => Promise.resolve({ data: { user: null } })),
@@ -19,7 +19,7 @@ jest.mock('./services/supabaseClient', () => ({
 }));
 
 // Mock the logger to prevent console output during tests
-jest.mock('./utils/logger', () => ({
+jest.mock("./utils/logger", () => ({
   logger: {
     debug: jest.fn(),
     info: jest.fn(),
@@ -29,5 +29,5 @@ jest.mock('./utils/logger', () => ({
 }));
 
 // Mock environment variables
-process.env.SUPABASE_URL = 'https://test.supabase.co';
-process.env.SUPABASE_ANON_KEY = 'test-key';
+process.env.SUPABASE_URL = "https://test.supabase.co";
+process.env.SUPABASE_ANON_KEY = "test-key";

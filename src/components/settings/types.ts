@@ -1,7 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import type { ClassWithRelations } from '../../types/database';
 
-export type SettingsTab = 'general' | 'canvas' | 'notifications' | 'study-schedule' | 'export-import';
+export type SettingsTab = 'general' | 'subscription' | 'canvas' | 'notifications' | 'study-schedule' | 'export-import';
 
 export interface GeneralSettingsState {
   taskCompletionSound: boolean;

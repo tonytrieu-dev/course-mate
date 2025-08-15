@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, CSSProperties, ReactNode, HTMLAttributes } from 'react';
+import React, { useRef, useEffect, useCallback, CSSProperties, ReactNode, HTMLAttributes, useMemo } from 'react';
 import { useTextFormatting } from '../contexts/TextFormattingContext';
 
 interface EditableTextProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'onBlur' | 'onKeyDown'> {
@@ -45,7 +45,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   showCharacterCount = false,
   ...props
 }) => {
-  const { restoreElementFormatting } = useTextFormatting();
+  const { restoreElementFormatting, elementFormatting, setElementFormatting } = useTextFormatting();
   const elementRef = useRef<HTMLDivElement>(null);
   const isInitialEditRef = useRef<boolean>(true);
   const lastValueRef = useRef<string>(value);
@@ -126,13 +126,46 @@ const EditableText: React.FC<EditableTextProps> = ({
     }
   }, [isEditing, value, getCursorPosition, setCursorPosition, elementType, restoreElementFormatting]);
 
+  // Custom blur handler that captures current formatting from DOM element
+  const handleCustomBlur = useCallback(() => {
+    if (elementRef.current && elementType) {
+      const element = elementRef.current;
+      const currentStyle = window.getComputedStyle(element);
+      
+      // Capture current formatting state from the DOM element
+      const currentFormatting = elementFormatting[elementType] || {};
+      const newFormatting = {
+        ...currentFormatting,
+        bold: currentStyle.fontWeight === 'bold' || currentStyle.fontWeight === '700' || 
+              element.style.fontWeight === 'bold',
+        underline: currentStyle.textDecoration.includes('underline') || 
+                  element.style.textDecoration.includes('underline'),
+      };
+      
+      // Only update if formatting actually changed
+      const hasChanged = 
+        newFormatting.bold !== currentFormatting.bold ||
+        newFormatting.underline !== currentFormatting.underline;
+      
+      if (hasChanged) {
+        setElementFormatting(prev => ({
+          ...prev,
+          [elementType]: newFormatting
+        }));
+      }
+    }
+    
+    // Call the original onBlur handler
+    onBlur && onBlur();
+  }, [elementRef, elementType, elementFormatting, setElementFormatting, onBlur]);
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     // Handle Enter key based on multiline setting
     if (e.key === 'Enter') {
       if (!multiline || !e.shiftKey) {
         e.preventDefault();
         e.stopPropagation();
-        onBlur && onBlur();
+        handleCustomBlur();
       }
     }
     
@@ -146,12 +179,12 @@ const EditableText: React.FC<EditableTextProps> = ({
         // Reset the lastValueRef to prevent onChange from firing
         lastValueRef.current = value;
       }
-      onBlur && onBlur();
+      handleCustomBlur();
       return; // Early return to prevent further processing
     }
     
     onKeyDown && onKeyDown(e);
-  }, [onBlur, onKeyDown, multiline, value]);
+  }, [handleCustomBlur, onKeyDown, multiline, value]);
 
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -180,6 +213,33 @@ const EditableText: React.FC<EditableTextProps> = ({
     onChange && onChange(newValue);
   }, [onChange, maxLength, validateInput, setCursorPosition]);
 
+  // Create dynamic styles for display mode based on saved formatting
+  const dynamicDisplayStyles = useMemo(() => {
+    const formatting = elementType ? elementFormatting[elementType] : undefined;
+    const styles: CSSProperties = {};
+
+    if (formatting) {
+      if (formatting.bold !== undefined) {
+        styles.fontWeight = formatting.bold ? 'bold' : 'normal';
+      }
+      if (formatting.underline) {
+        styles.textDecoration = 'underline';
+      }
+      if (formatting.fontSize) {
+        styles.fontSize = `${formatting.fontSize}px`;
+      }
+    } else if (elementType) {
+      // Apply default font weights for elements with no saved formatting
+      if (elementType === 'sidebar-title') {
+        styles.fontWeight = 'bold'; // Default bold for title
+      } else if (elementType === 'classes-header') {
+        styles.fontWeight = '500'; // Default medium for classes header
+      }
+    }
+    return styles;
+  }, [elementFormatting, elementType]);
+
+
   if (isEditing) {
     return (
       <div className="relative">
@@ -189,7 +249,7 @@ const EditableText: React.FC<EditableTextProps> = ({
           suppressContentEditableWarning={true}
           data-element-type={elementType}
           onInput={handleInput}
-          onBlur={onBlur}
+          onBlur={handleCustomBlur}
           onKeyDown={handleKeyDown}
           onContextMenu={onContextMenu}
           className={`
@@ -246,6 +306,7 @@ const EditableText: React.FC<EditableTextProps> = ({
       `}
       style={{
         ...style,
+        ...dynamicDisplayStyles, // Apply saved formatting styles
         // Apply proper text wrapping in non-editing mode
         wordBreak: 'break-word',
         overflowWrap: 'break-word'

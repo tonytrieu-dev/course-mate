@@ -120,7 +120,8 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
               <Button
                 text="Start Free"
                 onClick={() => {
-                  trackEvent('get_started_clicked', { location: 'pricing', plan: 'free' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('get_started_clicked', { location: 'pricing', plan: 'free' });
                   onGetStarted();
                 }}
                 variant="outline"
@@ -200,9 +201,10 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
               </ul>
 
               <Button
-                text="Try Monthly Free"
+                text="Start Your 7-Day Free Trial"
                 onClick={() => {
-                  trackEvent('get_started_clicked', { location: 'pricing', plan: 'student-monthly' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('get_started_clicked', { location: 'pricing', plan: 'student-monthly' });
                   onGetStarted();
                 }}
                 variant="cta-orange"
@@ -210,12 +212,27 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                 ariaLabel="Start Student Monthly plan free trial"
                 dataTestId="student-monthly-plan-btn"
               />
+              
+              {/* No Credit Card Required Text */}
+              <p className="text-center mt-3 text-sm font-medium text-green-600 flex items-center justify-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                No credit card required to start
+              </p>
             </div>
           </div>
           {/* Student Academic Year Plan - Best value */}
-          <div className="backdrop-blur-lg rounded-3xl p-6 lg:p-8 border-2 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden" style={{background: 'linear-gradient(135deg, var(--primary-cream) 0%, var(--rich-cream) 50%, var(--secondary-cream) 100%)', borderColor: 'var(--warm-beige)'}}>
-            {/* Best Value Badge - Positioned within card */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+          <div className="backdrop-blur-lg rounded-3xl p-6 lg:p-8 border-4 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-500 relative overflow-hidden" style={{background: 'linear-gradient(135deg, var(--primary-cream) 0%, var(--rich-cream) 50%, var(--secondary-cream) 100%)', borderColor: 'var(--premium-gold)'}}>
+            {/* Back to School Special Banner */}
+            <div className="absolute top-3 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-xs lg:text-sm font-bold shadow-lg animate-pulse">
+                🎓 Back to School Special: Ends Sept 30th!
+              </div>
+            </div>
+            
+            {/* Best Value Badge - Positioned below special banner */}
+            <div className="absolute top-12 left-1/2 transform -translate-x-1/2 z-20">
               <div className="bg-gradient-to-r from-[var(--accent-navy)] to-[var(--primary-navy)] text-white px-4 py-2 rounded-full text-xs lg:text-sm font-bold shadow-lg">
                 💰 Best Value
               </div>
@@ -225,20 +242,28 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
             <div className="absolute inset-0 opacity-60" style={{background: 'linear-gradient(to bottom right, var(--rich-cream) 0%, var(--primary-cream) 100%)'}}></div>
             <div className="absolute top-4 right-4 w-12 h-12 rounded-full" style={{background: 'linear-gradient(135deg, var(--premium-gold), transparent)', opacity: '0.3'}}></div>
             
-            <div className="relative z-10 pt-16">
+            <div className="relative z-10 pt-20">
               <div className="text-center mb-8">
                 <h3 className="text-2xl lg:text-3xl font-bold text-slate-800 mb-2">Academic Year</h3>
-                <div className="text-4xl lg:text-5xl font-black mb-2 drop-shadow-sm" style={{color: 'var(--accent-navy)'}}>
-                  $24<span className="text-xl lg:text-2xl">/year</span>
+                
+                {/* Promotional Pricing Display */}
+                <div className="mb-3">
+                  <div className="text-4xl lg:text-5xl font-black drop-shadow-sm" style={{color: 'var(--accent-navy)'}}>
+                    $19.99<span className="text-xl lg:text-2xl">/year</span>
+                  </div>
+                  <div className="text-lg text-gray-500 line-through">
+                    $24/year
+                  </div>
                 </div>
-                <div className="text-xs lg:text-sm font-semibold rounded-full px-3 py-1 inline-block mb-2" style={{color: 'var(--premium-gold)', backgroundColor: 'var(--rich-cream)', border: '2px solid var(--premium-gold)'}}>
-                  Save $24 vs monthly
+                
+                <div className="text-sm font-semibold text-orange-600 bg-orange-50 rounded-full px-3 py-1 inline-block mb-2">
+                  Save over 50% vs. monthly!
                 </div>
                 <p className="text-lg mb-2 font-semibold" style={{color: 'var(--accent-navy)'}}>📚 Pay for school year only</p>
                 <div className="text-sm font-medium mb-2" style={{color: 'var(--accent-navy)'}}>
                   <div className="font-semibold">Fair Pricing for All Students:</div>
-                  <div>• Semester (10 months): $2.40/month</div>
-                  <div>• Quarter (9 months): $2.67/month</div>
+                  <div>• Semester (10 months): $2.00/month</div>
+                  <div>• Quarter (9 months): $2.22/month</div>
                   <div>• No summer charges • Cancel anytime</div>
                 </div>
               </div>
@@ -271,16 +296,25 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
               </ul>
 
               <Button
-                text="Start Academic Year"
+                text="Start Your 7-Day Free Trial"
                 onClick={() => {
-                  trackEvent('get_started_clicked', { location: 'pricing', plan: 'student-academic' });
+                  // TODO: Uncomment for landing page analytics
+                  // trackEvent('get_started_clicked', { location: 'pricing', plan: 'student-academic' });
                   onGetStarted();
                 }}
                 variant="outline"
                 className="w-full border-2 border-[var(--primary-navy)] text-[var(--primary-navy)] bg-white hover:bg-[var(--primary-navy)] hover:text-white font-bold py-3 lg:py-4 text-base lg:text-lg transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
-                ariaLabel="Start Academic Year plan"
+                ariaLabel="Start Academic Year plan free trial"
                 dataTestId="student-academic-plan-btn"
               />
+              
+              {/* No Credit Card Required Text */}
+              <p className="text-center mt-3 text-sm font-medium text-green-600 flex items-center justify-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                No credit card required to start
+              </p>
             </div>
           </div>
         </div>

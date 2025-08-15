@@ -11,6 +11,10 @@
   REACT_APP_SUPABASE_URL = "https://adkrfpcmfvqhctlvizxw.supabase.co"
   REACT_APP_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFka3JmcGNtZnZxaGN0bHZpenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0ODM5ODYsImV4cCI6MjA1OTA1OTk4Nn0.avFXOP9di5ehRMdqwvF38uSmyCFAXGJyjzdAe5zne6A"
   REACT_APP_BUILD_MODE = "saas"
+  # Stripe Configuration for SaaS billing
+  REACT_APP_STRIPE_PUBLISHABLE_KEY = "pk_live_51RsswaC8ys0kTaxRtMDRCaq8vABs7DgwhGphhElgFgR75tcRGWhfcJwWtL5Gz2d7CpDkhtRWHmsAjJaYBddVybDE00lGaFt4f1"
+  REACT_APP_STRIPE_STUDENT_MONTHLY_PRICE_ID = "price_1RwBIqC8ys0kTaxRKLBiHl5C"
+  REACT_APP_STRIPE_ACADEMIC_YEAR_PRICE_ID = "price_1RwBMaC8ys0kTaxRJjvyAxfb"
 
 # SPA routing - redirect all requests to index.html
 [[redirects]]

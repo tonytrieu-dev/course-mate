@@ -161,7 +161,7 @@ const CreatorPortfolio: React.FC = () => {
             </a>
             
             <a
-              href="https://github.com/tonytrieu-dev/schedule-bud"
+              href="https://github.com/tonytrieu-dev"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors duration-200 group"

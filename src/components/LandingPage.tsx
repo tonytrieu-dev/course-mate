@@ -10,7 +10,8 @@ import LandingCTA from './landing/LandingCTA';
 import LandingFooter from './landing/LandingFooter';
 import CreatorPortfolio from './portfolio/CreatorPortfolio';
 import ProjectCaseStudy from './portfolio/ProjectCaseStudy';
-import { analyticsService } from '../services/analyticsService';
+// TODO: Uncomment for landing page conversion analytics (Stripe handles payment analytics)
+// import { analyticsService } from '../services/analyticsService';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -20,28 +21,29 @@ interface LandingPageProps {
 const MainLandingContent: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   // Enhanced analytics tracking function with A/B test support
   const trackEvent = (eventName: string, properties?: any) => {
+    // TODO: Uncomment for landing page analytics
     // Handle specific conversion events
-    switch (eventName) {
-      case 'get_started_clicked':
-        analyticsService.trackGetStartedClick(properties?.location || 'unknown');
-        break;
-      case 'pricing_viewed':
-        analyticsService.trackPricingView();
-        break;
-      case 'plan_selected':
-        analyticsService.trackPlanSelection(properties?.plan || 'unknown');
-        break;
-      case 'feature_interaction':
-        analyticsService.trackFeatureInteraction(properties?.feature || 'unknown');
-        break;
-      default:
-        analyticsService.track(eventName, properties);
-    }
+    // switch (eventName) {
+    //   case 'get_started_clicked':
+    //     analyticsService.trackGetStartedClick(properties?.location || 'unknown');
+    //     break;
+    //   case 'pricing_viewed':
+    //     analyticsService.trackPricingView();
+    //     break;
+    //   case 'plan_selected':
+    //     analyticsService.trackPlanSelection(properties?.plan || 'unknown');
+    //     break;
+    //   case 'feature_interaction':
+    //     analyticsService.trackFeatureInteraction(properties?.feature || 'unknown');
+    //     break;
+    //   default:
+    //     analyticsService.track(eventName, properties);
+    // }
 
     // Also send to external analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', eventName, properties);
-    }
+    // if (typeof window !== 'undefined' && (window as any).gtag) {
+    //   (window as any).gtag('event', eventName, properties);
+    // }
   };
 
   return (
@@ -59,10 +61,10 @@ const MainLandingContent: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 };
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
-  // Track landing page view on component mount
-  useEffect(() => {
-    analyticsService.trackLandingPageView();
-  }, []);
+  // TODO: Uncomment for landing page conversion analytics
+  // useEffect(() => {
+  //   analyticsService.trackLandingPageView();
+  // }, []);
 
   return (
     <Router>
