@@ -19,6 +19,16 @@ export const isSaaSMode = (): boolean => {
 
 export const getFeatureFlag = (flag: string): boolean => {
   const value = process.env[`REACT_APP_${flag}`];
+  // Temporary debug logging for production
+  if (flag === 'ENABLE_SUBSCRIPTIONS') {
+    console.log('🔍 Subscription Debug:', {
+      flag,
+      envKey: `REACT_APP_${flag}`,
+      value,
+      result: value === 'true',
+      buildMode: process.env.REACT_APP_BUILD_MODE
+    });
+  }
   return value === 'true';
 };
 
@@ -34,7 +44,6 @@ export const features = {
   usageLimits: getFeatureFlag('ENABLE_USAGE_LIMITS'),
   upgradePrompts: getFeatureFlag('SHOW_UPGRADE_PROMPTS'),
   analytics: getFeatureFlag('SHOW_ANALYTICS'),
-  emailVerification: getFeatureFlag('REQUIRE_EMAIL_VERIFICATION'),
   
   // Advanced feature visibility flags
   showGradeAnalytics: getFeatureFlag('SHOW_GRADE_ANALYTICS'),

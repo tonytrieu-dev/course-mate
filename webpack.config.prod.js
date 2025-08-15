@@ -18,7 +18,7 @@ module.exports = {
     clean: true,
     publicPath: '/',
   },
-  // Use Vercel/Netlify's managed cache. No need for manual cache config here.
+  // Use Netlify's managed cache. No need for manual cache config here.
   optimization: {
     // Rely on Webpack's battle-tested default code splitting. It's simpler and smarter.
     splitChunks: {
