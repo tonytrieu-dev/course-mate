@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { calculateFullGPA, calculateWhatIfScenario } from '../services/grade/gpaService';
 import { getClassWithGrades } from '../services/grade/gradeOperations';
 import GradeAnalyticsModal from './GradeAnalyticsModal';
-import AssignmentImportModal from './AssignmentImportModal';
 import type { 
   GPACalculation, 
   ClassWithGrades, 
@@ -24,8 +23,6 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
-  const [importMessage, setImportMessage] = useState<string | null>(null);
 
   // Load GPA data
   const loadGpaData = useCallback(async () => {
@@ -91,14 +88,6 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
     setWhatIfScenario(null);
   }, []);
 
-  const handleImportComplete = useCallback((message: string) => {
-    setImportMessage(message);
-    setImportModalOpen(false);
-    // Reload data after import
-    loadGpaData();
-    // Clear message after 5 seconds
-    setTimeout(() => setImportMessage(null), 5000);
-  }, [loadGpaData]);
 
   if (loading) {
     return (
@@ -130,25 +119,6 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
 
   return (
     <div className="space-y-6">
-      {/* Import Success Message */}
-      {importMessage && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/50 rounded-lg p-4">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 text-green-600 dark:text-green-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="text-green-800 dark:text-green-300 font-medium">{importMessage}</span>
-            <button
-              onClick={() => setImportMessage(null)}
-              className="ml-auto text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* GPA Overview */}
       <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow p-6">
@@ -339,53 +309,21 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Analytics Button */}
       <div className="bg-white dark:bg-slate-800/90 backdrop-blur-sm rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={onSwitchToGradeEntry}
-            className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
-          >
-            <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg backdrop-blur-sm">
-              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <div className="font-medium text-gray-900 dark:text-white">Add Grade</div>
-              <div className="text-sm text-gray-600 dark:text-slate-400">Enter a new assignment grade</div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setImportModalOpen(true)}
-            className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
-          >
-            <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-lg backdrop-blur-sm">
-              <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <div className="font-medium text-gray-900 dark:text-white">Import Assignments</div>
-              <div className="text-sm text-gray-600 dark:text-slate-400">From syllabus or Canvas</div>
-            </div>
-          </button>
-
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Grade Analytics</h3>
+            <p className="text-sm text-gray-600 dark:text-slate-400">View detailed grade trends and performance insights</p>
+          </div>
           <button
             onClick={() => setAnalyticsModalOpen(true)}
-            className="flex items-center gap-3 p-4 border border-gray-200 dark:border-slate-600/50 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
           >
-            <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-lg backdrop-blur-sm">
-              <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <div className="font-medium text-gray-900 dark:text-white">View Analytics</div>
-              <div className="text-sm text-gray-600 dark:text-slate-400">Detailed grade trends</div>
-            </div>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            View Analytics
           </button>
         </div>
       </div>
@@ -394,12 +332,6 @@ const GradeDashboard: React.FC<GradeDashboardProps> = ({ onSwitchToGradeEntry })
       <GradeAnalyticsModal
         isOpen={analyticsModalOpen}
         onClose={() => setAnalyticsModalOpen(false)}
-      />
-      
-      <AssignmentImportModal
-        isOpen={importModalOpen}
-        onClose={() => setImportModalOpen(false)}
-        onImportComplete={handleImportComplete}
       />
     </div>
   );

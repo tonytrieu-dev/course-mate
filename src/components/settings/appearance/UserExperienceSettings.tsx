@@ -28,7 +28,7 @@ const UserExperienceSettings: React.FC<UserExperienceSettingsProps> = ({
             <select
               value={settings.academicSystem}
               onChange={(e) => onSettingChange('academicSystem', e.target.value)}
-              className="px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="appearance-none px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="semester">Semester System</option>
               <option value="quarter">Quarter System</option>

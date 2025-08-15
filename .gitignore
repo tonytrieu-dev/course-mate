@@ -10,7 +10,19 @@ build/node_modules_ws_browser_js.bundle.js
 
 # Claude Code assistant files
 CLAUDE.md
+CLAUDE_HISTORY.md
 .claude
+src/components/CLAUDE.md
+src/services/CLAUDE.md
+src/contexts/CLAUDE.md
+CLAUDE-md-monitoring-template.md
+claude-size-monitor.js
+
+# Project management files
+TASKS.md
+PLANNING.md
+PRD.md
+NEXT_SESSION_PROMPT.md
 
 # Environment variables
 .env
@@ -66,23 +78,16 @@ supabase/fix-rls-performance.sql
 supabase/RLS_PERFORMANCE_FIX.md
 GRADE FEATURE SUMMARY.md
 STUDY ANALYTICS SUMMARY.md
-TASKS.md
-PLANNING.md
-PRD.md
 NORTHFLANK_DEPLOYMENT.md
 OAUTH_SETUP.md
 BUNDLE_ANALYSIS_REPORT.md
 MOBILE_AUDIT_REPORT.md
-CLAUDE-md-monitoring-template.md
-claude-size-monitor.js
 supabase/fix-function-security.sql
 supabase/create-user-settings-table.sql
 supabase/SECURITY_FIXES.md
 supabase_schema.sql
 apply-security-fixes.sh
 SMART_UPLOAD_STAR_RESPONSE.md
-CLAUDE_HISTORY.md
-NEXT_SESSION_PROMPT.md
 PRODUCTION_LAUNCH_CHECKLIST.md
 supabase/migrations/20250105000000_add_subscription_columns.sql
 src/components/AssignmentImportModal.tsx
