@@ -14,7 +14,7 @@ const ProjectCaseStudy: React.FC = () => {
           
           <div className="space-y-4 text-gray-700 dark:text-gray-300">
             <p className="text-lg font-semibold text-red-700 dark:text-red-300">
-              The average student wastes 3-4 hours per quarter on manual data entry and academic organization.
+              The average student wastes approximately 5-10 hours per quarter on manual data entry and academic organization.
             </p>
             
             <div className="grid md:grid-cols-2 gap-6 mt-6">

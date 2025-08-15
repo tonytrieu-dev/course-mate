@@ -6,6 +6,8 @@ import { useDocumentViewer } from '../hooks/useDocumentViewer';
 import { DocumentViewer } from './DocumentViewer'; // Updated: no printer button, dark mode fixed
 import { SyllabusUploadModal } from './SyllabusUploadModal';
 import { logger } from '../utils/logger';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import { features } from '../utils/buildConfig';
 
 interface SyllabusModalProps {
   show: boolean;
@@ -25,6 +27,29 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
   onTasksRefresh
 }) => {
   const [showAiUpload, setShowAiUpload] = useState(false);
+  const [uploadBlockedMessage, setUploadBlockedMessage] = useState<string | null>(null);
+  const [aiUploadBlockedMessage, setAiUploadBlockedMessage] = useState<string | null>(null);
+  
+  // NEW: Safe subscription context usage (only when subscriptions are enabled)
+  let canUploadFile: (() => Promise<{ allowed: boolean; reason?: string; upgradeMessage?: string }>) | null = null;
+  let canUseFeature: ((feature: string) => boolean) | null = null;
+  
+  if (features.subscriptions) {
+    try {
+      const { canUploadFile: canUploadFileContext, canUseFeature: canUseFeatureContext } = useSubscription();
+      canUploadFile = canUploadFileContext;
+      canUseFeature = canUseFeatureContext;
+    } catch (error) {
+      logger.warn('Subscription context not available, allowing all uploads', { error });
+      // Fail open - if subscription context fails, allow uploads
+      canUploadFile = async () => ({ allowed: true });
+      canUseFeature = () => true;
+    }
+  } else {
+    // Personal mode - always allow uploads
+    canUploadFile = async () => ({ allowed: true });
+    canUseFeature = () => true;
+  }
   
   const {
     isUploading,
@@ -52,12 +77,35 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
     const file = e.target.files?.[0];
     if (!file || !selectedClass) return;
 
-    await uploadFile(file, selectedClass, (fileRecord: ClassFile) => {
-      onFileUpdate(fileRecord);
-    });
+    try {
+      // NEW: Safe usage limit check (SAFE - fails open if any issues)
+      if (canUploadFile) {
+        const uploadCheck = await canUploadFile();
+        if (!uploadCheck.allowed) {
+          setUploadBlockedMessage(uploadCheck.upgradeMessage || 'File upload limit reached. Please upgrade for unlimited file storage.');
+          e.target.value = ''; // Clear input
+          return;
+        }
+      }
+
+      // Clear any previous blocked messages
+      setUploadBlockedMessage(null);
+
+      // EXISTING FUNCTIONALITY PRESERVED - exactly the same as before
+      await uploadFile(file, selectedClass, (fileRecord: ClassFile) => {
+        onFileUpdate(fileRecord);
+      });
+      
+    } catch (error) {
+      logger.error('Error during file upload process, attempting upload anyway', { error });
+      // SAFETY: If anything goes wrong with limits check, proceed with upload
+      await uploadFile(file, selectedClass, (fileRecord: ClassFile) => {
+        onFileUpdate(fileRecord);
+      });
+    }
     
     e.target.value = ''; // Clear input
-  }, [selectedClass, uploadFile, onFileUpdate]);
+  }, [selectedClass, uploadFile, onFileUpdate, canUploadFile]);
 
   const handleDeleteFile = useCallback(async (filePath: string, fileIndex: number) => {
     if (!selectedClass) return;
@@ -131,7 +179,24 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => setShowAiUpload(true)}
+                onClick={() => {
+                  try {
+                    // NEW: Safe AI syllabus extraction check (SAFE - fails open if any issues)
+                    if (canUseFeature && !canUseFeature('ai_syllabus_extraction')) {
+                      setAiUploadBlockedMessage('AI syllabus extraction is available with Student Plan. Upgrade for unlimited AI-powered task generation from syllabi.');
+                      return;
+                    }
+                    
+                    // Clear any previous blocked messages
+                    setAiUploadBlockedMessage(null);
+                    setShowAiUpload(true);
+                  } catch (error) {
+                    logger.error('Error checking AI syllabus extraction permission, allowing access', { error });
+                    // SAFETY: If anything goes wrong with feature check, proceed with Smart Upload
+                    setAiUploadBlockedMessage(null);
+                    setShowAiUpload(true);
+                  }
+                }}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center ml-6 mr-2"
               >
                 <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,6 +206,20 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* NEW: AI Upload Blocked Message (SAFE - only shows when needed) */}
+          {aiUploadBlockedMessage && (
+            <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-lg">
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 14c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <p className="text-amber-800 dark:text-amber-200 text-sm font-medium">
+                  {aiUploadBlockedMessage}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Regular Upload Option */}
           <details className="mb-4">
@@ -317,6 +396,41 @@ const SyllabusModal: React.FC<SyllabusModalProps> = ({
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-2">
                     <div className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
+                  </div>
+                </div>
+              )}
+              
+              {/* NEW: File Storage Limit Message (SAFE - only shows when needed) */}
+              {uploadBlockedMessage && (
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg">
+                  <div className="flex items-start">
+                    <svg className="h-5 w-5 text-amber-500 dark:text-amber-400 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+                        {uploadBlockedMessage}
+                      </p>
+                      {features.subscriptions && (
+                        <button
+                          onClick={() => {
+                            setUploadBlockedMessage(null);
+                            // TODO: Open upgrade modal when implemented
+                          }}
+                          className="mt-2 text-sm text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 underline"
+                        >
+                          Learn about Student Plan →
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setUploadBlockedMessage(null)}
+                      className="ml-2 text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}

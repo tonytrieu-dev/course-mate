@@ -57,6 +57,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
   // Task form management
   const {
     task,

@@ -97,14 +97,6 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-slate-700 text-lg font-medium">Basic grade tracking</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
                   <span className="text-slate-700 text-lg font-medium">File storage (up to 25 files)</span>
                 </li>
                 <li className="flex items-center group">
@@ -275,22 +267,6 @@ const LandingPricing: React.FC<LandingPricingProps> = ({ onGetStarted, trackEven
                     </svg>
                   </div>
                   <span className="text-slate-700 text-lg font-medium">Unlimited syllabus AI extraction</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-700 text-lg font-medium">Custom task types & colors</span>
-                </li>
-                <li className="flex items-center group">
-                  <div className="w-6 h-6 bg-[#9CAF88]/30 border border-[#9CAF88]/60 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200">
-                    <svg className="w-3.5 h-3.5 text-[#9CAF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-slate-700 text-lg font-medium">Email support & community</span>
                 </li>
               </ul>
 

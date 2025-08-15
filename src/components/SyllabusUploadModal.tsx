@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import { SyllabusSecurityService } from '../services/syllabusSecurityService';
 import { SyllabusTaskGenerationService } from '../services/syllabusTaskGenerationService';
 import { fileService } from '../services/fileService';
 import { errorHandler } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
+import { features } from '../utils/buildConfig';
 
 interface SyllabusUploadModalProps {
   isOpen: boolean;
@@ -39,8 +41,26 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // NEW: Safe subscription context usage (only when subscriptions are enabled)
+  let canUploadFile: (() => Promise<{ allowed: boolean; reason?: string; upgradeMessage?: string }>) | null = null;
+  
+  if (features.subscriptions) {
+    try {
+      const { canUploadFile: canUploadFileContext } = useSubscription();
+      canUploadFile = canUploadFileContext;
+    } catch (error) {
+      logger.warn('Subscription context not available in SyllabusUploadModal, allowing all uploads', { error });
+      // Fail open - if subscription context fails, allow uploads
+      canUploadFile = async () => ({ allowed: true });
+    }
+  } else {
+    // Personal mode - always allow uploads
+    canUploadFile = async () => ({ allowed: true });
+  }
+  
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadBlockedMessage, setUploadBlockedMessage] = useState<string | null>(null);
   const [validation, setValidation] = useState<ValidationState>({
     isValidating: false,
     errors: [],
@@ -60,9 +80,34 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    setSelectedFile(file);
-    setCurrentStep('validate');
-    setValidation({ isValidating: true, errors: [], warnings: [], isValid: false });
+    try {
+      // NEW: Safe usage limit check (SAFE - fails open if any issues)
+      if (canUploadFile) {
+        const uploadCheck = await canUploadFile();
+        if (!uploadCheck.allowed) {
+          setUploadBlockedMessage(uploadCheck.upgradeMessage || 'File upload limit reached. Please upgrade for unlimited file storage.');
+          // Reset file input
+          if (event.target) {
+            event.target.value = '';
+          }
+          return;
+        }
+      }
+
+      // Clear any previous blocked messages
+      setUploadBlockedMessage(null);
+      
+      setSelectedFile(file);
+      setCurrentStep('validate');
+      setValidation({ isValidating: true, errors: [], warnings: [], isValid: false });
+    } catch (limitCheckError) {
+      logger.error('Error during usage limit check, proceeding with upload', { error: limitCheckError });
+      // SAFETY: If anything goes wrong with limits check, proceed with upload
+      setUploadBlockedMessage(null);
+      setSelectedFile(file);
+      setCurrentStep('validate');
+      setValidation({ isValidating: true, errors: [], warnings: [], isValid: false });
+    }
 
     try {
       logger.info('Starting syllabus file validation', {
@@ -120,7 +165,7 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
         isValid: false
       });
     }
-  }, [user, classId]);
+  }, [user, classId, canUploadFile]);
 
   const handleUploadAndGenerate = useCallback(async () => {
     if (!selectedFile || !user || !validation.isValid) return;
@@ -344,6 +389,41 @@ export const SyllabusUploadModal: React.FC<SyllabusUploadModalProps> = ({
                   Maximum file size: 10MB • PDF format only
                 </p>
               </div>
+              
+              {/* NEW: File Storage Limit Message (SAFE - only shows when needed) */}
+              {uploadBlockedMessage && (
+                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg">
+                  <div className="flex items-start">
+                    <svg className="h-5 w-5 text-amber-500 dark:text-amber-400 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+                        {uploadBlockedMessage}
+                      </p>
+                      {features.subscriptions && (
+                        <button
+                          onClick={() => {
+                            setUploadBlockedMessage(null);
+                            // TODO: Open upgrade modal when implemented
+                          }}
+                          className="mt-2 text-sm text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 underline"
+                        >
+                          Learn about Student Plan →
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setUploadBlockedMessage(null)}
+                      className="ml-2 text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

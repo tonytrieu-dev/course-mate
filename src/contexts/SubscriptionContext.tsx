@@ -2,6 +2,8 @@ import React, { createContext, useContext, ReactNode, useState, useEffect } from
 import { features } from '../utils/buildConfig';
 import { logger } from '../utils/logger';
 import { subscriptionService, SubscriptionStatus } from '../services/subscriptionService';
+import { usageLimitService, UsageLimits } from '../services/usageLimitService';
+import { supabase } from '../services/supabaseClient';
 
 // Subscription types for TypeScript
 interface SubscriptionPlan {
@@ -50,6 +52,13 @@ interface SubscriptionContextType {
   // Student-specific
   getUpgradeMessage: () => Promise<string>;
   getPlanByBillingCycle: (cycle: 'monthly' | 'annual' | 'academic') => SubscriptionPlan;
+  
+  // NEW: Enhanced usage tracking (SAFE - added without breaking existing functionality)
+  usageLimits: UsageLimits | null;
+  canUploadFile: () => Promise<{ allowed: boolean; reason?: string; upgradeMessage?: string }>;
+  shouldShowUsageWarning: (featureType: 'ai' | 'files') => boolean;
+  getUsagePercentage: (featureType: 'ai' | 'files') => number;
+  refreshUsageLimits: () => Promise<void>;
 }
 
 interface SubscriptionProviderProps {
@@ -120,8 +129,6 @@ const studentProMonthly: SubscriptionPlan = {
     'Unlimited AI study assistance',
     'Advanced analytics & insights', 
     'Smart schedule optimization',
-    'Premium Canvas calendar sync',
-    'Email support & community',
     'Export to multiple formats',
     'Bulk task operations'
   ]
@@ -140,8 +147,6 @@ const studentProAnnual: SubscriptionPlan = {
     'Unlimited AI study assistance',
     'Advanced analytics & insights',
     'Smart schedule optimization', 
-    'Premium Canvas calendar sync',
-    'Email support & community',
     'Export to multiple formats',
     'Bulk task operations'
   ]
@@ -162,8 +167,6 @@ const studentProAcademic: SubscriptionPlan = {
     'Unlimited AI study assistance',
     'Advanced analytics & insights',
     'Smart schedule optimization',
-    'Premium Canvas calendar sync', 
-    'Email support & community',
     'Export to multiple formats',
     'Bulk task operations'
   ]
@@ -199,6 +202,9 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     end: Date;
     monthsRemaining: number;
   } | null>(null);
+  
+  // NEW: Enhanced usage tracking state (SAFE - added without breaking existing functionality)
+  const [usageLimits, setUsageLimits] = useState<UsageLimits | null>(null);
 
   // Initialize academic year info
   useEffect(() => {
@@ -220,6 +226,34 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     
     return () => clearInterval(interval);
   }, []);
+
+  // NEW: Initialize usage limits (SAFE - runs independently of existing functionality)
+  useEffect(() => {
+    const loadUsageLimits = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const limits = await usageLimitService.getUsageSummary(
+          user?.id, 
+          subscriptionStatus.status
+        );
+        setUsageLimits(limits);
+      } catch (error) {
+        logger.error('Error loading usage limits, using safe defaults', { error });
+        // Safe defaults that don't block functionality
+        setUsageLimits({
+          aiQueries: { used: 0, limit: 999, warningThreshold: 800 },
+          fileStorage: { used: 0, limit: 999, warningThreshold: 800 },
+          canvasIntegration: true,
+          advancedAnalytics: true,
+          exportFeatures: true
+        });
+      }
+    };
+
+    if (!loading) {
+      loadUsageLimits();
+    }
+  }, [subscriptionStatus.status, loading]);
 
   // Load initial subscription status
   useEffect(() => {
@@ -362,6 +396,11 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         return isSubscribed || subscriptionStatus.status === 'trialing' || subscriptionStatus.status === 'active' || subscriptionStatus.status === 'lifetime';
       }
       
+      // AI syllabus extraction feature - unlimited for paid users
+      if (feature === 'ai_syllabus_extraction' || feature === 'aiSyllabusExtraction') {
+        return isSubscribed || subscriptionStatus.status === 'trialing' || subscriptionStatus.status === 'active' || subscriptionStatus.status === 'lifetime';
+      }
+      
       // Allow basic features for free users
       const freeFeatures = [
         'basic_tasks',
@@ -487,6 +526,71 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         case 'annual': return studentProAnnual;
         case 'academic': return studentProAcademic; // Academic plan
         default: return studentProMonthly;
+      }
+    },
+    
+    // NEW: Enhanced usage tracking methods (SAFE - added without breaking existing functionality)
+    usageLimits,
+    
+    canUploadFile: async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        return await usageLimitService.canUploadFile(user?.id, subscriptionStatus.status);
+      } catch (error) {
+        logger.error('Error checking file upload permission, allowing access', { error });
+        return { allowed: true }; // Fail open - allow access on error
+      }
+    },
+    
+    shouldShowUsageWarning: (featureType: 'ai' | 'files') => {
+      try {
+        if (!usageLimits) return false;
+        
+        if (featureType === 'ai') {
+          const { used, limit, warningThreshold } = usageLimits.aiQueries;
+          return usageLimitService.shouldShowUsageWarning(used, limit, warningThreshold);
+        } else if (featureType === 'files') {
+          const { used, limit, warningThreshold } = usageLimits.fileStorage;
+          return usageLimitService.shouldShowUsageWarning(used, limit, warningThreshold);
+        }
+        
+        return false;
+      } catch (error) {
+        logger.error('Error checking usage warning, hiding warning', { error });
+        return false; // Fail safe - don't show warnings on error
+      }
+    },
+    
+    getUsagePercentage: (featureType: 'ai' | 'files') => {
+      try {
+        if (!usageLimits) return 0;
+        
+        if (featureType === 'ai') {
+          const { used, limit } = usageLimits.aiQueries;
+          return limit > 0 ? Math.round((used / limit) * 100) : 0;
+        } else if (featureType === 'files') {
+          const { used, limit } = usageLimits.fileStorage;
+          return limit > 0 ? Math.round((used / limit) * 100) : 0;
+        }
+        
+        return 0;
+      } catch (error) {
+        logger.error('Error calculating usage percentage, returning 0', { error });
+        return 0; // Fail safe - return 0% on error
+      }
+    },
+    
+    refreshUsageLimits: async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const limits = await usageLimitService.getUsageSummary(
+          user?.id, 
+          subscriptionStatus.status
+        );
+        setUsageLimits(limits);
+      } catch (error) {
+        logger.error('Error refreshing usage limits, keeping current state', { error });
+        // Don't update state on error to avoid breaking UI
       }
     }
   };

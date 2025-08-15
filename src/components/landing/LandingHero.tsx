@@ -36,7 +36,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onGetStarted, trackEvent }) =
             <div className="mb-8">
               <div className="rounded-2xl p-6 shadow-xl" style={{backgroundColor: 'var(--primary-cream)', border: '1px solid rgba(37, 99, 235, 0.2)', backdropFilter: 'blur(8px)'}}>
                 <div className="text-slate-700">
-                  I'm a UCR student who got tired of wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3-4 hours on manual setup every quarter</span>. So I built this. Now, I sync my Canvas calendar, upload my syllabi, and have my entire quarter planned in <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>under 45 seconds</span>. 😎
+                  I'm a UCR student who got tired of wasting <span className="font-semibold" style={{color: 'var(--premium-gold)'}}>3 hours on manual setup every quarter</span>. So I built this. Now, I sync my Canvas calendar, upload my syllabi, and have my entire quarter planned in <span className="font-semibold" style={{color: 'var(--accent-sage)'}}>under 45 seconds</span>. 😎
                 </div>
               </div>
             </div>

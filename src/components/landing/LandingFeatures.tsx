@@ -152,7 +152,7 @@ const LandingFeatures: React.FC = () => {
         <div className="mt-24 max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h3 className="text-3xl sm:text-4xl font-black mb-4 tracking-tight text-slate-900 leading-tight">
-              See ScheduleBud In Action
+              From Chaos to Organized in 30 Seconds
             </h3>
             <p className="text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed">
               Real screenshots from the actual app. See exactly what your academic workspace will look like.
