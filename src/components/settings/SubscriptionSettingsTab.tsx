@@ -113,19 +113,37 @@ const SubscriptionSettingsTab: React.FC = () => {
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-gray-700 dark:text-slate-300">Unlimited Canvas sync</span>
+                  <span className="text-gray-700 dark:text-slate-300">Everything in Free</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-gray-700 dark:text-slate-300">50 AI queries per day</span>
+                  <span className="text-gray-700 dark:text-slate-300">50 document Q&A queries per day</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span className="text-gray-700 dark:text-slate-300">Grade analytics & GPA tracking</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-gray-700 dark:text-slate-300">Unlimited syllabus AI extraction</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-gray-700 dark:text-slate-300">Custom task types & colors</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-gray-700 dark:text-slate-300">Email support & community</span>
                 </li>
               </ul>
 
@@ -135,21 +153,24 @@ const SubscriptionSettingsTab: React.FC = () => {
               >
                 Upgrade to Student
               </button>
+              
+              <div className="text-center mt-3">
+                <p className="text-sm font-medium text-gray-600 dark:text-slate-400">
+                  No credit card required for trial
+                </p>
+              </div>
             </div>
 
             {/* Academic Year Plan */}
             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-2 border-orange-200 dark:border-orange-700 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300 relative">
-              {/* Improved Back to School Special Badge - Shorter and Wider */}
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-4 py-1 rounded-xl text-xs font-bold shadow-xl border border-orange-300">
-                  <div className="flex items-center gap-1.5">
-                    <span>🎓</span>
-                    <span>Back to School Special • Ends Sept 30th!</span>
-                  </div>
+              {/* Compact Back to School Badge */}
+              <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2">
+                <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-3 py-0.5 rounded-lg text-xs font-bold shadow-lg">
+                  🎓 Back to School Special • Ends Sept 30th!
                 </div>
               </div>
 
-              <div className="text-center mb-4 mt-4">
+              <div className="text-center mb-4 mt-3">
                 <h4 className="text-lg font-bold text-gray-900 dark:text-white">
                   Academic Year
                 </h4>
@@ -177,7 +198,13 @@ const SubscriptionSettingsTab: React.FC = () => {
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span className="text-gray-700 dark:text-slate-300">Everything in Monthly</span>
+                  <span className="text-gray-700 dark:text-slate-300">10 month access</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-gray-700 dark:text-slate-300">Everything in Student</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,10 +226,12 @@ const SubscriptionSettingsTab: React.FC = () => {
               >
                 Upgrade to Academic Year
               </button>
-
-              <p className="text-center mt-2 text-xs text-orange-600 dark:text-orange-400 font-medium">
-                🔥 Limited time offer!
-              </p>
+              
+              <div className="text-center mt-3">
+                <p className="text-sm font-medium text-gray-600 dark:text-slate-400">
+                  No credit card required for trial
+                </p>
+              </div>
             </div>
           </div>
 
