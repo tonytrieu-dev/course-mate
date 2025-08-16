@@ -67,39 +67,52 @@ function validateSupabaseUrl(url: string | undefined): boolean {
 }
 
 /**
- * Validates environment variables and throws errors for missing critical values
- * No hardcoded fallbacks for security - all values must come from environment
+ * Validates environment variables and provides accurate status reporting
+ * Checks multiple variable name patterns used by different deployment systems
  */
 function validateEnvironment(): void {
   const missing: string[] = [];
   const invalid: string[] = [];
   
-  // Check required variables
-  for (const [envVar, description] of Object.entries(REQUIRED_ENV_VARS)) {
-    const value = process.env[envVar];
-    console.log(`🔍 Checking ${envVar}:`, value ? `SET ✅ (${value.substring(0, 20)}...)` : 'MISSING ❌');
-    if (!value) {
-      missing.push(`${envVar}: ${description}`);
-    }
+  // Check Supabase configuration with multiple variable name patterns
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
+  
+  console.log('🔍 Environment Variable Check:');
+  console.log(`  Supabase URL: ${supabaseUrl ? '✅ FOUND' : '❌ MISSING'}`);
+  console.log(`  Supabase Key: ${supabaseKey ? '✅ FOUND' : '❌ MISSING'}`);
+  
+  // Debug: Show which specific variables are set
+  console.log('🔧 Variable Sources:');
+  console.log(`  SUPABASE_URL: ${process.env.SUPABASE_URL ? '✅' : '❌'}`);
+  console.log(`  REACT_APP_SUPABASE_URL: ${process.env.REACT_APP_SUPABASE_URL ? '✅' : '❌'}`);
+  console.log(`  SUPABASE_ANON_KEY: ${process.env.SUPABASE_ANON_KEY ? '✅' : '❌'}`);
+  console.log(`  REACT_APP_SUPABASE_ANON_KEY: ${process.env.REACT_APP_SUPABASE_ANON_KEY ? '✅' : '❌'}`);
+  
+  // Only report as missing if NONE of the variable patterns are found
+  if (!supabaseUrl) {
+    missing.push('Supabase URL: Required for database connectivity (SUPABASE_URL or REACT_APP_SUPABASE_URL)');
+  }
+  
+  if (!supabaseKey) {
+    missing.push('Supabase Key: Required for authentication (SUPABASE_ANON_KEY or REACT_APP_SUPABASE_ANON_KEY)');
   }
   
   // Validate Supabase URL format if provided
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
   if (supabaseUrl && !validateSupabaseUrl(supabaseUrl)) {
-    invalid.push('SUPABASE_URL: Must be a valid Supabase URL (https://your-project.supabase.co)');
+    invalid.push('Supabase URL: Must be a valid Supabase URL (https://your-project.supabase.co)');
   }
   
   // Handle missing variables
   if (missing.length > 0) {
     if (process.env.NODE_ENV === 'production') {
       console.error(`🚨 Missing required environment variables in production:\n${missing.join('\n')}`);
-      console.error('🔄 Using fallback values temporarily...');
-      // Temporary fallback - remove after fixing env vars
+      console.error('⚠️  Application may not function correctly without these variables!');
       return;
     } else {
       // Development warning with helpful guidance
       console.warn(
-        `⚠️  Security Warning: Missing required environment variables:\n${missing.join('\n')}\n\n` +
+        `⚠️  Missing required environment variables:\n${missing.join('\n')}\n\n` +
         '📋 To fix this:\n' +
         '1. Copy .env.example to .env\n' +
         '2. Fill in your actual Supabase credentials\n' +
@@ -107,6 +120,8 @@ function validateEnvironment(): void {
         '🔒 Never commit actual credentials to version control!'
       );
     }
+  } else {
+    console.log('✅ All required environment variables found!');
   }
   
   // Handle invalid variables
