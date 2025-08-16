@@ -77,7 +77,7 @@ function validateEnvironment(): void {
   // Check required variables
   for (const [envVar, description] of Object.entries(REQUIRED_ENV_VARS)) {
     const value = process.env[envVar];
-    console.log(`🔍 Checking ${envVar}:`, value ? 'SET ✅' : 'MISSING ❌');
+    console.log(`🔍 Checking ${envVar}:`, value ? `SET ✅ (${value.substring(0, 20)}...)` : 'MISSING ❌');
     if (!value) {
       missing.push(`${envVar}: ${description}`);
     }

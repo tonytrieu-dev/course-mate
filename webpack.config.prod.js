@@ -93,6 +93,14 @@ module.exports = {
       process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],
     }),
+    // Inject environment variables directly
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(process.env.REACT_APP_SUPABASE_URL),
+      'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(process.env.REACT_APP_SUPABASE_ANON_KEY),
+      'process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY': JSON.stringify(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY),
+      'process.env.REACT_APP_BUILD_MODE': JSON.stringify(process.env.REACT_APP_BUILD_MODE),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    }),
     new Dotenv({
       systemvars: true,
       silent: true,
