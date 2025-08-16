@@ -259,7 +259,15 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   useEffect(() => {
     const loadSubscriptionStatus = async () => {
       try {
+        logger.info('Loading initial subscription status...');
         const status = await subscriptionService.getSubscriptionStatus();
+        
+        logger.info('Setting subscription status in context', { 
+          status: status.status,
+          isPersonalMode: features.isPersonalMode,
+          buildMode: process.env.REACT_APP_BUILD_MODE 
+        });
+        
         setSubscriptionStatus(status);
         
         // Load billing cycle from user data if available
@@ -361,6 +369,16 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     subscriptionStatus.status === 'lifetime' ||
     subscriptionStatus.status === 'trialing' || 
     subscriptionStatus.status === 'active';
+
+  // Debug logging for subscription access
+  useEffect(() => {
+    logger.info('Subscription access calculation', {
+      isPersonalMode: features.isPersonalMode,
+      subscriptionStatus: subscriptionStatus.status,
+      isSubscribed,
+      buildMode: process.env.REACT_APP_BUILD_MODE
+    });
+  }, [isSubscribed, subscriptionStatus.status]);
 
   const value: SubscriptionContextType = {
     // Subscription state

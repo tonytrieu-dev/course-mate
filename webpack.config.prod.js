@@ -93,7 +93,7 @@ module.exports = {
       process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],
     }),
-    // Inject environment variables directly
+    // Primary method: DefinePlugin directly injects environment variables at build time
     new webpack.DefinePlugin({
       'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(process.env.REACT_APP_SUPABASE_URL),
       'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(process.env.REACT_APP_SUPABASE_ANON_KEY),
@@ -101,10 +101,13 @@ module.exports = {
       'process.env.REACT_APP_BUILD_MODE': JSON.stringify(process.env.REACT_APP_BUILD_MODE),
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     }),
-    new Dotenv({
-      systemvars: true,
-      silent: true,
-    }),
+    // Backup method: Dotenv plugin (commented out for testing)
+    // new Dotenv({
+    //   systemvars: true,
+    //   silent: false,
+    //   safe: false,
+    //   defaults: false,
+    // }),
     ...(process.argv.includes('--analyze') ? [new BundleAnalyzerPlugin()] : []),
   ],
 };

@@ -64,8 +64,11 @@ export class SubscriptionService {
       const { data: user } = await supabase.auth.getUser();
       
       if (!user.user) {
+        logger.info('No authenticated user found');
         return { status: 'free' };
       }
+
+      logger.info('Fetching subscription status for user', { userId: user.user.id });
 
       const { data, error } = await supabase
         .from('users')
@@ -74,12 +77,26 @@ export class SubscriptionService {
         .single();
 
       if (error) {
-        logger.error('Failed to fetch subscription status', { error });
+        logger.error('Failed to fetch subscription status from database', { 
+          error, 
+          userId: user.user.id,
+          errorCode: error.code,
+          errorMessage: error.message 
+        });
         return { status: 'free' };
       }
 
+      const status = data.subscription_status || 'free';
+      
+      logger.info('Retrieved subscription status from database', { 
+        userId: user.user.id,
+        subscription_status: status,
+        trial_end_date: data.trial_end_date,
+        stripe_customer_id: data.stripe_customer_id ? 'present' : 'null'
+      });
+
       return {
-        status: data.subscription_status || 'free',
+        status: status,
         trialEndDate: data.trial_end_date,
         stripeCustomerId: data.stripe_customer_id,
       };
