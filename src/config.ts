@@ -40,11 +40,17 @@ export class ConfigurationError extends Error {
   }
 }
 
-// Required environment variables (only Supabase for personal mode)
-// Check both prefixed and non-prefixed versions
+// Required environment variables for basic functionality
 const REQUIRED_ENV_VARS: RequiredEnvVars = {
-  REACT_APP_SUPABASE_URL: 'Supabase project URL is required',
-  REACT_APP_SUPABASE_ANON_KEY: 'Supabase anonymous key is required'
+  REACT_APP_SUPABASE_URL: 'Supabase project URL is required for database connectivity',
+  REACT_APP_SUPABASE_ANON_KEY: 'Supabase anonymous key is required for authentication'
+};
+
+// Optional environment variables that enhance functionality
+const OPTIONAL_ENV_VARS: Record<string, string> = {
+  REACT_APP_STRIPE_PUBLISHABLE_KEY: 'Stripe publishable key (required for SaaS subscription features)',
+  REACT_APP_BUILD_MODE: 'Build mode configuration (personal/saas)',
+  REACT_APP_SENTRY_DSN: 'Sentry DSN for error tracking in production'
 };
 
 // Fallback values for development - these should be loaded from .env file
@@ -53,27 +59,62 @@ const DEVELOPMENT_FALLBACKS: Record<string, string> = {
 };
 
 /**
- * Validates environment variables and provides fallbacks for development
- * In production, operates silently to prevent console clutter
+ * Validates Supabase URL format
+ */
+function validateSupabaseUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  return url.startsWith('https://') && url.includes('.supabase.co');
+}
+
+/**
+ * Validates environment variables and throws errors for missing critical values
+ * No hardcoded fallbacks for security - all values must come from environment
  */
 function validateEnvironment(): void {
   const missing: string[] = [];
+  const invalid: string[] = [];
   
+  // Check required variables
   for (const [envVar, description] of Object.entries(REQUIRED_ENV_VARS)) {
     if (!process.env[envVar]) {
       missing.push(`${envVar}: ${description}`);
     }
   }
   
-  // Only warn in development environment - production uses fallback values silently
-  if (missing.length > 0 && process.env.NODE_ENV === 'development') {
-    console.warn(
-      `Missing required environment variables:\n${missing.join('\n')}\n\n` +
-      'Please set these variables in your environment or .env file'
-    );
+  // Validate Supabase URL format if provided
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
+  if (supabaseUrl && !validateSupabaseUrl(supabaseUrl)) {
+    invalid.push('SUPABASE_URL: Must be a valid Supabase URL (https://your-project.supabase.co)');
   }
   
-  // Use fallback values without warnings in production for clean user experience
+  // Handle missing variables
+  if (missing.length > 0) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ConfigurationError(
+        `🚨 Missing required environment variables in production:\n${missing.join('\n')}\n\n` +
+        '📝 Please set these variables in your hosting provider (Vercel/Netlify) environment settings.\n' +
+        '📚 See .env.example for the required format.'
+      );
+    } else {
+      // Development warning with helpful guidance
+      console.warn(
+        `⚠️  Security Warning: Missing required environment variables:\n${missing.join('\n')}\n\n` +
+        '📋 To fix this:\n' +
+        '1. Copy .env.example to .env\n' +
+        '2. Fill in your actual Supabase credentials\n' +
+        '3. Restart your development server\n\n' +
+        '🔒 Never commit actual credentials to version control!'
+      );
+    }
+  }
+  
+  // Handle invalid variables
+  if (invalid.length > 0) {
+    throw new ConfigurationError(
+      `❌ Invalid environment variable format:\n${invalid.join('\n')}\n\n` +
+      '📚 See .env.example for the correct format.'
+    );
+  }
 }
 
 /**
@@ -86,8 +127,8 @@ function createConfig(): Config {
   
   return {
     supabase: {
-      url: process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || 'https://adkrfpcmfvqhctlvizxw.supabase.co',
-      key: process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFka3JmcGNtZnZxaGN0bHZpenh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0ODM5ODYsImV4cCI6MjA1OTA1OTk4Nn0.avFXOP9di5ehRMdqwvF38uSmyCFAXGJyjzdAe5zne6A'
+      url: process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL,
+      key: process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY
     },
     stripe: {
       publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY,

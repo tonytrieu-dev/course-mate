@@ -356,8 +356,9 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     }
   };
 
-  // Check if user is subscribed (trialing or active)
+  // Check if user is subscribed (lifetime, trialing or active)
   const isSubscribed = features.isPersonalMode || 
+    subscriptionStatus.status === 'lifetime' ||
     subscriptionStatus.status === 'trialing' || 
     subscriptionStatus.status === 'active';
 

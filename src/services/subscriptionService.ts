@@ -94,7 +94,7 @@ export class SubscriptionService {
    */
   async hasProAccess(): Promise<boolean> {
     const status = await this.getSubscriptionStatus();
-    return status.status === 'trialing' || status.status === 'active' || status.status === 'lifetime';
+    return status.status === 'lifetime' || status.status === 'trialing' || status.status === 'active';
   }
 
   /**
