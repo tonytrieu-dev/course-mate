@@ -1,2 +1,6 @@
 # supabase/config.toml
 project_id = "adkrfpcmfvqhctlvizxw"
+
+# Disable JWT verification for webhook endpoints
+[functions.stripe-webhook]
+verify_jwt = false

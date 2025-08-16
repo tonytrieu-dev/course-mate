@@ -277,6 +277,14 @@ const CalendarApp: React.FC = () => {
     const app = urlParams.get('app');
     const forceLanding = urlParams.get('landing');
     
+    // Handle successful subscription redirect
+    const paymentSuccess = urlParams.get('payment');
+    if (paymentSuccess === 'success') {
+      setShowLanding(false);
+      // Could show success notification here
+      return;
+    }
+    
     // Force landing page for testing with ?landing=true
     if (forceLanding === 'true') {
       setShowLanding(true);
