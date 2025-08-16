@@ -93,21 +93,14 @@ module.exports = {
       process: 'process/browser.js',
       Buffer: ['buffer', 'Buffer'],
     }),
-    // Primary method: Dotenv plugin - reads from Netlify environment
-    new Dotenv({
-      systemvars: true, // Use system environment variables (Netlify)
-      silent: false,    // Show verbose logging
-      safe: false,      // Don't require .env.example
-      defaults: false,  // Don't load .env.defaults
+    // DefinePlugin - directly inject Netlify environment variables at build time
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(process.env.REACT_APP_SUPABASE_URL),
+      'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(process.env.REACT_APP_SUPABASE_ANON_KEY),
+      'process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY': JSON.stringify(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY),
+      'process.env.REACT_APP_BUILD_MODE': JSON.stringify(process.env.REACT_APP_BUILD_MODE),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     }),
-    // Backup method: DefinePlugin (commented out after testing)
-    // new webpack.DefinePlugin({
-    //   'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(process.env.REACT_APP_SUPABASE_URL),
-    //   'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(process.env.REACT_APP_SUPABASE_ANON_KEY),
-    //   'process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY': JSON.stringify(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY),
-    //   'process.env.REACT_APP_BUILD_MODE': JSON.stringify(process.env.REACT_APP_BUILD_MODE),
-    //   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-    // }),
     ...(process.argv.includes('--analyze') ? [new BundleAnalyzerPlugin()] : []),
   ],
 };
