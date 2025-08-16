@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const Dotenv = require('dotenv-webpack');
+// const Dotenv = require('dotenv-webpack'); // Removed - using Netlify Dashboard environment variables
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -98,8 +98,17 @@ module.exports = {
       'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(process.env.REACT_APP_SUPABASE_URL),
       'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(process.env.REACT_APP_SUPABASE_ANON_KEY),
       'process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY': JSON.stringify(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY),
+      'process.env.REACT_APP_STRIPE_STUDENT_MONTHLY_PRICE_ID': JSON.stringify(process.env.REACT_APP_STRIPE_STUDENT_MONTHLY_PRICE_ID),
+      'process.env.REACT_APP_STRIPE_ACADEMIC_YEAR_PRICE_ID': JSON.stringify(process.env.REACT_APP_STRIPE_ACADEMIC_YEAR_PRICE_ID),
       'process.env.REACT_APP_BUILD_MODE': JSON.stringify(process.env.REACT_APP_BUILD_MODE),
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+      'process.env.CI': JSON.stringify(process.env.CI),
+      'process.env.REACT_APP_ENABLE_STRIPE': JSON.stringify(process.env.REACT_APP_ENABLE_STRIPE),
+      'process.env.REACT_APP_ENABLE_SUBSCRIPTIONS': JSON.stringify(process.env.REACT_APP_ENABLE_SUBSCRIPTIONS),
+      'process.env.REACT_APP_ENABLE_USAGE_LIMITS': JSON.stringify(process.env.REACT_APP_ENABLE_USAGE_LIMITS),
+      'process.env.REACT_APP_SHOW_UPGRADE_PROMPTS': JSON.stringify(process.env.REACT_APP_SHOW_UPGRADE_PROMPTS),
+      'process.env.REACT_APP_SHOW_ANALYTICS': JSON.stringify(process.env.REACT_APP_SHOW_ANALYTICS),
+      'process.env.REACT_APP_AI_CREDITS_LIMIT': JSON.stringify(process.env.REACT_APP_AI_CREDITS_LIMIT),
     }),
     ...(process.argv.includes('--analyze') ? [new BundleAnalyzerPlugin()] : []),
   ],
