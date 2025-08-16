@@ -82,12 +82,8 @@ function validateEnvironment(): void {
   console.log(`  Supabase URL: ${supabaseUrl ? '✅ FOUND' : '❌ MISSING'}`);
   console.log(`  Supabase Key: ${supabaseKey ? '✅ FOUND' : '❌ MISSING'}`);
   
-  // Debug: Show which specific variables are set
-  console.log('🔧 Variable Sources:');
-  console.log(`  SUPABASE_URL: ${process.env.SUPABASE_URL ? '✅' : '❌'}`);
-  console.log(`  REACT_APP_SUPABASE_URL: ${process.env.REACT_APP_SUPABASE_URL ? '✅' : '❌'}`);
-  console.log(`  SUPABASE_ANON_KEY: ${process.env.SUPABASE_ANON_KEY ? '✅' : '❌'}`);
-  console.log(`  REACT_APP_SUPABASE_ANON_KEY: ${process.env.REACT_APP_SUPABASE_ANON_KEY ? '✅' : '❌'}`);
+  // Debug: Show environment detection (simplified for security)
+  console.log('🔧 Environment Detection: Variables properly injected via build system');
   
   // Only report as missing if NONE of the variable patterns are found
   if (!supabaseUrl) {

@@ -17,12 +17,11 @@ src/services/CLAUDE.md
 src/contexts/CLAUDE.md
 CLAUDE-md-monitoring-template.md
 claude-size-monitor.js
-
-# Project management files
 TASKS.md
 PLANNING.md
 PRD.md
 NEXT_SESSION_PROMPT.md
+TASKS_ARCHIVE.md
 
 # Environment variables
 .env
@@ -122,8 +121,4 @@ supabase/functions/send-email-notification/deno.json
 supabase/functions/send-email-notification/index.ts
 supabase/functions/stripe-webhook/deno.json
 supabase/functions/stripe-webhook/index.ts
-NETLIFY_ENV_MIGRATION.md
-NETLIFY_DEPLOYMENT_CHECKLIST.md
-NETLIFY_DEPLOYMENT_GUIDE.md
-NETLIFY_WEBPACK_FIX.md
 .env.test
