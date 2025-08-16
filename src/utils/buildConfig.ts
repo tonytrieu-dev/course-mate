@@ -6,15 +6,24 @@
 export type BuildMode = 'personal' | 'saas';
 
 export const getBuildMode = (): BuildMode => {
-  return (process.env.REACT_APP_BUILD_MODE as BuildMode) || 'personal';
+  const mode = (process.env.REACT_APP_BUILD_MODE as BuildMode) || 'personal';
+  console.log('🔧 DEBUG: Build mode calculation:', {
+    'process.env.REACT_APP_BUILD_MODE': process.env.REACT_APP_BUILD_MODE,
+    'finalMode': mode
+  });
+  return mode;
 };
 
 export const isPersonalMode = (): boolean => {
-  return getBuildMode() === 'personal';
+  const result = getBuildMode() === 'personal';
+  console.log('🔧 DEBUG: isPersonalMode result:', result);
+  return result;
 };
 
 export const isSaaSMode = (): boolean => {
-  return getBuildMode() === 'saas';
+  const result = getBuildMode() === 'saas';
+  console.log('🔧 DEBUG: isSaaSMode result:', result);
+  return result;
 };
 
 export const getFeatureFlag = (flag: string): boolean => {
@@ -45,6 +54,16 @@ export const features = {
   isSaaSMode: isSaaSMode(),
   aiCreditLimit: getAICreditLimit(),
 };
+
+// AGGRESSIVE DEBUG: Log features object
+console.log('🚀 DEBUG: Features object created:', {
+  features,
+  'process.env': {
+    'REACT_APP_BUILD_MODE': process.env.REACT_APP_BUILD_MODE,
+    'REACT_APP_ENABLE_STRIPE': process.env.REACT_APP_ENABLE_STRIPE,
+    'REACT_APP_ENABLE_SUBSCRIPTIONS': process.env.REACT_APP_ENABLE_SUBSCRIPTIONS,
+  }
+});
 
 
 // UI text based on mode

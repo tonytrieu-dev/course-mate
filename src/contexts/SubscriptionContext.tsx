@@ -370,15 +370,24 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     subscriptionStatus.status === 'trialing' || 
     subscriptionStatus.status === 'active';
 
-  // Debug logging for subscription access
+  // AGGRESSIVE DEBUG: Track subscription access calculation
   useEffect(() => {
+    console.log('🎯 DEBUG: Subscription access calculation:', {
+      'features.isPersonalMode': features.isPersonalMode,
+      'subscriptionStatus.status': subscriptionStatus.status,
+      'isSubscribed': isSubscribed,
+      'buildMode': process.env.REACT_APP_BUILD_MODE,
+      'features': features,
+      'subscriptionStatusObject': subscriptionStatus
+    });
+    
     logger.info('Subscription access calculation', {
       isPersonalMode: features.isPersonalMode,
       subscriptionStatus: subscriptionStatus.status,
       isSubscribed,
       buildMode: process.env.REACT_APP_BUILD_MODE
     });
-  }, [isSubscribed, subscriptionStatus.status]);
+  }, [isSubscribed, subscriptionStatus.status, features.isPersonalMode]);
 
   const value: SubscriptionContextType = {
     // Subscription state

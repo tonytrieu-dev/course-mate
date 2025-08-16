@@ -61,22 +61,41 @@ export class SubscriptionService {
    */
   async getSubscriptionStatus(): Promise<SubscriptionStatus> {
     try {
-      const { data: user } = await supabase.auth.getUser();
+      // AGGRESSIVE DEBUG: Check authentication first
+      console.log('🔍 DEBUG: Getting current user...');
+      const { data: user, error: authError } = await supabase.auth.getUser();
+      
+      console.log('🔍 DEBUG: Auth result:', { 
+        hasUser: !!user.user, 
+        userId: user.user?.id,
+        email: user.user?.email,
+        authError: authError?.message 
+      });
       
       if (!user.user) {
+        console.log('❌ DEBUG: No authenticated user found');
         logger.info('No authenticated user found');
         return { status: 'free' };
       }
 
+      console.log('🔍 DEBUG: Fetching subscription status for user:', user.user.id);
       logger.info('Fetching subscription status for user', { userId: user.user.id });
 
+      // AGGRESSIVE DEBUG: Check database query
       const { data, error } = await supabase
         .from('users')
-        .select('subscription_status, trial_end_date, stripe_customer_id')
+        .select('subscription_status, trial_end_date, stripe_customer_id, email')
         .eq('id', user.user.id)
         .single();
 
+      console.log('🔍 DEBUG: Database query result:', { 
+        data, 
+        error: error?.message,
+        hasData: !!data 
+      });
+
       if (error) {
+        console.log('❌ DEBUG: Database error:', error);
         logger.error('Failed to fetch subscription status from database', { 
           error, 
           userId: user.user.id,
@@ -86,7 +105,14 @@ export class SubscriptionService {
         return { status: 'free' };
       }
 
-      const status = data.subscription_status || 'free';
+      const status = data?.subscription_status || 'free';
+      
+      console.log('✅ DEBUG: Final subscription status:', {
+        rawStatus: data?.subscription_status,
+        finalStatus: status,
+        userId: user.user.id,
+        email: data?.email
+      });
       
       logger.info('Retrieved subscription status from database', { 
         userId: user.user.id,
@@ -101,6 +127,7 @@ export class SubscriptionService {
         stripeCustomerId: data.stripe_customer_id,
       };
     } catch (error) {
+      console.log('💥 DEBUG: Exception in getSubscriptionStatus:', error);
       logger.error('Error in getSubscriptionStatus', { error });
       return { status: 'free' };
     }
